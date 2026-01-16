@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import type { BlendRecommendation } from '../App';
+import type { UIBlendRecommendation } from '../lib/engineAdapter';
 import { VoiceFeedback } from './VoiceFeedback';
 
 interface BlendCardProps {
-  recommendation: BlendRecommendation;
+  recommendation: UIBlendRecommendation;
   onCalculate: () => void;
 }
 
