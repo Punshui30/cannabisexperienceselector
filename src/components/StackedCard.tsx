@@ -39,13 +39,13 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
           }}
         >
           {/* Inner glow - single hue */}
-          <div 
+          <div
             className="absolute inset-0 opacity-10"
             style={{
               background: `radial-gradient(circle at top right, ${COLORS.stack.primary}, transparent 70%)`,
             }}
           />
-          
+
           {/* Shimmer effect */}
           <motion.div
             animate={{ x: ['-100%', '100%'] }}
@@ -88,9 +88,9 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
                     borderColor: COLORS.blend.primary,
                   }}
                 >
-                  <div 
+                  <div
                     className="w-1.5 h-1.5 rounded-full animate-pulse"
-                    style={{ 
+                    style={{
                       backgroundColor: COLORS.blend.primary,
                       boxShadow: `0 0 8px ${COLORS.blend.primary}`,
                     }}
@@ -117,9 +117,9 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
             {/* Layers - Mini preview with high chroma */}
             <div className="space-y-3 mb-6">
               <div className="text-xs uppercase tracking-widest mb-3" style={{ color: COLORS.neutral.text.tertiary }}>
-                {recommendation.layers.length} Layers
+                {recommendation.layers?.length || 0} Layers
               </div>
-              {recommendation.layers.map((layer, idx) => (
+              {recommendation.layers?.map((layer, idx) => (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 20 }}
@@ -188,36 +188,6 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
                 </div>
               </motion.button>
 
-              {/* Voice Feedback Button */}
-              <motion.button
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}
-                onClick={() => setShowVoiceFeedback(true)}
-                whileHover={{ scale: 1.005, y: -1 }}
-                whileTap={{ scale: 0.995 }}
-                className="w-full px-6 py-3 rounded-xl border text-sm flex items-center justify-center gap-2"
-                style={{
-                  backgroundColor: `${COLORS.stack.primary}08`,
-                  borderColor: `${COLORS.stack.primary}30`,
-                  color: COLORS.stack.primary,
-                }}
-              >
-                <motion.svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 16 16" 
-                  fill="none"
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <rect x="6" y="2" width="4" height="7" rx="2" stroke={COLORS.stack.primary} strokeWidth="1.5" />
-                  <path d="M2 7C2 9.76 4.24 12 8 12C11.76 12 14 9.76 14 7" stroke={COLORS.stack.primary} strokeWidth="1.5" strokeLinecap="round" />
-                  <path d="M8 12V14M5 14H11" stroke={COLORS.stack.primary} strokeWidth="1.5" strokeLinecap="round" />
-                </motion.svg>
-                <span>Give Feedback</span>
-              </motion.button>
-
               <button
                 onClick={() => setShowDetails(true)}
                 className="w-full px-6 py-3 rounded-xl border text-sm"
@@ -239,8 +209,8 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
               className="mt-6 pt-4 border-t text-center"
               style={{ borderColor: COLORS.neutral.border }}
             >
-              <div 
-                className="text-xs font-light" 
+              <div
+                className="text-xs font-light"
                 style={{ color: COLORS.neutral.text.tertiary, opacity: 0.5 }}
               >
                 Outcome design powered by StrainMath™
@@ -250,7 +220,7 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
         </motion.div>
 
         {/* Outer glow - high chroma */}
-        <div 
+        <div
           className="absolute -inset-4 rounded-[2.5rem] blur-2xl -z-10 opacity-30"
           style={{
             background: `radial-gradient(ellipse, ${COLORS.stack.primary}, transparent 70%)`,
@@ -281,7 +251,7 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
                 borderColor: COLORS.neutral.border,
               }}
             >
-              <div 
+              <div
                 className="sticky top-0 border-b px-6 py-4 flex items-center justify-between"
                 style={{
                   backgroundColor: COLORS.background,
@@ -302,8 +272,8 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
 
               <div className="p-6 space-y-4">
                 {recommendation.layers.map((layer, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="rounded-2xl p-4 border"
                     style={{
                       backgroundColor: COLORS.neutral.surface,
@@ -328,8 +298,8 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
                     <div className="text-sm mb-3" style={{ color: COLORS.neutral.text.secondary }}>{layer.purpose}</div>
                     <div className="space-y-2">
                       {layer.cultivars.map((c, cidx) => (
-                        <div 
-                          key={cidx} 
+                        <div
+                          key={cidx}
                           className="flex items-center justify-between text-sm rounded-lg px-3 py-2"
                           style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
                         >

@@ -167,7 +167,10 @@ export default function App() {
                   const recommendation: StackedRecommendation = {
                     id: stack.id,
                     matchScore: 98,
-                    ...stack.stack
+                    name: stack.stack.name,
+                    layers: stack.stack.layers,
+                    reasoning: stack.stack.reasoning,
+                    totalDuration: stack.stack.totalDuration
                   };
                   setRecommendations([recommendation]);
                   setView('results');
