@@ -42,15 +42,15 @@ export function SplashScreen({ onComplete }: Props) {
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ 
+      style={{
         background: '#000000',
         willChange: 'opacity',
       }}
       initial={{ opacity: 1 }}
-      animate={{ 
+      animate={{
         opacity: phase === 'exit' ? 0 : 1,
       }}
-      transition={{ 
+      transition={{
         duration: phase === 'exit' ? 1 : 0,
         ease: [0.22, 1, 0.36, 1],
       }}
@@ -71,16 +71,16 @@ export function SplashScreen({ onComplete }: Props) {
             willChange: 'opacity, transform',
           }}
           initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ 
+          animate={{
             opacity: phase === 'exit' ? 0.4 : 0.15,
             scale: phase === 'exit' ? 2 : 1,
           }}
-          transition={{ 
+          transition={{
             duration: phase === 'exit' ? 2 : 1.5,
             ease: [0.22, 1, 0.36, 1],
           }}
         />
-        
+
         {/* Exit light flash - emerald */}
         {phase === 'exit' && (
           <motion.div
@@ -96,17 +96,17 @@ export function SplashScreen({ onComplete }: Props) {
               marginLeft: '-350px',
             }}
             initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ 
+            animate={{
               opacity: [0, 0.35, 0],
               scale: [0.5, 1.5, 2],
             }}
-            transition={{ 
+            transition={{
               duration: 2.5,
               ease: [0.22, 1, 0.36, 1],
             }}
           />
         )}
-        
+
         {/* Exit light flash - purple */}
         {phase === 'exit' && (
           <motion.div
@@ -122,11 +122,11 @@ export function SplashScreen({ onComplete }: Props) {
               marginLeft: '-325px',
             }}
             initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ 
+            animate={{
               opacity: [0, 0.3, 0],
               scale: [0.6, 1.4, 2],
             }}
-            transition={{ 
+            transition={{
               duration: 2.5,
               delay: 0.2,
               ease: [0.22, 1, 0.36, 1],
@@ -135,9 +135,12 @@ export function SplashScreen({ onComplete }: Props) {
         )}
       </div>
 
+      {/* Overlay to dampen background and ensure text pop */}
+      <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center">
-        
+
         {/* Logo - Phase 1 */}
         <motion.div
           className="relative"
@@ -155,7 +158,7 @@ export function SplashScreen({ onComplete }: Props) {
           {/* Logo glow effect */}
           <motion.div
             className="absolute inset-0"
-            style={{ 
+            style={{
               willChange: 'opacity',
               filter: 'blur(20px)',
             }}
@@ -171,8 +174,8 @@ export function SplashScreen({ onComplete }: Props) {
             <img
               src={logo}
               alt="Logo"
-              style={{ 
-                width: '280px', 
+              style={{
+                width: '280px',
                 height: 'auto',
                 objectFit: 'contain',
                 opacity: 0.6,
@@ -185,9 +188,9 @@ export function SplashScreen({ onComplete }: Props) {
           <img
             src={logo}
             alt="Logo"
-            style={{ 
+            style={{
               position: 'relative',
-              width: '280px', 
+              width: '280px',
               height: 'auto',
               objectFit: 'contain',
               willChange: 'auto',
@@ -209,17 +212,17 @@ export function SplashScreen({ onComplete }: Props) {
             ease: [0.22, 1, 0.36, 1],
           }}
         >
-          <h1 
+          <h1
             className="text-2xl font-light tracking-wide"
             style={{ color: COLORS.neutral.text.primary }}
           >
             Guided Outcomes Calculator
           </h1>
-          
+
           {/* Underline */}
           <motion.div
             className="h-px mx-auto mt-3"
-            style={{ 
+            style={{
               background: `linear-gradient(90deg, transparent, ${COLORS.energy}, transparent)`,
               willChange: 'width, opacity',
             }}
@@ -249,13 +252,13 @@ export function SplashScreen({ onComplete }: Props) {
             ease: [0.22, 1, 0.36, 1],
           }}
         >
-          <div 
+          <div
             className="text-xs uppercase tracking-[0.3em] font-light mb-1"
             style={{ color: COLORS.neutral.text.tertiary }}
           >
             Powered by
           </div>
-          <div 
+          <div
             className="text-xl font-light tracking-wide"
             style={{ color: COLORS.energy }}
           >
@@ -266,7 +269,7 @@ export function SplashScreen({ onComplete }: Props) {
       </div>
 
       {/* Edge vignette for depth */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: 'radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%)',
