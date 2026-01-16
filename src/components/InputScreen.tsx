@@ -231,6 +231,13 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
           Generate Recommendations
         </button>
 
+        <button
+          onClick={onBrowsePresets}
+          className="w-full mt-3 py-3 rounded-xl border border-white/10 text-white/40 text-[10px] font-semibold uppercase tracking-widest hover:bg-white/5 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 transition-all"
+        >
+          Explore Preset Stacks
+        </button>
+
         {isAdminMode && (
           <button
             onClick={onAdminModeToggle}
