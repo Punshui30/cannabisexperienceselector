@@ -93,8 +93,14 @@ export default function App() {
     <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black">
       {/* Global Background Effects - Moved here for persistence */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#BF5AF2]/10 rounded-full blur-[140px] mix-blend-screen animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#00FFD1]/5 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow delay-700" />
+        {/* Top Purple Gradient */}
+        <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow" />
+
+        {/* Bottom Teal/Green Gradient */}
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/20 rounded-full blur-[100px] mix-blend-screen animate-pulse-slow delay-700" />
+
+        {/* Subtle texture overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
       </div>
 
       <main className="relative z-10 w-full h-full flex flex-col">
