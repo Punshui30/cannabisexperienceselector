@@ -1,0 +1,1144 @@
+{
+    "cultivars": [
+        {
+            "id": "strain_001",
+            "name": "Blue Dream",
+            "type": "hybrid",
+            "thc_percent": 19.5,
+            "cbd_percent": 0.3,
+            "terpenes": {
+                "myrcene": 0.65,
+                "limonene": 0.28,
+                "caryophyllene": 0.35,
+                "pinene": 0.42,
+                "linalool": 0.18,
+                "terpinolene": 0.22,
+                "humulene": 0.12,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.3,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_002",
+            "name": "Sour Diesel",
+            "type": "sativa",
+            "thc_percent": 22.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.25,
+                "limonene": 0.55,
+                "caryophyllene": 0.38,
+                "pinene": 0.32,
+                "linalool": 0.08,
+                "terpinolene": 0.28,
+                "humulene": 0.15,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.13,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_003",
+            "name": "OG Kush",
+            "type": "hybrid",
+            "thc_percent": 21.0,
+            "cbd_percent": 0.25,
+            "terpenes": {
+                "myrcene": 0.72,
+                "limonene": 0.38,
+                "caryophyllene": 0.48,
+                "pinene": 0.22,
+                "linalool": 0.25,
+                "terpinolene": 0.08,
+                "humulene": 0.28,
+                "ocimene": 0.05
+            },
+            "total_terpenes_percent": 2.46,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_004",
+            "name": "Granddaddy Purple",
+            "type": "indica",
+            "thc_percent": 20.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.95,
+                "limonene": 0.12,
+                "caryophyllene": 0.58,
+                "pinene": 0.18,
+                "linalool": 0.35,
+                "terpinolene": 0.05,
+                "humulene": 0.22,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.53,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_005",
+            "name": "Green Crack",
+            "type": "sativa",
+            "thc_percent": 18.5,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.38,
+                "limonene": 0.48,
+                "caryophyllene": 0.25,
+                "pinene": 0.35,
+                "linalool": 0.12,
+                "terpinolene": 0.18,
+                "humulene": 0.08,
+                "ocimene": 0.15
+            },
+            "total_terpenes_percent": 1.99,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_006",
+            "name": "Girl Scout Cookies",
+            "type": "hybrid",
+            "thc_percent": 23.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.42,
+                "limonene": 0.35,
+                "caryophyllene": 0.65,
+                "pinene": 0.18,
+                "linalool": 0.28,
+                "terpinolene": 0.08,
+                "humulene": 0.32,
+                "ocimene": 0.06
+            },
+            "total_terpenes_percent": 2.34,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_007",
+            "name": "Bubba Kush",
+            "type": "indica",
+            "thc_percent": 19.0,
+            "cbd_percent": 0.3,
+            "terpenes": {
+                "myrcene": 0.88,
+                "limonene": 0.15,
+                "caryophyllene": 0.62,
+                "pinene": 0.12,
+                "linalool": 0.38,
+                "terpinolene": 0.04,
+                "humulene": 0.35,
+                "ocimene": 0.05
+            },
+            "total_terpenes_percent": 2.59,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_008",
+            "name": "Jack Herer",
+            "type": "sativa",
+            "thc_percent": 20.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.32,
+                "limonene": 0.28,
+                "caryophyllene": 0.35,
+                "pinene": 0.58,
+                "linalool": 0.15,
+                "terpinolene": 0.42,
+                "humulene": 0.18,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.4,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_009",
+            "name": "Northern Lights",
+            "type": "indica",
+            "thc_percent": 18.0,
+            "cbd_percent": 0.25,
+            "terpenes": {
+                "myrcene": 0.82,
+                "limonene": 0.22,
+                "caryophyllene": 0.45,
+                "pinene": 0.15,
+                "linalool": 0.32,
+                "terpinolene": 0.06,
+                "humulene": 0.25,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.35,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_010",
+            "name": "Durban Poison",
+            "type": "sativa",
+            "thc_percent": 19.0,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.28,
+                "limonene": 0.38,
+                "caryophyllene": 0.22,
+                "pinene": 0.25,
+                "linalool": 0.08,
+                "terpinolene": 0.68,
+                "humulene": 0.12,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.19,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_011",
+            "name": "Wedding Cake",
+            "type": "hybrid",
+            "thc_percent": 24.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.48,
+                "limonene": 0.52,
+                "caryophyllene": 0.58,
+                "pinene": 0.18,
+                "linalool": 0.35,
+                "terpinolene": 0.08,
+                "humulene": 0.28,
+                "ocimene": 0.06
+            },
+            "total_terpenes_percent": 2.53,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_012",
+            "name": "Gorilla Glue #4",
+            "type": "hybrid",
+            "thc_percent": 25.0,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.58,
+                "limonene": 0.38,
+                "caryophyllene": 0.72,
+                "pinene": 0.22,
+                "linalool": 0.28,
+                "terpinolene": 0.12,
+                "humulene": 0.42,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.8,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_013",
+            "name": "Pineapple Express",
+            "type": "hybrid",
+            "thc_percent": 21.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.45,
+                "limonene": 0.62,
+                "caryophyllene": 0.38,
+                "pinene": 0.28,
+                "linalool": 0.15,
+                "terpinolene": 0.22,
+                "humulene": 0.18,
+                "ocimene": 0.25
+            },
+            "total_terpenes_percent": 2.53,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_014",
+            "name": "Strawberry Cough",
+            "type": "sativa",
+            "thc_percent": 17.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.38,
+                "limonene": 0.42,
+                "caryophyllene": 0.28,
+                "pinene": 0.35,
+                "linalool": 0.22,
+                "terpinolene": 0.32,
+                "humulene": 0.15,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.3,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_015",
+            "name": "Purple Punch",
+            "type": "indica",
+            "thc_percent": 22.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.92,
+                "limonene": 0.28,
+                "caryophyllene": 0.55,
+                "pinene": 0.15,
+                "linalool": 0.42,
+                "terpinolene": 0.06,
+                "humulene": 0.25,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.75,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_016",
+            "name": "White Widow",
+            "type": "hybrid",
+            "thc_percent": 20.0,
+            "cbd_percent": 0.3,
+            "terpenes": {
+                "myrcene": 0.52,
+                "limonene": 0.35,
+                "caryophyllene": 0.42,
+                "pinene": 0.38,
+                "linalool": 0.18,
+                "terpinolene": 0.15,
+                "humulene": 0.22,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.34,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_017",
+            "name": "AK-47",
+            "type": "hybrid",
+            "thc_percent": 19.5,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.48,
+                "limonene": 0.38,
+                "caryophyllene": 0.35,
+                "pinene": 0.42,
+                "linalool": 0.22,
+                "terpinolene": 0.25,
+                "humulene": 0.18,
+                "ocimene": 0.15
+            },
+            "total_terpenes_percent": 2.43,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_018",
+            "name": "Super Lemon Haze",
+            "type": "sativa",
+            "thc_percent": 21.5,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.28,
+                "limonene": 0.85,
+                "caryophyllene": 0.32,
+                "pinene": 0.38,
+                "linalool": 0.12,
+                "terpinolene": 0.42,
+                "humulene": 0.15,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.7,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_019",
+            "name": "Gelato",
+            "type": "hybrid",
+            "thc_percent": 23.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.52,
+                "limonene": 0.48,
+                "caryophyllene": 0.62,
+                "pinene": 0.22,
+                "linalool": 0.32,
+                "terpinolene": 0.12,
+                "humulene": 0.28,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.64,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_020",
+            "name": "Skywalker OG",
+            "type": "indica",
+            "thc_percent": 21.5,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.78,
+                "limonene": 0.32,
+                "caryophyllene": 0.58,
+                "pinene": 0.25,
+                "linalool": 0.28,
+                "terpinolene": 0.08,
+                "humulene": 0.35,
+                "ocimene": 0.06
+            },
+            "total_terpenes_percent": 2.7,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_021",
+            "name": "Trainwreck",
+            "type": "hybrid",
+            "thc_percent": 20.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.48,
+                "limonene": 0.58,
+                "caryophyllene": 0.38,
+                "pinene": 0.35,
+                "linalool": 0.18,
+                "terpinolene": 0.48,
+                "humulene": 0.22,
+                "ocimene": 0.15
+            },
+            "total_terpenes_percent": 2.82,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_022",
+            "name": "Cherry Pie",
+            "type": "hybrid",
+            "thc_percent": 20.5,
+            "cbd_percent": 0.25,
+            "terpenes": {
+                "myrcene": 0.55,
+                "limonene": 0.38,
+                "caryophyllene": 0.48,
+                "pinene": 0.22,
+                "linalool": 0.35,
+                "terpinolene": 0.12,
+                "humulene": 0.25,
+                "ocimene": 0.15
+            },
+            "total_terpenes_percent": 2.5,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_023",
+            "name": "Zkittlez",
+            "type": "indica",
+            "thc_percent": 19.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.68,
+                "limonene": 0.42,
+                "caryophyllene": 0.52,
+                "pinene": 0.18,
+                "linalool": 0.38,
+                "terpinolene": 0.08,
+                "humulene": 0.22,
+                "ocimene": 0.22
+            },
+            "total_terpenes_percent": 2.7,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_024",
+            "name": "Maui Wowie",
+            "type": "sativa",
+            "thc_percent": 17.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.42,
+                "limonene": 0.58,
+                "caryophyllene": 0.28,
+                "pinene": 0.32,
+                "linalool": 0.15,
+                "terpinolene": 0.22,
+                "humulene": 0.12,
+                "ocimene": 0.28
+            },
+            "total_terpenes_percent": 2.37,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_025",
+            "name": "Chemdawg",
+            "type": "hybrid",
+            "thc_percent": 23.0,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.52,
+                "limonene": 0.45,
+                "caryophyllene": 0.58,
+                "pinene": 0.35,
+                "linalool": 0.18,
+                "terpinolene": 0.32,
+                "humulene": 0.28,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.8,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_026",
+            "name": "LA Confidential",
+            "type": "indica",
+            "thc_percent": 21.0,
+            "cbd_percent": 0.25,
+            "terpenes": {
+                "myrcene": 0.75,
+                "limonene": 0.22,
+                "caryophyllene": 0.48,
+                "pinene": 0.42,
+                "linalool": 0.32,
+                "terpinolene": 0.08,
+                "humulene": 0.28,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.63,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_027",
+            "name": "Tangie",
+            "type": "sativa",
+            "thc_percent": 19.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.32,
+                "limonene": 0.92,
+                "caryophyllene": 0.28,
+                "pinene": 0.35,
+                "linalool": 0.12,
+                "terpinolene": 0.25,
+                "humulene": 0.15,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.57,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_028",
+            "name": "Do-Si-Dos",
+            "type": "indica",
+            "thc_percent": 22.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.62,
+                "limonene": 0.38,
+                "caryophyllene": 0.68,
+                "pinene": 0.18,
+                "linalool": 0.42,
+                "terpinolene": 0.08,
+                "humulene": 0.32,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.76,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_029",
+            "name": "Harlequin",
+            "type": "sativa",
+            "thc_percent": 9.5,
+            "cbd_percent": 10.0,
+            "terpenes": {
+                "myrcene": 0.58,
+                "limonene": 0.28,
+                "caryophyllene": 0.42,
+                "pinene": 0.48,
+                "linalool": 0.22,
+                "terpinolene": 0.18,
+                "humulene": 0.25,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.53,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_030",
+            "name": "Sunset Sherbet",
+            "type": "indica",
+            "thc_percent": 20.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.58,
+                "limonene": 0.45,
+                "caryophyllene": 0.62,
+                "pinene": 0.18,
+                "linalool": 0.38,
+                "terpinolene": 0.08,
+                "humulene": 0.28,
+                "ocimene": 0.15
+            },
+            "total_terpenes_percent": 2.72,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_031",
+            "name": "Bruce Banner",
+            "type": "hybrid",
+            "thc_percent": 26.0,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.48,
+                "limonene": 0.62,
+                "caryophyllene": 0.58,
+                "pinene": 0.32,
+                "linalool": 0.22,
+                "terpinolene": 0.38,
+                "humulene": 0.28,
+                "ocimene": 0.15
+            },
+            "total_terpenes_percent": 3.03,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_032",
+            "name": "Purple Haze",
+            "type": "sativa",
+            "thc_percent": 18.5,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.52,
+                "limonene": 0.38,
+                "caryophyllene": 0.42,
+                "pinene": 0.35,
+                "linalool": 0.28,
+                "terpinolene": 0.32,
+                "humulene": 0.18,
+                "ocimene": 0.22
+            },
+            "total_terpenes_percent": 2.67,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_033",
+            "name": "Blueberry",
+            "type": "indica",
+            "thc_percent": 18.0,
+            "cbd_percent": 0.3,
+            "terpenes": {
+                "myrcene": 0.88,
+                "limonene": 0.22,
+                "caryophyllene": 0.42,
+                "pinene": 0.25,
+                "linalool": 0.38,
+                "terpinolene": 0.08,
+                "humulene": 0.22,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.63,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_034",
+            "name": "Amnesia Haze",
+            "type": "sativa",
+            "thc_percent": 21.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.35,
+                "limonene": 0.62,
+                "caryophyllene": 0.42,
+                "pinene": 0.48,
+                "linalool": 0.18,
+                "terpinolene": 0.52,
+                "humulene": 0.22,
+                "ocimene": 0.15
+            },
+            "total_terpenes_percent": 2.94,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_035",
+            "name": "Runtz",
+            "type": "hybrid",
+            "thc_percent": 24.5,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.48,
+                "limonene": 0.68,
+                "caryophyllene": 0.55,
+                "pinene": 0.22,
+                "linalool": 0.38,
+                "terpinolene": 0.15,
+                "humulene": 0.25,
+                "ocimene": 0.22
+            },
+            "total_terpenes_percent": 2.93,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_036",
+            "name": "Critical Kush",
+            "type": "indica",
+            "thc_percent": 23.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.85,
+                "limonene": 0.25,
+                "caryophyllene": 0.65,
+                "pinene": 0.18,
+                "linalool": 0.32,
+                "terpinolene": 0.06,
+                "humulene": 0.38,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.77,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_037",
+            "name": "Mango Kush",
+            "type": "hybrid",
+            "thc_percent": 19.5,
+            "cbd_percent": 0.25,
+            "terpenes": {
+                "myrcene": 0.72,
+                "limonene": 0.45,
+                "caryophyllene": 0.38,
+                "pinene": 0.22,
+                "linalool": 0.28,
+                "terpinolene": 0.12,
+                "humulene": 0.25,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.6,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_038",
+            "name": "Death Star",
+            "type": "indica",
+            "thc_percent": 22.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.78,
+                "limonene": 0.32,
+                "caryophyllene": 0.62,
+                "pinene": 0.28,
+                "linalool": 0.35,
+                "terpinolene": 0.08,
+                "humulene": 0.38,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.89,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_039",
+            "name": "Candyland",
+            "type": "sativa",
+            "thc_percent": 20.0,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.35,
+                "limonene": 0.55,
+                "caryophyllene": 0.38,
+                "pinene": 0.32,
+                "linalool": 0.22,
+                "terpinolene": 0.42,
+                "humulene": 0.18,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.6,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_040",
+            "name": "Headband",
+            "type": "hybrid",
+            "thc_percent": 21.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.58,
+                "limonene": 0.68,
+                "caryophyllene": 0.42,
+                "pinene": 0.28,
+                "linalool": 0.22,
+                "terpinolene": 0.18,
+                "humulene": 0.25,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.73,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_041",
+            "name": "Mimosa",
+            "type": "sativa",
+            "thc_percent": 22.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.38,
+                "limonene": 0.78,
+                "caryophyllene": 0.32,
+                "pinene": 0.35,
+                "linalool": 0.18,
+                "terpinolene": 0.28,
+                "humulene": 0.15,
+                "ocimene": 0.22
+            },
+            "total_terpenes_percent": 2.66,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_042",
+            "name": "Animal Cookies",
+            "type": "hybrid",
+            "thc_percent": 24.0,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.65,
+                "limonene": 0.42,
+                "caryophyllene": 0.72,
+                "pinene": 0.18,
+                "linalool": 0.38,
+                "terpinolene": 0.08,
+                "humulene": 0.35,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.86,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_043",
+            "name": "Tahoe OG",
+            "type": "hybrid",
+            "thc_percent": 22.5,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.68,
+                "limonene": 0.52,
+                "caryophyllene": 0.55,
+                "pinene": 0.28,
+                "linalool": 0.25,
+                "terpinolene": 0.12,
+                "humulene": 0.32,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.8,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_044",
+            "name": "Acapulco Gold",
+            "type": "sativa",
+            "thc_percent": 19.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.42,
+                "limonene": 0.48,
+                "caryophyllene": 0.35,
+                "pinene": 0.38,
+                "linalool": 0.18,
+                "terpinolene": 0.32,
+                "humulene": 0.18,
+                "ocimene": 0.15
+            },
+            "total_terpenes_percent": 2.46,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_045",
+            "name": "Lemon Haze",
+            "type": "sativa",
+            "thc_percent": 20.5,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.32,
+                "limonene": 0.82,
+                "caryophyllene": 0.28,
+                "pinene": 0.42,
+                "linalool": 0.15,
+                "terpinolene": 0.38,
+                "humulene": 0.18,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.73,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_046",
+            "name": "Cookies and Cream",
+            "type": "hybrid",
+            "thc_percent": 22.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.52,
+                "limonene": 0.45,
+                "caryophyllene": 0.62,
+                "pinene": 0.22,
+                "linalool": 0.35,
+                "terpinolene": 0.12,
+                "humulene": 0.28,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.64,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_047",
+            "name": "Master Kush",
+            "type": "indica",
+            "thc_percent": 20.0,
+            "cbd_percent": 0.25,
+            "terpenes": {
+                "myrcene": 0.78,
+                "limonene": 0.35,
+                "caryophyllene": 0.52,
+                "pinene": 0.28,
+                "linalool": 0.32,
+                "terpinolene": 0.08,
+                "humulene": 0.28,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.69,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_048",
+            "name": "Chem Dawg #4",
+            "type": "hybrid",
+            "thc_percent": 24.0,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.55,
+                "limonene": 0.48,
+                "caryophyllene": 0.62,
+                "pinene": 0.38,
+                "linalool": 0.18,
+                "terpinolene": 0.35,
+                "humulene": 0.28,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.96,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_049",
+            "name": "Biscotti",
+            "type": "hybrid",
+            "thc_percent": 23.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.58,
+                "limonene": 0.48,
+                "caryophyllene": 0.68,
+                "pinene": 0.22,
+                "linalool": 0.42,
+                "terpinolene": 0.12,
+                "humulene": 0.32,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.9,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_050",
+            "name": "Forbidden Fruit",
+            "type": "indica",
+            "thc_percent": 21.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.72,
+                "limonene": 0.38,
+                "caryophyllene": 0.52,
+                "pinene": 0.18,
+                "linalool": 0.42,
+                "terpinolene": 0.08,
+                "humulene": 0.25,
+                "ocimene": 0.22
+            },
+            "total_terpenes_percent": 2.77,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_051",
+            "name": "Clementine",
+            "type": "sativa",
+            "thc_percent": 18.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.35,
+                "limonene": 0.88,
+                "caryophyllene": 0.28,
+                "pinene": 0.32,
+                "linalool": 0.15,
+                "terpinolene": 0.25,
+                "humulene": 0.12,
+                "ocimene": 0.22
+            },
+            "total_terpenes_percent": 2.57,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_052",
+            "name": "Slurricane",
+            "type": "indica",
+            "thc_percent": 23.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.82,
+                "limonene": 0.32,
+                "caryophyllene": 0.62,
+                "pinene": 0.18,
+                "linalool": 0.45,
+                "terpinolene": 0.08,
+                "humulene": 0.28,
+                "ocimene": 0.15
+            },
+            "total_terpenes_percent": 2.9,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_053",
+            "name": "Sour Tangie",
+            "type": "sativa",
+            "thc_percent": 20.0,
+            "cbd_percent": 0.1,
+            "terpenes": {
+                "myrcene": 0.28,
+                "limonene": 0.75,
+                "caryophyllene": 0.35,
+                "pinene": 0.38,
+                "linalool": 0.12,
+                "terpinolene": 0.42,
+                "humulene": 0.18,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.66,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_054",
+            "name": "MAC",
+            "type": "hybrid",
+            "thc_percent": 22.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.48,
+                "limonene": 0.62,
+                "caryophyllene": 0.55,
+                "pinene": 0.32,
+                "linalool": 0.25,
+                "terpinolene": 0.22,
+                "humulene": 0.28,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.84,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_055",
+            "name": "Ice Cream Cake",
+            "type": "indica",
+            "thc_percent": 23.5,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.72,
+                "limonene": 0.42,
+                "caryophyllene": 0.68,
+                "pinene": 0.18,
+                "linalool": 0.48,
+                "terpinolene": 0.08,
+                "humulene": 0.32,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 3.0,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_056",
+            "name": "Strawberry Banana",
+            "type": "hybrid",
+            "thc_percent": 21.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.62,
+                "limonene": 0.42,
+                "caryophyllene": 0.48,
+                "pinene": 0.22,
+                "linalool": 0.32,
+                "terpinolene": 0.15,
+                "humulene": 0.25,
+                "ocimene": 0.18
+            },
+            "total_terpenes_percent": 2.64,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_057",
+            "name": "Platinum OG",
+            "type": "indica",
+            "thc_percent": 22.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.75,
+                "limonene": 0.32,
+                "caryophyllene": 0.62,
+                "pinene": 0.35,
+                "linalool": 0.28,
+                "terpinolene": 0.08,
+                "humulene": 0.38,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.86,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_058",
+            "name": "Lemon Kush",
+            "type": "hybrid",
+            "thc_percent": 20.0,
+            "cbd_percent": 0.2,
+            "terpenes": {
+                "myrcene": 0.52,
+                "limonene": 0.72,
+                "caryophyllene": 0.42,
+                "pinene": 0.28,
+                "linalool": 0.22,
+                "terpinolene": 0.18,
+                "humulene": 0.25,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.71,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_059",
+            "name": "Pink Kush",
+            "type": "indica",
+            "thc_percent": 23.0,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.85,
+                "limonene": 0.28,
+                "caryophyllene": 0.65,
+                "pinene": 0.22,
+                "linalool": 0.42,
+                "terpinolene": 0.08,
+                "humulene": 0.35,
+                "ocimene": 0.08
+            },
+            "total_terpenes_percent": 2.93,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        },
+        {
+            "id": "strain_060",
+            "name": "Chiesel",
+            "type": "sativa",
+            "thc_percent": 19.5,
+            "cbd_percent": 0.15,
+            "terpenes": {
+                "myrcene": 0.32,
+                "limonene": 0.48,
+                "caryophyllene": 0.42,
+                "pinene": 0.35,
+                "linalool": 0.15,
+                "terpinolene": 0.38,
+                "humulene": 0.22,
+                "ocimene": 0.12
+            },
+            "total_terpenes_percent": 2.44,
+            "source_note": "synthetic reference chemotype (non-COA)"
+        }
+    ]
+}
