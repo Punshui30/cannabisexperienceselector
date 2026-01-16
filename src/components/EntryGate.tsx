@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, ArrowRight, Info, User, Settings } from 'lucide-react';
-import logoImg from '../assets/logo.png';
 
 interface EntryGateProps {
   onEnterUser: () => void;
@@ -36,7 +35,9 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
 
   const LogoMark = () => (
     <div className="flex flex-col items-center mb-6">
-      <img src={logoImg} alt="GO Logo" className="w-16 h-auto mb-2" />
+      <div className="w-16 h-16 mb-2 flex items-center justify-center text-[#FFD700]">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-hexagon"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /></svg>
+      </div>
       <div className="mt-4 flex flex-col items-center">
         <h1 className="text-xl font-normal text-white serif tracking-wide">Guided Outcomes</h1>
         <p className="text-xs text-white/60">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></p>
@@ -45,7 +46,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
   );
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center relative px-4 overflow-hidden">
+    <div className="w-full h-full flex flex-col items-center justify-center relative px-4 overflow-hidden py-12">
 
       {/* Persistent Branding */}
       <div className="z-20 flex flex-col items-center mb-12">

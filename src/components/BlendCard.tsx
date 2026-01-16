@@ -46,20 +46,68 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               </div>
             </div>
 
-            {/* Cultivar Stack */}
-            <div className="space-y-3 mb-8">
-              {recommendation.cultivars.map((cultivar, idx) => (
-                <div key={idx} className="relative p-4 rounded-xl border border-white/5 bg-white/5 flex items-center justify-between group/item hover:bg-white/10 transition-colors">
-                  <div className="flex flex-col">
-                    <span className="text-base text-white font-medium">{cultivar.name}</span>
-                    <span className="text-[10px] text-white/30 uppercase tracking-widest">{cultivar.profile}</span>
+            {/* Cultivar Stack - Dynamic Visual Representation */}
+            <div className="flex gap-4 items-end justify-center mb-8 h-[240px]">
+
+              {/* Left Side: Labels */}
+              <div className="flex flex-col-reverse justify-between h-full py-4 text-right min-w-[100px]">
+                {recommendation.cultivars.map((cultivar, idx) => (
+                  <div key={idx} className="flex flex-col justify-center h-full">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${[
+                      'text-[#4C1D95]',
+                      'text-[#5B21B6]',
+                      'text-[#7C3AED]',
+                      'text-[#8B5CF6]',
+                      'text-[#A78BFA]',
+                      'text-[#C4B5FD]'
+                    ][idx % 6]}`}>
+                      {cultivar.profile}
+                    </span>
+                    <span className="text-xs text-white/40 font-light mt-0.5">
+                      {cultivar.name}
+                    </span>
                   </div>
-                  <div className="flex items-end gap-1">
-                    <span className="text-xl font-light text-white serif">{Math.round(cultivar.ratio * 100)}</span>
-                    <span className="text-[10px] text-white/20 mb-1">%</span>
+                ))}
+              </div>
+
+              {/* Center Visual Stack */}
+              <div className="w-16 h-full flex flex-col-reverse rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20 bg-white/5">
+                {recommendation.cultivars.map((cultivar, idx) => {
+                  const colors = [
+                    'bg-[#4C1D95]', // Deepest Purple
+                    'bg-[#5B21B6]',
+                    'bg-[#7C3AED]',
+                    'bg-[#8B5CF6]',
+                    'bg-[#A78BFA]',
+                    'bg-[#C4B5FD]'  // Lightest Lavender
+                  ];
+                  const colorClass = colors[idx % colors.length];
+
+                  return (
+                    <motion.div
+                      key={`${cultivar.name}-${idx}`}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: `${cultivar.ratio * 100}%`, opacity: 1 }}
+                      transition={{ delay: 0.5 + (idx * 0.1), duration: 0.8, ease: "easeOut" }}
+                      className={`w-full ${colorClass} relative group border-t border-white/10 first:border-t-0`}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Right Side: Percentages */}
+              <div className="flex flex-col-reverse justify-between h-full py-4 min-w-[60px]">
+                {recommendation.cultivars.map((cultivar, idx) => (
+                  <div key={idx} className="flex flex-col justify-center h-full pl-2">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xl font-light text-white serif">
+                        {Math.round(cultivar.ratio * 100)}
+                      </span>
+                      <span className="text-[10px] text-white/30">%</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* Principal Actions */}

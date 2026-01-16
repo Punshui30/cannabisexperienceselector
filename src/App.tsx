@@ -96,16 +96,16 @@ export default function App() {
       {/* Global Background Effects - Moved here for persistence */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         {/* Top Purple Gradient - Boosted Opacity */}
-        <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/30 rounded-full blur-[120px] animate-pulse-slow" />
+        <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/60 rounded-full blur-[120px] animate-pulse-slow" />
 
         {/* Bottom Teal/Green Gradient - Boosted Opacity */}
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/30 rounded-full blur-[100px] animate-pulse-slow delay-700" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/60 rounded-full blur-[100px] animate-pulse-slow delay-700" />
 
         {/* Subtle texture overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
       </div>
 
-      <main className="relative z-10 w-full h-full flex flex-col">
+      <main className="relative z-10 w-full flex-grow flex flex-col justify-center">
         {showSplash && (
           <SplashScreen onComplete={() => setShowSplash(false)} />
         )}

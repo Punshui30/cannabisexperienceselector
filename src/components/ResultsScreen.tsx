@@ -5,7 +5,7 @@ import type { BlendRecommendation } from '../App';
 import { BlendCard } from './BlendCard';
 import { StackedCard } from './StackedCard';
 import { isStacked } from '../App';
-import logoImg from '../assets/logo.png';
+
 
 interface ResultsProps {
   recommendations: BlendRecommendation[];
@@ -19,7 +19,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
   const activeRec = recommendations[activeIndex];
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-black overflow-hidden font-sans">
+    <div className="w-full flex-grow flex flex-col bg-transparent overflow-hidden font-sans relative">
 
       {/* Figma Branding Persistent */}
       <div className="flex-shrink-0 px-8 pt-8 pb-4 relative z-10 flex flex-col items-center">
@@ -35,7 +35,9 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
           </button>
 
           <div className="flex items-center gap-3">
-            <img src={logoImg} alt="GO logo" className="w-8 h-auto" />
+            <div className="w-8 h-8 flex items-center justify-center text-[#FFD700]">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /></svg>
+            </div>
             <div className="flex flex-col items-end">
               <span className="text-sm font-normal text-white serif">Guided Outcomes</span>
               <span className="text-[10px] text-white/40">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></span>
