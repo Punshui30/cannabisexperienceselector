@@ -206,7 +206,7 @@ function simpleHash(obj: any): string {
 
 function validateIntent(intent: Intent): Intent {
   const validated = { ...intent };
-  
+
   validated.targetEffects = {
     energy: clamp(intent.targetEffects.energy, -1.0, 1.0),
     focus: clamp(intent.targetEffects.focus, 0.0, 1.0),
@@ -214,7 +214,7 @@ function validateIntent(intent: Intent): Intent {
     body: clamp(intent.targetEffects.body, 0.0, 1.0),
     creativity: clamp(intent.targetEffects.creativity, 0.0, 1.0),
   };
-  
+
   validated.constraints = {
     maxAnxiety: intent.constraints.maxAnxiety ?? 0.3,
     minTHC: intent.constraints.minTHC,
@@ -223,7 +223,7 @@ function validateIntent(intent: Intent): Intent {
     maxCBD: intent.constraints.maxCBD,
     excludeCultivars: intent.constraints.excludeCultivars,
   };
-  
+
   return validated;
 }
 
@@ -240,26 +240,26 @@ function calculateCultivarEffect(cultivar: Cultivar): { effect: EffectVector; un
     creativity: 0,
     anxiety: 0,
   };
-  
+
   let unknownCount = 0;
   let totalTerpenePercent = 0;
-  
+
   // Normalize terpene names and accumulate effects
   const normalizedTerpenes: Record<string, number> = {};
   for (const [name, percent] of Object.entries(cultivar.terpenes)) {
     const normalized = normalizeTerpene(name);
     normalizedTerpenes[normalized] = (normalizedTerpenes[normalized] || 0) + percent;
   }
-  
+
   // Calculate weighted terpene effects
   for (const [terpene, percent] of Object.entries(normalizedTerpenes)) {
     totalTerpenePercent += percent;
     const influences = TERPENE_INFLUENCES[terpene] || UNKNOWN_TERPENE_COEFFICIENTS;
-    
+
     if (!TERPENE_INFLUENCES[terpene]) {
       unknownCount++;
     }
-    
+
     effect.energy += percent * influences.energy;
     effect.focus += percent * influences.focus;
     effect.mood += percent * influences.mood;
@@ -267,7 +267,7 @@ function calculateCultivarEffect(cultivar: Cultivar): { effect: EffectVector; un
     effect.creativity += percent * influences.creativity;
     effect.anxiety += percent * influences.anxiety;
   }
-  
+
   // Normalize by total terpene percentage
   if (totalTerpenePercent > 0) {
     effect.energy /= totalTerpenePercent;
@@ -277,18 +277,18 @@ function calculateCultivarEffect(cultivar: Cultivar): { effect: EffectVector; un
     effect.creativity /= totalTerpenePercent;
     effect.anxiety /= totalTerpenePercent;
   }
-  
+
   // Apply cannabinoid modifiers
   effect.body += cultivar.thcPercent * THC_MODIFIERS.body;
   effect.anxiety += cultivar.thcPercent * THC_MODIFIERS.anxiety;
   effect.anxiety += cultivar.cbdPercent * CBD_ANXIETY_REDUCTION;
   effect.energy *= 1.0 - cultivar.cbdPercent * CBD_ENERGY_DAMPING * 0.01;
-  
+
   // CBD:THC synergy
   if (cultivar.cbdPercent >= cultivar.thcPercent * CBD_THC_BUFFER_RATIO) {
     effect.anxiety *= 0.7;
   }
-  
+
   return { effect, unknownCount };
 }
 
@@ -320,28 +320,28 @@ function calculateBlendEffect(
     creativity: 0,
     anxiety: 0,
   };
-  
+
   let thc = 0;
   let cbd = 0;
   let unknownCount = 0;
-  
+
   for (let i = 0; i < cultivars.length; i++) {
     const c = cultivars[i];
     const r = ratios[i];
     const ce = cultivarEffects.get(c.id)!;
-    
+
     effect.energy += r * ce.effect.energy;
     effect.focus += r * ce.effect.focus;
     effect.mood += r * ce.effect.mood;
     effect.body += r * ce.effect.body;
     effect.creativity += r * ce.effect.creativity;
     effect.anxiety += r * ce.effect.anxiety;
-    
+
     thc += r * c.thcPercent;
     cbd += r * c.cbdPercent;
     unknownCount += ce.unknownCount;
   }
-  
+
   return { effect, thc, cbd, unknownCount };
 }
 
@@ -351,34 +351,34 @@ function scoreBlend(
   cultivarCount: number
 ): { score: number; violations: string[] } {
   const violations: string[] = [];
-  
+
   // Anxiety hard constraint
   if (blend.effect.anxiety > intent.constraints.maxAnxiety) {
     return { score: -Infinity, violations: ["anxiety_exceeded"] };
   }
-  
+
   // Cannabinoid constraints
   let cannabinoidPenalty = 0;
-  
+
   if (intent.constraints.minTHC !== undefined && blend.thc < intent.constraints.minTHC) {
     cannabinoidPenalty += (intent.constraints.minTHC - blend.thc) * 0.1;
     violations.push("thc_below_min");
   }
-  
+
   if (intent.constraints.maxTHC !== undefined && blend.thc > intent.constraints.maxTHC) {
     cannabinoidPenalty += (blend.thc - intent.constraints.maxTHC) * 0.1;
     violations.push("thc_above_max");
   }
-  
+
   if (intent.constraints.minCBD !== undefined && blend.cbd < intent.constraints.minCBD) {
     cannabinoidPenalty += (intent.constraints.minCBD - blend.cbd) * 0.1;
     violations.push("cbd_below_min");
   }
-  
+
   if (intent.constraints.maxCBD !== undefined && blend.cbd > intent.constraints.maxCBD) {
     return { score: -Infinity, violations: ["cbd_above_max"] };
   }
-  
+
   // Distance calculation
   const target = intent.targetEffects;
   const distSq =
@@ -387,16 +387,16 @@ function scoreBlend(
     Math.pow(target.mood - blend.effect.mood, 2) +
     Math.pow(target.body - blend.effect.body, 2) +
     Math.pow(target.creativity - blend.effect.creativity, 2);
-  
+
   const distance = Math.sqrt(distSq);
-  
+
   // Penalties
   const confidencePenalty = blend.unknownCount * UNKNOWN_TERPENE_CONFIDENCE_PENALTY;
   const complexityPenalty =
     cultivarCount === 3 && intent.context?.experience === "beginner" ? 0.05 : 0.0;
-  
+
   const score = -distance - cannabinoidPenalty - confidencePenalty - complexityPenalty;
-  
+
   return { score, violations };
 }
 
@@ -410,34 +410,34 @@ function generateCandidates(
 ): BlendCandidate[] {
   const excludeSet = new Set(intent.constraints.excludeCultivars || []);
   const available = inventory.cultivars.filter((c) => c.available && !excludeSet.has(c.id));
-  
+
   if (available.length === 0) {
     return [];
   }
-  
+
   // Pre-calculate cultivar effects
   const cultivarEffects = new Map<string, { effect: EffectVector; unknownCount: number }>();
   for (const c of available) {
     cultivarEffects.set(c.id, calculateCultivarEffect(c));
   }
-  
+
   const candidates: BlendCandidate[] = [];
-  
+
   // 2-cultivar blends
   for (let i = 0; i < available.length; i++) {
     for (let j = 0; j < available.length; j++) {
       if (i === j) continue;
-      
+
       const c1 = available[i];
       const c2 = available[j];
-      
+
       for (const r1 of TWO_CULTIVAR_RATIOS) {
         const r2 = 1.0 - r1;
         if (r2 < 0.15 - EPSILON) continue;
-        
+
         const blend = calculateBlendEffect([c1, c2], cultivarEffects, [r1, r2]);
         const { score, violations } = scoreBlend(blend, intent, 2);
-        
+
         if (score > -Infinity) {
           candidates.push({
             cultivarIds: [c1.id, c2.id],
@@ -453,28 +453,28 @@ function generateCandidates(
       }
     }
   }
-  
+
   // 3-cultivar blends
   for (let i = 0; i < available.length; i++) {
     for (let j = 0; j < available.length; j++) {
       if (i === j) continue;
       for (let k = 0; k < available.length; k++) {
         if (i === k || j === k) continue;
-        
+
         const c1 = available[i];
         const c2 = available[j];
         const c3 = available[k];
-        
+
         for (const r1 of THREE_CULTIVAR_RATIOS) {
           for (const r2 of THREE_CULTIVAR_RATIOS) {
             if (r1 + r2 > 0.85 + EPSILON) continue;
-            
+
             const r3 = 1.0 - r1 - r2;
             if (r3 < 0.15 - EPSILON) continue;
-            
+
             const blend = calculateBlendEffect([c1, c2, c3], cultivarEffects, [r1, r2, r3]);
             const { score, violations } = scoreBlend(blend, intent, 3);
-            
+
             if (score > -Infinity) {
               candidates.push({
                 cultivarIds: [c1.id, c2.id, c3.id],
@@ -492,7 +492,7 @@ function generateCandidates(
       }
     }
   }
-  
+
   return candidates;
 }
 
@@ -506,17 +506,17 @@ function sortCandidates(candidates: BlendCandidate[]): BlendCandidate[] {
     if (Math.abs(a.score - b.score) > EPSILON) {
       return b.score - a.score;
     }
-    
-    // Tiebreaker 1: cultivar count ascending (prefer 2 over 3)
+
+    // Tiebreaker 1: cultivar count descending (prefer 3 over 2)
     if (a.cultivarIds.length !== b.cultivarIds.length) {
-      return a.cultivarIds.length - b.cultivarIds.length;
+      return b.cultivarIds.length - a.cultivarIds.length;
     }
-    
+
     // Tiebreaker 2: total THC ascending
     if (Math.abs(a.thc - b.thc) > EPSILON) {
       return a.thc - b.thc;
     }
-    
+
     // Tiebreaker 3: lexicographic cultivar IDs
     const aIds = [...a.cultivarIds].sort().join(",");
     const bIds = [...b.cultivarIds].sort().join(",");
@@ -533,10 +533,10 @@ export function calculateBlends(
   rawIntent: Intent
 ): EngineOutput {
   const startTime = Date.now();
-  
+
   // Validate inputs
   const intent = validateIntent(rawIntent);
-  
+
   // Check inventory
   if (inventory.cultivars.length === 0) {
     return {
@@ -554,10 +554,10 @@ export function calculateBlends(
       errorReason: "Inventory contains no cultivars",
     };
   }
-  
+
   const excludeSet = new Set(intent.constraints.excludeCultivars || []);
   const available = inventory.cultivars.filter((c) => c.available && !excludeSet.has(c.id));
-  
+
   if (available.length === 0) {
     return {
       recommendations: [],
@@ -574,10 +574,10 @@ export function calculateBlends(
       errorReason: "No cultivars are currently available",
     };
   }
-  
+
   // Generate candidates
   const candidates = generateCandidates(inventory, intent);
-  
+
   if (candidates.length === 0) {
     return {
       recommendations: [],
@@ -594,17 +594,17 @@ export function calculateBlends(
       errorReason: "No blend satisfies anxiety constraint",
     };
   }
-  
+
   // Sort and select top 3
   const sorted = sortCandidates(candidates);
   const top3 = sorted.slice(0, 3);
-  
+
   // Build recommendations
   const cultivarMap = new Map(inventory.cultivars.map((c) => [c.id, c]));
-  
+
   const recommendations: BlendRecommendation[] = top3.map((candidate) => {
     const confidence = Math.max(0, 1.0 - candidate.unknownCount * UNKNOWN_TERPENE_CONFIDENCE_PENALTY);
-    
+
     return {
       cultivars: candidate.cultivarIds.map((id, idx) => ({
         id,
@@ -624,7 +624,7 @@ export function calculateBlends(
       },
     };
   });
-  
+
   return {
     recommendations,
     intent,

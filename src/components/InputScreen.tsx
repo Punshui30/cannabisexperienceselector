@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Camera, Type, Mic, Sprout, Search, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { UserInput } from '../lib/engineAdapter';
@@ -66,6 +66,67 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
     }
   };
 
+  /* SPEECH RECOGNITION IMPLEMENTATION */
+  const [recognition, setRecognition] = useState<any>(null);
+
+  useEffect(() => {
+    // Check for browser support
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recog = new SpeechRecognition();
+      recog.continuous = true;
+      recog.interimResults = true;
+      recog.lang = 'en-US';
+
+      recog.onresult = (event: any) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        if (finalTranscript) {
+          setDescription(prev => {
+            // Add space if needed
+            const spacer = prev && !prev.endsWith(' ') ? ' ' : '';
+            return prev + spacer + finalTranscript;
+          });
+        }
+      };
+
+      recog.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+      };
+
+      recog.onend = () => {
+        // If listening was supposed to be indefinite, we might restart here, 
+        // but for now let's just sync state if it stopped unexpectedly
+        if (isListening) {
+          // Optional: restart or just stop UI state
+          // recog.start(); 
+        }
+      };
+
+      setRecognition(recog);
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognition) {
+      alert("Voice input is not supported in this browser.");
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
+
   return (
     <div className="w-full h-full flex flex-col pt-12 px-6 max-w-xl mx-auto relative z-10">
 
@@ -125,7 +186,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
                   className={`${GLASS_INPUT} h-72 resize-none mb-4`}
                 />
                 <button
-                  onClick={() => setIsListening(!isListening)}
+                  onClick={toggleListening}
                   className={`absolute bottom-8 right-4 p-3 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-white'}`}
                 >
                   <Mic size={18} />
