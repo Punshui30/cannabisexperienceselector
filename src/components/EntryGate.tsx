@@ -144,7 +144,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
                 </button>
 
                 <button
-                  onClick={() => setStep('mode')}
+                  onClick={onEnterUser}
                   className="group relative p-6 glass-card-neon-green hover:bg-[#00FFD1]/5 transition-colors text-left"
                 >
                   <div className="flex items-center gap-5">
@@ -210,7 +210,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
                 <button
                   onClick={() => {
                     if (explanationStep < 2) setExplanationStep(prev => prev + 1);
-                    else setStep('mode');
+                    else onEnterUser(); // Replaced setStep('mode') with direct entry
                   }}
                   className="text-[#BF5AF2] font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all"
                 >

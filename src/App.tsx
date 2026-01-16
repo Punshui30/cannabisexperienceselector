@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { InputScreen } from './components/InputScreen';
 import { ResultsScreen } from './components/ResultsScreen';
 import { CalculatorModal } from './components/CalculatorModal';
-import { EntryGate } from './components/EntryGate';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { PresetStacks, type PresetStack } from './components/PresetStacks';
 import { QRShareModal } from './components/QRShareModal';
@@ -47,7 +46,7 @@ export function isStacked(rec: BlendRecommendation): rec is StackedRecommendatio
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
-  const [showEntryGate, setShowEntryGate] = useState(true); // Always show entry gate
+  // Removed explicit entry gate state - flows directly to input
   const [mode, setMode] = useState<'user' | 'admin'>('user');
   const [view, setView] = useState<'input' | 'results' | 'presets'>('input');
   const [userInput, setUserInput] = useState<UserInput | null>(null);
@@ -55,19 +54,6 @@ export default function App() {
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [selectedRecommendation, setSelectedRecommendation] = useState<BlendRecommendation | null>(null);
   const [qrShareOpen, setQRShareOpen] = useState(false);
-
-  // NO localStorage persistence - Entry Gate required every session
-  // NO "completed" state - Entry Gate always appears on app load
-
-  const handleEnterUser = () => {
-    setMode('user');
-    setShowEntryGate(false);
-  };
-
-  const handleEnterAdmin = () => {
-    setMode('admin');
-    setShowEntryGate(false);
-  };
 
   const handleSubmit = async (input: UserInput) => {
     setUserInput(input);
@@ -98,12 +84,7 @@ export default function App() {
       </div>
 
       <main className="relative z-10 w-full h-full flex flex-col">
-        {showEntryGate ? (
-          <EntryGate
-            onEnterUser={handleEnterUser}
-            onEnterAdmin={handleEnterAdmin}
-          />
-        ) : mode === 'admin' ? (
+        {mode === 'admin' ? (
           <>
             {/* Admin Mode Indicator */}
             <div
