@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-neon: #00FFD1;
+    --secondary-neon: #BF5AF2;
+    --bg-black: #000000;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--bg-black);
+    color: white;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  .serif {
+    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply backdrop-blur-2xl bg-white/5 border border-white/10 shadow-2xl rounded-3xl;
+  }
+
+  .glass-card-neon-green {
+    @apply backdrop-blur-2xl bg-white/5 border border-[#00FFD11a] shadow-[0_0_20px_#00FFD11a] rounded-2xl;
+  }
+
+  .glass-card-neon-purple {
+    @apply backdrop-blur-2xl bg-white/5 border border-[#BF5AF21a] shadow-[0_0_20px_#BF5AF21a] rounded-2xl;
+  }
+
+  .btn-neon-green {
+    @apply bg-gradient-to-r from-[#00FFD1] to-[#00E0B8] text-black font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_#00FFD166];
+  }
+
+  .text-neon-green {
+    @apply text-[#00FFD1];
+  }
+
+  .text-neon-purple {
+    @apply text-[#BF5AF2];
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
