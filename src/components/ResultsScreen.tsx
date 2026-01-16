@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { BlendRecommendation } from '../App';
 import { BlendCard } from './BlendCard';
+import { StackedCard } from './StackedCard';
+import { isStacked } from '../App';
 import logoImg from '../assets/logo.png';
 
 interface ResultsProps {
@@ -59,7 +61,11 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
               transition={{ duration: 0.3 }}
               className="w-full"
             >
-              <BlendCard recommendation={activeRec} onCalculate={() => onCalculate(activeRec)} />
+              {isStacked(activeRec) ? (
+                <StackedCard recommendation={activeRec} onCalculate={() => onCalculate(activeRec)} />
+              ) : (
+                <BlendCard recommendation={activeRec} onCalculate={() => onCalculate(activeRec)} />
+              )}
             </motion.div>
           </AnimatePresence>
 
@@ -88,25 +94,27 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
       </div>
 
       {/* Bottom: Progress Indicators */}
-      {recommendations.length > 1 && (
-        <div className="flex-shrink-0 py-10 z-10">
-          <div className="flex justify-center gap-3">
-            {recommendations.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveIndex(index)}
-                className={`h-1 rounded-full transition-all duration-300 ${activeIndex === index ? 'bg-[#00FFD1] w-8 shadow-[0_0_10px_rgba(0,255,209,0.5)]' : 'bg-white/10 w-4'
-                  }`}
-              />
-            ))}
+      {
+        recommendations.length > 1 && (
+          <div className="flex-shrink-0 py-10 z-10">
+            <div className="flex justify-center gap-3">
+              {recommendations.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveIndex(index)}
+                  className={`h-1 rounded-full transition-all duration-300 ${activeIndex === index ? 'bg-[#00FFD1] w-8 shadow-[0_0_10px_rgba(0,255,209,0.5)]' : 'bg-white/10 w-4'
+                    }`}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Footer Disclaimer */}
       <div className="absolute bottom-6 left-0 right-0 text-center opacity-20 z-0">
         <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath Intellectual Property</p>
       </div>
-    </div>
+    </div >
   );
 }

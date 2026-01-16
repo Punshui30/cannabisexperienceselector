@@ -14,12 +14,7 @@ export type InputMode = 'describe' | 'product' | 'strain';
 // Re-export types from adapter
 export type { UserInput, UICultivar };
 
-export type BlendRecommendation = UIBlendRecommendation;
-
-// Helper function for type checking (always false since we only have blends now)
-export function isStacked(_rec: BlendRecommendation): boolean {
-  return false;
-}
+export type BlendRecommendation = UIBlendRecommendation | StackedRecommendation;
 
 export type StackedRecommendation = {
   id: string;
@@ -38,7 +33,17 @@ export type StackedRecommendation = {
   }>;
   reasoning: string;
   totalDuration: string;
+  // properties to satisfy BlendRecommendation shape for shared components if needed
+  cultivars?: never;
+  effects?: never;
+  timeline?: never;
 };
+
+
+// Helper function for type checking
+export function isStacked(rec: BlendRecommendation): rec is StackedRecommendation {
+  return 'layers' in rec;
+}
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -155,29 +160,10 @@ export default function App() {
               <PresetStacks
                 onBack={() => setView('input')}
                 onSelectPreset={(stack: PresetStack) => {
-                  // Convert PresetStack to BlendRecommendation (UIBlendRecommendation)
-                  const recommendation: BlendRecommendation = {
+                  const recommendation: StackedRecommendation = {
                     id: stack.id,
-                    name: stack.name,
-                    cultivars: stack.stack.layers.flatMap(layer => layer.cultivars.map(c => ({
-                      name: c.name,
-                      ratio: c.ratio,
-                      profile: c.profile || 'Balanced',
-                      characteristics: c.characteristics || []
-                    }))),
                     matchScore: 98,
-                    reasoning: stack.stack.reasoning,
-                    effects: {
-                      onset: '5-10m',
-                      peak: '30-45m',
-                      duration: stack.stack.totalDuration
-                    },
-                    timeline: [
-                      { time: '0-10 min', feeling: 'Onset' },
-                      { time: '10-30 min', feeling: 'Building' },
-                      { time: '30-90 min', feeling: 'Peak Effects' },
-                      { time: "90+ min", feeling: "Tapering" }
-                    ]
+                    ...stack.stack
                   };
                   setRecommendations([recommendation]);
                   setView('results');
