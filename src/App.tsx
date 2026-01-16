@@ -7,6 +7,7 @@ import { AdminPanel } from './components/admin/AdminPanel';
 import { PresetStacks, type PresetStack } from './components/PresetStacks';
 import { QRShareModal } from './components/QRShareModal';
 import { SplashScreen } from './components/SplashScreen';
+import { ResolvingScreen } from './components/ResolvingScreen';
 import { generateRecommendations, type UserInput, type UICultivar, type UIBlendRecommendation } from './lib/engineAdapter';
 
 export type InputMode = 'describe' | 'product' | 'strain';
@@ -49,7 +50,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [showEntryGate, setShowEntryGate] = useState(true); // Restore entry gate
   const [mode, setMode] = useState<'user' | 'admin'>('user');
-  const [view, setView] = useState<'input' | 'results' | 'presets'>('input');
+  const [view, setView] = useState<'input' | 'resolving' | 'results' | 'presets'>('input');
   const [userInput, setUserInput] = useState<UserInput | null>(null);
   const [recommendations, setRecommendations] = useState<BlendRecommendation[]>([]);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
@@ -73,9 +74,10 @@ export default function App() {
     setUserInput(input);
 
     // Processing
+    // Processing
     const recs = generateRecommendations(input);
     setRecommendations(recs);
-    setView('results');
+    setView('resolving');
   };
 
   const handleCalculate = (rec: BlendRecommendation) => {
@@ -93,11 +95,11 @@ export default function App() {
     <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black">
       {/* Global Background Effects - Moved here for persistence */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Top Purple Gradient */}
-        <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow" />
+        {/* Top Purple Gradient - Boosted Opacity */}
+        <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/30 rounded-full blur-[120px] animate-pulse-slow" />
 
-        {/* Bottom Teal/Green Gradient */}
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/20 rounded-full blur-[100px] mix-blend-screen animate-pulse-slow delay-700" />
+        {/* Bottom Teal/Green Gradient - Boosted Opacity */}
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/30 rounded-full blur-[100px] animate-pulse-slow delay-700" />
 
         {/* Subtle texture overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
@@ -153,6 +155,13 @@ export default function App() {
                 onBrowsePresets={() => setView('presets')}
                 onAdminModeToggle={() => setMode('admin')}
                 isAdminMode={false}
+              />
+            )}
+            {view === 'resolving' && userInput && recommendations.length > 0 && (
+              <ResolvingScreen
+                input={userInput}
+                recommendation={recommendations[0] as UIBlendRecommendation}
+                onComplete={() => setView('results')}
               />
             )}
             {view === 'results' && (

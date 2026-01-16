@@ -14,15 +14,28 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
   const [showVoiceFeedback, setShowVoiceFeedback] = useState(false);
 
   const getLayerColor = (idx: number) => {
-    if (idx === 0) return LAYER_COLORS.layer1.solid;
-    if (idx === 1) return LAYER_COLORS.layer2.solid;
-    return LAYER_COLORS.layer3.solid;
+    // Cyclic safe colors for N layers
+    const options = [
+      LAYER_COLORS.layer1.solid,
+      LAYER_COLORS.layer2.solid,
+      LAYER_COLORS.layer3.solid,
+      '#A78BFA', // Layer 4
+      '#C4B5FD', // Layer 5
+      '#DDD6FE'  // Layer 6
+    ];
+    return options[idx % options.length];
   };
 
   const getLayerGradient = (idx: number) => {
-    if (idx === 0) return LAYER_COLORS.layer1.gradient;
-    if (idx === 1) return LAYER_COLORS.layer2.gradient;
-    return LAYER_COLORS.layer3.gradient;
+    const options = [
+      LAYER_COLORS.layer1.gradient,
+      LAYER_COLORS.layer2.gradient,
+      LAYER_COLORS.layer3.gradient,
+      'linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%)',
+      'linear-gradient(135deg, #C4B5FD 0%, #A78BFA 100%)',
+      'linear-gradient(135deg, #DDD6FE 0%, #C4B5FD 100%)'
+    ];
+    return options[idx % options.length];
   };
 
   return (
@@ -56,8 +69,14 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
             <div className="flex flex-col justify-between h-[300px] py-4 text-right">
               {recommendation.layers.map((layer, idx) => (
                 <div key={idx} className="flex flex-col justify-center h-1/3">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${idx === 0 ? 'text-[#8B5CF6]' :
-                    idx === 1 ? 'text-[#C084FC]' : 'text-[#E879F9]'
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${[
+                    'text-[#4C1D95]',
+                    'text-[#5B21B6]',
+                    'text-[#7C3AED]',
+                    'text-[#8B5CF6]',
+                    'text-[#A78BFA]',
+                    'text-[#C4B5FD]'
+                  ][idx % 6]
                     }`}>
                     {layer.purpose}
                   </span>
@@ -69,41 +88,30 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
             </div>
 
             {/* Center Visual Stack */}
-            <div className="w-16 h-[300px] flex flex-col rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20">
+            <div className="w-16 h-[300px] flex flex-col-reverse rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20 bg-white/5">
               {recommendation.layers.map((layer, idx) => {
-                // Reverse index for visual stacking (Foundation at bottom)
-                // But data comes top-down usually. Let's assume input order matches visual top-down or bottom-up?
-                // Typically "Foundation" is bottom. 
-                // Let's assume the array is ordered [Access/Accent, Balance, Foundation] or similar.
-                // Actually based on screenshot: Accent (Top), Balance (Mid), Foundation (Bottom).
-                // Let's map colors based on index for now assuming generic order.
-
                 const colors = [
-                  'bg-[#8B5CF6]', // Deep Purple (Bottom/Foundation)
-                  'bg-[#C084FC]', // Mid Purple (Mid/Balance) 
-                  'bg-[#E879F9]'  // Light Purple/Pink (Top/Accent)
+                  'bg-[#4C1D95]', // Deepest Purple
+                  'bg-[#5B21B6]',
+                  'bg-[#7C3AED]',
+                  'bg-[#8B5CF6]',
+                  'bg-[#A78BFA]',
+                  'bg-[#C4B5FD]'  // Lightest Lavender
                 ];
 
-                // We need to reverse the rendering order if the first item is "Foundation" (bottom)
-                // or just map styles correctly. 
-                // Let's assume input order is [Foundation, Balance, Accent]. 
-                // To display Foundation at bottom, we need flex-col-reverse? Or map in reverse?
-                // The screenshot shows 45% / 35% / 20%. 
+                const colorClass = colors[idx % colors.length];
 
                 return (
                   <motion.div
-                    key={idx}
+                    key={`${layer.layerName}-${idx}`}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: `${layer.cultivars[0]?.ratio * 100}%`, opacity: 1 }}
-                    transition={{ delay: 0.5 + (idx * 0.2), duration: 0.8, ease: "easeOut" }}
-                    className={`w-full ${idx === 0 ? 'bg-[#5B21B6]' : // Foundation
-                      idx === 1 ? 'bg-[#A855F7]' : // Balance
-                        'bg-[#F0ABFC]'               // Accent
-                      } relative group`}
+                    transition={{ delay: 0.5 + (idx * 0.1), duration: 0.8, ease: "easeOut" }}
+                    className={`w-full ${colorClass} relative group border-t border-white/10 first:border-t-0`}
                   >
                   </motion.div>
                 );
-              }).reverse()}
+              })}
             </div>
 
             {/* Right Percentages */}

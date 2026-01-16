@@ -21,6 +21,7 @@ export type UICultivar = {
   ratio: number;
   profile: string;
   characteristics: string[];
+  prominentTerpenes: string[]; // Added specifically for the Resolving screen
 };
 
 export type UIBlendRecommendation = {
@@ -39,6 +40,9 @@ export type UIBlendRecommendation = {
     feeling: string;
   }[];
 };
+
+
+
 
 /**
  * LAYER 1: Intent Interpretation (Simplified NLP)
@@ -267,8 +271,8 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
       id: 'fallback_1',
       name: 'Balanced Start',
       cultivars: [
-        { name: 'Blue Dream', ratio: 0.6, profile: 'Balanced hybrid', characteristics: ['Uplifting', 'Creative', 'Smooth'] },
-        { name: 'Harlequin', ratio: 0.4, profile: 'Clear-headed', characteristics: ['Functional', 'Calm', 'Therapeutic'] },
+        { name: 'Blue Dream', ratio: 0.6, profile: 'Balanced hybrid', characteristics: ['Uplifting', 'Creative', 'Smooth'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
+        { name: 'Harlequin', ratio: 0.4, profile: 'Clear-headed', characteristics: ['Functional', 'Calm', 'Therapeutic'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
       ],
       matchScore: 85,
       reasoning: 'A gentle, balanced blend perfect for most situations. Blue Dream provides uplifting effects while Harlequin keeps things clear and functional.',
@@ -278,8 +282,6 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
         duration: '2-3 hours',
       },
       timeline: [
-        { time: '0-10 min', feeling: 'Gentle uplift begins' },
-        { time: '10-25 min', feeling: 'Mood brightens' },
         { time: '25-80 min', feeling: 'Peak balanced effects' },
         { time: '80-120 min', feeling: 'Gradual softening' },
         { time: '120+ min', feeling: 'Smooth return to baseline' },
@@ -298,6 +300,14 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
         characteristics: strain ? strain.vibeTags.slice(0, 3).map(tag =>
           tag.charAt(0).toUpperCase() + tag.slice(1).replace(/-/g, ' ')
         ) : ['Chemotyped'],
+        prominentTerpenes: (() => {
+          const inv = INVENTORY.cultivars.find(i => i.id === c.id);
+          if (!inv || !inv.terpenes) return ['Myrcene', 'Pinene', 'Caryophyllene'];
+          return Object.entries(inv.terpenes)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 3)
+            .map(([name]) => name.charAt(0).toUpperCase() + name.slice(1));
+        })(),
       };
     });
 
