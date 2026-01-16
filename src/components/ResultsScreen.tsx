@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { BlendRecommendation } from '../App';
 import { BlendCard } from './BlendCard';
+import logoImg from '../assets/logo.png';
 
 interface ResultsProps {
   recommendations: BlendRecommendation[];
@@ -31,9 +32,12 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
             <span className="text-xs uppercase tracking-widest text-white/40">Back</span>
           </button>
 
-          <div className="flex flex-col items-end">
-            <span className="text-sm font-normal text-white serif">Guided Outcomes</span>
-            <span className="text-[10px] text-white/40">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></span>
+          <div className="flex items-center gap-3">
+            <img src={logoImg} alt="GO logo" className="w-8 h-auto" />
+            <div className="flex flex-col items-end">
+              <span className="text-sm font-normal text-white serif">Guided Outcomes</span>
+              <span className="text-[10px] text-white/40">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></span>
+            </div>
           </div>
         </div>
 

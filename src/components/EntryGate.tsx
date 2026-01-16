@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, ArrowRight, Info, User, Settings } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 interface EntryGateProps {
   onEnterUser: () => void;
@@ -35,11 +36,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
 
   const LogoMark = () => (
     <div className="flex flex-col items-center mb-6">
-      {/* Flat Geometric Hexagon GO Logo from Figma */}
-      <svg width="48" height="48" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 5L93.3 30V80L50 105L6.7 80V30L50 5Z" stroke="#FFD700" strokeWidth="4" />
-        <path d="M50 35L75 50L50 65L25 50L50 35Z" stroke="#FFD700" strokeWidth="4" fill="#FFD700" fillOpacity="0.2" />
-      </svg>
+      <img src={logoImg} alt="GO Logo" className="w-16 h-auto mb-2" />
       <div className="mt-4 flex flex-col items-center">
         <h1 className="text-xl font-normal text-white serif tracking-wide">Guided Outcomes</h1>
         <p className="text-xs text-white/60">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></p>

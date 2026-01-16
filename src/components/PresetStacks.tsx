@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { StackedRecommendation } from '../App';
+import logoImg from '../assets/logo.png';
 
 export type PresetStack = {
   id: string;
@@ -146,9 +147,12 @@ export function PresetStacks({ onBack, onSelectPreset }: PresetStacksProps) {
           <span className="text-xs uppercase tracking-widest text-white/40">Home</span>
         </button>
 
-        <div className="flex flex-col items-end">
-          <span className="text-sm font-normal text-white serif">Guided Outcomes</span>
-          <span className="text-[10px] text-white/40">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></span>
+        <div className="flex items-center gap-3">
+          <img src={logoImg} alt="GO logo" className="w-8 h-auto" />
+          <div className="flex flex-col items-end">
+            <span className="text-sm font-normal text-white serif">Guided Outcomes</span>
+            <span className="text-[10px] text-white/40">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></span>
+          </div>
         </div>
       </div>
 
