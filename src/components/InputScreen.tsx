@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Camera, Upload, Search } from 'lucide-react';
 import { StrainLibrary } from './StrainLibrary';
 import { UserInput } from '../lib/engineAdapter';
@@ -209,10 +209,10 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
                 className={`relative w-full h-72 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive
-                    ? "border-[#00FFD1] bg-[#00FFD1]/5"
-                    : uploadedImage
-                      ? "border-emerald-400/50 bg-emerald-400/5"
-                      : "border-white/10 bg-white/5 hover:bg-white/10"
+                  ? "border-[#00FFD1] bg-[#00FFD1]/5"
+                  : uploadedImage
+                    ? "border-emerald-400/50 bg-emerald-400/5"
+                    : "border-white/10 bg-white/5 hover:bg-white/10"
                   }`}
               >
                 <input
