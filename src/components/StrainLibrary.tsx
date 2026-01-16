@@ -13,7 +13,7 @@ export function StrainLibrary() {
     };
 
     return (
-        <div className="w-full space-y-4 mb-8">
+        <div className="w-full space-y-4 mb-4">
             {/* Header */}
             <div className="flex items-center justify-between px-2">
                 <h3 className="text-sm font-semibold text-white/50 uppercase tracking-widest">
@@ -24,8 +24,8 @@ export function StrainLibrary() {
                 </span>
             </div>
 
-            {/* Grid of Cards */}
-            <div className="grid grid-cols-1 gap-3">
+            {/* Horizontal Scroll Container */}
+            <div className="flex overflow-x-auto gap-3 pb-4 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 w-[calc(100%+2rem)]">
                 {STRAIN_LIBRARY.map((strain) => {
                     const inventoryItem = INVENTORY.cultivars.find(c => c.id === strain.id);
                     const isExpanded = expandedId === strain.id;
@@ -37,22 +37,22 @@ export function StrainLibrary() {
                             initial={{ opacity: 0.8 }}
                             whileHover={{ opacity: 1, scale: 1.01 }}
                             onClick={() => toggleExpand(strain.id)}
-                            className={`relative overflow-hidden rounded-xl border transition-all duration-300 cursor-pointer group ${isExpanded
-                                    ? 'bg-white/10 border-white/20 shadow-xl z-10'
-                                    : 'bg-white/5 border-white/5 hover:bg-white/10'
+                            className={`relative overflow-hidden rounded-xl border transition-all duration-300 cursor-pointer group flex-shrink-0 snap-center ${isExpanded
+                                ? 'bg-white/10 border-white/20 shadow-xl z-10 w-[280px]'
+                                : 'bg-white/5 border-white/5 hover:bg-white/10 w-[260px]'
                                 }`}
                         >
                             {/* Collapsed State (Always Visible Header) */}
                             <div className="p-4 flex items-center justify-between">
                                 <div className="flex flex-col gap-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-base font-medium text-white group-hover:text-[#00FFD1] transition-colors font-sans">
+                                        <span className="text-base font-medium text-white group-hover:text-[#00FFD1] transition-colors font-sans truncate">
                                             {strain.name}
                                         </span>
                                         {/* Type Badge */}
                                         <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${strain.cultivarType === 'sativa' ? 'text-amber-400 border-amber-400/30' :
-                                                strain.cultivarType === 'indica' ? 'text-purple-400 border-purple-400/30' :
-                                                    'text-emerald-400 border-emerald-400/30'
+                                            strain.cultivarType === 'indica' ? 'text-purple-400 border-purple-400/30' :
+                                                'text-emerald-400 border-emerald-400/30'
                                             }`}>
                                             {strain.cultivarType}
                                         </span>
@@ -109,6 +109,7 @@ export function StrainLibrary() {
                                                     </div>
                                                     {inventoryItem.terpenes && Object.entries(inventoryItem.terpenes)
                                                         .sort(([, a], [, b]) => b - a)
+                                                        .slice(0, 5) // Limit to top 5 to keep height somewhat constrained
                                                         .map(([name, val], idx) => (
                                                             <div key={name} className="flex items-center justify-between">
                                                                 <span className="text-xs text-white/70 capitalize">{name}</span>
