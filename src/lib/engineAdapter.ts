@@ -262,7 +262,13 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
   const intent = interpretIntent(input);
 
   // Layer 2: Call calculation engine
+  console.log('LAYER 1: Intent', intent);
+  console.log('LAYER 2: Engine Start - Inventory Size:', INVENTORY.cultivars.length);
   const engineOutput = calculateBlends(INVENTORY, intent);
+  console.log('LAYER 2: Engine Output', {
+    candidatesEvaluated: engineOutput.audit.candidatesEvaluated,
+    topBlendIDs: engineOutput.recommendations.map(r => r.cultivars.map(c => c.id))
+  });
 
   // Handle errors
   if (engineOutput.error || engineOutput.recommendations.length === 0) {
@@ -324,6 +330,12 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
       },
       timeline: generateTimeline(blend),
     };
+  });
+
+  // Log Layer 3
+  console.log('LAYER 3: Explanation', {
+    recs: uiRecommendations.map(r => ({ name: r.name, cultivars: r.cultivars.map(c => c.name) })),
+    terpenesReferenced: uiRecommendations.every(r => r.cultivars.every(c => c.prominentTerpenes.length > 0))
   });
 
   return uiRecommendations;

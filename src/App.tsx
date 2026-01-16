@@ -92,7 +92,7 @@ export default function App() {
   };
 
   return (
-    <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black">
+    <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
       {/* Global Background Effects - Moved here for persistence */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         {/* Top Purple Gradient - Boosted Opacity */}

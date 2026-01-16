@@ -1,8 +1,9 @@
+```javascript
 
 import { useState, useEffect } from 'react';
-import { Camera, Type, Mic, Sprout, Search, Upload } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import type { UserInput } from '../lib/engineAdapter';
+import { Mic, Camera, Upload, Search } from 'lucide-react';
+import { StrainLibrary } from './StrainLibrary';
+import { UserInput } from '../lib/engineAdapter';
 
 // --- DESIGN TOKENS ---
 const GLASS_INPUT = "w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:border-[#00FFD1]/50 transition-colors text-sm";
@@ -148,19 +149,19 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
       <div className="flex p-1 bg-white/5 rounded-2xl mb-10 border border-white/10">
         <button
           onClick={() => setMode('describe')}
-          className={`flex-1 py-3 px-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'describe' ? TAB_ACTIVE : TAB_INACTIVE}`}
+          className={`flex - 1 py - 3 px - 2 rounded - xl text - xs font - semibold uppercase tracking - wider transition - all duration - 300 ${ mode === 'describe' ? TAB_ACTIVE : TAB_INACTIVE } `}
         >
           Describe
         </button>
         <button
           onClick={() => setMode('product')}
-          className={`flex-1 py-3 px-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'product' ? TAB_ACTIVE : TAB_INACTIVE}`}
+          className={`flex - 1 py - 3 px - 2 rounded - xl text - xs font - semibold uppercase tracking - wider transition - all duration - 300 ${ mode === 'product' ? TAB_ACTIVE : TAB_INACTIVE } `}
         >
           Photo
         </button>
         <button
           onClick={() => setMode('strain')}
-          className={`flex-1 py-3 px-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'strain' ? TAB_ACTIVE : TAB_INACTIVE}`}
+          className={`flex - 1 py - 3 px - 2 rounded - xl text - xs font - semibold uppercase tracking - wider transition - all duration - 300 ${ mode === 'strain' ? TAB_ACTIVE : TAB_INACTIVE } `}
         >
           Strain
         </button>
@@ -183,11 +184,11 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Tell us how you want to feel..."
-                  className={`${GLASS_INPUT} h-72 resize-none mb-4`}
+                  className={`${ GLASS_INPUT } h - 72 resize - none mb - 4`}
                 />
                 <button
                   onClick={toggleListening}
-                  className={`absolute bottom-8 right-4 p-3 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-white'}`}
+                  className={`absolute bottom - 8 right - 4 p - 3 rounded - full transition - all ${ isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-white' } `}
                 >
                   <Mic size={18} />
                 </button>
@@ -208,12 +209,13 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`relative w-full h-72 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive
-                  ? "border-[#00FFD1] bg-[#00FFD1]/5"
-                  : uploadedImage
-                    ? "border-emerald-400/50 bg-emerald-400/5"
-                    : "border-white/10 bg-white/5 hover:bg-white/10"
-                  }`}
+                className={`relative w - full h - 72 rounded - 2xl border - 2 border - dashed transition - all duration - 300 flex flex - col items - center justify - center ${
+  dragActive
+    ? "border-[#00FFD1] bg-[#00FFD1]/5"
+    : uploadedImage
+      ? "border-emerald-400/50 bg-emerald-400/5"
+      : "border-white/10 bg-white/5 hover:bg-white/10"
+} `}
               >
                 <input
                   type="file"
@@ -261,7 +263,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
                     value={strainName}
                     onChange={(e) => setStrainName(e.target.value)}
                     placeholder="e.g. Blue Dream"
-                    className={`${GLASS_INPUT} pl-12`}
+                    className={`${ GLASS_INPUT } pl - 12`}
                   />
                 </div>
               </div>
@@ -282,12 +284,15 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
         </AnimatePresence>
       </div>
 
-      {/* Footer Action */}
       <div className="pb-12 pt-6">
+        {/* Strain Library Section */}
+        <StrainLibrary />
+
+        {/* Action Buttons */}
         <button
           onClick={handleSubmit}
           disabled={!canSubmit()}
-          className={`w-full btn-neon-green ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+          className={`w - full btn - neon - green ${ !canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none' } `}
         >
           Generate Recommendations
         </button>
