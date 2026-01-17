@@ -10,7 +10,7 @@ interface EntryGateProps {
 }
 
 export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
-  const [step, setStep] = useState<'splash' | 'age' | 'familiarity' | 'explanation' | 'mode'>('splash');
+  const [step, setStep] = useState<'splash' | 'age' | 'familiarity' | 'explanation' | 'mode'>('age');
   const [explanationStep, setExplanationStep] = useState(0);
   const [isAgeConfirmed, setIsAgeConfirmed] = useState(false);
 

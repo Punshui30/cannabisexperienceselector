@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BootLoader } from './components/BootLoader';
+import { SplashScreen } from './components/SplashScreen';
 import { EntryGate } from './components/EntryGate';
 import { InputScreen } from './components/InputScreen';
 import { ResolvingScreen } from './components/ResolvingScreen';
@@ -194,7 +194,7 @@ export default function App() {
         ) : (
           <>
             {view === 'splash' && (
-              <BootLoader onComplete={() => setView('entry')} />
+              <SplashScreen onComplete={() => setView('entry')} />
             )}
 
             {view === 'entry' && (
