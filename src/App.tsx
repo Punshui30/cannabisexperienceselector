@@ -6,20 +6,21 @@ import { InputScreen } from './components/InputScreen';
 import { ResolvingScreen } from './components/ResolvingScreen';
 import { ResultsScreen } from './components/ResultsScreen';
 import { PresetStacks } from './components/PresetStacks';
-import { StackDetailScreen } from './components/StackDetailScreen';
-import { StaticBlendScreen } from './components/StaticBlendScreen';
+import { StackDetailScreen } from './components/StackDetailScreen'; // New Import
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { generateRecommendations, interpretIntent, IntentValidation } from './lib/engineAdapter';
-import { BlendScenario } from './data/presetBlends';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'static-blend';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail';
 
-import { EngineResult, IntentSeed, OutcomeExemplar } from './types/domain';
+import { EngineResult, IntentSeed, UIStackRecommendation, OutcomeExemplar, UIBlendRecommendation } from './types/domain';
 
+// --- Domain Types ---
+// UserInput is now strictly IntentSeed
 type UserInput = IntentSeed;
+
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -30,102 +31,83 @@ export default function App() {
   const [recommendations, setRecommendations] = useState<EngineResult[]>([]);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [selectedRecommendation, setSelectedRecommendation] = useState<EngineResult | null>(null);
-  const [selectedScenario, setSelectedScenario] = useState<BlendScenario | null>(null);
   const [qrShareOpen, setQRShareOpen] = useState(false);
 
-  // Phase 2 State: Blocking Interpretation Modal
+  // Phase 2 State: Interpretation
   const [interpretationIssue, setInterpretationIssue] = useState<IntentValidation | null>(null);
-
-  // Draft Intent for Input Screen (returned from Static View)
-  const [draftIntent, setDraftIntent] = useState<string>('');
 
   const handleEnterUser = () => {
     setMode('user');
     setShowEntryGate(false);
-    setView('input');
+    setView('input'); // Explicitly enter Input Flow
   };
 
   const handleEnterAdmin = () => {
     setMode('admin');
     setShowEntryGate(false);
-    setView('input');
+    setView('input'); // Default to input view under admin mode logic
   };
 
   const handleSubmit = (input: UserInput) => {
-    // PHASE 2: INTERPRETATION (Modal Trigger)
+    // PHASE 2: INTERPRETATION
     const validation = interpretIntent(input);
 
     if (!validation.isValid) {
-      // Intent Incomplete -> Show Follow-Up Blocking Modal
+      // Intent Incomplete -> Show Follow-Up
       setInterpretationIssue(validation);
+      // Stay in Input View, but trigger "refinement" UI (could be a modal or just state passed to InputScreen)
+      // For now, we'll alert or use a temporary overlay. 
+      // BETTER: Pass this state to InputScreen or show a global Toast.
+      // We will show a toast.
       return;
     }
 
-    // Intent Complete -> Proceed to Phase 3 (Engine)
+    // Intent Complete -> Proceed to Phase 3
     setInterpretationIssue(null);
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
-
-    // Rule: Clear Static State
+    // Rule 2: Clear Preset State & Start Engine
     setSelectedRecommendation(null);
-    setSelectedScenario(null);
-
     setUserInput(input);
     setRecommendations([]);
     setView('resolving');
   };
 
-  const handleSelectPreset = (exemplar: any) => {
-    // STRICT RUNTIME GUARD (DEFENSIVE)
-    if (!exemplar) {
-      console.error('CRITICAL: handleSelectPreset called with undefined/null');
-      return;
-    }
-
-    if ('visualProfile' in exemplar) {
-      // BlendScenario -> StaticBlendScreen
-      console.log(`TRANSITION: Scenario Preset -> Static Blend View`);
-      setSelectedScenario(exemplar as BlendScenario);
-      setUserInput(null);
-      setRecommendations([]);
-      setView('static-blend');
-      return;
-    }
-
-    // Defensive Guard for OutcomeExemplar
-    if (!('kind' in exemplar)) {
-      console.error('CRITICAL: Invalid object passed to handleSelectPreset (Missing .kind)', exemplar);
-      return;
-    }
-
-    // Safe cast implies we checked kind
-    const stackExemplar = exemplar as OutcomeExemplar;
-    console.log(`TRANSITION: Stack Preset (${stackExemplar.kind}) -> Static View`);
-
+  const handleSelectPreset = (exemplar: OutcomeExemplar) => {
+    // NOTE: Presets should NOT route here anymore if they are just populating text.
+    // But keeping this logic for "Explore Preset Stacks" or legacy routes if needed.
+    // The InputScreen "Scenarios" populate text now.
+    // "Explore Preset Stacks" might still use this?
+    // If so, it should probably route to 'presets' view.
+    console.log(`TRANSITION: Preset (${exemplar.kind}) -> Static View`);
+    // Rule 1: Presets are terminal. Clear Engine State.
     setUserInput(null);
-    setRecommendations([]);
+    setRecommendations([]); // Assuming single recommendation for preset results or we wrap it
 
-    if (stackExemplar.kind === 'blend') {
-      setSelectedRecommendation(stackExemplar.data);
+    if (exemplar.kind === 'blend') {
+      // ... legacy path, should ideally be removed if all are text inputs
+      setSelectedRecommendation(exemplar.data);
       setView('results');
     } else {
-      setSelectedRecommendation(stackExemplar.data);
+      setSelectedRecommendation(exemplar.data);
       setView('stack-detail');
     }
   };
 
-  // Async Calculation Effect (Active ONLY in resolving view)
+
+  // Async Calculation Effect
   useEffect(() => {
     if (view === 'resolving' && userInput && recommendations.length === 0) {
-      // Visual Bridge: Allow "Analyzing" state to be seen
+      // Small timeout to allow UI to invoke the "Analyzing" state first
       const timer = setTimeout(() => {
         const recs = generateRecommendations(userInput);
         setRecommendations(recs);
-      }, 500);
+      }, 500); // 500ms delay to ensure transition is smooth
       return () => clearTimeout(timer);
     }
   }, [view, userInput, recommendations.length]);
 
   const handleCalculate = (rec: EngineResult) => {
+    // Calculator currently primarily designed for blends, but we pass generic result
     setSelectedRecommendation(rec);
     setCalculatorOpen(true);
   };
@@ -134,82 +116,93 @@ export default function App() {
     setView('input');
     setRecommendations([]);
     setUserInput(null);
-    setSelectedScenario(null);
   };
 
-  // Refinement / Use Intent Handler
+  // Refinement Handler (for Follow-Up Prompt)
   const handleRefine = () => {
+    // Just dismiss issue, user is already at Input
     setInterpretationIssue(null);
-    // Stay on Input
   };
 
   return (
     <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
-
-      {/* Phase 2: Blocking Interpretation Modal */}
+      {/* Interpretation Toast */}
       <AnimatePresence>
         {interpretationIssue && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-6"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-6 right-6 z-50 bg-[#7C3AED] text-white p-4 rounded-xl shadow-2xl flex items-center justify-between"
           >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative overflow-hidden"
-            >
-              {/* Decorative Glow */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#7C3AED] to-[#d4a259]" />
-
-              <h3 className="text-xl font-bold mb-3 text-white">Hold on a sec</h3>
-              <p className="text-white/70 text-sm mb-6 leading-relaxed">
-                {interpretationIssue.reason || "We need a bit more detail."}
-                <br /><br />
-                <span className="text-[#d4a259] font-medium">{interpretationIssue.followUpQuestion}</span>
-              </p>
-
-              <button
-                onClick={handleRefine}
-                className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold uppercase tracking-widest transition-colors"
-              >
-                Okay, I'll add that
-              </button>
-            </motion.div>
+            <div>
+              <p className="font-bold text-sm">Wait, tell us more.</p>
+              <p className="text-xs text-white/80">{interpretationIssue.followUpQuestion}</p>
+            </div>
+            <button onClick={handleRefine} className="bg-white/20 hover:bg-white/40 px-3 py-1 rounded-lg text-xs font-semibold ml-4">
+              Okay
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* Global Background Effects */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/60 rounded-full blur-[120px] animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#d4a259]/40 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/60 rounded-full blur-[100px] animate-pulse-slow delay-700" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col h-full overflow-hidden">
-        {mode === 'admin' ? (
-          <AdminPanel onUseScenario={(s) => { }} onExit={() => handleEnterUser()} />
+      <main className="relative z-10 w-full flex-grow flex flex-col justify-center">
+        {showSplash && (
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        )}
+
+        {showEntryGate ? (
+          <EntryGate
+            onEnterUser={handleEnterUser}
+            onEnterAdmin={handleEnterAdmin}
+          />
+        ) : mode === 'admin' ? (
+          <>
+            <div
+              className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full border backdrop-blur-xl"
+              style={{
+                backgroundColor: 'rgba(255, 170, 0, 0.2)',
+                borderColor: '#ffaa00',
+                boxShadow: '0 0 20px rgba(255, 170, 0, 0.4)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2 h-2 rounded-full animate-pulse"
+                  style={{
+                    backgroundColor: '#ffaa00',
+                    boxShadow: '0 0 8px #ffaa00',
+                  }}
+                />
+                <span className="text-xs font-medium uppercase tracking-wider" style={{ color: '#ffaa00' }}>
+                  Admin Mode
+                </span>
+              </div>
+            </div>
+            <AdminPanel
+              onExitAdmin={() => setMode('user')}
+              onEnterDemoMode={() => {
+                setView('input');
+              }}
+            />
+          </>
         ) : (
           <>
-            {view === 'splash' && (
-              <SplashScreen onComplete={() => setView('entry')} />
-            )}
-
-            {view === 'entry' && (
-              <EntryGate onEnterUser={handleEnterUser} onEnterAdmin={handleEnterAdmin} />
-            )}
-
             {view === 'input' && (
               <InputScreen
                 onSubmit={handleSubmit}
-                onSelectPreset={handleSelectPreset}
-                isAdmin={false}
-                initialText={draftIntent}
+                onBrowsePresets={() => setView('presets')}
+                onSelectExemplar={handleSelectPreset}
+                onAdminModeToggle={() => setMode('admin')}
+                isAdminMode={false}
               />
             )}
-
             {view === 'resolving' && userInput && (
               <ResolvingScreen
                 input={userInput}
@@ -217,54 +210,69 @@ export default function App() {
                 onComplete={() => setView('results')}
               />
             )}
-
-            {view === 'results' && (
+            {/* STRICT BLEND RESULTS */}
+            {view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'blend' && (
               <ResultsScreen
                 recommendations={recommendations}
-                onBack={handleBack}
                 onCalculate={handleCalculate}
-                onShare={() => setQRShareOpen(true)}
-                onRefine={() => setView('input')}
-              />
-            )}
-
-            {view === 'static-blend' && selectedScenario && (
-              <StaticBlendScreen
-                scenario={selectedScenario}
                 onBack={handleBack}
-                onUse={(text) => {
-                  setDraftIntent(text);
-                  setView('input');
+                onShare={(rec) => {
+                  setSelectedRecommendation(rec);
+                  setQRShareOpen(true);
                 }}
               />
             )}
-
+            {/* STRICT STACK DETAIL (From Presets) */}
             {view === 'stack-detail' && selectedRecommendation && (
               <StackDetailScreen
-                result={selectedRecommendation}
-                onBack={handleBack}
+                stack={selectedRecommendation}
+                onBack={() => setView('presets')}
               />
             )}
 
-            {view === 'presets' && (
-              <PresetStacks onSelectStack={(stack) => handleSelectPreset({ kind: 'stack', data: stack } as OutcomeExemplar)} />
+            {/* STRICT STACK RESULTS (From Engine) */}
+            {view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'stack' && (
+              // Note: Engine currently produces blends mostly, but if it produces a stack:
+              <StackDetailScreen
+                stack={recommendations[0]}
+                onBack={() => setView('input')}
+              />
             )}
-
+            {view === 'presets' && (
+              <PresetStacks
+                onBack={() => setView('input')}
+                onSelect={handleSelectPreset}
+              />
+            )}
+            {calculatorOpen && selectedRecommendation && (
+              <CalculatorModal
+                recommendation={selectedRecommendation}
+                onClose={() => setCalculatorOpen(false)}
+              />
+            )}
+            {qrShareOpen && selectedRecommendation && (
+              <QRShareModal
+                recommendation={selectedRecommendation}
+                onClose={() => setQRShareOpen(false)}
+              />
+            )}
           </>
         )}
-      </div>
+      </main>
 
-      <CalculatorModal
-        isOpen={calculatorOpen}
-        onClose={() => setCalculatorOpen(false)}
-        result={selectedRecommendation}
-      />
-
-      <QRShareModal
-        isOpen={qrShareOpen}
-        onClose={() => setQRShareOpen(false)}
-        result={selectedRecommendation}
-      />
+      {/* Admin Quick Access */}
+      {!showSplash && !showEntryGate && mode !== 'admin' && (
+        <button
+          onClick={() => setMode('admin')}
+          className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all"
+          title="Admin Panel"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </button>
+      )}
     </div>
   );
 }
