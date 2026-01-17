@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { SplashScreen } from './components/SplashScreen';
+import { BootLoader } from './components/BootLoader';
 import { EntryGate } from './components/EntryGate';
 import { InputScreen } from './components/InputScreen';
 import { ResolvingScreen } from './components/ResolvingScreen';
@@ -74,8 +74,10 @@ export default function App() {
     setView('resolving');
   };
 
-  const handleSelectPreset = (exemplar: OutcomeExemplar | BlendScenario) => {
-    // STRICT ROUTING SEPARATION
+  const handleSelectPreset = (exemplar?: OutcomeExemplar | BlendScenario) => {
+    // STRICT ROUTING SEPARATION & RUNTIME SAFETY
+
+    if (!exemplar) return;
 
     if ('visualProfile' in exemplar) {
       // BlendScenario -> StaticBlendScreen
@@ -87,23 +89,29 @@ export default function App() {
       setRecommendations([]);
 
       setView('static-blend');
+      return;
+    }
+
+    // Defensive Guard for OutcomeExemplar
+    if (!('kind' in exemplar) || !('data' in exemplar)) {
+      console.warn('Invalid preset exemplar received', exemplar);
+      return;
+    }
+
+    const stackExemplar = exemplar as OutcomeExemplar;
+    console.log(`TRANSITION: Stack Preset (${stackExemplar.kind}) -> Static View`);
+
+    setUserInput(null);
+    setRecommendations([]);
+
+    if (stackExemplar.kind === 'blend') {
+      // Legacy catch, ideally unused if Scenarios replace blend presets
+      // We map to ResultsScreen for visualization ONLY if it's legacy data
+      setSelectedRecommendation(stackExemplar.data);
+      setView('results');
     } else {
-      // Stack Exemplar -> StackDetailScreen (or Presets)
-      const stackExemplar = exemplar as OutcomeExemplar;
-      console.log(`TRANSITION: Stack Preset (${stackExemplar.kind}) -> Static View`);
-
-      setUserInput(null);
-      setRecommendations([]);
-
-      if (stackExemplar.kind === 'blend') {
-        // Legacy catch, ideally unused if Scenarios replace blend presets
-        // We map to ResultsScreen for visualization ONLY if it's legacy data
-        setSelectedRecommendation(stackExemplar.data);
-        setView('results');
-      } else {
-        setSelectedRecommendation(stackExemplar.data);
-        setView('stack-detail');
-      }
+      setSelectedRecommendation(stackExemplar.data);
+      setView('stack-detail');
     }
   };
 
@@ -188,11 +196,11 @@ export default function App() {
         ) : (
           <>
             {view === 'splash' && (
-              <SplashScreen onComplete={() => setView('entry')} />
+              <BootLoader onComplete={() => setView('entry')} />
             )}
 
             {view === 'entry' && (
-              <EntryGate onEnter={handleEnterUser} />
+              <EntryGate onEnterUser={handleEnterUser} onEnterAdmin={handleEnterAdmin} />
             )}
 
             {view === 'input' && (
