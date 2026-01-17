@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Camera, Upload, Search } from 'lucide-react';
 import { StrainLibrary } from './StrainLibrary';
 import { UserInput } from '../lib/engineAdapter';
+import logoImg from '../assets/logo.png';
 
 // --- DESIGN TOKENS ---
 const GLASS_INPUT = "w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:border-[#00FFD1]/50 transition-colors text-sm";
@@ -129,9 +130,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
 
   return (
     <div className="w-full h-full flex flex-col pt-12 px-6 max-w-xl mx-auto relative z-10">
-
-      import logoImg from '../assets/logo.png';
-      // ...
       <div className="flex justify-between items-start mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
