@@ -42,6 +42,7 @@ export type UIBlendRecommendation = {
     feeling: string;
   }[];
   blendEvaluation?: BlendEvaluation; // Added V2 Data
+  kind: 'blend';
 };
 
 
@@ -314,10 +315,9 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
         duration: '2-3 hours',
       },
       timeline: [
-        { time: '25-80 min', feeling: 'Peak balanced effects' },
-        { time: '80-120 min', feeling: 'Gradual softening' },
         { time: '120+ min', feeling: 'Smooth return to baseline' },
       ],
+      kind: 'blend',
     }];
   }
 
@@ -366,6 +366,7 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
       },
       timeline: generateTimeline(blend),
       blendEvaluation: blend.blendEvaluation,
+      kind: 'blend',
     };
   });
 

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import type { BlendRecommendation } from '../App';
 import { BlendCard } from './BlendCard';
 import { StackedCard } from './StackedCard';
-import { isStacked } from '../App';
+import { StackedCard } from './StackedCard';
 
 
 interface ResultsProps {
@@ -34,10 +34,12 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
             <span className="text-xs uppercase tracking-widest text-white/40">Back</span>
           </button>
 
+          import logoImg from '../assets/logo.png';
+
+          // ... inside component ...
+
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 flex items-center justify-center text-[#FFD700]">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /></svg>
-            </div>
+            <img src={logoImg} alt="GO logo" className="w-8 h-auto" />
             <div className="flex flex-col items-end">
               <span className="text-sm font-normal text-white serif">Guided Outcomes</span>
               <span className="text-[10px] text-white/40">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></span>
@@ -63,11 +65,17 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
               transition={{ duration: 0.3 }}
               className="w-full"
             >
-              {isStacked(activeRec) ? (
-                <StackedCard recommendation={activeRec} onCalculate={() => onCalculate(activeRec)} />
-              ) : (
-                <BlendCard recommendation={activeRec} onCalculate={() => onCalculate(activeRec)} />
-              )}
+              {(() => {
+                switch (activeRec.kind) {
+                  case 'blend':
+                    return <BlendCard recommendation={activeRec} onCalculate={() => onCalculate(activeRec)} />;
+                  case 'stack':
+                    return <StackedCard recommendation={activeRec} onCalculate={() => onCalculate(activeRec)} />;
+                  default:
+                    // @ts-ignore - Guard against runtime type failures
+                    throw new Error(`Unsupported result kind: ${activeRec?.kind}`);
+                }
+              })()}
             </motion.div>
           </AnimatePresence>
 

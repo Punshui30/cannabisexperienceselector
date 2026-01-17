@@ -20,6 +20,7 @@ export type { UserInput };
 export type BlendRecommendation = UIBlendRecommendation | StackedRecommendation;
 
 export type StackedRecommendation = {
+  kind: 'stack';
   id: string;
   name: string;
   matchScore: number;
@@ -41,10 +42,6 @@ export type StackedRecommendation = {
   effects?: never;
   timeline?: never;
 };
-
-export function isStacked(rec: BlendRecommendation): rec is StackedRecommendation {
-  return 'layers' in rec;
-}
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);

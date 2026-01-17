@@ -1,6 +1,7 @@
 import { UserInput } from '../lib/engineAdapter';
 
 export interface PresetStack {
+    kind: 'presetStack';
     id: string;
     title: string;
     subtitle: string;
@@ -14,6 +15,7 @@ export interface PresetStack {
 
 export const PRESET_STACKS: PresetStack[] = [
     {
+        kind: 'presetStack',
         id: 'late-night-focus',
         title: 'Late Night Focus',
         subtitle: 'Clear-headed concentration',
@@ -25,6 +27,7 @@ export const PRESET_STACKS: PresetStack[] = [
         }
     },
     {
+        kind: 'presetStack',
         id: 'creative-flow',
         title: 'Creative Flow',
         subtitle: 'Open exploration',
@@ -36,6 +39,7 @@ export const PRESET_STACKS: PresetStack[] = [
         }
     },
     {
+        kind: 'presetStack',
         id: 'sunday-calm',
         title: 'Sunday Calm',
         subtitle: 'Complete unwinding',
@@ -47,6 +51,7 @@ export const PRESET_STACKS: PresetStack[] = [
         }
     },
     {
+        kind: 'presetStack',
         id: 'social-lift',
         title: 'Social Lift',
         subtitle: 'Warm engagement',
