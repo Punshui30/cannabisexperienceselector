@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Camera, Upload, Search } from 'lucide-react';
 import { StrainLibrary } from './StrainLibrary';
 import { IntentSeed as UserInput } from '../types/domain';
-import { BLEND_EXEMPLARS } from '../data/presetBlends';
+import { BLEND_SCENARIOS } from '../data/presetBlends';
+import { SwipeDeck } from './SwipeDeck';
 import type { OutcomeExemplar } from '../types/domain'; // Import OutcomeExemplar
 import logoImg from '../assets/logo.png';
 
@@ -41,6 +42,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onAdm
     if (!canSubmit()) return;
 
     const input: UserInput = {
+      kind: 'intentSeed',
       mode,
       text: mode === 'describe' ? description : undefined,
       strainName: mode === 'strain' ? strainName : undefined,
@@ -289,34 +291,53 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onAdm
         {/* --- DIVIDER --- */}
         <div className="h-px bg-white/10 w-full mb-8" />
 
-        {/* --- CURATED BLEND PRESETS (STATIC) --- */}
-        <div className="mb-8">
+        {/* --- CURATED SCENARIOS (SWIPEABLE) --- */}
+        <div className="mb-8 w-full h-[280px] relative"> {/* Fixed height for deck */}
           <div className="flex justify-between items-end mb-4">
             <div>
-              <h3 className="text-white text-lg font-light serif">Curated Blend Presets</h3>
-              <p className="text-white/40 text-xs">Example blend intentions</p>
+              <h3 className="text-white text-lg font-light serif">Start with a Scenario</h3>
+              <p className="text-white/40 text-xs">Swipe to see examples</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
-            {BLEND_EXEMPLARS.map((exemplar, idx) => (
-              <button
-                key={idx}
-                onClick={() => onSelectExemplar && onSelectExemplar(exemplar)}
-                className="flex items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#F59E0B]/50 transition-all text-left group"
-              >
-                <div className="w-10 h-10 rounded-full flex items-center justify-center mr-4 bg-white/5 border border-white/10" style={{ borderColor: exemplar.visualProfile.color + '40' }}>
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: exemplar.visualProfile.color }} />
+          <div className="absolute left-0 right-0 top-12 bottom-0">
+            <SwipeDeck
+              items={BLEND_SCENARIOS}
+              enableGuidance={false} // Maybe disable guidance here to avoid clutter? Or keep it? User said "First-Time Swipe Guidance... On the first card shown (blend OR stack)". This is input screen. Maybe guidance is good? Let's leave it default (true).
+              renderItem={(scenario, isActive) => (
+                <div className="w-full h-full pr-4 pb-4"> {/* Padding for shadow/bounds */}
+                  <button
+                    onClick={() => {
+                      // DIRECT TO ENGINE
+                      onSubmit({
+                        kind: 'intentSeed',
+                        mode: 'describe',
+                        text: scenario.inputText
+                      });
+                    }}
+                    className="w-full h-full text-left p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all flex flex-col justify-between group relative overflow-hidden"
+                  >
+                    {/* Accent Line */}
+                    <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: scenario.visualProfile.color }} />
+
+                    <div>
+                      <h4 className="text-xl font-light text-white mb-1 serif">{scenario.title}</h4>
+                      <p className="text-xs uppercase tracking-widest text-white/40 mb-4">{scenario.subtitle}</p>
+                      <p className="text-sm text-white/80 leading-relaxed font-light italic">
+                        "{scenario.inputText}"
+                      </p>
+                    </div>
+
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-[10px] uppercase tracking-widest text-[#00FFD1] opacity-0 group-hover:opacity-100 transition-opacity">Use Scenario</span>
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:text-white group-hover:bg-[#00FFD1] group-hover:text-black transition-all">
+                        <Search size={14} />
+                      </div>
+                    </div>
+                  </button>
                 </div>
-                <div>
-                  <h4 className="text-sm text-white font-medium">{exemplar.title}</h4>
-                  <p className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{exemplar.subtitle}</p>
-                </div>
-                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-[10px] uppercase tracking-widest text-white/30">View</span>
-                </div>
-              </button>
-            ))}
+              )}
+            />
           </div>
         </div>
 
