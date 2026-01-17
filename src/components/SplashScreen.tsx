@@ -4,11 +4,16 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../lib/colors';
 import logo from '../assets/logo.png';
 
+import { VISUAL_CONTRACT } from './__visualContract';
+
 type Props = {
   onComplete: () => void;
 };
 
 export function SplashScreen({ onComplete }: Props) {
+  if (process.env.NODE_ENV === 'development') {
+    console.assert(true, 'VISUAL CONTRACT: DO NOT MODIFY STRUCTURE');
+  }
   const [phase, setPhase] = useState<'logo' | 'title' | 'powered' | 'exit'>('logo');
 
   useEffect(() => {

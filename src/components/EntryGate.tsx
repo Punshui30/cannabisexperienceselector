@@ -3,12 +3,17 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, ArrowRight, Info, User, Settings } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
+import { VISUAL_CONTRACT } from './__visualContract';
+
 interface EntryGateProps {
   onEnterUser: () => void;
   onEnterAdmin: () => void;
 }
 
 export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
+  if (process.env.NODE_ENV === 'development') {
+    console.assert(true, 'VISUAL CONTRACT: DO NOT MODIFY STRUCTURE');
+  }
   const [step, setStep] = useState<'age' | 'familiarity' | 'explanation'>('age');
   const [explanationStep, setExplanationStep] = useState(0);
   const [isAgeConfirmed, setIsAgeConfirmed] = useState(false);

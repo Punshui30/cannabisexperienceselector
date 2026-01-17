@@ -4,23 +4,16 @@ import { IntentSeed, OutcomeExemplar } from '../types/domain';
 import { SwipeDeck } from './SwipeDeck';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 
+import { VISUAL_CONTRACT } from './__visualContract';
+
 interface InputScreenProps {
   onSubmit: (data: IntentSeed) => void;
   onSelectPreset: (exemplar: OutcomeExemplar | BlendScenario) => void;
   isAdmin?: boolean;
   initialText?: string;
-  onBrowsePresets?: () => void; // Added back to match App.tsx usage if needed, though snippet ignored it? 
-  // Wait, App.tsx calls: onBrowsePresets={() => setView('presets')}
-  // User snippet has: button onClick={() => onSubmit...} and "Explore Preset Stacks" button.
-  // The "Explore Preset Stacks" button in snippet has NO implementation (onClick is missing).
-  // I will attach onBrowsePresets to that button.
-  onAdminModeToggle?: () => void; // App.tsx passes this. I will keep it in interface but maybe not use it if user didn't include it?
-  // User snippet has "Admin Mode" badge in header.
+  onBrowsePresets?: () => void;
+  onAdminModeToggle?: () => void;
 }
-
-// User snippet omitted onBrowsePresets in destructuring?
-// input: export function InputScreen({ onSubmit, onSelectPreset, isAdmin, initialText }: InputScreenProps)
-// I will ADD onBrowsePresets back to make the "Explore" button work.
 
 export function InputScreen({
   onSubmit,
@@ -29,6 +22,9 @@ export function InputScreen({
   initialText,
   onBrowsePresets
 }: InputScreenProps) {
+  if (process.env.NODE_ENV === 'development') {
+    console.assert(true, 'VISUAL CONTRACT: DO NOT MODIFY STRUCTURE');
+  }
   const [mode, setMode] = useState<'describe' | 'strain'>('describe');
   const [description, setDescription] = useState('');
 
@@ -46,14 +42,14 @@ export function InputScreen({
       {/* 1. FIXED HEADER */}
       <div className="flex-shrink-0 pt-12 px-6 pb-4 flex items-center justify-between z-10 bg-black/80 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center gap-3">
-          {/* Logo - Text Fallback for Reliability */}
+          {/* Logo Placeholder - Guided Outcomes Style */}
           <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center border border-white/20">
-            <span className="font-bold text-lg text-[#d4a259]">AG</span>
+            <span className="font-bold text-lg text-[#d4a259]">GO</span>
           </div>
 
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white leading-none">
-              ANTIGRAVITY
+              Guided Outcomes
             </h1>
             <p className="text-[10px] text-[#d4a259] uppercase tracking-[0.2em] mt-1">
               Experience Engine
