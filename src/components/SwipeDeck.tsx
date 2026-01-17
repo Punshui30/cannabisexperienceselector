@@ -88,10 +88,25 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
 
     if (!activeItem) return null;
 
+    const activeKey = activeItem
+        ? ('id' in activeItem ? (activeItem as any).id
+            : 'data' in activeItem && (activeItem as any).data?.id ? (activeItem as any).data.id
+                : `fallback-${currentIndex}`)
+        : `empty-${currentIndex}`;
+
+    // SHAPE VALIDATION: Ensure item matches one of our known contracts
+    // We allow 'kind' (OutcomeExemplar) OR 'visualProfile' (BlendScenario)
+    if (activeItem && !('kind' in activeItem) && !('visualProfile' in activeItem)) {
+        console.warn('SwipeDeck: Item does not match known shape (missing kind/visualProfile)', activeItem);
+        // We don't return null here to avoid invisible failures, but ideally we should.
+        // For now, allow renderItem to handle it or fail gracefully.
+    }
+
     return (
         <div className={`relative w-full h-full overflow-hidden ${className}`}>
             {/* Current Card */}
             <motion.div
+                key={activeKey} // FORCE REMOUNT ON IDENTITY CHANGE
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.2} // Linear resistance
