@@ -176,9 +176,6 @@ export default function App() {
             {view === 'presets' && (
               <PresetStacks
                 onBack={() => setView('input')}
-                onSelectPreset={(stack) => {
-                  handleSubmit(stack.input);
-                }}
               />
             )}
             {calculatorOpen && selectedRecommendation && (

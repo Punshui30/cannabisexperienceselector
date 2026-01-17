@@ -187,6 +187,20 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
                   placeholder="Tell us how you want to feel..."
                   className={`${GLASS_INPUT} h-72 resize-none mb-4`}
                 />
+
+                {/* Preset Suggestions */}
+                <div className="absolute bottom-20 left-4 right-16 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {['Relax & unwind', 'Creative focus', 'Social energy', 'Deep sleep'].map(text => (
+                    <button
+                      key={text}
+                      onClick={() => setDescription(text)}
+                      className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/60 hover:bg-white/10 hover:text-white hover:border-white/30 transition-all backdrop-blur-sm"
+                    >
+                      {text}
+                    </button>
+                  ))}
+                </div>
+
                 <button
                   onClick={toggleListening}
                   className={`absolute bottom-8 right-4 p-3 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-white'}`}

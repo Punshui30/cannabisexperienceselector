@@ -1,18 +1,62 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PRESET_STACKS, PresetStack } from '../data/presetStacks';
 import logoImg from '../assets/logo.png';
 
-export interface PresetStacksProps {
-  onBack: () => void;
-  onSelectPreset?: (preset: PresetStack) => void;
-}
 
-export function PresetStacks({ onBack, onSelectPreset }: PresetStacksProps) {
+export function PresetStacks({ onBack }: { onBack: () => void }) { // Modified function signature
+  const [selectedStack, setSelectedStack] = useState<PresetStack | null>(null); // Added state
 
   // No Engine Logic Here - Strictly UI/Static Data
 
   return (
     <div className="fixed inset-0 flex flex-col bg-black overflow-hidden font-sans">
+
+      {/* Detail Overlay */}
+      <AnimatePresence>
+        {selectedStack && (
+          <motion.div
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '100%' }}
+            className="absolute inset-0 z-50 bg-gray-900/95 backdrop-blur-xl flex flex-col"
+          >
+            <div className="flex-none p-6 flex items-center justify-between border-b border-white/10">
+              <button onClick={() => setSelectedStack(null)} className="text-white/60 hover:text-white flex items-center gap-2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+                Back
+              </button>
+              <h2 className="text-xl font-light text-white serif">{selectedStack.title}</h2>
+              <div className="w-8" />
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8">
+              <div className="max-w-md mx-auto space-y-8">
+                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00FFD1] to-transparent opacity-50" style={{ backgroundColor: selectedStack.visualProfile.color }} />
+                  <h1 className="text-3xl font-medium text-white mb-2">{selectedStack.title}</h1>
+                  <p className="text-white/60 text-sm mb-6">{selectedStack.subtitle}</p>
+                  <p className="text-white/80 leading-relaxed font-light">{selectedStack.description}</p>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xs uppercase tracking-widest text-white/40 border-b border-white/10 pb-2">Target Profile</h3>
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold border-4"
+                      style={{ borderColor: selectedStack.visualProfile.color, color: selectedStack.visualProfile.color }}>
+                      {selectedStack.visualProfile.dominantEffect[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="text-white font-medium capitalize">{selectedStack.visualProfile.dominantEffect}</div>
+                      <div className="text-xs text-white/40">Dominant Effect</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Header */}
       <div className="flex-shrink-0 px-8 pt-8 pb-4 flex items-center justify-between relative z-10">
@@ -47,7 +91,7 @@ export function PresetStacks({ onBack, onSelectPreset }: PresetStacksProps) {
             {PRESET_STACKS.map((stack, idx) => (
               <motion.button
                 key={stack.id}
-                onClick={() => onSelectPreset?.(stack)}
+                onClick={() => setSelectedStack(stack)}
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 1.05, y: -10 }}
