@@ -128,7 +128,11 @@ export function InputScreen({ onSubmit, onSelectPreset, isAdmin, initialText }: 
                 // Analytics hook
               }}
               onClick={(scenario) => {
-                // PRESET NAVIGATION (STATIC) -> Routes to StaticBlendScreen via App.tsx
+                // RUNTIME GUARD
+                if (!scenario || typeof scenario !== 'object') {
+                  console.error('CRITICAL: InputScreen SwipeDeck passed invalid scenario', scenario);
+                  return;
+                }
                 onSelectPreset(scenario);
               }}
             />

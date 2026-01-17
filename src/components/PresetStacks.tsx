@@ -43,7 +43,13 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
             <div className="w-full h-full flex items-center justify-center p-8">
               <motion.button
                 className="relative w-full max-w-sm aspect-[3/4] p-8 rounded-3xl bg-white/5 border border-white/10 text-left overflow-hidden group hover:bg-white/10 transition-colors flex flex-col justify-end"
-                onClick={() => onSelect(exemplar)}
+                onClick={() => {
+                  if (!exemplar || typeof exemplar !== 'object') {
+                    console.error('CRITICAL: PresetStacks passed invalid exemplar', exemplar);
+                    return;
+                  }
+                  onSelect(exemplar);
+                }}
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3 }}

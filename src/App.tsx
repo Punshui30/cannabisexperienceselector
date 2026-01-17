@@ -74,30 +74,30 @@ export default function App() {
     setView('resolving');
   };
 
-  const handleSelectPreset = (exemplar?: OutcomeExemplar | BlendScenario) => {
-    // STRICT ROUTING SEPARATION & RUNTIME SAFETY
-
-    if (!exemplar) return;
+  const handleSelectPreset = (exemplar: any) => {
+    // STRICT RUNTIME GUARD (DEFENSIVE)
+    if (!exemplar) {
+      console.error('CRITICAL: handleSelectPreset called with undefined/null');
+      return;
+    }
 
     if ('visualProfile' in exemplar) {
       // BlendScenario -> StaticBlendScreen
       console.log(`TRANSITION: Scenario Preset -> Static Blend View`);
       setSelectedScenario(exemplar as BlendScenario);
-
-      // Ensure Engine State is CLEARED
       setUserInput(null);
       setRecommendations([]);
-
       setView('static-blend');
       return;
     }
 
     // Defensive Guard for OutcomeExemplar
-    if (!('kind' in exemplar) || !('data' in exemplar)) {
-      console.warn('Invalid preset exemplar received', exemplar);
+    if (!('kind' in exemplar)) {
+      console.error('CRITICAL: Invalid object passed to handleSelectPreset (Missing .kind)', exemplar);
       return;
     }
 
+    // Safe cast implies we checked kind
     const stackExemplar = exemplar as OutcomeExemplar;
     console.log(`TRANSITION: Stack Preset (${stackExemplar.kind}) -> Static View`);
 
@@ -105,8 +105,6 @@ export default function App() {
     setRecommendations([]);
 
     if (stackExemplar.kind === 'blend') {
-      // Legacy catch, ideally unused if Scenarios replace blend presets
-      // We map to ResultsScreen for visualization ONLY if it's legacy data
       setSelectedRecommendation(stackExemplar.data);
       setView('results');
     } else {
