@@ -7,43 +7,10 @@
 import { calculateBlends, Intent, BlendRecommendation as EngineBlend, BlendEvaluation } from './calculationEngine';
 import { INVENTORY } from './inventory';
 import { getStrainById } from './strainLibrary';
+import { IntentSeed, UIBlendRecommendation, UIStackRecommendation, EngineResult } from '../types/domain';
 
-export type UserInput = {
-  mode: 'describe' | 'product' | 'strain';
-  text?: string;
-  image?: string;
-  strainName?: string;
-  grower?: string;
-};
 
-export type UICultivar = {
-  name: string;
-  ratio: number;
-  profile: string;
-  characteristics: string[];
-  prominentTerpenes: string[];
-  color: string; // Hex color based on dominant terpene
-};
 
-export type UIBlendRecommendation = {
-  id: string;
-  name: string;
-  cultivars: UICultivar[];
-  matchScore: number;
-  confidence: number; // Added
-  reasoning: string;
-  effects: {
-    onset: string;
-    peak: string;
-    duration: string;
-  };
-  timeline: {
-    time: string;
-    feeling: string;
-  }[];
-  blendEvaluation?: BlendEvaluation; // Added V2 Data
-  kind: 'blend';
-};
 
 
 
@@ -72,7 +39,8 @@ function getTerpeneColor(terpeneName: string): string {
  * LAYER 1: Intent Interpretation (Simplified NLP)
  * Converts natural language to Intent object
  */
-function interpretIntent(input: UserInput): Intent {
+function interpretIntent(input: IntentSeed): Intent {
+
   const text = (input.text || '').toLowerCase();
 
   // Default intent
@@ -281,12 +249,80 @@ function generateTimeline(blend: EngineBlend): Array<{ time: string; feeling: st
 /**
  * LAYER 2: Call Engine + Transform Output
  */
-export function generateRecommendations(input: UserInput): UIBlendRecommendation[] {
+/**
+ * LAYER 2: Call Engine + Transform Output
+ */
+export function generateRecommendations(input: IntentSeed): EngineResult[] {
   // Layer 1: Interpret intent
   const intent = interpretIntent(input);
 
+  // ---------------------------------------------------------
+  // MODE GATE: Temporal Structure Detection
+  // Heuristic: Check for sequence keywords
+  // ---------------------------------------------------------
+  const text = (input.text || '').toLowerCase();
+  const temporalKeywords = ['then', 'after', 'followed by', 'later', 'secondly'];
+  const isStackMode = temporalKeywords.some(kw => text.includes(kw));
+
+  console.log('LAYER 1: Intent', intent, 'Stack Mode:', isStackMode);
+
+  if (isStackMode) {
+    // ---------------------------------------------------------
+    // STACK GENERATION (Multi-Phase)
+    // ---------------------------------------------------------
+
+    // For V2 Engine (Mocking multi-phase by running distinct intents or splitting results)
+    // Here we'll take top results and assign them to phases for demonstration of the ARCHITECTURE.
+    // In a real implementation, we'd parse "A then B" into Intent A and Intent B.
+
+    // Simplification: Run engine once, distribute top 2 strains into phases
+    const engineOutput = calculateBlends(INVENTORY, intent);
+
+    if (engineOutput.recommendations.length >= 2) {
+      const rec1 = engineOutput.recommendations[0];
+      const rec2 = engineOutput.recommendations[1];
+
+      const stack: UIStackRecommendation = {
+        kind: 'stack',
+        id: `stack_${Date.now()}`,
+        name: generateBlendName(rec1).replace('Blend', 'Journey'), // "Creative Flow Journey"
+        matchScore: Math.round((rec1.blendScore + rec2.blendScore) / 2),
+        reasoning: `A multi-phase experience. Starts with ${rec1.cultivars[0].name} for immediate effect, then transitions into ${rec2.cultivars[0].name}.`,
+        totalDuration: '3-4 hours',
+        layers: [
+          {
+            layerName: 'Onset Phase',
+            cultivars: [{
+              name: rec1.cultivars[0].name,
+              ratio: 1.0,
+              profile: generateProfile(rec1.cultivars[0].id),
+              characteristics: ['Immediate', 'Potent']
+            }],
+            purpose: 'Initial elevation and mood setting',
+            timing: '0-45 mins'
+          },
+          {
+            layerName: 'Sustain Phase',
+            cultivars: [{
+              name: rec2.cultivars[0].name,
+              ratio: 1.0,
+              profile: generateProfile(rec2.cultivars[0].id),
+              characteristics: ['Long-lasting', 'Stable']
+            }],
+            purpose: 'Prolonged beneficial effects',
+            timing: '45-120 mins'
+          }
+        ]
+      };
+      return [stack];
+    }
+  }
+
+  // ---------------------------------------------------------
+  // BLEND GENERATION (Single-Phase)
+  // ---------------------------------------------------------
+
   // Layer 2: Call calculation engine
-  console.log('LAYER 1: Intent', intent);
   console.log('LAYER 2: Engine Start - Inventory Size:', INVENTORY.cultivars.length);
   const engineOutput = calculateBlends(INVENTORY, intent);
   console.log('LAYER 2: Engine Output', {
@@ -297,17 +333,17 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
   // Handle errors
   if (engineOutput.error || engineOutput.recommendations.length === 0) {
     // Return fallback mock recommendation
-    // Return fallback mock recommendation - Updated to 3 Cultivars
     console.warn('ENGINE ADAPTER: Returning fallback recommendations (3 cultivars)');
     return [{
       id: 'fallback_1',
       name: 'Balanced Start',
       cultivars: [
-        { name: 'Blue Dream', ratio: 0.4, profile: 'Balanced hybrid', characteristics: ['Uplifting', 'Creative', 'Smooth'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
-        { name: 'Harlequin', ratio: 0.35, profile: 'Clear-headed', characteristics: ['Functional', 'Calm', 'Therapeutic'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
-        { name: 'ACDC', ratio: 0.25, profile: 'Soothing baseline', characteristics: ['Relaxed', 'Focused', 'Gentle'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
+        { name: 'Blue Dream', ratio: 0.4, profile: 'Balanced hybrid', characteristics: ['Uplifting', 'Creative', 'Smooth'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'], color: '#84CC16' },
+        { name: 'Harlequin', ratio: 0.35, profile: 'Clear-headed', characteristics: ['Functional', 'Calm', 'Therapeutic'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'], color: '#84CC16' },
+        { name: 'ACDC', ratio: 0.25, profile: 'Soothing baseline', characteristics: ['Relaxed', 'Focused', 'Gentle'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'], color: '#84CC16' },
       ],
       matchScore: 85,
+      confidence: 0.9,
       reasoning: 'A gentle, balanced blend perfect for most situations. Blue Dream provides uplift, Harlequin maintains clarity, and ACDC adds a soothing baseline.',
       effects: {
         onset: '5-12 minutes',
@@ -348,8 +384,6 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
     });
 
     // Score Normalization
-    // V2 Engine provides pre-calculated blendScore (0-100)
-    // We can use it directly as the match fidelity
     const normalizedScore = Math.round(blend.blendScore);
 
     return {
@@ -368,12 +402,6 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
       blendEvaluation: blend.blendEvaluation,
       kind: 'blend',
     };
-  });
-
-  // Log Layer 3
-  console.log('LAYER 3: Explanation', {
-    recs: uiRecommendations.map(r => ({ name: r.name, cultivars: r.cultivars.map(c => c.name) })),
-    terpenesReferenced: uiRecommendations.every(r => r.cultivars.every(c => c.prominentTerpenes.length > 0))
   });
 
   return uiRecommendations;

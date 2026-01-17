@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import type { StackedRecommendation } from '../App';
+import type { UIStackRecommendation } from '../types/domain';
 import { COLORS, LAYER_COLORS } from '../lib/colors';
 import { VoiceFeedback } from './VoiceFeedback';
 
 type Props = {
-  recommendation: StackedRecommendation;
+  recommendation: UIStackRecommendation;
   onCalculate: () => void;
 };
 

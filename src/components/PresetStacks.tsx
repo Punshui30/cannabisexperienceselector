@@ -1,11 +1,13 @@
+```javascript
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PRESET_STACKS, PresetStack } from '../data/presetStacks';
+import { OUTCOME_EXEMPLARS } from '../data/presetStacks';
+import type { OutcomeExemplar } from '../types/domain';
 import logoImg from '../assets/logo.png';
 
 
 export function PresetStacks({ onBack }: { onBack: () => void }) { // Modified function signature
-  const [selectedStack, setSelectedStack] = useState<PresetStack | null>(null); // Added state
+  const [selectedStack, setSelectedStack] = useState<OutcomeExemplar | null>(null); // Added state
 
   // No Engine Logic Here - Strictly UI/Static Data
 
@@ -87,14 +89,6 @@ export function PresetStacks({ onBack }: { onBack: () => void }) { // Modified f
       {/* Grid */}
       <div className="flex-1 px-8 py-4 flex items-start justify-center overflow-y-auto">
         <div className="w-full max-w-2xl grid grid-cols-2 gap-4 pb-10">
-          <AnimatePresence mode="wait">
-            {PRESET_STACKS.map((stack, idx) => (
-              <motion.button
-                key={stack.id}
-                onClick={() => setSelectedStack(stack)}
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 1.05, y: -10 }}
                 transition={{ delay: idx * 0.05 }}
                 className="group relative h-64 p-6 glass-card text-left border-white/5 bg-white/5 hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all flex flex-col justify-between"
               >

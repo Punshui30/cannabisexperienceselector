@@ -17,41 +17,20 @@ export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' |
 // Re-export types from adapter if needed elsewhere, though usually direct import is better
 export type { UserInput };
 
-export type BlendRecommendation = UIBlendRecommendation | StackedRecommendation;
+import { EngineResult, IntentSeed } from './types/domain';
 
-export type StackedRecommendation = {
-  kind: 'stack';
-  id: string;
-  name: string;
-  matchScore: number;
-  layers: Array<{
-    layerName: string;
-    cultivars: Array<{
-      name: string;
-      ratio: number;
-      profile: string;
-      characteristics: string[];
-    }>;
-    purpose: string;
-    timing: string;
-  }>;
-  reasoning: string;
-  totalDuration: string;
-  // properties to satisfy BlendRecommendation shape for shared components
-  cultivars?: never;
-  effects?: never;
-  timeline?: never;
-};
+// Old types removed in favor of strict domain types
+
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [showEntryGate, setShowEntryGate] = useState(true);
   const [mode, setMode] = useState<'user' | 'admin'>('user');
-  const [view, setView] = useState<ViewState>('input');
+  const [view, setView] = useState<ViewState>('splash');
   const [userInput, setUserInput] = useState<UserInput | null>(null);
-  const [recommendations, setRecommendations] = useState<BlendRecommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<EngineResult[]>([]);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [selectedRecommendation, setSelectedRecommendation] = useState<BlendRecommendation | null>(null);
+  const [selectedRecommendation, setSelectedRecommendation] = useState<EngineResult | null>(null);
   const [qrShareOpen, setQRShareOpen] = useState(false);
 
   const handleEnterUser = () => {

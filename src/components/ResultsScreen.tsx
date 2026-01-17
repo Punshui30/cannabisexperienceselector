@@ -1,17 +1,17 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import type { BlendRecommendation } from '../App';
+import { EngineResult } from '../types/domain';
 import { BlendCard } from './BlendCard';
 import { StackedCard } from './StackedCard';
-import { StackedCard } from './StackedCard';
+import logoImg from '../assets/logo.png';
 
 
 interface ResultsProps {
-  recommendations: BlendRecommendation[];
-  onCalculate: (rec: BlendRecommendation) => void;
+  recommendations: EngineResult[];
+  onCalculate: (rec: EngineResult) => void;
   onBack: () => void;
-  onShare?: (rec: BlendRecommendation) => void;
+  onShare?: (rec: EngineResult) => void;
 }
 
 export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }: ResultsProps) {
