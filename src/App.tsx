@@ -67,12 +67,23 @@ export default function App() {
     setShowEntryGate(false);
   };
 
-  const handleSubmit = async (input: UserInput) => {
+  const handleSubmit = (input: UserInput) => {
     setUserInput(input);
-    const recs = generateRecommendations(input);
-    setRecommendations(recs);
+    setRecommendations([]);
     setView('resolving');
   };
+
+  // Async Calculation Effect
+  useEffect(() => {
+    if (view === 'resolving' && userInput && recommendations.length === 0) {
+      // Small timeout to allow UI to invoke the "Analyzing" state first
+      const timer = setTimeout(() => {
+        const recs = generateRecommendations(userInput);
+        setRecommendations(recs);
+      }, 500); // 500ms delay to ensure transition is smooth
+      return () => clearTimeout(timer);
+    }
+  }, [view, userInput, recommendations.length]);
 
   const handleCalculate = (rec: BlendRecommendation) => {
     setSelectedRecommendation(rec);
@@ -144,10 +155,10 @@ export default function App() {
                 isAdminMode={false}
               />
             )}
-            {view === 'resolving' && userInput && recommendations.length > 0 && (
+            {view === 'resolving' && userInput && (
               <ResolvingScreen
                 input={userInput}
-                recommendation={recommendations[0] as UIBlendRecommendation}
+                recommendation={recommendations[0] as UIBlendRecommendation} // Undefined initially
                 onComplete={() => setView('results')}
               />
             )}
@@ -165,9 +176,8 @@ export default function App() {
             {view === 'presets' && (
               <PresetStacks
                 onBack={() => setView('input')}
-                onSelectPreset={(recommendation) => {
-                  setRecommendations([recommendation]);
-                  setView('results');
+                onSelectPreset={(stack) => {
+                  handleSubmit(stack.input);
                 }}
               />
             )}
