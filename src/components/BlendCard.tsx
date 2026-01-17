@@ -22,17 +22,22 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
         onLayoutAnimationComplete={() => {
           console.log('VERIFICATION: BlendCard Rendering', {
             blendName: recommendation.name,
-            renderedIDs: recommendation.cultivars.map(c => c.name), // Using name as ID proxy since normalized
+            renderedIDs: recommendation.cultivars.map(c => c.name),
             count: recommendation.cultivars.length
           });
         }}
       >
-        {/* Neon Glow Outer */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00FFD110] to-[#BF5AF2] opacity-20 blur-2xl group-hover:opacity-30 transition-opacity" />
+        {/* Rich Gradient Glow Outer - Restored Opacity/Depth */}
+        <div
+          className="absolute -inset-1 blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-700"
+          style={{
+            background: `linear-gradient(45deg, ${recommendation.cultivars[0]?.color}40, ${recommendation.cultivars[1]?.color}40)`
+          }}
+        />
 
-        <div className="relative glass-card border-white/5 bg-black/40 overflow-hidden">
+        <div className="relative glass-card border-white/10 bg-black/60 overflow-hidden shadow-2xl">
           {/* Top Header Section */}
-          <div className="p-8">
+          <div className="p-8 pb-4">
             <div className="flex justify-between items-start mb-6">
               <div className="flex flex-col">
                 {/* Distinct Badge for Custom Blends */}
@@ -41,73 +46,91 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                     Custom Blend
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] shadow-[0_0_8px_#00FFD1]" />
-                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#00FFD1]">Match Fidelity</span>
-                </div>
-                <h2 className="text-4xl font-light text-white mb-2 serif tracking-tight">
+                <h2 className="text-4xl font-light text-white mb-2 serif tracking-tight leading-none">
                   {recommendation.name}
                 </h2>
-                <div className="text-sm text-white/40 leading-relaxed font-light line-clamp-2 max-w-sm">
-                  {recommendation.reasoning}
+                {/* Score moved here for cleaner layout */}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-2xl font-light text-[#00FFD1] serif">{recommendation.matchScore}%</span>
+                  <span className="text-[9px] uppercase tracking-widest text-[#00FFD1]/60">Match</span>
                 </div>
-              </div>
-
-              <div className="flex flex-col items-end">
-                <span className="text-3xl font-light text-white serif">{recommendation.matchScore}%</span>
-                <span className="text-[9px] uppercase tracking-widest text-white/20">Score</span>
               </div>
             </div>
 
-            {/* Cultivar Stack - Dynamic Visual Representation */}
-            <div className="flex gap-4 items-end justify-center mb-8 h-[240px]">
-
-              {/* Left Side: Labels */}
-              <div className="flex flex-col-reverse justify-between h-full py-4 text-right min-w-[100px]">
-                {recommendation.cultivars.map((cultivar, idx) => (
-                  <div key={idx} className="flex flex-col justify-center h-full">
-                    <span
-                      className="text-[10px] font-bold uppercase tracking-widest"
-                      style={{ color: cultivar.color }}
-                    >
-                      {cultivar.profile}
-                    </span>
-                    <span className="text-xs text-white/40 font-light mt-0.5">
-                      {cultivar.name}
-                    </span>
-                  </div>
-                ))}
+            {/* Radial Visualization Section */}
+            <div className="relative h-[280px] w-full flex items-center justify-center py-4">
+              {/* Inner Info */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+                <div className="text-center">
+                  <span className="block text-[10px] uppercase tracking-[0.2em] text-white/30 mb-1">Ratio</span>
+                  {/* Dynamic breakdown text could go here */}
+                </div>
               </div>
 
-              {/* Center Visual Stack */}
-              <div className="w-16 h-full flex flex-col-reverse rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20 bg-white/5">
+              {/* SVG Donut Chart */}
+              <svg viewBox="0 0 100 100" className="-rotate-90 w-full h-full max-h-[240px] drop-shadow-2xl">
                 {recommendation.cultivars.map((cultivar, idx) => {
+                  // Calculate cumulative stroke dashes
+                  const total = recommendation.cultivars.reduce((acc, c) => acc + c.ratio, 0);
+                  const previousRatios = recommendation.cultivars.slice(0, idx).reduce((acc, c) => acc + c.ratio, 0);
+                  const dashArray = (cultivar.ratio / total) * 314; // 2 * PI * R (R=50 maps to 100 viewbox? No, R=radius)
+                  // Using circumference ≈ 251 for r=40
+                  const radius = 40;
+                  const circumference = 2 * Math.PI * radius;
+                  const strokeDasharray = `${(cultivar.ratio / total) * circumference} ${circumference}`;
+                  const strokeDashoffset = -((previousRatios / total) * circumference);
+
                   return (
-                    <motion.div
-                      key={`${cultivar.name}-${idx}`}
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: `${cultivar.ratio * 100}%`, opacity: 1 }}
-                      transition={{ delay: 0.5 + (idx * 0.1), duration: 0.8, ease: "easeOut" }}
-                      className="w-full relative group border-t border-white/10 first:border-t-0"
-                      style={{ backgroundColor: cultivar.color }}
+                    <circle
+                      key={idx}
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      fill="none"
+                      stroke={cultivar.color}
+                      strokeWidth="8"
+                      strokeDasharray={strokeDasharray}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round" // Optional, round caps might look weird if segments touch
+                      className="transition-all duration-1000 ease-out hover:stroke-width-[10]"
                     />
                   );
                 })}
-              </div>
+              </svg>
 
-              {/* Right Side: Percentages */}
-              <div className="flex flex-col-reverse justify-between h-full py-4 min-w-[60px]">
-                {recommendation.cultivars.map((cultivar, idx) => (
-                  <div key={idx} className="flex flex-col justify-center h-full pl-2">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-xl font-light text-white serif">
-                        {Math.round(cultivar.ratio * 100)}
-                      </span>
-                      <span className="text-[10px] text-white/30">%</span>
+              {/* Cultivar Labels mapped around or list below */}
+            </div>
+
+            {/* Cultivar Legend & Terpene Indicators directly on face */}
+            <div className="space-y-3 mb-6">
+              {recommendation.cultivars.map((cultivar, idx) => (
+                <div key={idx} className="flex items-center justify-between group/row">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-8 rounded-full" style={{ backgroundColor: cultivar.color }} />
+                    <div>
+                      <div className="text-sm font-medium text-white">{cultivar.name}</div>
+                      <div className="text-[10px] uppercase tracking-wider text-white/40">{cultivar.profile}</div>
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  <div className="flex items-center gap-4">
+                    {/* Terpene Dots */}
+                    <div className="flex gap-1.5">
+                      {cultivar.prominentTerpenes?.slice(0, 3).map((terp, tIdx) => (
+                        <div
+                          key={tIdx}
+                          className="w-1.5 h-1.5 rounded-full bg-white/20"
+                          title={terp}
+                          style={{ backgroundColor: tIdx === 0 ? cultivar.color : undefined }} // Highlight dominant
+                        />
+                      ))}
+                    </div>
+                    <div className="text-xl font-light text-white/80 w-12 text-right serif">
+                      {Math.round(cultivar.ratio * 100)}%
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Principal Actions */}
@@ -164,25 +187,27 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
 
               <div className="space-y-8">
                 {/* 1. Dominant Terpenes */}
-                <div>
-                  <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold">Dominant Terpenes</h4>
-                  <div className="space-y-3">
-                    {recommendation.blendEvaluation.explanationData.dominantContributors.map((t, idx) => (
-                      <div key={idx} className="flex justify-between items-center group">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-white font-medium capitalize">{t.terpene}</span>
-                          <span className="text-[10px] text-white/40">{t.contribution}</span>
+                {recommendation.blendEvaluation?.explanationData?.dominantContributors && (
+                  <div>
+                    <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold">Dominant Terpenes</h4>
+                    <div className="space-y-3">
+                      {recommendation.blendEvaluation.explanationData.dominantContributors.map((t, idx) => (
+                        <div key={idx} className="flex justify-between items-center group">
+                          <div className="flex flex-col">
+                            <span className="text-sm text-white font-medium capitalize">{t.terpene}</span>
+                            <span className="text-[10px] text-white/40">{t.contribution}</span>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-[#00FFD1] font-mono text-xs">{t.percent}%</span>
+                          </div>
                         </div>
-                        <div className="flex flex-col items-end">
-                          <span className="text-[#00FFD1] font-mono text-xs">{t.percent}%</span>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 2. Detected Interactions */}
-                {recommendation.blendEvaluation.explanationData.interactions.length > 0 && (
+                {recommendation.blendEvaluation?.explanationData?.interactions && recommendation.blendEvaluation.explanationData.interactions.length > 0 && (
                   <div>
                     <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Detected Interactions</h4>
                     <div className="space-y-2">
@@ -208,7 +233,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                 )}
 
                 {/* 3. Risks & Tradeoffs */}
-                {(recommendation.blendEvaluation.explanationData.risksIncurred.length > 0 || recommendation.blendEvaluation.explanationData.risksManaged.length > 0) && (
+                {recommendation.blendEvaluation?.explanationData && (recommendation.blendEvaluation.explanationData.risksIncurred.length > 0 || recommendation.blendEvaluation.explanationData.risksManaged.length > 0) && (
                   <div>
                     <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Risk Profile</h4>
                     <div className="grid grid-cols-1 gap-2">

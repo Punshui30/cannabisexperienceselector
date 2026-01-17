@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Camera, Upload, Search } from 'lucide-react';
 import { StrainLibrary } from './StrainLibrary';
-import { UserInput } from '../lib/engineAdapter';
+import { IntentSeed as UserInput } from '../types/domain';
+import { BLEND_EXEMPLARS } from '../data/presetBlends';
+import type { OutcomeExemplar } from '../types/domain'; // Import OutcomeExemplar
 import logoImg from '../assets/logo.png';
 
 // --- DESIGN TOKENS ---
@@ -13,11 +15,12 @@ const TAB_INACTIVE = "text-white/40 hover:text-white hover:bg-white/5";
 interface InputScreenProps {
   onSubmit: (input: UserInput) => void;
   onBrowsePresets: () => void;
+  onSelectExemplar?: (exemplar: OutcomeExemplar) => void; // New prop for direct selection
   onAdminModeToggle: () => void;
   isAdminMode: boolean;
 }
 
-export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAdminMode }: InputScreenProps) {
+export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onAdminModeToggle, isAdminMode }: InputScreenProps) {
   const [mode, setMode] = useState<'describe' | 'product' | 'strain'>('describe');
   const [description, setDescription] = useState('');
   const [strainName, setStrainName] = useState('');
@@ -101,11 +104,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
       };
 
       recog.onend = () => {
-        // If listening was supposed to be indefinite, we might restart here, 
-        // but for now let's just sync state if it stopped unexpectedly
         if (isListening) {
-          // Optional: restart or just stop UI state
-          // recog.start(); 
+          // Optional logic
         }
       };
 
@@ -129,7 +129,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
   };
 
   return (
-    <div className="w-full h-full flex flex-col pt-12 px-6 max-w-xl mx-auto relative z-10">
+    <div className="w-full h-full flex flex-col pt-12 px-6 max-w-xl mx-auto relative z-10 pb-20">
       <div className="flex justify-between items-start mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -146,7 +146,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
         </button>
       </div>
 
-      {/* Tabs - Minimalist, No Icons as per Figma */}
+      {/* Tabs */}
       <div className="flex p-1 bg-white/5 rounded-2xl mb-10 border border-white/10">
         <button
           onClick={() => setMode('describe')}
@@ -180,26 +180,15 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
               exit={{ opacity: 0, y: -10 }}
               className="h-full flex flex-col"
             >
-              <div className="relative flex-1">
+              <div className="relative">
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Tell us how you want to feel..."
-                  className={`${GLASS_INPUT} h-72 resize-none mb-4`}
+                  className={`${GLASS_INPUT} h-40 resize-none mb-4`} // Reduced height removed flex-1
                 />
 
-                {/* Preset Suggestions */}
-                <div className="absolute bottom-20 left-4 right-16 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                  {['Relax & unwind', 'Creative focus', 'Social energy', 'Deep sleep'].map(text => (
-                    <button
-                      key={text}
-                      onClick={() => setDescription(text)}
-                      className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/60 hover:bg-white/10 hover:text-white hover:border-white/30 transition-all backdrop-blur-sm"
-                    >
-                      {text}
-                    </button>
-                  ))}
-                </div>
+                {/* NO CHIPS HERE */}
 
                 <button
                   onClick={toggleListening}
@@ -208,6 +197,16 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
                   <Mic size={18} />
                 </button>
               </div>
+
+              {/* Generate Button positioned immediately after input */}
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit()}
+                className={`w-full btn-neon-green mb-8 ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+              >
+                Generate Recommendations
+              </button>
+
             </motion.div>
           )}
 
@@ -224,13 +223,14 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`relative w-full h-72 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive
+                className={`relative w-full h-72 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center mb-6 ${dragActive
                   ? "border-[#00FFD1] bg-[#00FFD1]/5"
                   : uploadedImage
                     ? "border-emerald-400/50 bg-emerald-400/5"
                     : "border-white/10 bg-white/5 hover:bg-white/10"
                   }`}
               >
+                {/* Upload Logic (Simplified for brevity of manual replacement, keeping original functionality) */}
                 <input
                   type="file"
                   id="file-upload"
@@ -238,25 +238,24 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
                   accept="image/*"
                   onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])}
                 />
-
                 {uploadedImage ? (
                   <div className="text-center">
-                    <div className="w-12 h-12 rounded-full bg-emerald-400/10 text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-400/30">
-                      <Upload size={20} />
-                    </div>
                     <p className="text-emerald-400 font-medium text-sm mb-1">{uploadedImage.name}</p>
-                    <p className="text-white/20 text-xs">Tap to replace</p>
                   </div>
                 ) : (
                   <label htmlFor="file-upload" className="flex flex-col items-center cursor-pointer w-full h-full justify-center p-8">
-                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/10">
-                      <Camera className="text-white/20" size={20} />
-                    </div>
+                    <Camera className="text-white/20 mb-4" size={20} />
                     <p className="text-white font-medium mb-1">Upload Label</p>
-                    <p className="text-white/30 text-xs text-center">or drop certification photo here</p>
                   </label>
                 )}
               </div>
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit()}
+                className={`w-full btn-neon-green mb-8 ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+              >
+                Generate Recommendations
+              </button>
             </motion.div>
           )}
 
@@ -268,55 +267,72 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              <div>
-                <label className="block text-xs font-semibold text-white/40 mb-3 ml-1">Strain name</label>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
-                  <input
-                    type="text"
-                    value={strainName}
-                    onChange={(e) => setStrainName(e.target.value)}
-                    placeholder="e.g. Blue Dream"
-                    className={`${GLASS_INPUT} pl-12`}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-white/40 mb-3 ml-1">Grower (optional)</label>
-                <input
-                  type="text"
-                  value={growerName}
-                  onChange={(e) => setGrowerName(e.target.value)}
-                  placeholder="e.g. ABC Farms"
-                  className={GLASS_INPUT}
-                />
-              </div>
+              <input
+                type="text"
+                value={strainName}
+                onChange={(e) => setStrainName(e.target.value)}
+                placeholder="Strain name..."
+                className={`${GLASS_INPUT} mb-4`}
+              />
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit()}
+                className={`w-full btn-neon-green mb-8 ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+              >
+                Generate Recommendations
+              </button>
             </motion.div>
           )}
 
         </AnimatePresence>
-      </div>
 
-      <div className="pb-12 pt-6">
-        {/* Strain Library Section */}
-        <StrainLibrary />
+        {/* --- DIVIDER --- */}
+        <div className="h-px bg-white/10 w-full mb-8" />
 
-        {/* Action Buttons */}
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit()}
-          className={`w-full btn-neon-green ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
-        >
-          Generate Recommendations
-        </button>
+        {/* --- CURATED BLEND PRESETS (STATIC) --- */}
+        <div className="mb-8">
+          <div className="flex justify-between items-end mb-4">
+            <div>
+              <h3 className="text-white text-lg font-light serif">Curated Blend Presets</h3>
+              <p className="text-white/40 text-xs">Example blend intentions</p>
+            </div>
+          </div>
 
+          <div className="grid grid-cols-1 gap-3">
+            {BLEND_EXEMPLARS.map((exemplar, idx) => (
+              <button
+                key={idx}
+                onClick={() => onSelectExemplar && onSelectExemplar(exemplar)}
+                className="flex items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#F59E0B]/50 transition-all text-left group"
+              >
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mr-4 bg-white/5 border border-white/10" style={{ borderColor: exemplar.visualProfile.color + '40' }}>
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: exemplar.visualProfile.color }} />
+                </div>
+                <div>
+                  <h4 className="text-sm text-white font-medium">{exemplar.title}</h4>
+                  <p className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{exemplar.subtitle}</p>
+                </div>
+                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[10px] uppercase tracking-widest text-white/30">View</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* --- EXISTING PRESETS BUTTON --- */}
         <button
           onClick={onBrowsePresets}
-          className="w-full mt-3 py-3 rounded-xl border border-white/10 text-white/40 text-[10px] font-semibold uppercase tracking-widest hover:bg-white/5 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 transition-all"
+          className="w-full py-4 rounded-xl border border-white/10 bg-white/[0.02] text-white/40 text-[10px] font-semibold uppercase tracking-widest hover:bg-white/5 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 transition-all mb-8"
         >
           Explore Preset Stacks
         </button>
+
+        {/* Strain Library Section */}
+        <div className="mt-8">
+          <StrainLibrary />
+        </div>
+
 
         {isAdminMode && (
           <button
@@ -327,7 +343,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
           </button>
         )}
       </div>
-
     </div>
   );
 }

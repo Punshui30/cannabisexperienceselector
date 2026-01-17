@@ -55,13 +55,22 @@ export default function App() {
   };
 
   const handleSelectPreset = (exemplar: OutcomeExemplar) => {
-    console.log('TRANSITION: Preset -> Stack Detail (Static View)');
+    console.log(`TRANSITION: Preset (${exemplar.kind}) -> Static View`);
     // Rule 1: Presets are terminal. Clear Engine State.
     setUserInput(null);
-    setRecommendations([]);
+    setRecommendations([]); // Assuming single recommendation for preset results or we wrap it
 
-    setSelectedRecommendation(exemplar.data);
-    setView('stack-detail');
+    if (exemplar.kind === 'blend') {
+      // Wrap the blend data in an array for ResultsScreen
+      setRecommendations([exemplar.data as EngineResult]); // Cast or ensure type compatibility
+      // Note: ResultsScreen expects `recommendations` array.
+      // We also might want to set selectedRecommendation?
+      setSelectedRecommendation(exemplar.data);
+      setView('results');
+    } else {
+      setSelectedRecommendation(exemplar.data);
+      setView('stack-detail');
+    }
   };
 
 
@@ -144,6 +153,7 @@ export default function App() {
               <InputScreen
                 onSubmit={handleSubmit}
                 onBrowsePresets={() => setView('presets')}
+                onSelectExemplar={handleSelectPreset}
                 onAdminModeToggle={() => setMode('admin')}
                 isAdminMode={false}
               />

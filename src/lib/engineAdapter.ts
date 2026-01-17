@@ -298,6 +298,11 @@ export function generateRecommendations(input: IntentSeed): EngineResult[] {
               profile: generateProfile(rec1.cultivars[0].id),
               characteristics: ['Immediate', 'Potent']
             }],
+            phaseIntent: 'Initial Elevation',
+            whyThisPhase: `Leverages ${rec1.cultivars[0].name} for rapid onset.`,
+            onsetEstimate: '0-10 min',
+            durationEstimate: '45 min',
+            consumptionGuidance: 'Inhale deeply',
             purpose: 'Initial elevation and mood setting',
             timing: '0-45 mins'
           },
@@ -309,6 +314,11 @@ export function generateRecommendations(input: IntentSeed): EngineResult[] {
               profile: generateProfile(rec2.cultivars[0].id),
               characteristics: ['Long-lasting', 'Stable']
             }],
+            phaseIntent: 'Prolonged Effect',
+            whyThisPhase: `Transition to ${rec2.cultivars[0].name} for stability.`,
+            onsetEstimate: '45 min',
+            durationEstimate: '2 hrs',
+            consumptionGuidance: 'Sip slowly',
             purpose: 'Prolonged beneficial effects',
             timing: '45-120 mins'
           }
@@ -334,27 +344,68 @@ export function generateRecommendations(input: IntentSeed): EngineResult[] {
   if (engineOutput.error || engineOutput.recommendations.length === 0) {
     // Return fallback mock recommendation
     console.warn('ENGINE ADAPTER: Returning fallback recommendations (3 cultivars)');
-    return [{
-      id: 'fallback_1',
-      name: 'Balanced Start',
-      cultivars: [
-        { name: 'Blue Dream', ratio: 0.4, profile: 'Balanced hybrid', characteristics: ['Uplifting', 'Creative', 'Smooth'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'], color: '#84CC16' },
-        { name: 'Harlequin', ratio: 0.35, profile: 'Clear-headed', characteristics: ['Functional', 'Calm', 'Therapeutic'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'], color: '#84CC16' },
-        { name: 'ACDC', ratio: 0.25, profile: 'Soothing baseline', characteristics: ['Relaxed', 'Focused', 'Gentle'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'], color: '#84CC16' },
-      ],
-      matchScore: 85,
-      confidence: 0.9,
-      reasoning: 'A gentle, balanced blend perfect for most situations. Blue Dream provides uplift, Harlequin maintains clarity, and ACDC adds a soothing baseline.',
-      effects: {
-        onset: '5-12 minutes',
-        peak: '25-80 minutes',
-        duration: '2-3 hours',
+    // Return fallback mock recommendation - GUARANTEE 3 RESULTS
+    console.warn('ENGINE ADAPTER: Returning fallback recommendations (3 cultivars)');
+    return [
+      {
+        id: 'fallback_1',
+        name: 'Balanced Start',
+        cultivars: [
+          { name: 'Blue Dream', ratio: 0.4, profile: 'Balanced hybrid', characteristics: ['Uplifting', 'Creative', 'Smooth'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'], color: '#84CC16' },
+          { name: 'Harlequin', ratio: 0.35, profile: 'Clear-headed', characteristics: ['Functional', 'Calm', 'Therapeutic'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'], color: '#84CC16' },
+          { name: 'ACDC', ratio: 0.25, profile: 'Soothing baseline', characteristics: ['Relaxed', 'Focused', 'Gentle'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'], color: '#84CC16' },
+        ],
+        matchScore: 85,
+        confidence: 0.9,
+        reasoning: 'A gentle, balanced blend perfect for most situations. Blue Dream provides uplift, Harlequin maintains clarity, and ACDC adds a soothing baseline.',
+        effects: { onset: '5-12 minutes', peak: '25-80 minutes', duration: '2-3 hours' },
+        timeline: [{ time: '120+ min', feeling: 'Smooth return to baseline' }],
+        blendEvaluation: {
+          blendScore: 85, cultivarScore: 80, risks: { anxietyRisk: 0, paranoiaRisk: 0, cognitiveFog: 0, physicalHeaviness: 0 }, profile: { thc: 10, cbd: 10, totalTerpenePercent: 2, diversityScore: 0.8, terpenes: {}, dominantTerpenes: [], minorTerpenes: [] },
+          breakdown: { baseMatch: 0.8, synergyBonus: 0, antagonismPenalty: 0, diversityBonus: 0, diminishingReturns: 0, riskPenalties: 0 },
+          explanationData: { dominantContributors: [], interactions: [], risksManaged: [], risksIncurred: [], tradeoffs: [], computedMetrics: { blendScore: 85, thcPercent: 10, cbdPercent: 10, totalTerpenes: 2, diversityScore: 0.8 } }
+        },
+        kind: 'blend',
       },
-      timeline: [
-        { time: '120+ min', feeling: 'Smooth return to baseline' },
-      ],
-      kind: 'blend',
-    }];
+      {
+        id: 'fallback_2',
+        name: 'Clear Focus',
+        cultivars: [
+          { name: 'Jack Herer', ratio: 0.5, profile: 'Sativa dominant', characteristics: ['Energetic', 'Focused', 'Clear'], prominentTerpenes: ['Terpinolene', 'Pinene', 'Caryophyllene'], color: '#FACC15' },
+          { name: 'ACDC', ratio: 0.5, profile: 'High CBD', characteristics: ['Non-intoxicating', 'Relaxing'], prominentTerpenes: ['Myrcene', 'Pinene'], color: '#22C55E' },
+        ],
+        matchScore: 82,
+        confidence: 0.85,
+        reasoning: 'Focused energy without the jitters. Jack Herer provides mental clarity while ACDC keeps the body grounded.',
+        effects: { onset: '5-10 minutes', peak: '30-90 minutes', duration: '2-3 hours' },
+        timeline: [{ time: '120+ min', feeling: 'Gentle fade' }],
+        blendEvaluation: {
+          blendScore: 82, cultivarScore: 80, risks: { anxietyRisk: 0, paranoiaRisk: 0, cognitiveFog: 0, physicalHeaviness: 0 }, profile: { thc: 10, cbd: 10, totalTerpenePercent: 2, diversityScore: 0.8, terpenes: {}, dominantTerpenes: [], minorTerpenes: [] },
+          breakdown: { baseMatch: 0.8, synergyBonus: 0, antagonismPenalty: 0, diversityBonus: 0, diminishingReturns: 0, riskPenalties: 0 },
+          explanationData: { dominantContributors: [], interactions: [], risksManaged: [], risksIncurred: [], tradeoffs: [], computedMetrics: { blendScore: 82, thcPercent: 10, cbdPercent: 10, totalTerpenes: 2, diversityScore: 0.8 } }
+        },
+        kind: 'blend',
+      },
+      {
+        id: 'fallback_3',
+        name: 'Deep Calm',
+        cultivars: [
+          { name: 'Granddaddy Purple', ratio: 0.6, profile: 'Indica dominant', characteristics: ['Relaxing', 'Sleepy', 'Euphoric'], prominentTerpenes: ['Myrcene', 'Linalool', 'Caryophyllene'], color: '#A855F7' },
+          { name: 'Bubba Kush', ratio: 0.4, profile: 'Heavy Indica', characteristics: ['Sedating', 'Physical'], prominentTerpenes: ['Caryophyllene', 'Limonene', 'Humulene'], color: '#A855F7' },
+        ],
+        matchScore: 78,
+        confidence: 0.8,
+        reasoning: 'A heavy, deeply relaxing blend for evening use. Promotes physical ease and mental quiet.',
+        effects: { onset: '10-20 minutes', peak: '45-120 minutes', duration: '3-4 hours' },
+        timeline: [{ time: '120+ min', feeling: 'Deep relaxation continues' }],
+        blendEvaluation: {
+          blendScore: 78, cultivarScore: 80, risks: { anxietyRisk: 0, paranoiaRisk: 0, cognitiveFog: 0.2, physicalHeaviness: 0.4 }, profile: { thc: 10, cbd: 10, totalTerpenePercent: 2, diversityScore: 0.8, terpenes: {}, dominantTerpenes: [], minorTerpenes: [] },
+          breakdown: { baseMatch: 0.8, synergyBonus: 0, antagonismPenalty: 0, diversityBonus: 0, diminishingReturns: 0, riskPenalties: 0 },
+          explanationData: { dominantContributors: [], interactions: [], risksManaged: [], risksIncurred: [], tradeoffs: [], computedMetrics: { blendScore: 78, thcPercent: 10, cbdPercent: 10, totalTerpenes: 2, diversityScore: 0.8 } }
+        },
+        kind: 'blend',
+      }
+    ];
   }
 
   // Transform engine output to UI format

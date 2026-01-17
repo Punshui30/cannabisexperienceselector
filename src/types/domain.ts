@@ -33,16 +33,32 @@ export type PresetKind = 'intent' | 'blend' | 'stack';
  * - MUST NOT render BlendCard or Stack visuals
  * - MUST NOT expect cultivars
  */
-export type OutcomeExemplar = {
+export type OutcomeExemplar = StackOutcomeExemplar | BlendOutcomeExemplar;
+
+export type StackOutcomeExemplar = {
     kind: 'stack';
     id: string;
     title: string;
     description: string;
-    subtitle: string; // Keeping for card
+    subtitle: string;
     data: UIStackRecommendation;
     source: 'preset';
     visualProfile: {
-        dominantEffect: 'focus' | 'calm' | 'sleep' | 'energy' | 'social' | 'creative';
+        dominantEffect: 'focus' | 'calm' | 'sleep' | 'energy' | 'social' | 'creative' | 'balance';
+        color: string;
+    };
+};
+
+export type BlendOutcomeExemplar = {
+    kind: 'blend';
+    id: string;
+    title: string;
+    description: string;
+    subtitle: string;
+    data: UIBlendRecommendation;
+    source: 'preset';
+    visualProfile: {
+        dominantEffect: 'focus' | 'calm' | 'sleep' | 'energy' | 'social' | 'creative' | 'balance';
         color: string;
     };
 };

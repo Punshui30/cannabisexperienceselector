@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { SwipeDeck } from './SwipeDeck';
 import { OUTCOME_EXEMPLARS } from '../data/presetStacks';
 import type { OutcomeExemplar } from '../types/domain';
 import logoImg from '../assets/logo.png';
@@ -34,34 +35,42 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
         <p className="text-[#00FFD1] text-[10px] uppercase tracking-[0.3em] font-semibold">Intent Templates</p>
       </div>
 
-      {/* Grid */}
-      <div className="flex-1 px-8 py-4 flex items-start justify-center overflow-y-auto">
-        <div className="w-full max-w-2xl grid grid-cols-2 gap-4 pb-10">
-          {OUTCOME_EXEMPLARS.map((exemplar, index) => (
-            <motion.button
-              key={index}
-              className="relative p-6 rounded-2xl bg-white/5 border border-white/10 text-left overflow-hidden group hover:bg-white/10 transition-colors"
-              onClick={() => onSelect(exemplar)}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00FFD1] to-transparent opacity-50" style={{ backgroundColor: exemplar.visualProfile.color }} />
-              <h3 className="text-xl font-medium text-white mb-1 leading-snug">{exemplar.title}</h3>
-              <p className="text-white/60 text-sm mb-4">{exemplar.subtitle}</p>
-              <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
-                <div className="px-2.5 py-1 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[9px] font-bold text-[#00FFD1] uppercase tracking-widest">
-                  View Timeline
+      {/* Swipe Deck Area */}
+      <div className="flex-1 w-full relative z-10 min-h-0 overflow-hidden">
+        <SwipeDeck
+          items={OUTCOME_EXEMPLARS}
+          renderItem={(exemplar, isActive) => (
+            <div className="w-full h-full flex items-center justify-center p-8">
+              <motion.button
+                className="relative w-full max-w-sm aspect-[3/4] p-8 rounded-3xl bg-white/5 border border-white/10 text-left overflow-hidden group hover:bg-white/10 transition-colors flex flex-col justify-end"
+                onClick={() => onSelect(exemplar)}
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                {/* Background Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
+                <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: exemplar.visualProfile.color }} />
+
+                <div className="relative z-10">
+                  <h3 className="text-3xl font-light text-white mb-2 leading-tight serif">{exemplar.title}</h3>
+                  <p className="text-white/60 text-sm mb-6 leading-relaxed">{exemplar.subtitle}</p>
+
+                  <div className="flex justify-between items-center pt-6 border-t border-white/10">
+                    <div className="px-3 py-1.5 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[10px] font-bold text-[#00FFD1] uppercase tracking-widest">
+                      View Journey
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/20 group-hover:text-[#00FFD1] group-hover:bg-[#00FFD1]/10 group-hover:border-[#00FFD1]/40 transition-all">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/20 group-hover:text-[#00FFD1] group-hover:bg-[#00FFD1]/10 group-hover:border-[#00FFD1]/40 transition-all">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-            </motion.button>
-          ))}
-        </div>
+              </motion.button>
+            </div>
+          )}
+        />
       </div>
 
       {/* Footer Disclaimer */}

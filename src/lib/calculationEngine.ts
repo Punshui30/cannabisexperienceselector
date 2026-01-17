@@ -1076,7 +1076,7 @@ export function calculateBlends(inventory: Inventory, intent: Intent): EngineOut
         // Note: This is a simplification; V2 logic calculates profile first
         const blendEval = evaluateBlend([c1, c2], ratios, 0.75, validatedIntent); // 0.75 placeholder base
 
-        if (blendEval.blendScore > 60) {
+        if (blendEval.blendScore > 40) { // Relaxed from 60
           results.push({
             cultivars: [
               { id: c1.id, name: c1.name, ratio: ratios[0] },
@@ -1107,7 +1107,7 @@ export function calculateBlends(inventory: Inventory, intent: Intent): EngineOut
 
           const blendEval = evaluateBlend([c1, c2, c3], ratios, 0.8, validatedIntent);
 
-          if (blendEval.blendScore > 65) {
+          if (blendEval.blendScore > 45) { // Relaxed from 65
             results.push({
               cultivars: [
                 { id: c1.id, name: c1.name, ratio: ratios[0] },

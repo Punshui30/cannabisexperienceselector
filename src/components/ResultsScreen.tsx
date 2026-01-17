@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EngineResult, assertBlend } from '../types/domain';
+import { SwipeDeck } from './SwipeDeck';
 import { BlendCard } from './BlendCard';
 import logoImg from '../assets/logo.png';
 
@@ -54,64 +55,28 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
         </div>
       </div>
 
-      {/* Middle: Card Carousel */}
-      <div className="flex-1 px-6 py-4 relative z-10 flex items-center justify-center min-h-0">
-        <div className="w-full max-w-xl relative">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeIndex}
-              initial={{ opacity: 0, scale: 0.98, x: 10 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 1.02, x: -10 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              {/* Strict Blend Rendering - App.tsx guarantees kind === 'blend' here */}
-              <BlendCard recommendation={activeRec as any} onCalculate={() => onCalculate(activeRec)} />
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Navigation Arrows */}
-          {recommendations.length > 1 && (
-            <div className="absolute -left-12 -right-12 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
-              <button
-                onClick={() => setActiveIndex(prev => prev > 0 ? prev - 1 : recommendations.length - 1)}
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center pointer-events-auto hover:bg-white/10 transition-colors"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white/40">
-                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setActiveIndex(prev => prev < recommendations.length - 1 ? prev + 1 : 0)}
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center pointer-events-auto hover:bg-white/10 transition-colors"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white/40">
-                  <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
+      {/* Middle: Swipe Deck */}
+      <div className="flex-1 w-full relative z-10 min-h-0">
+        <SwipeDeck
+          items={recommendations}
+          renderItem={(rec, isActive) => (
+            <div className="w-full h-full flex items-center justify-center p-6">
+              <div className="w-full max-w-xl">
+                <BlendCard recommendation={rec as any} onCalculate={() => onCalculate(rec)} />
+              </div>
             </div>
           )}
-        </div>
+          onSwipe={(index) => setActiveIndex(index)}
+          className="w-full h-full"
+        />
       </div>
 
-      {/* Bottom: Progress Indicators */}
-      {
-        recommendations.length > 1 && (
-          <div className="flex-shrink-0 py-10 z-10">
-            <div className="flex justify-center gap-3">
-              {recommendations.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveIndex(index)}
-                  className={`h-1 rounded-full transition-all duration-300 ${activeIndex === index ? 'bg-[#00FFD1] w-8 shadow-[0_0_10px_rgba(0,255,209,0.5)]' : 'bg-white/10 w-4'
-                    }`}
-                />
-              ))}
-            </div>
-          </div>
-        )
-      }
+      {/* Bottom: Progress Indicators (Managed by SwipeDeck internal or external) */}
+      {/* We can keep external indicators for context if desired, or rely on SwipeDeck's internal ones. 
+           User requested NO multi-card grids/previews. 
+           SwipeDeck has internal dots, so we can remove this external block to avoid duplication.
+           But wait, SwipeDeck internal dots are optional. Let's rely on SwipeDeck internal for encapsulation.
+       */}
 
       {/* Footer Disclaimer */}
       <div className="absolute bottom-6 left-0 right-0 text-center opacity-20 z-0">
