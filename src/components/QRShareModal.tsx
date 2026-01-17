@@ -7,6 +7,8 @@ type Props = {
 };
 
 export function QRShareModal({ recommendation, onClose }: Props) {
+  if (!recommendation) return null;
+
   const shareUrl = `https://guidedoutcomes.app/stack/${recommendation.id}`;
 
   const handleCopyLink = () => {
