@@ -69,7 +69,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
 
               {/* SVG Donut Chart */}
               <svg viewBox="0 0 100 100" className="-rotate-90 w-full h-full max-h-[240px] drop-shadow-2xl">
-                {recommendation.cultivars.map((cultivar, idx) => {
+                {recommendation.cultivars.filter(Boolean).map((cultivar, idx) => {
                   // Calculate cumulative stroke dashes
                   const total = recommendation.cultivars.reduce((acc, c) => acc + c.ratio, 0);
                   const previousRatios = recommendation.cultivars.slice(0, idx).reduce((acc, c) => acc + c.ratio, 0);
@@ -103,7 +103,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
 
             {/* Cultivar Legend & Terpene Indicators directly on face */}
             <div className="space-y-3 mb-6">
-              {recommendation.cultivars.map((cultivar, idx) => (
+              {recommendation.cultivars.filter(Boolean).map((cultivar, idx) => (
                 <div key={idx} className="flex items-center justify-between group/row">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-8 rounded-full" style={{ backgroundColor: cultivar.color }} />
@@ -116,7 +116,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                   <div className="flex items-center gap-4">
                     {/* Terpene Dots */}
                     <div className="flex gap-1.5">
-                      {cultivar.prominentTerpenes?.slice(0, 3).map((terp, tIdx) => (
+                      {cultivar.prominentTerpenes?.filter(Boolean).slice(0, 3).map((terp, tIdx) => (
                         <div
                           key={tIdx}
                           className="w-1.5 h-1.5 rounded-full bg-white/20"
@@ -191,7 +191,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                   <div>
                     <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold">Dominant Terpenes</h4>
                     <div className="space-y-3">
-                      {recommendation.blendEvaluation.explanationData.dominantContributors.map((t, idx) => (
+                      {recommendation.blendEvaluation.explanationData.dominantContributors.filter(Boolean).map((t, idx) => (
                         <div key={idx} className="flex justify-between items-center group">
                           <div className="flex flex-col">
                             <span className="text-sm text-white font-medium capitalize">{t.terpene}</span>
@@ -211,7 +211,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                   <div>
                     <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Detected Interactions</h4>
                     <div className="space-y-2">
-                      {recommendation.blendEvaluation.explanationData.interactions.map((int, idx) => (
+                      {recommendation.blendEvaluation.explanationData.interactions.filter(Boolean).map((int, idx) => (
                         <div key={idx} className="p-3 rounded-lg bg-white/5 border border-white/5 flex gap-3">
                           <div className={`mt-0.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${int.type === 'synergy' ? 'bg-[#00FFD1]' : int.type === 'antagonism' ? 'bg-red-400' : 'bg-yellow-400'}`} />
                           <div className="flex-1">
@@ -237,12 +237,12 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                   <div>
                     <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Risk Profile</h4>
                     <div className="grid grid-cols-1 gap-2">
-                      {recommendation.blendEvaluation.explanationData.risksManaged.map((r, idx) => (
+                      {recommendation.blendEvaluation.explanationData.risksManaged.filter(Boolean).map((r, idx) => (
                         <div key={idx} className="px-3 py-2 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs">
                           <span className="font-bold">✓ MANAGED:</span> {r.mitigationStrategy} ({r.severity})
                         </div>
                       ))}
-                      {recommendation.blendEvaluation.explanationData.risksIncurred.map((r, idx) => (
+                      {recommendation.blendEvaluation.explanationData.risksIncurred.filter(Boolean).map((r, idx) => (
                         <div key={idx} className="px-3 py-2 rounded border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs">
                           <span className="font-bold">! RISK:</span> {r.reason} ({r.severity})
                         </div>
