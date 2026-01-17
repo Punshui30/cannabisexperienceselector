@@ -4,7 +4,6 @@ import { OUTCOME_EXEMPLARS } from '../data/presetStacks';
 import type { OutcomeExemplar } from '../types/domain';
 import logoImg from '../assets/logo.png';
 
-
 export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelect: (stack: OutcomeExemplar) => void }) {
   const [selectedStack, setSelectedStack] = useState<OutcomeExemplar | null>(null);
 

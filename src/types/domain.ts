@@ -8,14 +8,13 @@ import { BlendEvaluation } from "../lib/calculationEngine";
  * - No cultivars
  * - No chemistry
  */
-export type IntentSeed = {
-    kind: 'intentSeed';
-    mode: 'describe' | 'product' | 'strain';
-    text?: string;
-    image?: string;
-    strainName?: string;
-    grower?: string;
-};
+/**
+ * Preset Kinds
+ * - intent: Text-only helpers (InputScreen)
+ * - blend: Static blend results (ResultsScreen)
+ * - stack: Static stack results (StackDetailScreen)
+ */
+export type PresetKind = 'intent' | 'blend' | 'stack';
 
 /**
  * 2. OutcomeExemplar (Static, Educational)
@@ -26,12 +25,13 @@ export type IntentSeed = {
  * - MUST NOT expect cultivars
  */
 export type OutcomeExemplar = {
-    kind: 'exemplar';
+    kind: 'stack';
     id: string;
     title: string;
-    subtitle: string;
     description: string;
-    input: IntentSeed; // The input seed to populate if user chooses to "Try this"
+    subtitle: string; // Keeping for card
+    data: UIStackRecommendation;
+    source: 'preset';
     visualProfile: {
         dominantEffect: 'focus' | 'calm' | 'sleep' | 'energy' | 'social' | 'creative';
         color: string;

@@ -53,32 +53,10 @@ export default function App() {
   };
 
   const handleSelectPreset = (exemplar: OutcomeExemplar) => {
-    // STATIC STACK GENERATION (No Engine)
-    // This ensures we have a valid UIStackRecommendation structure for the viewer
-    const staticStack: UIStackRecommendation = {
-      kind: 'stack',
-      id: exemplar.id,
-      name: exemplar.title,
-      matchScore: 98,
-      reasoning: exemplar.description,
-      totalDuration: '4-6 Hours',
-      layers: [
-        {
-          layerName: 'Phase 1: Foundation',
-          timing: '0-30m',
-          purpose: 'Establish base state',
-          cultivars: [{ name: 'Harlequin', ratio: 0.6, profile: 'cbd', characteristics: ['Calming'] }]
-        },
-        {
-          layerName: 'Phase 2: Elevation',
-          timing: '30m-2h',
-          purpose: 'Lift mood',
-          cultivars: [{ name: 'Jack Herer', ratio: 0.4, profile: 'sativa', characteristics: ['Energetic'] }]
-        }
-      ]
-    };
+    // PRESET NAVIGATION (Direct Route)
+    // No engine, no resolving, no hydration. Pure view state switch.
 
-    setSelectedRecommendation(staticStack);
+    setSelectedRecommendation(exemplar.data);
     setView('stack-detail');
   };
 
