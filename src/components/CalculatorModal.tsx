@@ -17,7 +17,7 @@ interface CalculationResult {
 
 export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
   // Guard: Calculator only works for Blends
-  if (recommendation.kind !== 'blend') return null;
+  if (!recommendation || recommendation.kind !== 'blend') return null;
 
   const [prerollSize, setPrerollSize] = useState(1.0);
   const [showResults, setShowResults] = useState(false);

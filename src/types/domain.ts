@@ -142,13 +142,13 @@ export type EngineResult = UIBlendRecommendation | UIStackRecommendation;
 // --- Runtime Guards ---
 
 export function assertBlend(rec: EngineResult): asserts rec is UIBlendRecommendation {
-    if (rec.kind !== 'blend') {
-        throw new Error(`BlendDetailScreen received non-blend recommendation (kind: ${rec.kind})`);
+    if (!rec || rec.kind !== 'blend') {
+        throw new Error(`BlendDetailScreen received invalid or non-blend recommendation (kind: ${rec?.kind})`);
     }
 }
 
 export function assertStack(rec: EngineResult): asserts rec is UIStackRecommendation {
-    if (rec.kind !== 'stack') {
-        throw new Error(`StackDetailScreen received non-stack recommendation (kind: ${rec.kind})`);
+    if (!rec || rec.kind !== 'stack') {
+        throw new Error(`StackDetailScreen received invalid or non-stack recommendation (kind: ${rec?.kind})`);
     }
 }
