@@ -146,7 +146,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
                 </button>
 
                 <button
-                  onClick={onEnterUser}
+                  onClick={() => onEnterUser?.()}
                   className="group relative p-6 glass-card-neon-green hover:bg-[#00FFD1]/5 transition-colors text-left"
                 >
                   <div className="flex items-center gap-5">
@@ -212,7 +212,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
                 <button
                   onClick={() => {
                     if (explanationStep < 2) setExplanationStep(prev => prev + 1);
-                    else onEnterUser(); // Replaced setStep('mode') with direct entry
+                    else onEnterUser?.(); // Replaced setStep('mode') with direct entry
                   }}
                   className="text-[#BF5AF2] font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all"
                 >
@@ -236,7 +236,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
 
               <div className="flex flex-col gap-4 w-full">
                 <button
-                  onClick={onEnterUser}
+                  onClick={() => onEnterUser?.()}
                   className="group relative p-6 glass-card border-[#00FFD1]/20 hover:border-[#00FFD1]/40 transition-all text-left"
                 >
                   <div className="flex items-center gap-5">
@@ -252,7 +252,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
                 </button>
 
                 <button
-                  onClick={onEnterAdmin}
+                  onClick={() => onEnterAdmin?.()}
                   className="group relative p-6 glass-card border-orange-500/20 hover:border-orange-500/40 transition-all text-left"
                 >
                   <div className="flex items-center gap-5">
