@@ -13,6 +13,12 @@ interface SwipeDeckProps<T> {
 const SWIPE_THRESHOLD = 50;
 
 export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enableGuidance = true }: SwipeDeckProps<T>) {
+    // RUNTIME SAFETY: Filter invalid items immediately
+    // This handles holes, undefineds, and non-objects that might slip through
+    const safeItems = Array.isArray(items)
+        ? items.filter((i): i is T & object => !!i && typeof i === 'object')
+        : [];
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const controls = useAnimation();
     const [showGuidance, setShowGuidance] = useState(false);
@@ -42,7 +48,7 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
         // Determine direction
         if (offset < -SWIPE_THRESHOLD || velocity < -500) {
             // Swipe Left (Next)
-            if (currentIndex < items.length - 1) {
+            if (currentIndex < safeItems.length - 1) {
                 await controls.start({ x: -window.innerWidth, opacity: 0, transition: { duration: 0.2 } });
                 const nextIndex = currentIndex + 1;
                 setCurrentIndex(nextIndex);
@@ -78,7 +84,7 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
         }
     };
 
-    const activeItem = items[currentIndex];
+    const activeItem = safeItems[currentIndex];
 
     if (!activeItem) return null;
 
@@ -131,9 +137,9 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
             </AnimatePresence>
 
             {/* Pagination Indicators (Optional but helpful for context) */}
-            {items.length > 1 && (
+            {safeItems.length > 1 && (
                 <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 pointer-events-none z-10">
-                    {items.map((_, idx) => (
+                    {safeItems.map((_, idx) => (
                         <div
                             key={idx}
                             className={`transition-all duration-300 rounded-full h-1 ${idx === currentIndex ? 'w-6 bg-white shadow-[0_0_10px_white]' : 'w-1.5 bg-white/20'}`}
