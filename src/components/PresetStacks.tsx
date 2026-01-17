@@ -1,136 +1,73 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import type { StackedRecommendation } from '../App';
+import { generateRecommendations, type UIBlendRecommendation, type UserInput } from '../lib/engineAdapter';
 import logoImg from '../assets/logo.png';
 
-export type PresetStack = {
-  id: string;
-  name: string;
-  vibe: string;
-  outcomeTag: string;
-  colorScheme: 'warm' | 'cool' | 'energetic' | 'calm';
-  timeOfDay: string;
-  tempo: string;
-  stack: Omit<StackedRecommendation, 'id' | 'matchScore'>;
-};
-
-const presetStacks: PresetStack[] = [
-  {
-    id: 'preset-1',
-    name: 'Late Night Focus',
-    vibe: 'Deep concentration without stimulation',
-    outcomeTag: 'Flow',
-    colorScheme: 'cool',
-    timeOfDay: 'Night',
-    tempo: 'Steady',
-    stack: {
-      name: 'Late Night Focus',
-      layers: [
-        {
-          layerName: 'Mental Clarity',
-          cultivars: [
-            { name: 'Harlequin', ratio: 0.6, profile: 'Clear focus', characteristics: ['Functional', 'Alert', 'Calm'] },
-            { name: 'ACDC', ratio: 0.4, profile: 'Smooth baseline', characteristics: ['Balanced', 'Grounded', 'Clear'] },
-          ],
-          purpose: 'Sustained concentration',
-          timing: '0-180 min',
-        },
-      ],
-      reasoning: 'Perfect for late work sessions. Clean mental state without keeping you wired.',
-      totalDuration: '3-4 hours',
-    },
-  },
-  {
-    id: 'preset-2',
-    name: 'Creative Flow',
-    vibe: 'Open exploration with structure',
-    outcomeTag: 'Creative',
-    colorScheme: 'energetic',
-    timeOfDay: 'Afternoon',
-    tempo: 'Energetic',
-    stack: {
-      name: 'Creative Flow',
-      layers: [
-        {
-          layerName: 'Ideation',
-          cultivars: [
-            { name: 'Jack Herer', ratio: 0.5, profile: 'Creative energy', characteristics: ['Inspired', 'Sharp', 'Open'] },
-            { name: 'Durban Poison', ratio: 0.3, profile: 'Mental agility', characteristics: ['Fast', 'Clear', 'Motivated'] },
-            { name: 'Blue Dream', ratio: 0.2, profile: 'Pleasant ease', characteristics: ['Comfortable', 'Flowing', 'Balanced'] },
-          ],
-          purpose: 'Generate ideas',
-          timing: '0-90 min',
-        },
-      ],
-      reasoning: 'Opens creative channels while maintaining execution ability.',
-      totalDuration: '2-3 hours',
-    },
-  },
-  {
-    id: 'preset-3',
-    name: 'Sunday Calm',
-    vibe: 'Complete unwinding',
-    outcomeTag: 'Calm',
-    colorScheme: 'warm',
-    timeOfDay: 'Evening',
-    tempo: 'Slow',
-    stack: {
-      name: 'Sunday Calm',
-      layers: [
-        {
-          layerName: 'Gentle Relaxation',
-          cultivars: [
-            { name: 'Blue Dream', ratio: 0.5, profile: 'Soft comfort', characteristics: ['Easy', 'Pleasant', 'Relaxed'] },
-            { name: 'Northern Lights', ratio: 0.3, profile: 'Peaceful state', characteristics: ['Calm', 'Serene', 'Restful'] },
-            { name: 'Harlequin', ratio: 0.2, profile: 'Functional calm', characteristics: ['Clear', 'Balanced', 'Present'] },
-          ],
-          purpose: 'Rest without sedation',
-          timing: '0-120 min',
-        },
-      ],
-      reasoning: 'Deeply restful but functional. Perfect for recovery days.',
-      totalDuration: '2-3 hours',
-    },
-  },
-  {
-    id: 'preset-4',
-    name: 'Social Lift',
-    vibe: 'Warm engagement',
-    outcomeTag: 'Social',
-    colorScheme: 'energetic',
-    timeOfDay: 'Evening',
-    tempo: 'Moderate',
-    stack: {
-      name: 'Social Lift',
-      layers: [
-        {
-          layerName: 'Open Connection',
-          cultivars: [
-            { name: 'OG Kush', ratio: 0.45, profile: 'Social warmth', characteristics: ['Talkative', 'Happy', 'Open'] },
-            { name: 'Wedding Cake', ratio: 0.35, profile: 'Relaxed confidence', characteristics: ['Comfortable', 'Engaged', 'Friendly'] },
-            { name: 'ACDC', ratio: 0.2, profile: 'Clear presence', characteristics: ['Grounded', 'Present', 'Balanced'] },
-          ],
-          purpose: 'Feel connected',
-          timing: '0-150 min',
-        },
-      ],
-      reasoning: 'Great for gatherings where you want to feel present and engaged.',
-      totalDuration: '2.5-3 hours',
-    },
-  },
-];
-
-interface PresetStacksProps {
+export interface PresetStacksProps {
   onBack: () => void;
-  onSelectPreset?: (preset: PresetStack) => void;
+  onSelectPreset?: (preset: UIBlendRecommendation) => void;
 }
 
+// Define the intents for our fixed presets
+const PRESET_INTENTS: Array<{ id: string; title: string; vibe: string; tag: string; input: UserInput }> = [
+  {
+    id: 'preset-focus',
+    title: 'Late Night Focus',
+    vibe: 'Deep concentration without stimulation',
+    tag: 'Flow',
+    input: { mode: 'describe', text: 'focus work ignore distractions clear mind no anxiety' }
+  },
+  {
+    id: 'preset-creative',
+    title: 'Creative Flow',
+    vibe: 'Open exploration with structure',
+    tag: 'Creative',
+    input: { mode: 'describe', text: 'creative art music energetic inspiring happy' }
+  },
+  {
+    id: 'preset-calm',
+    title: 'Sunday Calm',
+    vibe: 'Complete unwinding',
+    tag: 'Calm',
+    input: { mode: 'describe', text: 'relax calm sleep stress relief quiet comfort' }
+  },
+  {
+    id: 'preset-social',
+    title: 'Social Lift',
+    vibe: 'Warm engagement',
+    tag: 'Social',
+    input: { mode: 'describe', text: 'social talkative happy party laugh' }
+  }
+];
+
 export function PresetStacks({ onBack, onSelectPreset }: PresetStacksProps) {
-  const [page, setPage] = useState(0);
-  const itemsPerPage = 4;
-  const totalPages = Math.ceil(presetStacks.length / itemsPerPage);
-  const currentPresets = presetStacks.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+  const [recommendations, setRecommendations] = useState<UIBlendRecommendation[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Determine presets on mount
+    const recs = PRESET_INTENTS.map(p => {
+      const results = generateRecommendations(p.input);
+      // Take the top result and override the name/metadata for display stability
+      const top = results[0];
+      if (top) {
+        return {
+          ...top,
+          id: p.id,
+          name: p.title, // Override name with Preset Title
+          reasoning: p.vibe // Override reasoning with short vibe for card
+        };
+      }
+      return null;
+    }).filter((r): r is UIBlendRecommendation => r !== null);
+
+    setRecommendations(recs);
+    setLoading(false);
+  }, []);
+
+  if (loading) {
+    return <div className="fixed inset-0 bg-black flex items-center justify-center text-white/30 tracking-widest uppercase text-xs">Loading Presets...</div>;
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col bg-black overflow-hidden font-sans">
@@ -162,28 +99,41 @@ export function PresetStacks({ onBack, onSelectPreset }: PresetStacksProps) {
       </div>
 
       {/* Grid */}
-      <div className="flex-1 px-8 py-4 flex items-center justify-center min-h-0">
-        <div className="w-full max-w-2xl grid grid-cols-2 gap-4">
+      <div className="flex-1 px-8 py-4 flex items-start justify-center overflow-y-auto">
+        <div className="w-full max-w-2xl grid grid-cols-2 gap-4 pb-10">
           <AnimatePresence mode="wait">
-            {currentPresets.map((preset, idx) => (
+            {recommendations.map((rec, idx) => (
               <motion.button
-                key={preset.id}
-                onClick={() => onSelectPreset?.(preset)}
+                key={rec.id}
+                onClick={() => onSelectPreset?.(rec)}
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 1.05, y: -10 }}
                 transition={{ delay: idx * 0.05 }}
-                className="group relative h-48 p-6 glass-card text-left border-white/5 bg-white/5 hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all flex flex-col justify-between"
+                className="group relative h-64 p-6 glass-card text-left border-white/5 bg-white/5 hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all flex flex-col justify-between"
               >
                 <div>
-                  <span className="block text-[10px] uppercase tracking-widest text-white/30 mb-2">{preset.timeOfDay}</span>
-                  <h3 className="text-xl font-light text-white serif mb-1 group-hover:text-[#00FFD1] transition-colors">{preset.name}</h3>
-                  <p className="text-xs text-white/40 line-clamp-2 font-light">{preset.vibe}</p>
+                  <span className="block text-[10px] uppercase tracking-widest text-white/30 mb-2">Build {idx + 1}</span>
+                  <h3 className="text-xl font-light text-white serif mb-1 group-hover:text-[#00FFD1] transition-colors">{rec.name}</h3>
+                  <p className="text-xs text-white/40 line-clamp-2 font-light mb-4">{rec.reasoning}</p>
+
+                  {/* Cultivar Preview */}
+                  <div className="space-y-1">
+                    {rec.cultivars.slice(0, 3).map((c, i) => (
+                      <div key={i} className="flex justify-between items-center text-[10px] text-white/60">
+                        <span>{c.name}</span>
+                        <span className="text-white/30">{Math.round(c.ratio * 100)}%</span>
+                      </div>
+                    ))}
+                    {rec.cultivars.length > 3 && (
+                      <div className="text-[9px] text-white/30 italic">+{rec.cultivars.length - 3} more</div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mt-4">
                   <div className="px-2.5 py-1 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[9px] font-bold text-[#00FFD1] uppercase tracking-widest">
-                    {preset.outcomeTag}
+                    Select
                   </div>
                   <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/20 group-hover:text-[#00FFD1] group-hover:bg-[#00FFD1]/10 group-hover:border-[#00FFD1]/40 transition-all">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -197,22 +147,8 @@ export function PresetStacks({ onBack, onSelectPreset }: PresetStacksProps) {
         </div>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex-shrink-0 py-10 flex justify-center gap-3">
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setPage(i)}
-              className={`h-1 rounded-full transition-all duration-300 ${page === i ? 'bg-[#00FFD1] w-8' : 'bg-white/10 w-4'
-                }`}
-            />
-          ))}
-        </div>
-      )}
-
       {/* Footer Disclaimer */}
-      <div className="absolute bottom-6 left-0 right-0 text-center opacity-20">
+      <div className="absolute bottom-6 left-0 right-0 text-center opacity-20 pointer-events-none">
         <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath Intellectual Property</p>
       </div>
     </div>

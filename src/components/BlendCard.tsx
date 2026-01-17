@@ -19,6 +19,13 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="relative group"
+        onLayoutAnimationComplete={() => {
+          console.log('VERIFICATION: BlendCard Rendering', {
+            blendName: recommendation.name,
+            renderedIDs: recommendation.cultivars.map(c => c.name), // Using name as ID proxy since normalized
+            count: recommendation.cultivars.length
+          });
+        }}
       >
         {/* Neon Glow Outer */}
         <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00FFD110] to-[#BF5AF2] opacity-20 blur-2xl group-hover:opacity-30 transition-opacity" />

@@ -423,7 +423,8 @@ function generateCandidates(
 
   const candidates: BlendCandidate[] = [];
 
-  // 2-cultivar blends
+  // 2-cultivar blends - DISABLED (Enforcing min 3)
+  /*
   for (let i = 0; i < available.length; i++) {
     for (let j = 0; j < available.length; j++) {
       if (i === j) continue;
@@ -453,6 +454,7 @@ function generateCandidates(
       }
     }
   }
+  */
 
   // 3-cultivar blends
   for (let i = 0; i < available.length; i++) {

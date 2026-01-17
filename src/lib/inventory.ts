@@ -23,3 +23,9 @@ export const INVENTORY: Inventory = {
     timestamp: new Date().toISOString(),
     cultivars: cultivars
 };
+
+// HELPER: Resolver for UI components to get full chemotype data
+export function resolveChemotype(strainId: string): typeof chemotypeData.cultivars[0] | null {
+    const cultivar = chemotypeData.cultivars.find(c => c.id === strainId);
+    return cultivar || null;
+}
