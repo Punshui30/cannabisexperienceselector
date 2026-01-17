@@ -9,9 +9,26 @@ interface InputScreenProps {
   onSelectPreset: (exemplar: OutcomeExemplar | BlendScenario) => void;
   isAdmin?: boolean;
   initialText?: string;
+  onBrowsePresets?: () => void; // Added back to match App.tsx usage if needed, though snippet ignored it? 
+  // Wait, App.tsx calls: onBrowsePresets={() => setView('presets')}
+  // User snippet has: button onClick={() => onSubmit...} and "Explore Preset Stacks" button.
+  // The "Explore Preset Stacks" button in snippet has NO implementation (onClick is missing).
+  // I will attach onBrowsePresets to that button.
+  onAdminModeToggle?: () => void; // App.tsx passes this. I will keep it in interface but maybe not use it if user didn't include it?
+  // User snippet has "Admin Mode" badge in header.
 }
 
-export function InputScreen({ onSubmit, onSelectPreset, isAdmin, initialText }: InputScreenProps) {
+// User snippet omitted onBrowsePresets in destructuring?
+// input: export function InputScreen({ onSubmit, onSelectPreset, isAdmin, initialText }: InputScreenProps)
+// I will ADD onBrowsePresets back to make the "Explore" button work.
+
+export function InputScreen({
+  onSubmit,
+  onSelectPreset,
+  isAdmin,
+  initialText,
+  onBrowsePresets
+}: InputScreenProps) {
   const [mode, setMode] = useState<'describe' | 'strain'>('describe');
   const [description, setDescription] = useState('');
 
@@ -100,8 +117,18 @@ export function InputScreen({ onSubmit, onSelectPreset, isAdmin, initialText }: 
           <div className="flex-1 w-full relative min-h-[180px]">
             <SwipeDeck
               items={BLEND_SCENARIOS}
-              renderCard={(scenario) => (
-                <div className="w-full h-full bg-[#1A1A1A] border border-white/10 rounded-2xl p-5 flex flex-col relative overflow-hidden group">
+              renderItem={(scenario, isActive) => (
+                <div
+                  className="w-full h-full bg-[#1A1A1A] border border-white/10 rounded-2xl p-5 flex flex-col relative overflow-hidden group cursor-pointer"
+                  onClick={() => {
+                    // RUNTIME GUARD from User Snippet
+                    if (!scenario || typeof scenario !== 'object') {
+                      console.error('CRITICAL: InputScreen SwipeDeck passed invalid scenario', scenario);
+                      return;
+                    }
+                    onSelectPreset(scenario);
+                  }}
+                >
                   {/* Color Indicator */}
                   <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: scenario.visualProfile.color }} />
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full pointer-events-none" />
@@ -124,16 +151,8 @@ export function InputScreen({ onSubmit, onSelectPreset, isAdmin, initialText }: 
                   </div>
                 </div>
               )}
-              onSwipe={(direction, index) => {
-                // Analytics hook
-              }}
-              onClick={(scenario) => {
-                // RUNTIME GUARD
-                if (!scenario || typeof scenario !== 'object') {
-                  console.error('CRITICAL: InputScreen SwipeDeck passed invalid scenario', scenario);
-                  return;
-                }
-                onSelectPreset(scenario);
+              onSwipe={(index) => {
+                // Analytics hook could go here
               }}
             />
           </div>
@@ -151,7 +170,10 @@ export function InputScreen({ onSubmit, onSelectPreset, isAdmin, initialText }: 
           <span className="text-black text-lg">✦</span>
         </button>
 
-        <button className="w-full py-3 flex items-center justify-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
+        <button
+          onClick={onBrowsePresets}
+          className="w-full py-3 flex items-center justify-center gap-2 opacity-60 hover:opacity-100 transition-opacity"
+        >
           <span className="text-[10px] uppercase tracking-[0.2em] text-white">Explore Preset Stacks</span>
           <span className="text-[#d4a259]">→</span>
         </button>
