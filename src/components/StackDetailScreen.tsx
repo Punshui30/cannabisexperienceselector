@@ -12,8 +12,8 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     assertStack(stack);
 
     return (
-        <div className="min-h-screen bg-black text-white p-4 flex flex-col font-sans">
-            {/* Header - Compact */}
+        <div className="h-screen w-screen bg-black text-white p-6 flex flex-col font-sans overflow-hidden">
+            {/* Header - Minimal height */}
             <div className="flex-none flex items-center justify-between mb-6 z-20 relative">
                 <button
                     onClick={onBack}
@@ -26,122 +26,106 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 </button>
 
                 <div className="flex items-center gap-2">
-                    <img src={logoImg} alt="GO logo" className="w-6 h-auto" />
+                    <img src={logoImg} alt="GO logo" className="w-5 h-auto" />
                     <div className="flex flex-col items-end">
                         <span className="text-xs font-normal text-white serif">Guided Outcomes</span>
-                        <span className="text-[9px] text-white/40">Stack Protocol</span>
+                        <span className="text-[9px] text-white/40">Physical Protocol</span>
                     </div>
                 </div>
             </div>
 
-            <div className="flex-1 max-w-xl mx-auto w-full space-y-6 pb-10">
-                {/* Title Card - Compact */}
-                <div className="text-center space-y-3 mb-8">
-                    <h1 className="text-2xl font-light text-white serif tracking-tight leading-tight">{stack.name}</h1>
-                    <p className="text-white/60 text-xs max-w-lg mx-auto leading-relaxed">{stack.reasoning}</p>
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#7C5CFF]/30 bg-[#7C5CFF]/10">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#7C5CFF] animate-pulse" />
-                        <span className="text-[#7C5CFF] text-[10px] font-bold uppercase tracking-widest">
-                            {stack.totalDuration}
-                        </span>
-                    </div>
+            {/* Title Section */}
+            <div className="flex-none text-center space-y-2 mb-8">
+                <h1 className="text-2xl font-light text-white serif tracking-tight leading-tight">{stack.name}</h1>
+                <p className="text-white/60 text-xs max-w-lg mx-auto leading-relaxed">{stack.reasoning}</p>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#7C5CFF]/30 bg-[#7C5CFF]/10 mt-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#7C5CFF] animate-pulse" />
+                    <span className="text-[#7C5CFF] text-[9px] font-bold uppercase tracking-widest">
+                        {stack.totalDuration}
+                    </span>
                 </div>
+            </div>
 
-                {/* Vertical Timeline - Tight */}
-                <div className="relative space-y-0">
-                    {/* Continuous Vertical Line */}
-                    <div className="absolute left-[19px] top-4 bottom-4 w-px bg-gradient-to-b from-[#7C5CFF] via-[#00FFD1] to-transparent opacity-30 z-0" />
+            {/* Horizontal Timeline Container */}
+            <div className="flex-1 w-full max-w-6xl mx-auto flex flex-col justify-center">
+                <div className="flex flex-row items-stretch justify-between gap-4 h-full max-h-[400px]">
 
                     {stack.layers.map((layer, idx) => (
-                        <div key={idx} className="relative z-10">
+                        <div key={idx} className="flex-1 flex flex-col relative group">
 
-                            {/* Connector Label - Compact */}
-                            {idx > 0 && (
-                                <div className="flex items-center gap-3 mb-4 ml-[7px]">
-                                    <div className="w-6 h-6 rounded-full bg-[#111] border border-white/20 flex items-center justify-center text-[8px] text-white/40 font-bold uppercase tracking-widest z-10">
-                                        ↓
-                                    </div>
-                                    <span className="text-[8px] uppercase tracking-[0.2em] text-white/30 font-semibold">
-                                        {stack.layers[idx - 1].durationEstimate ? `After ${stack.layers[idx - 1].durationEstimate}` : 'Next'}
-                                    </span>
+                            {/* Connector Line (Horizontal) */}
+                            {idx < stack.layers.length - 1 && (
+                                <div className="absolute top-[20px] right-[-28px] w-10 h-[2px] bg-gradient-to-r from-[#7C5CFF] to-[#00FFD1] opacity-30 z-0 hidden md:block" />
+                            )}
+                            {/* Connector Arrow */}
+                            {idx < stack.layers.length - 1 && (
+                                <div className="absolute top-[8px] right-[-24px] w-6 h-6 rounded-full bg-[#111] border border-white/20 flex items-center justify-center z-10 hidden md:flex">
+                                    <span className="text-[8px] text-white/40">→</span>
                                 </div>
                             )}
 
                             <motion.div
-                                initial={{ opacity: 0, y: 10 }}
+                                initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.1 }}
-                                className="pl-10 relative"
+                                transition={{ delay: idx * 0.15 }}
+                                className="h-full bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-all flex flex-col"
                             >
-                                {/* Time Node - Compact */}
-                                <div className="absolute left-[13px] top-0 w-3.5 h-3.5 rounded-full bg-[#7C5CFF] border-2 border-black z-20 shadow-[0_0_10px_rgba(124,92,255,0.5)]" />
+                                {/* Phase Header */}
+                                <div className="flex justify-between items-start mb-4 border-b border-white/5 pb-3">
+                                    <div>
+                                        <div className="text-[9px] uppercase tracking-widest text-[#00FFD1] font-bold mb-1">{layer.onsetEstimate}</div>
+                                        <h3 className="text-lg text-white font-medium">{layer.layerName.split(':')[0]}</h3>
+                                        <span className="text-xs text-white/60">{layer.layerName.split(':')[1]}</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-[8px] uppercase tracking-widest text-white/40 mb-1">Burn</div>
+                                        <div className="font-mono text-xs text-white/80">~{idx === 0 ? '10' : idx === 1 ? '15' : '10'}m</div>
+                                    </div>
+                                </div>
 
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.07] transition-colors">
-                                    {/* Header - Compact */}
-                                    <div className="flex justify-between items-start mb-3 border-b border-white/5 pb-2">
-                                        <div>
-                                            <h3 className="text-sm text-white font-medium mb-0.5">{layer.layerName}</h3>
-                                            <div className="flex items-center gap-2 text-[10px] text-[#00FFD1]">
-                                                <span className="uppercase tracking-widest font-bold">Onset:</span>
-                                                <span className="font-mono opacity-80">{layer.onsetEstimate}</span>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-[8px] uppercase tracking-widest text-white/40 mb-0.5">Duration</div>
-                                            <div className="font-mono text-xs text-white/80">{layer.durationEstimate}</div>
-                                        </div>
+                                {/* Content */}
+                                <div className="flex-1 space-y-4">
+                                    <div>
+                                        <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Physical Position</div>
+                                        <p className="text-white/90 text-xs leading-relaxed border-l-2 border-[#7C5CFF] pl-2">
+                                            {layer.phaseIntent}
+                                        </p>
                                     </div>
 
-                                    {/* Core Semantics - Compact Grid */}
-                                    <div className="grid grid-cols-1 gap-3 mb-3">
-                                        <div>
-                                            <div className="flex items-baseline gap-2 mb-1">
-                                                <div className="text-[9px] uppercase tracking-widest text-[#7C5CFF] font-bold">Outcome</div>
-                                                <p className="text-white/90 text-xs leading-snug">
-                                                    {layer.phaseIntent}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="flex items-baseline gap-2 mb-1">
-                                                <div className="text-[9px] uppercase tracking-widest text-[#00FFD1] font-bold">Protocol</div>
-                                                <p className="text-white/90 text-xs leading-snug">
-                                                    {layer.consumptionGuidance}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Why This Phase - Compact */}
-                                    <div className="mb-3 bg-black/20 rounded-md p-2.5 border border-white/5">
-                                        <p className="text-white/50 text-[10px] italic leading-relaxed">
+                                    <div>
+                                        <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Transition Logic</div>
+                                        <p className="text-white/60 text-[10px] italic leading-relaxed">
                                             "{layer.whyThisPhase}"
                                         </p>
                                     </div>
 
-                                    {/* Cultivar Chip - Compact */}
-                                    <div className="flex flex-wrap gap-2">
-                                        {layer.cultivars.map((c, cIdx) => (
-                                            <div key={cIdx} className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/10 border border-white/5">
-                                                <span className="text-white/90 text-[10px] font-medium">{c.name}</span>
-                                                <span className="text-white/40 text-[9px]">({c.profile})</span>
-                                            </div>
-                                        ))}
+                                    <div>
+                                        <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Combustion</div>
+                                        <p className="text-white/90 text-[10px] leading-relaxed border-l-2 border-[#00FFD1] pl-2">
+                                            {layer.consumptionGuidance}
+                                        </p>
                                     </div>
+                                </div>
+
+                                {/* Chemicals (Cultivars - Minimal) */}
+                                <div className="mt-4 pt-3 border-t border-white/5">
+                                    {layer.cultivars.map((c, cIdx) => (
+                                        <div key={cIdx} className="flex items-center justify-between">
+                                            <span className="text-white/90 text-xs font-medium">{c.name}</span>
+                                            <span className="text-white/40 text-[9px]">{c.profile}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </motion.div>
                         </div>
                     ))}
+                </div>
 
-                    {/* End Node */}
-                    <div className="flex items-center gap-3 pt-4 ml-[7px]">
-                        <div className="w-6 h-6 rounded-full bg-[#111] border border-white/20 flex items-center justify-center text-white/40 z-10 text-[8px]">
-                            •
-                        </div>
-                        <span className="text-[8px] uppercase tracking-[0.2em] text-white/20 font-semibold">
-                            Complete
-                        </span>
-                    </div>
+                {/* Progress Indicator (Bottom) */}
+                <div className="flex items-center justify-center gap-2 mt-8 opacity-30">
+                    <span className="text-[9px] uppercase tracking-widest text-white">Start</span>
+                    <div className="w-64 h-px bg-gradient-to-r from-white to-transparent" />
+                    <span className="text-[9px] uppercase tracking-widest text-white">Finish</span>
                 </div>
             </div>
         </div>
