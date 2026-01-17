@@ -1,4 +1,3 @@
-```javascript
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OUTCOME_EXEMPLARS } from '../data/presetStacks';
@@ -89,15 +88,23 @@ export function PresetStacks({ onBack }: { onBack: () => void }) { // Modified f
       {/* Grid */}
       <div className="flex-1 px-8 py-4 flex items-start justify-center overflow-y-auto">
         <div className="w-full max-w-2xl grid grid-cols-2 gap-4 pb-10">
-                transition={{ delay: idx * 0.05 }}
-                className="group relative h-64 p-6 glass-card text-left border-white/5 bg-white/5 hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <span className="block text-[10px] uppercase tracking-widest text-white/30 mb-2" style={{ color: stack.visualProfile.color }}>{stack.subtitle}</span>
-                  <h3 className="text-xl font-light text-white serif mb-3 group-hover:text-[#00FFD1] transition-colors">{stack.title}</h3>
-                  <p className="text-xs text-white/40 line-clamp-4 font-light leading-relaxed">{stack.description}</p>
-                </div>
 
+          <div className="flex justify-between items-center mt-4">
+            <div className="px-2.5 py-1 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[9px] font-bold text-[#00FFD1] uppercase tracking-widest">
+              Build
+            </div>
+            {OUTCOME_EXEMPLARS.map((exemplar, index) => (
+              <motion.button
+                key={index}
+                className="relative p-6 rounded-2xl bg-white/5 border border-white/10 text-left overflow-hidden group hover:bg-white/10 transition-colors"
+                onClick={() => setSelectedStack(exemplar)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00FFD1] to-transparent opacity-50" style={{ backgroundColor: exemplar.visualProfile.color }} />
+                <h3 className="text-xl font-medium text-white mb-1">{exemplar.title}</h3>
+                <p className="text-white/60 text-sm mb-4">{exemplar.subtitle}</p>
                 <div className="flex justify-between items-center mt-4">
                   <div className="px-2.5 py-1 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[9px] font-bold text-[#00FFD1] uppercase tracking-widest">
                     Build
@@ -110,14 +117,12 @@ export function PresetStacks({ onBack }: { onBack: () => void }) { // Modified f
                 </div>
               </motion.button>
             ))}
-          </AnimatePresence>
+          </div>
+        </div>
+        {/* Footer Disclaimer */}
+        <div className="absolute bottom-6 left-0 right-0 text-center opacity-20 pointer-events-none">
+          <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath Intellectual Property</p>
         </div>
       </div>
-
-      {/* Footer Disclaimer */}
-      <div className="absolute bottom-6 left-0 right-0 text-center opacity-20 pointer-events-none">
-        <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath Intellectual Property</p>
-      </div>
-    </div>
-  );
+      );
 }
