@@ -49,9 +49,15 @@ export function BootLoader({ onComplete }: Props) {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: phase >= 1 ? 1 : 0, scale: 1 }}
                     transition={{ duration: 1 }}
-                    className="text-4xl font-bold tracking-[0.2em] text-white text-center mb-4"
+                    className="flex flex-col items-center mb-6"
                 >
-                    ANTIGRAVITY
+                    <div className="w-32 h-32 mb-6 flex items-center justify-center">
+                        <img src="/logo.png" alt="GO Logo" className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+                    </div>
+
+                    <h1 className="text-3xl font-light text-white serif tracking-wide text-center">
+                        Guided Outcomes
+                    </h1>
                 </motion.div>
 
                 <motion.div
@@ -60,11 +66,11 @@ export function BootLoader({ onComplete }: Props) {
                     transition={{ duration: 1 }}
                     className="flex flex-col items-center"
                 >
-                    <p className="text-white/60 text-xs uppercase tracking-widest mb-1">
+                    <p className="text-white/40 text-xs uppercase tracking-[0.2em] mb-2">
                         Experience Engine
                     </p>
                     <p className="text-[#d4a259] text-[10px] uppercase tracking-[0.3em] font-bold">
-                        Powered by StrainMath
+                        Powered by StrainMath™
                     </p>
                 </motion.div>
             </motion.div>
