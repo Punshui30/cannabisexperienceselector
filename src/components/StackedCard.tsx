@@ -54,8 +54,8 @@ export function StackedCard({ recommendation, onCalculate }: Props) {
               animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#00FFD1]/30 bg-[#00FFD1]/10 text-[#00FFD1] text-xs font-medium uppercase tracking-wider mb-4"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] animate-pulse" />
-              Social
+              <div className="w-1.5 h-1.5 rounded-full bg-[#D946EF] animate-pulse" />
+              Preset Stack
             </motion.div>
 
             <h2 className="text-4xl font-light text-white mb-2">{recommendation.name}</h2>

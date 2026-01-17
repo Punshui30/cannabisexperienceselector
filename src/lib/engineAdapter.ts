@@ -4,7 +4,7 @@
  * Layer 1 (Intent Interpretation) + Layer 2 (Engine) integration
  */
 
-import { calculateBlends, Intent, BlendRecommendation as EngineBlend } from './calculationEngine';
+import { calculateBlends, Intent, BlendRecommendation as EngineBlend, BlendEvaluation } from './calculationEngine';
 import { INVENTORY } from './inventory';
 import { getStrainById } from './strainLibrary';
 
@@ -21,7 +21,8 @@ export type UICultivar = {
   ratio: number;
   profile: string;
   characteristics: string[];
-  prominentTerpenes: string[]; // Added specifically for the Resolving screen
+  prominentTerpenes: string[];
+  color: string; // Hex color based on dominant terpene
 };
 
 export type UIBlendRecommendation = {
@@ -29,6 +30,7 @@ export type UIBlendRecommendation = {
   name: string;
   cultivars: UICultivar[];
   matchScore: number;
+  confidence: number; // Added
   reasoning: string;
   effects: {
     onset: string;
@@ -39,10 +41,31 @@ export type UIBlendRecommendation = {
     time: string;
     feeling: string;
   }[];
+  blendEvaluation?: BlendEvaluation; // Added V2 Data
 };
 
 
 
+
+const TERPENE_COLORS: Record<string, string> = {
+  'Myrcene': '#84CC16', // Lime-600
+  'Limonene': '#FACC15', // Yellow-400
+  'Caryophyllene': '#A855F7', // Purple-500
+  'Pinene': '#22C55E', // Green-500
+  'Linalool': '#C084FC', // Violet-400
+  'Humulene': '#FB923C', // Orange-400
+  'Terpinolene': '#FB7185', // Rose-400
+  'Ocimene': '#F472B6', // Pink-400
+};
+
+function getTerpeneColor(terpeneName: string): string {
+  if (!terpeneName) return '#94A3B8'; // Slate-400 default
+  // Handle case sensitivity and potential partial matches or formatting
+  const key = Object.keys(TERPENE_COLORS).find(k =>
+    k.toLowerCase() === terpeneName.toLowerCase()
+  );
+  return key ? TERPENE_COLORS[key] : '#94A3B8';
+}
 
 /**
  * LAYER 1: Intent Interpretation (Simplified NLP)
@@ -302,6 +325,16 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
   const uiRecommendations: UIBlendRecommendation[] = engineOutput.recommendations.map((blend, idx) => {
     const strainData = blend.cultivars.map(c => {
       const strain = getStrainById(c.id);
+
+      const prominentTerpenes = (() => {
+        const inv = INVENTORY.cultivars.find(i => i.id === c.id);
+        if (!inv || !inv.terpenes) return ['Myrcene', 'Pinene', 'Caryophyllene'];
+        return Object.entries(inv.terpenes)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 3)
+          .map(([name]) => name.charAt(0).toUpperCase() + name.slice(1));
+      })();
+
       return {
         name: strain ? strain.name : c.name,
         ratio: c.ratio,
@@ -309,22 +342,22 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
         characteristics: strain ? strain.vibeTags.slice(0, 3).map(tag =>
           tag.charAt(0).toUpperCase() + tag.slice(1).replace(/-/g, ' ')
         ) : ['Chemotyped'],
-        prominentTerpenes: (() => {
-          const inv = INVENTORY.cultivars.find(i => i.id === c.id);
-          if (!inv || !inv.terpenes) return ['Myrcene', 'Pinene', 'Caryophyllene'];
-          return Object.entries(inv.terpenes)
-            .sort(([, a], [, b]) => b - a)
-            .slice(0, 3)
-            .map(([name]) => name.charAt(0).toUpperCase() + name.slice(1));
-        })(),
+        prominentTerpenes,
+        color: getTerpeneColor(prominentTerpenes[0]) // Dominant terpene color
       };
     });
+
+    // Score Normalization
+    // V2 Engine provides pre-calculated blendScore (0-100)
+    // We can use it directly as the match fidelity
+    const normalizedScore = Math.round(blend.blendScore);
 
     return {
       id: `blend_${idx + 1}`,
       name: generateBlendName(blend),
       cultivars: strainData,
-      matchScore: Math.round(Math.max(0, (1 + blend.score) * 50)), // Transform score to 0-100 range
+      matchScore: normalizedScore,
+      confidence: blend.confidence,
       reasoning: generateReasoning(blend, intent),
       effects: {
         onset: '5-12 minutes',
@@ -332,6 +365,7 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
         duration: '2-3 hours',
       },
       timeline: generateTimeline(blend),
+      blendEvaluation: blend.blendEvaluation,
     };
   });
 

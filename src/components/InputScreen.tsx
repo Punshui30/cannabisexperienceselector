@@ -130,11 +130,15 @@ export function InputScreen({ onSubmit, onBrowsePresets, onAdminModeToggle, isAd
   return (
     <div className="w-full h-full flex flex-col pt-12 px-6 max-w-xl mx-auto relative z-10">
 
-      {/* Header */}
+      import logoImg from '../assets/logo.png';
+      // ...
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-light text-white mb-1 serif">Build your blend</h1>
-          <p className="text-white/30 text-sm">Choose how you want to start</p>
+          <div className="flex items-center gap-3 mb-2">
+            <img src={logoImg} alt="GO logo" className="w-6 h-auto" />
+            <h1 className="text-3xl font-light text-white serif">Build your blend</h1>
+          </div>
+          <p className="text-white/30 text-sm pl-9">Choose how you want to start</p>
         </div>
         <button
           onClick={onAdminModeToggle}

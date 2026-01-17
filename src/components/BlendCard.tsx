@@ -35,6 +35,12 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
           <div className="p-8">
             <div className="flex justify-between items-start mb-6">
               <div className="flex flex-col">
+                {/* Distinct Badge for Custom Blends */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="px-2 py-0.5 rounded border border-[#00FFD1] bg-[#00FFD1]/10 text-[#00FFD1] text-[9px] font-bold uppercase tracking-widest">
+                    Custom Blend
+                  </div>
+                </div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] shadow-[0_0_8px_#00FFD1]" />
                   <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#00FFD1]">Match Fidelity</span>
@@ -60,14 +66,10 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               <div className="flex flex-col-reverse justify-between h-full py-4 text-right min-w-[100px]">
                 {recommendation.cultivars.map((cultivar, idx) => (
                   <div key={idx} className="flex flex-col justify-center h-full">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${[
-                      'text-[#4C1D95]',
-                      'text-[#5B21B6]',
-                      'text-[#7C3AED]',
-                      'text-[#8B5CF6]',
-                      'text-[#A78BFA]',
-                      'text-[#C4B5FD]'
-                    ][idx % 6]}`}>
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-widest"
+                      style={{ color: cultivar.color }}
+                    >
                       {cultivar.profile}
                     </span>
                     <span className="text-xs text-white/40 font-light mt-0.5">
@@ -80,23 +82,14 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               {/* Center Visual Stack */}
               <div className="w-16 h-full flex flex-col-reverse rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20 bg-white/5">
                 {recommendation.cultivars.map((cultivar, idx) => {
-                  const colors = [
-                    'bg-[#4C1D95]', // Deepest Purple
-                    'bg-[#5B21B6]',
-                    'bg-[#7C3AED]',
-                    'bg-[#8B5CF6]',
-                    'bg-[#A78BFA]',
-                    'bg-[#C4B5FD]'  // Lightest Lavender
-                  ];
-                  const colorClass = colors[idx % colors.length];
-
                   return (
                     <motion.div
                       key={`${cultivar.name}-${idx}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: `${cultivar.ratio * 100}%`, opacity: 1 }}
                       transition={{ delay: 0.5 + (idx * 0.1), duration: 0.8, ease: "easeOut" }}
-                      className={`w-full ${colorClass} relative group border-t border-white/10 first:border-t-0`}
+                      className="w-full relative group border-t border-white/10 first:border-t-0"
+                      style={{ backgroundColor: cultivar.color }}
                     />
                   );
                 })}
@@ -129,7 +122,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                 onClick={() => setShowDetails(true)}
                 className="py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest"
               >
-                Timeline
+                Chemistry
               </button>
             </div>
 
@@ -158,10 +151,10 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 10 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md glass-card p-8 border-[#00FFD1]/20"
+              className="w-full max-w-md glass-card p-8 border-[#00FFD1]/20 max-h-[80vh] overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-light text-white serif">Release Timeline</h3>
+                <h3 className="text-2xl font-light text-white serif">StrainMath™ Chemistry</h3>
                 <button onClick={() => setShowDetails(false)} className="text-white/20 hover:text-white">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M18 6L6 18M6 6l12 12" />
@@ -169,19 +162,75 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                 </button>
               </div>
 
-              <div className="space-y-6">
-                {recommendation.timeline.map((item, idx) => (
-                  <div key={idx} className="flex gap-6 items-start">
-                    <span className="w-20 text-[10px] uppercase tracking-widest text-[#00FFD1] font-bold mt-1">{item.time}</span>
-                    <span className="flex-1 text-sm text-white/70 leading-relaxed font-light">{item.feeling}</span>
+              <div className="space-y-8">
+                {/* 1. Dominant Terpenes */}
+                <div>
+                  <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold">Dominant Terpenes</h4>
+                  <div className="space-y-3">
+                    {recommendation.blendEvaluation.explanationData.dominantContributors.map((t, idx) => (
+                      <div key={idx} className="flex justify-between items-center group">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-white font-medium capitalize">{t.terpene}</span>
+                          <span className="text-[10px] text-white/40">{t.contribution}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[#00FFD1] font-mono text-xs">{t.percent}%</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                {/* 2. Detected Interactions */}
+                {recommendation.blendEvaluation.explanationData.interactions.length > 0 && (
+                  <div>
+                    <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Detected Interactions</h4>
+                    <div className="space-y-2">
+                      {recommendation.blendEvaluation.explanationData.interactions.map((int, idx) => (
+                        <div key={idx} className="p-3 rounded-lg bg-white/5 border border-white/5 flex gap-3">
+                          <div className={`mt-0.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${int.type === 'synergy' ? 'bg-[#00FFD1]' : int.type === 'antagonism' ? 'bg-red-400' : 'bg-yellow-400'}`} />
+                          <div className="flex-1">
+                            <div className="flex justify-between text-xs mb-0.5">
+                              <span className={`uppercase font-bold tracking-wider ${int.type === 'synergy' ? 'text-[#00FFD1]' : int.type === 'antagonism' ? 'text-red-400' : 'text-yellow-400'}`}>{int.type}</span>
+                              <span className="text-white/20 capitalize">{int.magnitude}</span>
+                            </div>
+                            <p className="text-sm text-white/80 font-light leading-snug">
+                              {int.effect}
+                            </p>
+                            <div className="text-[9px] text-white/30 mt-1 capitalize">
+                              {int.terpenes.join(' + ')}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Risks & Tradeoffs */}
+                {(recommendation.blendEvaluation.explanationData.risksIncurred.length > 0 || recommendation.blendEvaluation.explanationData.risksManaged.length > 0) && (
+                  <div>
+                    <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Risk Profile</h4>
+                    <div className="grid grid-cols-1 gap-2">
+                      {recommendation.blendEvaluation.explanationData.risksManaged.map((r, idx) => (
+                        <div key={idx} className="px-3 py-2 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs">
+                          <span className="font-bold">✓ MANAGED:</span> {r.mitigationStrategy} ({r.severity})
+                        </div>
+                      ))}
+                      {recommendation.blendEvaluation.explanationData.risksIncurred.map((r, idx) => (
+                        <div key={idx} className="px-3 py-2 rounded border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs">
+                          <span className="font-bold">! RISK:</span> {r.reason} ({r.severity})
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="mt-10 pt-6 border-t border-white/5 flex justify-between items-end">
+              <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-end">
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-white/20 uppercase tracking-widest mb-1">Total Duration</span>
-                  <span className="text-lg text-[#00FFD1] font-medium">{recommendation.effects.duration}</span>
+                  <span className="text-[10px] text-white/20 uppercase tracking-widest mb-1">Score Confidence</span>
+                  <span className="text-lg text-[#00FFD1] font-medium">{Math.round(recommendation.confidence * 100)}%</span>
                 </div>
                 <button onClick={() => setShowDetails(false)} className="px-6 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold uppercase text-white/40 hover:text-white">Close</button>
               </div>

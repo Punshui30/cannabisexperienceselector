@@ -24,6 +24,8 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
 
   // --- SUB-COMPONENTS ---
 
+  import logoImg from '../assets/logo.png';
+
   const GoldSlit = () => (
     <motion.div
       initial={{ width: 0, opacity: 0 }}
@@ -35,10 +37,10 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
 
   const LogoMark = () => (
     <div className="flex flex-col items-center mb-6">
-      <div className="w-16 h-16 mb-2 flex items-center justify-center text-[#FFD700]">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-hexagon"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /></svg>
+      <div className="w-24 h-24 mb-4 flex items-center justify-center">
+        <img src={logoImg} alt="GO Logo" className="w-full h-full object-contain" />
       </div>
-      <div className="mt-4 flex flex-col items-center">
+      <div className="mt-2 flex flex-col items-center">
         <h1 className="text-xl font-normal text-white serif tracking-wide">Guided Outcomes</h1>
         <p className="text-xs text-white/60">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></p>
       </div>
