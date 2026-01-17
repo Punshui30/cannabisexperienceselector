@@ -6,18 +6,19 @@ import { InputScreen } from './components/InputScreen';
 import { ResolvingScreen } from './components/ResolvingScreen';
 import { ResultsScreen } from './components/ResultsScreen';
 import { PresetStacks } from './components/PresetStacks';
+import { StackDetailScreen } from './components/StackDetailScreen'; // New Import
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { generateRecommendations, type UserInput, type UIBlendRecommendation } from './lib/engineAdapter';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail';
 
 // Re-export types from adapter if needed elsewhere, though usually direct import is better
 export type { UserInput };
 
-import { EngineResult, IntentSeed } from './types/domain';
+import { EngineResult, IntentSeed, UIStackRecommendation, OutcomeExemplar } from './types/domain';
 
 // Old types removed in favor of strict domain types
 
@@ -50,6 +51,37 @@ export default function App() {
     setRecommendations([]);
     setView('resolving');
   };
+
+  const handleSelectPreset = (exemplar: OutcomeExemplar) => {
+    // STATIC STACK GENERATION (No Engine)
+    // This ensures we have a valid UIStackRecommendation structure for the viewer
+    const staticStack: UIStackRecommendation = {
+      kind: 'stack',
+      id: exemplar.id,
+      name: exemplar.title,
+      matchScore: 98,
+      reasoning: exemplar.description,
+      totalDuration: '4-6 Hours',
+      layers: [
+        {
+          layerName: 'Phase 1: Foundation',
+          timing: '0-30m',
+          purpose: 'Establish base state',
+          cultivars: [{ name: 'Harlequin', ratio: 0.6, profile: 'cbd', characteristics: ['Calming'] }]
+        },
+        {
+          layerName: 'Phase 2: Elevation',
+          timing: '30m-2h',
+          purpose: 'Lift mood',
+          cultivars: [{ name: 'Jack Herer', ratio: 0.4, profile: 'sativa', characteristics: ['Energetic'] }]
+        }
+      ]
+    };
+
+    setSelectedRecommendation(staticStack);
+    setView('stack-detail');
+  };
+
 
   // Async Calculation Effect
   useEffect(() => {
@@ -140,7 +172,8 @@ export default function App() {
                 onComplete={() => setView('results')}
               />
             )}
-            {view === 'results' && recommendations.length > 0 && (
+            {/* STRICT BLEND RESULTS */}
+            {view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'blend' && (
               <ResultsScreen
                 recommendations={recommendations}
                 onCalculate={handleCalculate}
@@ -151,10 +184,17 @@ export default function App() {
                 }}
               />
             )}
+            {/* STRICT STACK RESULTS / DETAIL */}
+            {(view === 'stack-detail' || (view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'stack')) && selectedRecommendation && (
+              <StackDetailScreen
+                stack={selectedRecommendation}
+                onBack={() => setView(view === 'presets' || view === 'stack-detail' ? 'presets' : 'results')}
+              />
+            )}
             {view === 'presets' && (
               <PresetStacks
                 onBack={() => setView('input')}
-                onSelect={handleSubmit}
+                onSelect={handleSelectPreset}
               />
             )}
             {calculatorOpen && selectedRecommendation && (

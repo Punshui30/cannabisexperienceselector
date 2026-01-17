@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OUTCOME_EXEMPLARS } from '../data/presetStacks';
-import type { OutcomeExemplar, IntentSeed } from '../types/domain';
+import type { OutcomeExemplar } from '../types/domain';
 import logoImg from '../assets/logo.png';
 
 
-export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelect: (seed: IntentSeed) => void }) {
+export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelect: (stack: OutcomeExemplar) => void }) {
   const [selectedStack, setSelectedStack] = useState<OutcomeExemplar | null>(null);
 
   // No Engine Logic Here - Strictly UI/Static Data
@@ -55,11 +55,14 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                 </div>
 
                 <button
-                  onClick={() => onSelect(selectedStack.input)}
-                  className="w-full py-4 rounded-xl bg-[#00FFD1] text-black font-bold uppercase tracking-widest hover:bg-[#00FFD1]/90 transition-colors shadow-[0_0_20px_rgba(0,255,209,0.3)]"
+                  onClick={() => onSelect(selectedStack)}
+                  className="w-full py-4 rounded-xl bg-white/10 text-white font-bold uppercase tracking-widest hover:bg-white/20 transition-colors border border-white/20"
                 >
-                  Build This Stack
+                  View Full Stack Details
                 </button>
+                <p className="text-center text-[10px] text-white/30 uppercase tracking-widest">
+                  Static Template • Educational Use Only
+                </p>
               </div>
             </div>
           </motion.div>
