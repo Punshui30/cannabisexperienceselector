@@ -8,17 +8,17 @@ interface ResolvingScreenProps {
     onComplete: () => void;
 }
 
-export function ResolvingScreen({ onComplete }: ResolvingScreenProps) {
+export function ResolvingScreen({ onComplete, recommendation }: ResolvingScreenProps) {
     // Timer to handle transition - Implementation Detail, not UI
+    // Reactive Bridge: complete immediately when results are ready
     useEffect(() => {
-        // Wait realistic duration for "composing" feel (e.g. 4s)
-        // User said: "Must look good at 1 second or 8 seconds"
-        // We stick to a reasonable delay before routing
-        const timer = setTimeout(() => {
+        if (recommendation) {
+            // Visual Bridge: Ensure at least a fleeting presence (e.g. 800ms) or immediate? 
+            // User said "Disappear immediately when results are ready". 
+            // We will do immediate.
             onComplete();
-        }, 4500);
-        return () => clearTimeout(timer);
-    }, [onComplete]);
+        }
+    }, [recommendation, onComplete]);
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center relative bg-black overflow-hidden font-sans">
