@@ -44,11 +44,14 @@ export function ResolvingScreen({ input, recommendation, onComplete }: Resolving
     const intentPhrase = getIntentPhrase();
 
     useEffect(() => {
+        // Reset stage on mount
+        setStage(0);
+
         const timelines = [
-            { delay: 0, js: () => setStage(1) }, // Initial: "Analyzing..."
-            { delay: 1500, js: () => setStage(2) }, // "Finding [Terpenes]..."
-            { delay: 5000, js: () => setStage(3) }, // "Calibrating..." or transition
-            { delay: 6000, js: () => onComplete() } // Done
+            { delay: 100, js: () => setStage(1) }, // Initial: "Analyzing..." (Start slightly after mount to ensure render)
+            { delay: 2500, js: () => setStage(2) }, // "Finding [Terpenes]..." (Give time to read analyzing)
+            { delay: 6500, js: () => setStage(3) }, // "Calibrating..." 
+            { delay: 8500, js: () => onComplete() } // Done
         ];
 
         const timers = timelines.map(t => setTimeout(t.js, t.delay));

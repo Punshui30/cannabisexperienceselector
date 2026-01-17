@@ -36,7 +36,12 @@ export function StrainLibrary() {
                             layout
                             initial={{ opacity: 0.8 }}
                             whileHover={{ opacity: 1, scale: 1.01 }}
-                            onClick={() => toggleExpand(strain.id)}
+                            onClick={(e) => {
+                                toggleExpand(strain.id);
+                                setTimeout(() => {
+                                    e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                                }, 300);
+                            }}
                             className={`relative overflow-hidden rounded-xl border transition-all duration-300 cursor-pointer group flex-shrink-0 snap-center ${isExpanded
                                 ? 'bg-white/10 border-white/20 shadow-xl z-10 w-[280px]'
                                 : 'bg-white/5 border-white/5 hover:bg-white/10 w-[260px]'

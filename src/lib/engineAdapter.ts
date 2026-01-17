@@ -273,15 +273,18 @@ export function generateRecommendations(input: UserInput): UIBlendRecommendation
   // Handle errors
   if (engineOutput.error || engineOutput.recommendations.length === 0) {
     // Return fallback mock recommendation
+    // Return fallback mock recommendation - Updated to 3 Cultivars
+    console.warn('ENGINE ADAPTER: Returning fallback recommendations (3 cultivars)');
     return [{
       id: 'fallback_1',
       name: 'Balanced Start',
       cultivars: [
-        { name: 'Blue Dream', ratio: 0.6, profile: 'Balanced hybrid', characteristics: ['Uplifting', 'Creative', 'Smooth'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
-        { name: 'Harlequin', ratio: 0.4, profile: 'Clear-headed', characteristics: ['Functional', 'Calm', 'Therapeutic'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
+        { name: 'Blue Dream', ratio: 0.4, profile: 'Balanced hybrid', characteristics: ['Uplifting', 'Creative', 'Smooth'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
+        { name: 'Harlequin', ratio: 0.35, profile: 'Clear-headed', characteristics: ['Functional', 'Calm', 'Therapeutic'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
+        { name: 'ACDC', ratio: 0.25, profile: 'Soothing baseline', characteristics: ['Relaxed', 'Focused', 'Gentle'], prominentTerpenes: ['Myrcene', 'Pinene', 'Caryophyllene'] },
       ],
       matchScore: 85,
-      reasoning: 'A gentle, balanced blend perfect for most situations. Blue Dream provides uplifting effects while Harlequin keeps things clear and functional.',
+      reasoning: 'A gentle, balanced blend perfect for most situations. Blue Dream provides uplift, Harlequin maintains clarity, and ACDC adds a soothing baseline.',
       effects: {
         onset: '5-12 minutes',
         peak: '25-80 minutes',
