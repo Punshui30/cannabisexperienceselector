@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, ArrowRight, Info, User, Settings } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 interface EntryGateProps {
   onEnterUser: () => void;
@@ -23,8 +24,6 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
   }, [step]);
 
   // --- SUB-COMPONENTS ---
-
-  import logoImg from '../assets/logo.png';
 
   const GoldSlit = () => (
     <motion.div
