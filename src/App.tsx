@@ -136,7 +136,7 @@ export default function App() {
             {view === 'resolving' && userInput && (
               <ResolvingScreen
                 input={userInput}
-                recommendation={recommendations[0] as UIBlendRecommendation} // Undefined initially
+                recommendation={recommendations[0] || null}
                 onComplete={() => setView('results')}
               />
             )}

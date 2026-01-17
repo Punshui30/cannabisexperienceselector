@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles } from 'lucide-react';
-import type { UserInput, UIBlendRecommendation } from '../lib/engineAdapter';
+import type { EngineResult, IntentSeed } from '../types/domain';
 
 // Import scan assets
 import scan1 from '../assets/scan_1.png';
@@ -9,12 +9,13 @@ import scan2 from '../assets/scan_2.png';
 import scan3 from '../assets/scan_3.png';
 import scan4 from '../assets/scan_4.png';
 import scan5 from '../assets/scan_5.png';
+import logoImg from '../assets/logo.png';
 
 const SCAN_IMAGES = [scan1, scan2, scan3, scan4, scan5];
 
 interface ResolvingScreenProps {
-    input: UserInput;
-    recommendation: UIBlendRecommendation;
+    input: IntentSeed;
+    recommendation?: EngineResult | null;
     onComplete: () => void;
 }
 
@@ -34,7 +35,7 @@ export function ResolvingScreen({ input, recommendation, onComplete }: Resolving
 
     // Extract top terpenes from the recommendation
     // We look at the first cultivar's prominent terpenes or aggregate them
-    const terpenes = recommendation.cultivars.flatMap(c => c.prominentTerpenes || [])
+    const terpenes = (recommendation?.cultivars || []).flatMap(c => c.prominentTerpenes || [])
         .filter((v, i, a) => a.indexOf(v) === i) // Unique
         // If no prominentTerpenes found (e.g. data missing), fallback
         .slice(0, 3);
@@ -126,6 +127,35 @@ export function ResolvingScreen({ input, recommendation, onComplete }: Resolving
                             exit={{ opacity: 0, scale: 1.1 }}
                             className="flex flex-col items-center gap-8"
                         >
+                            <div className="flex -space-x-4 justify-center mb-6">
+                                {/* Visual safeguard for missing or stack recommendations */}
+                                {recommendation?.kind === 'blend' && recommendation.cultivars ? (
+                                    recommendation.cultivars.map((cultivar, i) => (
+                                        <motion.div
+                                            key={cultivar.name}
+                                            initial={{ scale: 0, x: -20 }}
+                                            animate={{ scale: 1, x: 0 }}
+                                            transition={{ delay: 0.5 + (i * 0.1) }}
+                                            className="w-16 h-16 rounded-full border-2 border-black relative"
+                                            style={{ backgroundColor: cultivar.profile === 'sativa' ? '#F59E0B' : cultivar.profile === 'indica' ? '#8B5CF6' : '#10B981' }}
+                                        >
+                                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-black/50">
+                                                {Math.round(cultivar.ratio * 100)}%
+                                            </div>
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    // Fallback for Stacks or Loading
+                                    <div className="w-16 h-16 rounded-full border-2 border-black bg-white/20 animate-pulse" />
+                                )}
+                            </div>
+
+                            <h2 className="text-3xl font-light text-white mb-2 serif text-center">
+                                {recommendation ? 'Ready' : 'Finalizing...'}
+                            </h2>
+                            <p className="text-white/40 text-center text-sm">
+                                {recommendation ? 'Your blend is prepared.' : 'Calculating ratios...'}
+                            </p>
                             <div className="flex justify-center gap-3 flex-wrap">
                                 {displayTerpenes.map((terp, i) => (
                                     <motion.div
