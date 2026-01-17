@@ -1,6 +1,6 @@
 import { OutcomeExemplar } from '../types/domain';
 
-export const OUTCOME_EXEMPLARS: OutcomeExemplar[] = [
+const RAW_EXEMPLARS: OutcomeExemplar[] = [
     {
         kind: 'stack',
         source: 'preset',
@@ -16,7 +16,7 @@ export const OUTCOME_EXEMPLARS: OutcomeExemplar[] = [
             kind: 'stack',
             id: 'stack_focus',
             name: 'Clear Onset → Deep Flow → Soft Landing',
-            matchScore: 0, // Removed usage
+            matchScore: 0,
             reasoning: 'Physical pre-roll sequence for work sessions.',
             totalDuration: 'Burn Time: 30-45m',
             layers: [
@@ -226,7 +226,6 @@ export const OUTCOME_EXEMPLARS: OutcomeExemplar[] = [
             ]
         }
     },
-    // 4th Stack (New)
     {
         kind: 'stack',
         source: 'preset',
@@ -301,3 +300,12 @@ export const OUTCOME_EXEMPLARS: OutcomeExemplar[] = [
         }
     }
 ];
+
+// SAFETY: Enforce Array Compaction (No Holes, No Undefined)
+export const OUTCOME_EXEMPLARS = RAW_EXEMPLARS.flatMap(x => x ? [x] : []);
+
+console.assert(
+    OUTCOME_EXEMPLARS.every((s, i) => s && s.data && typeof s.id === 'string'),
+    'OUTCOME_EXEMPLARS includes invalid or sparse entries',
+    OUTCOME_EXEMPLARS
+);

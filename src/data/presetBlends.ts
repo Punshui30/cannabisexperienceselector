@@ -10,7 +10,7 @@ export interface BlendScenario {
     };
 }
 
-export const BLEND_SCENARIOS: BlendScenario[] = [
+const RAW_SCENARIOS: BlendScenario[] = [
     {
         id: 'scenario-date-night',
         title: 'Date Night',
@@ -42,3 +42,12 @@ export const BLEND_SCENARIOS: BlendScenario[] = [
         }
     }
 ];
+
+// SAFETY: Enforce Array Compaction (No Holes, No Undefined)
+export const BLEND_SCENARIOS = RAW_SCENARIOS.flatMap(x => x ? [x] : []);
+
+console.assert(
+    BLEND_SCENARIOS.every((s, i) => s && typeof s.id === 'string'),
+    'BLEND_SCENARIOS includes invalid or sparse entries',
+    BLEND_SCENARIOS
+);
