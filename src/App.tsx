@@ -36,11 +36,13 @@ export default function App() {
   const handleEnterUser = () => {
     setMode('user');
     setShowEntryGate(false);
+    setView('input'); // Explicitly enter Input Flow
   };
 
   const handleEnterAdmin = () => {
     setMode('admin');
     setShowEntryGate(false);
+    setView('input'); // Default to input view under admin mode logic
   };
 
   const handleSubmit = (input: UserInput) => {
@@ -138,7 +140,7 @@ export default function App() {
                 onComplete={() => setView('results')}
               />
             )}
-            {view === 'results' && (
+            {view === 'results' && recommendations.length > 0 && (
               <ResultsScreen
                 recommendations={recommendations}
                 onCalculate={handleCalculate}
