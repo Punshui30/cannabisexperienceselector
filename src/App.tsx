@@ -10,17 +10,16 @@ import { StackDetailScreen } from './components/StackDetailScreen'; // New Impor
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
 import { AdminPanel } from './components/admin/AdminPanel';
-import { generateRecommendations, type UserInput, type UIBlendRecommendation } from './lib/engineAdapter';
+import { generateRecommendations } from './lib/engineAdapter';
 import './index.css';
 
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail';
 
-// Re-export types from adapter if needed elsewhere, though usually direct import is better
-export type { UserInput };
+import { EngineResult, IntentSeed, UIStackRecommendation, OutcomeExemplar, UIBlendRecommendation } from './types/domain';
 
-import { EngineResult, IntentSeed, UIStackRecommendation, OutcomeExemplar } from './types/domain';
-
-// Old types removed in favor of strict domain types
+// --- Domain Types ---
+// UserInput is now strictly IntentSeed
+type UserInput = IntentSeed;
 
 
 export default function App() {
@@ -73,7 +72,8 @@ export default function App() {
     }
   }, [view, userInput, recommendations.length]);
 
-  const handleCalculate = (rec: BlendRecommendation) => {
+  const handleCalculate = (rec: EngineResult) => {
+    // Calculator currently primarily designed for blends, but we pass generic result
     setSelectedRecommendation(rec);
     setCalculatorOpen(true);
   };
@@ -162,11 +162,20 @@ export default function App() {
                 }}
               />
             )}
-            {/* STRICT STACK RESULTS / DETAIL */}
-            {(view === 'stack-detail' || (view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'stack')) && selectedRecommendation && (
+            {/* STRICT STACK DETAIL (From Presets) */}
+            {view === 'stack-detail' && selectedRecommendation && (
               <StackDetailScreen
                 stack={selectedRecommendation}
-                onBack={() => setView(view === 'presets' || view === 'stack-detail' ? 'presets' : 'results')}
+                onBack={() => setView('presets')}
+              />
+            )}
+
+            {/* STRICT STACK RESULTS (From Engine) */}
+            {view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'stack' && (
+              // Note: Engine currently produces blends mostly, but if it produces a stack:
+              <StackDetailScreen
+                stack={recommendations[0]}
+                onBack={() => setView('input')}
               />
             )}
             {view === 'presets' && (

@@ -8,6 +8,15 @@ import { BlendEvaluation } from "../lib/calculationEngine";
  * - No cultivars
  * - No chemistry
  */
+export type IntentSeed = {
+    kind: 'intentSeed';
+    mode: 'describe' | 'product' | 'strain';
+    text?: string;
+    image?: string;
+    strainName?: string;
+    grower?: string;
+};
+
 /**
  * Preset Kinds
  * - intent: Text-only helpers (InputScreen)

@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import type { BlendRecommendation } from '../App';
+import { EngineResult, assertBlend } from '../types/domain';
 
 interface CalculatorProps {
-  recommendation: BlendRecommendation;
+  recommendation: EngineResult;
   onClose: () => void;
 }
 
@@ -16,6 +16,9 @@ interface CalculationResult {
 }
 
 export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
+  // Guard: Calculator only works for Blends
+  if (recommendation.kind !== 'blend') return null;
+
   const [prerollSize, setPrerollSize] = useState(1.0);
   const [showResults, setShowResults] = useState(false);
 
@@ -111,8 +114,8 @@ export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
                         setShowResults(false);
                       }}
                       className={`flex-1 py-4 rounded-xl text-sm font-bold tracking-widest transition-all ${prerollSize === size
-                          ? 'bg-[#00FFD1] text-black shadow-[0_0_15px_rgba(0,255,209,0.3)] scale-[1.05]'
-                          : 'bg-white/5 text-white/40 hover:bg-white/10 border border-white/10'
+                        ? 'bg-[#00FFD1] text-black shadow-[0_0_15px_rgba(0,255,209,0.3)] scale-[1.05]'
+                        : 'bg-white/5 text-white/40 hover:bg-white/10 border border-white/10'
                         }`}
                     >
                       {size}g

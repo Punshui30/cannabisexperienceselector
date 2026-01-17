@@ -57,7 +57,7 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                   onClick={() => onSelect(selectedStack)}
                   className="w-full py-4 rounded-xl bg-white/10 text-white font-bold uppercase tracking-widest hover:bg-white/20 transition-colors border border-white/20"
                 >
-                  View Full Stack Details
+                  View Stack Details
                 </button>
                 <p className="text-center text-[10px] text-white/30 uppercase tracking-widest">
                   Static Template • Educational Use Only
