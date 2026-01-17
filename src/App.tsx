@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { SplashScreen } from './components/SplashScreen';
 import { EntryGate } from './components/EntryGate';
 import { InputScreen } from './components/InputScreen';
@@ -10,7 +10,7 @@ import { StackDetailScreen } from './components/StackDetailScreen'; // New Impor
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
 import { AdminPanel } from './components/admin/AdminPanel';
-import { generateRecommendations } from './lib/engineAdapter';
+import { generateRecommendations, interpretIntent, IntentValidation } from './lib/engineAdapter';
 import './index.css';
 
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail';
@@ -33,6 +33,9 @@ export default function App() {
   const [selectedRecommendation, setSelectedRecommendation] = useState<EngineResult | null>(null);
   const [qrShareOpen, setQRShareOpen] = useState(false);
 
+  // Phase 2 State: Interpretation
+  const [interpretationIssue, setInterpretationIssue] = useState<IntentValidation | null>(null);
+
   const handleEnterUser = () => {
     setMode('user');
     setShowEntryGate(false);
@@ -46,6 +49,21 @@ export default function App() {
   };
 
   const handleSubmit = (input: UserInput) => {
+    // PHASE 2: INTERPRETATION
+    const validation = interpretIntent(input);
+
+    if (!validation.isValid) {
+      // Intent Incomplete -> Show Follow-Up
+      setInterpretationIssue(validation);
+      // Stay in Input View, but trigger "refinement" UI (could be a modal or just state passed to InputScreen)
+      // For now, we'll alert or use a temporary overlay. 
+      // BETTER: Pass this state to InputScreen or show a global Toast.
+      // We will show a toast.
+      return;
+    }
+
+    // Intent Complete -> Proceed to Phase 3
+    setInterpretationIssue(null);
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
     // Rule 2: Clear Preset State & Start Engine
     setSelectedRecommendation(null);
@@ -55,16 +73,18 @@ export default function App() {
   };
 
   const handleSelectPreset = (exemplar: OutcomeExemplar) => {
+    // NOTE: Presets should NOT route here anymore if they are just populating text.
+    // But keeping this logic for "Explore Preset Stacks" or legacy routes if needed.
+    // The InputScreen "Scenarios" populate text now.
+    // "Explore Preset Stacks" might still use this?
+    // If so, it should probably route to 'presets' view.
     console.log(`TRANSITION: Preset (${exemplar.kind}) -> Static View`);
     // Rule 1: Presets are terminal. Clear Engine State.
     setUserInput(null);
     setRecommendations([]); // Assuming single recommendation for preset results or we wrap it
 
     if (exemplar.kind === 'blend') {
-      // Wrap the blend data in an array for ResultsScreen
-      setRecommendations([exemplar.data as EngineResult]); // Cast or ensure type compatibility
-      // Note: ResultsScreen expects `recommendations` array.
-      // We also might want to set selectedRecommendation?
+      // ... legacy path, should ideally be removed if all are text inputs
       setSelectedRecommendation(exemplar.data);
       setView('results');
     } else {
@@ -98,8 +118,33 @@ export default function App() {
     setUserInput(null);
   };
 
+  // Refinement Handler (for Follow-Up Prompt)
+  const handleRefine = () => {
+    // Just dismiss issue, user is already at Input
+    setInterpretationIssue(null);
+  };
+
   return (
     <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
+      {/* Interpretation Toast */}
+      <AnimatePresence>
+        {interpretationIssue && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-6 right-6 z-50 bg-[#7C3AED] text-white p-4 rounded-xl shadow-2xl flex items-center justify-between"
+          >
+            <div>
+              <p className="font-bold text-sm">Wait, tell us more.</p>
+              <p className="text-xs text-white/80">{interpretationIssue.followUpQuestion}</p>
+            </div>
+            <button onClick={handleRefine} className="bg-white/20 hover:bg-white/40 px-3 py-1 rounded-lg text-xs font-semibold ml-4">
+              Okay
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Global Background Effects */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/60 rounded-full blur-[120px] animate-pulse-slow" />

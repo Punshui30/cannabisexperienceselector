@@ -39,7 +39,7 @@ function getTerpeneColor(terpeneName: string): string {
  * LAYER 1: Intent Interpretation (Simplified NLP)
  * Converts natural language to Intent object
  */
-function interpretIntent(input: IntentSeed): Intent {
+export function interpretIntent(input: IntentSeed): IntentValidation {
 
   const text = (input.text || '').toLowerCase();
 
@@ -125,7 +125,24 @@ function interpretIntent(input: IntentSeed): Intent {
     intent.context!.tolerance = 'high';
   }
 
-  return intent;
+  // Validation Logic (Phase 2 Interpretation)
+  const wordCount = text.split(' ').filter(w => w.length > 0).length;
+  let isValid = true;
+  let reason = undefined;
+  let followUpQuestion = undefined;
+
+  if (wordCount < 2 && !input.strainName && !input.image) {
+    isValid = false;
+    reason = "Input too short";
+    followUpQuestion = "Can you describe a bit more about how you want to feel?";
+  }
+
+  return {
+    isValid,
+    reason,
+    followUpQuestion,
+    intent
+  };
 }
 
 /**
@@ -254,7 +271,7 @@ function generateTimeline(blend: EngineBlend): Array<{ time: string; feeling: st
  */
 export function generateRecommendations(input: IntentSeed): EngineResult[] {
   // Layer 1: Interpret intent
-  const intent = interpretIntent(input);
+  const { intent } = interpretIntent(input);
 
   // ---------------------------------------------------------
   // MODE GATE: Temporal Structure Detection
