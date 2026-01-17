@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Loader2, Sparkles, BrainCircuit, Microscope } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import type { UserInput, UIBlendRecommendation } from '../lib/engineAdapter';
+
+// Import scan assets
+import scan1 from '../assets/scan_1.png';
+import scan2 from '../assets/scan_2.png';
+import scan3 from '../assets/scan_3.png';
+import scan4 from '../assets/scan_4.png';
+import scan5 from '../assets/scan_5.png';
+
+const SCAN_IMAGES = [scan1, scan2, scan3, scan4, scan5];
 
 interface ResolvingScreenProps {
     input: UserInput;
@@ -11,6 +20,17 @@ interface ResolvingScreenProps {
 
 export function ResolvingScreen({ input, recommendation, onComplete }: ResolvingScreenProps) {
     const [stage, setStage] = useState(0);
+    const [scanIndex, setScanIndex] = useState(0);
+
+    // Scan Animation Loop for Stage 1
+    useEffect(() => {
+        if (stage === 1) {
+            const interval = setInterval(() => {
+                setScanIndex(prev => (prev + 1) % SCAN_IMAGES.length);
+            }, 150); // Fast cycle
+            return () => clearInterval(interval);
+        }
+    }, [stage]);
 
     // Extract top terpenes from the recommendation
     // We look at the first cultivar's prominent terpenes or aggregate them
@@ -48,9 +68,9 @@ export function ResolvingScreen({ input, recommendation, onComplete }: Resolving
         setStage(0);
 
         const timelines = [
-            { delay: 100, js: () => setStage(1) }, // Initial: "Analyzing..." (Start slightly after mount to ensure render)
-            { delay: 2500, js: () => setStage(2) }, // "Finding [Terpenes]..." (Give time to read analyzing)
-            { delay: 6500, js: () => setStage(3) }, // "Calibrating..." 
+            { delay: 100, js: () => setStage(1) }, // Start Analysis (Scan Anim)
+            { delay: 3000, js: () => setStage(2) }, // Finding Terpenes
+            { delay: 6500, js: () => setStage(3) }, // Finalizing
             { delay: 8500, js: () => onComplete() } // Done
         ];
 
@@ -73,7 +93,7 @@ export function ResolvingScreen({ input, recommendation, onComplete }: Resolving
             <div className="relative z-10 max-w-md w-full">
                 <AnimatePresence mode="wait">
 
-                    {/* STAGE 1: Analyzing */}
+                    {/* STAGE 1: Analyzing (Scan Animation) */}
                     {stage === 1 && (
                         <motion.div
                             key="stage1"
@@ -82,9 +102,14 @@ export function ResolvingScreen({ input, recommendation, onComplete }: Resolving
                             exit={{ opacity: 0, y: -20 }}
                             className="flex flex-col items-center gap-6"
                         >
-                            <div className="relative">
+                            <div className="relative w-32 h-32 flex items-center justify-center">
                                 <div className="absolute inset-0 bg-[#FFD700] blur-xl opacity-20 animate-pulse" />
-                                <BrainCircuit className="w-16 h-16 text-[#FFD700]" strokeWidth={1.5} />
+                                {/* Crossfade or simple frame swap */}
+                                <img
+                                    src={SCAN_IMAGES[scanIndex]}
+                                    alt="Scanning"
+                                    className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]"
+                                />
                             </div>
                             <h2 className="text-2xl font-light text-white tracking-wide">
                                 Analyzing chemical profile...

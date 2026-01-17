@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
-import { InputScreen } from './components/InputScreen';
-import { ResultsScreen } from './components/ResultsScreen';
-import { CalculatorModal } from './components/CalculatorModal';
-import { EntryGate } from './components/EntryGate';
-import { AdminPanel } from './components/admin/AdminPanel';
-import { PresetStacks, type PresetStack } from './components/PresetStacks';
-import { QRShareModal } from './components/QRShareModal';
+import { AnimatePresence } from 'motion/react';
 import { SplashScreen } from './components/SplashScreen';
+import { EntryGate } from './components/EntryGate';
+import { InputScreen } from './components/InputScreen';
 import { ResolvingScreen } from './components/ResolvingScreen';
-import { generateRecommendations, type UserInput, type UICultivar, type UIBlendRecommendation } from './lib/engineAdapter';
+import { ResultsScreen } from './components/ResultsScreen';
+import { PresetStacks } from './components/PresetStacks';
+import { CalculatorModal } from './components/CalculatorModal';
+import { QRShareModal } from './components/QRShareModal';
+import { AdminPanel } from './components/admin/AdminPanel';
+import { generateRecommendations, type UserInput, type UIBlendRecommendation } from './lib/engineAdapter';
+import './index.css';
 
-export type InputMode = 'describe' | 'product' | 'strain';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets';
 
-// Re-export types from adapter
-export type { UserInput, UICultivar };
+// Re-export types from adapter if needed elsewhere, though usually direct import is better
+export type { UserInput };
 
 export type BlendRecommendation = UIBlendRecommendation | StackedRecommendation;
 
@@ -26,7 +28,7 @@ export type StackedRecommendation = {
     cultivars: Array<{
       name: string;
       ratio: number;
-      profile: string; // Changed from role to profile to match UICultivar
+      profile: string;
       characteristics: string[];
     }>;
     purpose: string;
@@ -34,31 +36,26 @@ export type StackedRecommendation = {
   }>;
   reasoning: string;
   totalDuration: string;
-  // properties to satisfy BlendRecommendation shape for shared components if needed
+  // properties to satisfy BlendRecommendation shape for shared components
   cultivars?: never;
   effects?: never;
   timeline?: never;
 };
 
-
-// Helper function for type checking
 export function isStacked(rec: BlendRecommendation): rec is StackedRecommendation {
   return 'layers' in rec;
 }
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
-  const [showEntryGate, setShowEntryGate] = useState(true); // Restore entry gate
+  const [showEntryGate, setShowEntryGate] = useState(true);
   const [mode, setMode] = useState<'user' | 'admin'>('user');
-  const [view, setView] = useState<'input' | 'resolving' | 'results' | 'presets'>('input');
+  const [view, setView] = useState<ViewState>('input');
   const [userInput, setUserInput] = useState<UserInput | null>(null);
   const [recommendations, setRecommendations] = useState<BlendRecommendation[]>([]);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [selectedRecommendation, setSelectedRecommendation] = useState<BlendRecommendation | null>(null);
   const [qrShareOpen, setQRShareOpen] = useState(false);
-
-  // NO localStorage persistence - Entry Gate required every session
-  // NO "completed" state - Entry Gate always appears on app load
 
   const handleEnterUser = () => {
     setMode('user');
@@ -72,9 +69,6 @@ export default function App() {
 
   const handleSubmit = async (input: UserInput) => {
     setUserInput(input);
-
-    // Processing
-    // Processing
     const recs = generateRecommendations(input);
     setRecommendations(recs);
     setView('resolving');
@@ -93,15 +87,10 @@ export default function App() {
 
   return (
     <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
-      {/* Global Background Effects - Moved here for persistence */}
+      {/* Global Background Effects */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Top Purple Gradient - Boosted Opacity */}
         <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/60 rounded-full blur-[120px] animate-pulse-slow" />
-
-        {/* Bottom Teal/Green Gradient - Boosted Opacity */}
         <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/60 rounded-full blur-[100px] animate-pulse-slow delay-700" />
-
-        {/* Subtle texture overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
       </div>
 
@@ -117,7 +106,6 @@ export default function App() {
           />
         ) : mode === 'admin' ? (
           <>
-            {/* Admin Mode Indicator */}
             <div
               className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full border backdrop-blur-xl"
               style={{
@@ -142,7 +130,6 @@ export default function App() {
             <AdminPanel
               onExitAdmin={() => setMode('user')}
               onEnterDemoMode={() => {
-                // Demo mode logic
                 setView('input');
               }}
             />
@@ -199,10 +186,11 @@ export default function App() {
           </>
         )}
       </main>
+
       {/* Admin Quick Access */}
-      {!['splash', 'entry', 'admin'].includes(view) && (
+      {!showSplash && !showEntryGate && mode !== 'admin' && (
         <button
-          onClick={() => setView('admin')}
+          onClick={() => setMode('admin')}
           className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all"
           title="Admin Panel"
         >
