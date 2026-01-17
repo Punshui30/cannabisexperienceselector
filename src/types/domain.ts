@@ -101,6 +101,14 @@ export type UIStackRecommendation = {
             profile: string;
             characteristics: string[];
         }>;
+        // Semantic Timeline Fields
+        phaseIntent: string;
+        whyThisPhase: string;
+        onsetEstimate: string;
+        durationEstimate: string;
+        consumptionGuidance: string;
+
+        // Legacy / Display
         purpose: string;
         timing: string;
     }>;

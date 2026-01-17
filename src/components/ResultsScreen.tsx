@@ -1,9 +1,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { EngineResult } from '../types/domain';
+import { EngineResult, assertBlend } from '../types/domain';
 import { BlendCard } from './BlendCard';
-import { StackedCard } from './StackedCard';
 import logoImg from '../assets/logo.png';
 
 
@@ -17,6 +16,11 @@ interface ResultsProps {
 export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }: ResultsProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeRec = recommendations[activeIndex];
+
+  // Rule 3: Enforce Data Contract (Crash if Stack passed to Results)
+  if (activeRec) {
+    assertBlend(activeRec);
+  }
 
   return (
     <div className="w-full flex-grow flex flex-col bg-transparent overflow-hidden font-sans relative">
@@ -34,9 +38,6 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
             <span className="text-xs uppercase tracking-widest text-white/40">Back</span>
           </button>
 
-          import logoImg from '../assets/logo.png';
-
-          // ... inside component ...
 
           <div className="flex items-center gap-3">
             <img src={logoImg} alt="GO logo" className="w-8 h-auto" />
@@ -65,17 +66,8 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
               transition={{ duration: 0.3 }}
               className="w-full"
             >
-              {(() => {
-                switch (activeRec.kind) {
-                  case 'blend':
-                    return <BlendCard recommendation={activeRec} onCalculate={() => onCalculate(activeRec)} />;
-                  case 'stack':
-                    return <StackedCard recommendation={activeRec} onCalculate={() => onCalculate(activeRec)} />;
-                  default:
-                    // @ts-ignore - Guard against runtime type failures
-                    throw new Error(`Unsupported result kind: ${activeRec?.kind}`);
-                }
-              })()}
+              {/* Strict Blend Rendering - App.tsx guarantees kind === 'blend' here */}
+              <BlendCard recommendation={activeRec as any} onCalculate={() => onCalculate(activeRec)} />
             </motion.div>
           </AnimatePresence>
 

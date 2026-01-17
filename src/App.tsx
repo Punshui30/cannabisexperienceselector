@@ -46,14 +46,19 @@ export default function App() {
   };
 
   const handleSubmit = (input: UserInput) => {
+    console.log('TRANSITION: Input -> Resolving (Engine Start)');
+    // Rule 2: Clear Preset State & Start Engine
+    setSelectedRecommendation(null);
     setUserInput(input);
     setRecommendations([]);
     setView('resolving');
   };
 
   const handleSelectPreset = (exemplar: OutcomeExemplar) => {
-    // PRESET NAVIGATION (Direct Route)
-    // No engine, no resolving, no hydration. Pure view state switch.
+    console.log('TRANSITION: Preset -> Stack Detail (Static View)');
+    // Rule 1: Presets are terminal. Clear Engine State.
+    setUserInput(null);
+    setRecommendations([]);
 
     setSelectedRecommendation(exemplar.data);
     setView('stack-detail');
