@@ -154,6 +154,7 @@ export default function App() {
             {view === 'presets' && (
               <PresetStacks
                 onBack={() => setView('input')}
+                onSelect={handleSubmit}
               />
             )}
             {calculatorOpen && selectedRecommendation && (
