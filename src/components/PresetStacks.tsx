@@ -1,6 +1,12 @@
+import { motion } from 'motion/react';
+import { SwipeDeck } from './SwipeDeck';
+import { PRESET_STACKS } from '../data/presetStacks';
+import type { OutcomeExemplar, UIStackRecommendation } from '../types/domain';
+import logoImg from '../assets/logo.png';
+import { getGlassCardStyles } from '../lib/glassStyles';
+import { getCultivarVisuals } from '../lib/cultivarData';
+import { ProtocolStrip } from './ProtocolStrip';
 import { CardShell } from './CardShell';
-
-// ...
 
 export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelect: (stack: OutcomeExemplar) => void }) {
   // ...
