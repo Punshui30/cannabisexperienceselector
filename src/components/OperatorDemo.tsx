@@ -489,15 +489,28 @@ function SceneVisual({ visual }: { visual: DemoScene['visual'] }) {
               initial={{ width: '0%', opacity: 0 }}
               animate={{ width: '100%', opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="h-8 rounded-lg bg-emerald-500/30 border border-emerald-500/50 flex items-center justify-center text-[10px] text-emerald-200 uppercase tracking-widest"
+              className="h-8 rounded-lg flex items-center justify-center text-[10px] font-bold uppercase tracking-widest relative overflow-hidden"
+              style={{
+                background: 'rgba(0, 255, 209, 0.2)',
+                borderColor: 'rgba(0, 255, 209, 0.5)',
+                borderWidth: '1px',
+                color: '#00FFD1'
+              }}
             >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00FFD1]/20 to-transparent animate-shimmer" />
               Accent
             </motion.div>
             <motion.div
               initial={{ width: '0%', opacity: 0 }}
               animate={{ width: '100%', opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-[10px] text-emerald-200 uppercase tracking-widest"
+              className="h-10 rounded-lg flex items-center justify-center text-[10px] font-bold uppercase tracking-widest"
+              style={{
+                background: 'rgba(16, 185, 129, 0.2)', // Emerald-500
+                borderColor: 'rgba(16, 185, 129, 0.5)',
+                borderWidth: '1px',
+                color: '#6EE7B7' // Emerald-300
+              }}
             >
               Balance
             </motion.div>
@@ -505,7 +518,13 @@ function SceneVisual({ visual }: { visual: DemoScene['visual'] }) {
               initial={{ width: '0%', opacity: 0 }}
               animate={{ width: '100%', opacity: 1 }}
               transition={{ delay: 1.0 }}
-              className="h-12 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[10px] text-emerald-200 uppercase tracking-widest"
+              className="h-12 rounded-lg flex items-center justify-center text-[10px] font-bold uppercase tracking-widest"
+              style={{
+                background: 'rgba(6, 95, 70, 0.3)', // Emerald-900
+                borderColor: 'rgba(6, 95, 70, 0.6)',
+                borderWidth: '1px',
+                color: '#34D399' // Emerald-400
+              }}
             >
               Foundation
             </motion.div>
