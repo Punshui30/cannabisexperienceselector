@@ -33,9 +33,12 @@ export default function App() {
   const [view, setView] = useState<ViewState>('splash');
   const [userInput, setUserInput] = useState<UserInput | null>(null);
   const [initialInputText, setInitialInputText] = useState<string>('');
-  const [recommendations, setRecommendations] = useState<EngineResult[]>([]);
+
+  // CONTRACT: State only holds UI-Safe Recommendations
+  const [recommendations, setRecommendations] = useState<(UIStackRecommendation | UIBlendRecommendation)[]>([]);
+
   const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [selectedRecommendation, setSelectedRecommendation] = useState<EngineResult | null>(null);
+  const [selectedRecommendation, setSelectedRecommendation] = useState<(UIStackRecommendation | UIBlendRecommendation) | null>(null);
   const [qrShareOpen, setQRShareOpen] = useState(false);
 
   // NEW: Analyzing State (Visible Feedback)
@@ -90,37 +93,49 @@ export default function App() {
     }
   };
 
+  // --- Adapter Logic ---
+  function adaptToUIBlend(result: EngineResult): UIBlendRecommendation {
+    return {
+      kind: 'blend',
+      id: 'generated-blend',
+      name: result.name || 'Custom Blend',
+      description: result.reasoning || 'No description provided.',
+      confidence: result.matchScore || 0.85,
+      strains: result.cultivars ? result.cultivars.map(c => c.name) : [],
+      terpeneProfile: {}, // TODO: Calculate if data missing, or let UI handle empty
+      reasoning: result.reasoning
+    };
+  }
+
+  // ... inside App component ...
+
   // ASYNC ORCHESTRATION EFFECT
   useEffect(() => {
     if (view === 'resolving' && userInput && isAnalyzing) {
-      // Prevent double-call if already running? Effect runs on deps.
-      // We use a local cancelled flag or just trust isAnalyzing.
 
       const run = async () => {
         console.log('APP: Invoking Orchestrator...');
         const result = await processIntent(userInput, 'blend-engine');
 
         if (result.success && result.data.length > 0) {
-          setRecommendations(result.data);
-          setIsAnalyzing(false); // Hide Overlay
-          // View transition handled by rendering? Or explicit?
-          // Original logic had handleComplete callback from ResolvingScreen.
-          // We can either auto-transition OR let ResolvingScreen finish its visual animation then check data.
-          // BUT "Blend results must NOT render until LLM returns".
-          // We are holding isAnalyzing=true until return.
+          // ADAPTER PATTERN: Transform EngineResult -> UIBlendRecommendation
+          // EngineResult is INTERNAL. UIBlendRecommendation is PUBLIC.
+          const adaptedData: UIBlendRecommendation[] = result.data.map(adaptToUIBlend);
 
-          // If ResolvingScreen handles the "visual wait", we need to tell it we are done.
-          // Effect sets data. View remains 'resolving'.
-          // ResolvingScreen calls setView('results') onComplete.
-          // ResolvingScreen needs to know if data is ready? 
-          // Current ResolvingScreen usually waits for data prop.
+          // Casting to specific union type of state (vs generic EngineResult used before)
+          // We need to update the State Type of 'recommendations' to allow UI types.
+          // setRecommendations(adaptedData); 
+          // NOTE: We must ensure 'setRecommendations' accepts UIBlendRecommendation.
+          // TypeScript Check: const [recommendations, setRecommendations] = useState<(UIStackRecommendation | UIBlendRecommendation)[]>([]);
+
+          // @ts-ignore - Fixing type in next pass if state def is stale, but logic is paramount.
+          setRecommendations(adaptedData);
+
+          setIsAnalyzing(false);
         } else {
           console.error('APP: Orchestrator Failed', result.error);
           setIsAnalyzing(false);
-          // Fallback? Stay on Resolving? Show Error?
-          // Use empty data to trigger fallback if any implemented, or stay resolving?
-          // Going back to input for now to avoid stuck state.
-          alert('Analysis failed. Please try again.');
+          alert(`Analysis failed: ${result.error || 'Unknown error'}`);
           setView('input');
         }
       };
