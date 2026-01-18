@@ -1,8 +1,8 @@
 import { motion } from 'motion/react';
-import type { BlendRecommendation } from '../App';
+import type { UIBlendRecommendation } from '../types/domain';
 
 type Props = {
-  recommendation: BlendRecommendation;
+  recommendation: UIBlendRecommendation;
   onClose: () => void;
 };
 

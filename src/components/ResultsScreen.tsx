@@ -29,15 +29,31 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
       {/* Figma Branding Persistent */}
       <div className="flex-shrink-0 px-8 pt-8 pb-4 relative z-10 flex flex-col items-center">
         <div className="flex items-center justify-between w-full mb-8">
-          <button
-            onClick={onBack}
-            className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-[#00FFD1] transition-colors">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="text-xs uppercase tracking-widest text-white/40">Back</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onBack}
+              className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-[#00FFD1] transition-colors">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-xs uppercase tracking-widest text-white/40">Back</span>
+            </button>
+
+            {onShare && (
+              <button
+                onClick={() => onShare(activeRec as any)}
+                className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-[#00FFD1] transition-colors">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M16 6l-4-4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M12 2v13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-xs uppercase tracking-widest text-white/40">Share</span>
+              </button>
+            )}
+          </div>
 
 
           <div className="flex items-center gap-3">

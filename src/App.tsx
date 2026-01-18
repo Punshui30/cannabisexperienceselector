@@ -10,7 +10,7 @@ import { StackDetailScreen } from './components/StackDetailScreen';
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
 import { AdminPanel } from './components/admin/AdminPanel';
-import { generateRecommendations, interpretIntent, IntentValidation } from './lib/engineAdapter';
+import { generateRecommendations } from './lib/engineAdapter';
 import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends'; // Import BlendScenario
 import './index.css';
 
@@ -35,9 +35,6 @@ export default function App() {
   const [selectedRecommendation, setSelectedRecommendation] = useState<EngineResult | null>(null);
   const [qrShareOpen, setQRShareOpen] = useState(false);
 
-  // Phase 2 State: Interpretation
-  const [interpretationIssue, setInterpretationIssue] = useState<IntentValidation | null>(null);
-
   const handleEnterUser = () => {
     setMode('user');
     setShowEntryGate(false);
@@ -51,21 +48,7 @@ export default function App() {
   };
 
   const handleSubmit = (input: UserInput) => {
-    // PHASE 2: INTERPRETATION
-    const validation = interpretIntent(input);
-
-    if (!validation.isValid) {
-      // Intent Incomplete -> Show Follow-Up
-      setInterpretationIssue(validation);
-      // Stay in Input View, but trigger "refinement" UI (could be a modal or just state passed to InputScreen)
-      // For now, we'll alert or use a temporary overlay. 
-      // BETTER: Pass this state to InputScreen or show a global Toast.
-      // We will show a toast.
-      return;
-    }
-
     // Intent Complete -> Proceed to Phase 3
-    setInterpretationIssue(null);
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
     // Rule 2: Clear Preset State & Start Engine
     setSelectedRecommendation(null);
@@ -131,25 +114,6 @@ export default function App() {
 
   return (
     <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
-      {/* Interpretation Toast */}
-      <AnimatePresence>
-        {interpretationIssue && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-20 left-6 right-6 z-50 bg-[#7C3AED] text-white p-4 rounded-xl shadow-2xl flex items-center justify-between"
-          >
-            <div>
-              <p className="font-bold text-sm">Wait, tell us more.</p>
-              <p className="text-xs text-white/80">{interpretationIssue.followUpQuestion}</p>
-            </div>
-            <button onClick={handleRefine} className="bg-white/20 hover:bg-white/40 px-3 py-1 rounded-lg text-xs font-semibold ml-4">
-              Okay
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
       {/* Global Background Effects */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/60 rounded-full blur-[120px] animate-pulse-slow" />
@@ -256,7 +220,7 @@ export default function App() {
                 onClose={() => setCalculatorOpen(false)}
               />
             )}
-            {qrShareOpen && selectedRecommendation && (
+            {qrShareOpen && selectedRecommendation && selectedRecommendation.kind === 'blend' && (
               <QRShareModal
                 recommendation={selectedRecommendation}
                 onClose={() => setQRShareOpen(false)}
@@ -281,4 +245,8 @@ export default function App() {
       )}
     </div>
   );
+}
+
+function setInterpretationIssue(arg0: null) {
+  throw new Error('Function not implemented.');
 }
