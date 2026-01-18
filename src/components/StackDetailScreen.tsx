@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import { ArrowLeft, Clock, Share2, Layers, Leaf } from 'lucide-react';
 import { UIStackRecommendation } from '../types/domain';
 import { ProtocolStrip } from './ProtocolStrip';
+import { getCultivarVisuals } from '../lib/cultivarData';
 
-// ... (keep interface)
+interface StackDetailScreenProps {
+    stack: UIStackRecommendation;
+    onBack: () => void;
+}
 
 export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);

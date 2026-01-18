@@ -6,29 +6,7 @@ import logoImg from '../assets/logo.png';
 import { getGlassCardStyles } from '../lib/glassStyles';
 import { getCultivarVisuals } from '../lib/cultivarData';
 
-// Vertical Stack Visual Helper
-const VerticalStackVisual = ({ stack }: { stack: UIStackRecommendation }) => {
-  return (
-    <div className="flex-1 w-full flex flex-col items-center justify-center my-4 relative">
-      <div className="w-12 h-32 rounded-lg overflow-hidden flex flex-col-reverse shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5">
-        {stack.layers.map((layer, idx) => {
-          return layer.cultivars.map((c, cIdx) => (
-            <div
-              key={`${idx}-${cIdx}`}
-              className="flex-1 w-full relative group/segment"
-              style={{ backgroundColor: getCultivarVisuals(c.name).color }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50" />
-            </div>
-          ));
-        })}
-      </div>
-      <span className="absolute -right-4 top-1/2 -translate-y-1/2 translate-x-full text-[9px] uppercase tracking-widest text-white/20 rotate-90 origin-left">
-        Protocol
-      </span>
-    </div>
-  );
-};
+
 
 export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelect: (stack: OutcomeExemplar) => void }) {
   // No Engine Logic Here - Strictly UI/Static Data
@@ -100,9 +78,17 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                   <h3 className="text-3xl font-light text-white mb-2 leading-tight serif">{exemplar.title}</h3>
                   <p className="text-white/60 text-sm mb-4 leading-relaxed line-clamp-3">{exemplar.subtitle}</p>
 
-                  {/* VERTICAL STACK VISUALIZATION */}
+                  import {ProtocolStrip} from './ProtocolStrip';
+                  // ... imports
+
+                  // ... Remove VerticalStackVisual definitions ...
+
+                  // ... Inside PresetStacks ...
+                  {/* VERTICAL STACK VISUALIZATION - ProtocolStrip */}
                   {exemplar.kind === 'stack' && (
-                    <VerticalStackVisual stack={exemplar.data as UIStackRecommendation} />
+                    <div className="flex-1 w-full flex items-center justify-center my-4 scale-75 origin-center">
+                      <ProtocolStrip data={exemplar.data as UIStackRecommendation} />
+                    </div>
                   )}
 
                   <div className="flex justify-between items-center pt-4 border-t border-white/10">
