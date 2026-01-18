@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { UIStackRecommendation } from '../types/domain';
 import { getGlassCardStyles } from '../lib/glassStyles';
+import { getCultivarVisuals } from '../lib/cultivarData';
 
 interface SpatialStackProps {
     data: UIStackRecommendation;
@@ -30,9 +31,15 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                     const isFirst = index === 0;
                     const isLast = index === layers.length - 1;
 
-                    // Determine Color
+                    // Determine Color via Lookup
                     const mainCultivar = layer.cultivars?.[0];
-                    const color = mainCultivar?.color || data.visualProfile?.color || '#ffffff';
+                    // Fallback heirarchy: 
+                    // 1. Explicit color on cultivar object (if any)
+                    // 2. Lookup via name (Primary Method)
+                    // 3. Stack profile color
+                    // 4. White fallback
+                    const visuals = mainCultivar ? getCultivarVisuals(mainCultivar.name) : null;
+                    const color = mainCultivar?.color || visuals?.color || data.visualProfile?.color || '#ffffff';
 
                     return (
                         <motion.div
