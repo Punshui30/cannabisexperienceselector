@@ -32,7 +32,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
         <CardShell
           color={recommendation.cultivars[0]?.color}
           secondaryColor={recommendation.cultivars[1]?.color}
-          className="h-full flex flex-col p-6"
+          className="h-full flex flex-col p-5"
         >
           {/* Header */}
           <div className="flex flex-col items-center text-center pb-6 border-b border-white/5">
