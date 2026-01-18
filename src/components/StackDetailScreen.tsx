@@ -1,8 +1,9 @@
+import React from 'react';
 import { motion } from 'motion/react';
-import { UIStackRecommendation, UIPhase } from '../types/domain';
-import { TerpeneDisplay } from './visuals/TerpeneDisplay';
-import { getCultivarVisuals } from '../lib/cultivarData';
-import { cn } from './ui/utils';
+import { ArrowLeft, Clock, Share2, Layers } from 'lucide-react';
+import { UIStackRecommendation } from '../types/domain';
+import { cn } from '../lib/utils';
+// import { UIPhase } - Removed, use derived type or inline params in map
 
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
@@ -10,132 +11,111 @@ interface StackDetailScreenProps {
 }
 
 export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
-    // Use first cultivar color as fallback accent/theme
-    const primaryColor = getCultivarVisuals(stack.layers[0]?.cultivars[0]?.name || "Unknown").color;
 
     return (
-        <div className="fixed inset-0 z-40 bg-black flex flex-col font-sans">
+        <div className="w-full h-full flex flex-col items-center p-4 relative overflow-y-auto">
+            {/* Background */}
+            <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
             {/* Header */}
-            <div className="flex-shrink-0 p-6 border-b border-white/5 bg-black/50 backdrop-blur-md z-10 flex items-center justify-between">
+            <div className="relative z-10 w-full max-w-md flex justify-between items-center mb-6">
                 <button
                     onClick={onBack}
-                    className="text-white/60 hover:text-white text-xs uppercase tracking-widest transition-colors flex items-center gap-2"
+                    className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-[#00FFD1] hover:bg-[#00FFD1]/10 transition-colors"
                 >
-                    <span>←</span> Back
+                    <ArrowLeft size={20} />
                 </button>
-                <div className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Stack Detail</div>
-            </div>
 
-            {/* Scrollable Content - Single Vertical Column */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                <div className="max-w-2xl mx-auto space-y-8 pb-20">
-
-                    {/* 1. OVERVIEW SECTION */}
-                    <section className="text-center space-y-4">
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] uppercase tracking-widest text-[#00FFD1]"
-                        >
-                            Curated Experience
-                        </motion.div>
-                        <motion.h1
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="text-3xl md:text-5xl font-light text-white tracking-tight"
-                        >
-                            {stack.name}
-                        </motion.h1>
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-white/60 leading-relaxed max-w-lg mx-auto"
-                        >
-                            {stack.description}
-                        </motion.p>
-                    </section>
-
-                    {/* 2. TERPENES SECTION (Visuals only, no graphs) */}
-                    <section className="flex justify-center border-t border-b border-white/5 py-8">
-                        <TerpeneDisplay stack={stack} />
-                    </section>
-
-                    {/* 3. PHASES (Tip -> Core -> Base) */}
-                    <div className="space-y-6 relative">
-                        {/* Vertical Connector Line */}
-                        <div className="absolute left-6 top-10 bottom-10 w-px bg-white/10 z-0 hidden md:block" />
-
-                        {stack.layers.map((layer, idx) => {
-                            const phaseCultivar = layer.cultivars[0]?.name || "Unknown";
-                            const visual = getCultivarVisuals(phaseCultivar);
-
-                            return (
-                                <PhaseCard
-                                    key={idx}
-                                    phase={layer}
-                                    color={visual.color}
-                                    delay={0.3 + (idx * 0.1)}
-                                    isLast={idx === stack.layers.length - 1}
-                                />
-                            );
-                        })}
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-white/60">
+                        <Clock size={12} />
+                        <span>{stack.totalDuration}</span>
                     </div>
-
+                    <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
+                        <Share2 size={18} />
+                    </button>
                 </div>
             </div>
-        </div>
-    );
-}
 
-function PhaseCard({ phase, color, delay, isLast }: { phase: UIPhase; color: string; delay: number; isLast: boolean }) {
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay }}
-            className="group relative z-10"
-        >
-            <div className="bg-white/5 border border-white/5 rounded-2xl p-6 hover:bg-white/[0.07] transition-all overflow-hidden">
-                {/* Color Accent Bar */}
-                <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color }} />
+            {/* Title Block */}
+            <div className="relative z-10 w-full max-w-md mb-8">
+                <div className="flex items-center gap-2 mb-2 text-[#00FFD1] text-xs uppercase tracking-widest font-medium">
+                    <Layers size={14} />
+                    <span>Stacked Protocol</span>
+                </div>
 
-                <div className="pl-4 flex flex-col md:flex-row gap-6 md:items-start">
-                    {/* Header Info */}
-                    <div className="md:w-1/3 space-y-2">
-                        <div className="text-[10px] uppercase tracking-widest text-white/40">{phase.onsetEstimate}</div>
-                        <h3 className="text-xl font-medium text-white">{phase.layerName.split(':')[0]}</h3>
-                        <div className="text-xs text-white/50">{phase.layerName.split(':')[1]}</div>
+                <h1 className="text-4xl font-serif text-white mb-3 leading-tight">
+                    {stack.name}
+                </h1>
+                <p className="text-white/60 leading-relaxed text-sm max-w-sm">
+                    {stack.description}
+                </p>
+            </div>
 
-                        {/* Cultivar Tag */}
-                        <div className="pt-2">
-                            <div className="flex gap-2 items-center">
-                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-                                <span className="text-[11px] text-white/80 font-medium">
-                                    {phase.cultivars.map(c => c.name).join(' + ')}
-                                </span>
+            {/* Stack Timeline (Vertical Cards) */}
+            <div className="relative z-10 w-full max-w-md space-y-4 pb-20">
+
+                {stack.layers.map((layer, index) => (
+                    <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6 hover:border-[#00FFD1]/30 transition-colors"
+                    >
+                        {/* Phase Badge */}
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
+                                Phase 0{index + 1}
+                            </span>
+                            <span className="px-2 py-0.5 rounded bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[#00FFD1] text-[10px] font-bold">
+                                {layer.timing}
+                            </span>
+                        </div>
+
+                        {/* Content */}
+                        <h3 className="text-xl font-serif text-white mb-1 group-hover:text-[#00FFD1] transition-colors">
+                            {layer.layerName}
+                        </h3>
+                        <p className="text-sm text-white/70 italic mb-4">
+                            {layer.phaseIntent}
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <span className="block text-[10px] text-white/30 uppercase tracking-widest mb-1">Effect</span>
+                                <span className="text-xs text-white/80">{layer.whyThisPhase}</span>
+                            </div>
+                            <div>
+                                <span className="block text-[10px] text-white/30 uppercase tracking-widest mb-1">Guidance</span>
+                                <span className="text-xs text-white/80">{layer.consumptionGuidance}</span>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Description Text */}
-                    <div className="flex-1 space-y-4 pt-2 md:pt-0">
-                        <div>
-                            <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Experience</div>
-                            <p className="text-white/80 text-sm leading-relaxed border-l border-white/10 pl-3">
-                                {phase.phaseIntent}
-                            </p>
+                        {/* Cultivars */}
+                        <div className="bg-black/20 -mx-6 -mb-6 p-4 mt-2 border-t border-white/5">
+                            <span className="block text-[9px] text-white/30 uppercase tracking-widest mb-2 pl-2">Required Inputs</span>
+                            <div className="space-y-2">
+                                {layer.cultivars.map((c, i) => (
+                                    <div key={i} className="flex items-center justify-between px-2 py-1 rounded hover:bg-white/5 transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1]" />
+                                            <span className="text-xs text-white font-medium">{c.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] text-white/40">{c.profile}</span>
+                                            <span className="text-xs text-[#00FFD1] font-mono">{(c.ratio * 100).toFixed(0)}%</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <div>
-                            <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Process</div>
-                            <p className="text-white/60 text-xs italic pl-3">
-                                {phase.consumptionGuidance}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+
+                    </motion.div>
+                ))}
+
             </div>
-        </motion.div>
+
+        </div>
     );
 }

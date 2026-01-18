@@ -1,311 +1,263 @@
-import { OutcomeExemplar } from '../types/domain';
+import { StackOutcomeExemplar } from '../types/domain';
 
-const RAW_EXEMPLARS: OutcomeExemplar[] = [
-    {
+export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
+    kind: 'stack',
+    id: 'stack_focus_01',
+    title: 'The Deep Work Stack',
+    subtitle: 'Sustained Flow State',
+    description: 'A layered protocol for 4 hours of jitter-free focus.',
+    source: 'preset',
+    visualProfile: {
+        dominantEffect: 'focus',
+        color: '#00FFD1'
+    },
+    data: {
         kind: 'stack',
-        source: 'preset',
-        id: 'focus-stack',
-        title: 'Clear Onset → Deep Flow → Soft Landing',
-        subtitle: 'Sequential pre-roll protocol — effects change as different cultivars are reached.',
-        description: 'Physical progression from CBD clarity to terpinolene intensity, ending in myrcene release.',
-        visualProfile: {
-            dominantEffect: 'focus',
-            color: '#7C5CFF'
-        },
-        data: {
-            kind: 'stack',
-            id: 'stack_focus',
-            name: 'Clear Onset → Deep Flow → Soft Landing',
-            matchScore: 0,
-            reasoning: 'Physical pre-roll sequence for work sessions.',
-            totalDuration: 'Burn Time: 30-45m',
-            layers: [
-                {
-                    layerName: 'Tip: Clear Onset',
-                    timing: 'First 1/3',
-                    phaseIntent: 'First 1/3 of Pre-roll',
-                    whyThisPhase: 'As combustion begins, CBD-rich Harlequin burns first to clear neurological noise before the psychoactive core.',
-                    onsetEstimate: 'Tip Section',
-                    durationEstimate: 'Duration: ~10m burn',
-                    consumptionGuidance: 'Light combustion. Low temperature terpene release.',
+        // New Required Fields
+        stackId: 'stack_focus_01',
+        id: 'stack_focus_01',
+        name: 'The Deep Work Stack',
+        description: 'A scientifically layered protocol for sustained cognitive output without jitters.',
 
-                    purpose: 'Structure',
-                    cultivars: [{
-                        name: 'Harlequin',
-                        ratio: 1.0,
-                        profile: 'CBD-Dominant',
-                        characteristics: ['Clear', 'Anxiety-Free']
-                    }]
-                },
-                {
-                    layerName: 'Core: Deep Flow',
-                    timing: 'Middle 1/3',
-                    phaseIntent: 'Middle 1/3 of Pre-roll',
-                    whyThisPhase: 'Combustion reaches the Jack Herer core. Temperature rises, releasing terpinolene and cannabinoids for peak stimulation.',
-                    onsetEstimate: 'Middle Section',
-                    durationEstimate: 'Duration: ~15m burn',
-                    consumptionGuidance: 'Peak heat. Full spectrum activation.',
-
-                    purpose: 'Structure',
-                    cultivars: [{
+        matchScore: 0.98,
+        reasoning: 'Combines pinene-dominant startup with limonene-heavy maintenance.',
+        totalDuration: '4 hours',
+        layers: [
+            {
+                layerName: 'Ignition',
+                timing: '0:00',
+                phaseIntent: 'Rapid Onset, Clear Head',
+                whyThisPhase: 'A high-pinene sativa provides immediate alertness without the heavy body load.',
+                onsetEstimate: '5-10m',
+                durationEstimate: '45-60m',
+                consumptionGuidance: 'Vaporize at 180°C',
+                purpose: 'Initial focus',
+                cultivars: [
+                    {
                         name: 'Jack Herer',
-                        ratio: 0.7,
-                        profile: 'Terpinolene-Rich',
-                        characteristics: ['Focus', 'Creative']
+                        ratio: 1.0,
+                        profile: 'Sativa',
+                        characteristics: ['Pinene', 'Terpinolene']
+                    }
+                ]
+            },
+            {
+                layerName: 'Cruise Control',
+                timing: '0:45',
+                phaseIntent: 'Sustain, Level, Create',
+                whyThisPhase: 'Introducing a balanced hybrid prevents the "crash" and adds a creative limonene layer.',
+                onsetEstimate: '5-10m',
+                durationEstimate: '2-3h',
+                consumptionGuidance: 'Small dose, Edible or Vape',
+                purpose: 'Maintenance',
+                cultivars: [
+                    {
+                        name: 'Blue Dream',
+                        ratio: 0.5,
+                        profile: 'Hybrid',
+                        characteristics: ['Myrcene', 'Pinene']
                     },
                     {
-                        name: 'ACDC',
-                        ratio: 0.3,
-                        profile: 'CBD Stabilizer',
-                        characteristics: ['Grounding']
-                    }]
-                },
-                {
-                    layerName: 'Base: Soft Landing',
-                    timing: 'Final 1/3',
-                    phaseIntent: 'Final 1/3 of Pre-roll',
-                    whyThisPhase: 'The crutch approaches. Resins accumulate in the Granddaddy Purple base, creating a heavy, sedating finish naturally.',
-                    onsetEstimate: 'Base Section',
-                    durationEstimate: 'Duration: ~10m burn',
-                    consumptionGuidance: 'Resin-heavy smoke. Slow burn.',
+                        name: 'Super Lemon Haze',
+                        ratio: 0.5,
+                        profile: 'Sativa-Hybrid',
+                        characteristics: ['Limonene', 'Caryophyllene']
+                    }
+                ]
+            }
+        ]
+    }
+};
 
-                    purpose: 'Structure',
-                    cultivars: [{
+export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
+    kind: 'stack',
+    id: 'stack_sleep_01',
+    title: 'The Hibernation Stack',
+    subtitle: 'Deep Restorative Sleep',
+    description: 'Drift off fast and stay asleep longer.',
+    source: 'preset',
+    visualProfile: {
+        dominantEffect: 'sleep',
+        color: '#7C3AED'
+    },
+    data: {
+        kind: 'stack',
+        stackId: 'stack_sleep_01',
+        id: 'stack_sleep_01',
+        name: 'The Hibernation Stack',
+        description: 'Multi-stage release for onset and duration.',
+
+        matchScore: 0.95,
+        reasoning: 'Linalool for onset, Myrcene/CBN for duration.',
+        totalDuration: '8 hours',
+        layers: [
+            {
+                layerName: 'Sunset',
+                timing: '0:00',
+                phaseIntent: 'Relax Body, Quiet Mind',
+                whyThisPhase: 'Heavy Indica with Linalool starts the physical relaxation process.',
+                onsetEstimate: '10-15m',
+                durationEstimate: '1h',
+                consumptionGuidance: 'Inhale/Smoke',
+                purpose: 'Induction',
+                cultivars: [
+                    {
                         name: 'Granddaddy Purple',
                         ratio: 1.0,
-                        profile: 'Myrcene-Rich',
-                        characteristics: ['Sedating', 'Relaxing']
-                    }]
-                }
-            ]
-        }
-    },
-    {
-        kind: 'stack',
-        source: 'preset',
-        id: 'social-stack',
-        title: 'Icebreaker → Conversation → Integration',
-        subtitle: 'Sequential pre-roll protocol — effects change as different cultivars are reached.',
-        description: 'Physical progression from calming 1:1 ratio to high-energy limonene, finishing with a balanced hybrid.',
-        visualProfile: {
-            dominantEffect: 'social',
-            color: '#F59E0B'
-        },
-        data: {
-            kind: 'stack',
-            id: 'stack_social',
-            name: 'Icebreaker → Conversation → Integration',
-            matchScore: 0,
-            reasoning: 'Physical pre-roll sequence for social events.',
-            totalDuration: 'Burn Time: 30-45m',
-            layers: [
-                {
-                    layerName: 'Tip: Icebreaker',
-                    timing: 'First 1/3',
-                    phaseIntent: 'First 1/3 of Pre-roll',
-                    whyThisPhase: 'The initial burn releases Cannatonic (1:1) vapors to lower social inhibition immediately upon lighting.',
-                    onsetEstimate: 'Tip Section',
-                    durationEstimate: 'Duration: ~10m burn',
-                    consumptionGuidance: 'Gentle start. Anxiety reduction.',
-
-                    purpose: 'Structure',
-                    cultivars: [{
-                        name: 'Cannatonic',
-                        ratio: 1.0,
-                        profile: '1:1 Ratio',
-                        characteristics: ['Calm', 'Happy']
-                    }]
-                },
-                {
-                    layerName: 'Core: Conversation',
-                    timing: 'Middle 1/3',
-                    phaseIntent: 'Middle 1/3 of Pre-roll',
-                    whyThisPhase: 'The ember reaches the Super Lemon Haze center. Sharper terpenes vaporize for maximum verbal energy.',
-                    onsetEstimate: 'Middle Section',
-                    durationEstimate: 'Duration: ~15m burn',
-                    consumptionGuidance: 'Active phase. High energy release.',
-
-                    purpose: 'Structure',
-                    cultivars: [{
-                        name: 'Super Lemon Haze',
-                        ratio: 0.8,
-                        profile: 'Limonene-Rich',
-                        characteristics: ['Uplifting', 'Talkative']
-                    }]
-                },
-                {
-                    layerName: 'Base: Integration',
-                    timing: 'Final 1/3',
-                    phaseIntent: 'Final 1/3 of Pre-roll',
-                    whyThisPhase: 'As the joint finishes, the Blue Dream base provides a rounded, comfortable conclusion to the experience.',
-                    onsetEstimate: 'Base Section',
-                    durationEstimate: 'Duration: ~10m burn',
-                    consumptionGuidance: 'Balanced finish. Resin accumulation.',
-
-                    purpose: 'Structure',
-                    cultivars: [{
-                        name: 'Blue Dream',
-                        ratio: 1.0,
-                        profile: 'Balanced Hybrid',
-                        characteristics: ['Gentle', 'Ease']
-                    }]
-                }
-            ]
-        }
-    },
-    {
-        kind: 'stack',
-        source: 'preset',
-        id: 'recovery-stack',
-        title: 'Decompress → Sedate → Sleep',
-        subtitle: 'Sequential pre-roll protocol — effects change as different cultivars are reached.',
-        description: 'Physical progression from heavy relief to deep sedation as resin builds up in the joint.',
-        visualProfile: {
-            dominantEffect: 'sleep',
-            color: '#10B981'
-        },
-        data: {
-            kind: 'stack',
-            id: 'stack_recovery',
-            name: 'Decompress → Sedate → Sleep',
-            matchScore: 0,
-            reasoning: 'Physical pre-roll sequence for rest.',
-            totalDuration: 'Burn Time: 30-45m',
-            layers: [
-                {
-                    layerName: 'Tip: Decompress',
-                    timing: 'First 1/3',
-                    phaseIntent: 'First 1/3 of Pre-roll',
-                    whyThisPhase: 'GG4 at the tip delivers immediate, potent physical relief with the first few inhales.',
-                    onsetEstimate: 'Tip Section',
-                    durationEstimate: 'Duration: ~10m burn',
-                    consumptionGuidance: 'Immediate body effect.',
-
-                    purpose: 'Structure',
-                    cultivars: [{
-                        name: 'GG4',
-                        ratio: 1.0,
-                        profile: 'Potent Hybrid',
-                        characteristics: ['Heavy', 'Euphoric']
-                    }]
-                },
-                {
-                    layerName: 'Core: Sedate',
-                    timing: 'Middle 1/3',
-                    phaseIntent: 'Middle 1/3 of Pre-roll',
-                    whyThisPhase: 'The burn moves into the Bubba Kush core, releasing heavier indica compounds for mental slowing.',
-                    onsetEstimate: 'Middle Section',
-                    durationEstimate: 'Duration: ~15m burn',
-                    consumptionGuidance: 'Deep relaxation. Slowing burn.',
-
-                    purpose: 'Structure',
-                    cultivars: [{
+                        profile: 'Indica',
+                        characteristics: ['Linalool', 'Myrcene']
+                    }
+                ]
+            },
+            {
+                layerName: 'Deep Sleep',
+                timing: '0:30',
+                phaseIntent: 'Stay Asleep',
+                whyThisPhase: 'Edible form factor ensures effects last through the night.',
+                onsetEstimate: '45-90m',
+                durationEstimate: '6-8h',
+                consumptionGuidance: 'Edible (Low Dose)',
+                purpose: 'Duration',
+                cultivars: [
+                    {
                         name: 'Bubba Kush',
                         ratio: 1.0,
                         profile: 'Indica',
-                        characteristics: ['Sedating', 'Heavy']
-                    }]
-                },
-                {
-                    layerName: 'Base: Sleep',
-                    timing: 'Final 1/3',
-                    phaseIntent: 'Final 1/3 of Pre-roll',
-                    whyThisPhase: 'The final third concentrates resin into the Northern Lights base, delivering a knockout punch for sleep.',
-                    onsetEstimate: 'Base Section',
-                    durationEstimate: 'Duration: ~10m burn',
-                    consumptionGuidance: 'Maximum potency. End of session.',
+                        characteristics: ['Caryophyllene', 'Myrcene']
+                    }
+                ]
+            }
+        ]
+    }
+};
 
-                    purpose: 'Structure',
-                    cultivars: [{
-                        name: 'Northern Lights',
-                        ratio: 1.0,
-                        profile: 'Classic Indica',
-                        characteristics: ['Sedating', 'Dreamy']
-                    }]
-                }
-            ]
-        }
+export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
+    kind: 'stack',
+    id: 'stack_social_01',
+    title: 'The Party Stack',
+    subtitle: 'Engaged & Energetic',
+    description: 'Stay chatty and happy without anxiety.',
+    source: 'preset',
+    visualProfile: {
+        dominantEffect: 'social',
+        color: '#FB923C'
     },
-    {
+    data: {
         kind: 'stack',
-        source: 'preset',
-        id: 'balance-stack',
-        title: 'Stimulate → Balance → Body Ease',
-        subtitle: 'Sequential pre-roll protocol — effects change as different cultivars are reached.',
-        description: 'Physical progression starting with energy, centering the mind, and ending in body relaxation.',
-        visualProfile: {
-            dominantEffect: 'balance',
-            color: '#F472B6' // Pink/Rose
-        },
-        data: {
-            kind: 'stack',
-            id: 'stack_balance',
-            name: 'Stimulate → Balance → Body Ease',
-            matchScore: 0,
-            reasoning: 'Physical pre-roll sequence for afternoon flow.',
-            totalDuration: 'Burn Time: 30-45m',
-            layers: [
-                {
-                    layerName: 'Tip: Stimulate',
-                    timing: 'First 1/3',
-                    phaseIntent: 'First 1/3 of Pre-roll',
-                    whyThisPhase: 'Durban Poison at the tip provides an instant sparkling sativa onset to wake up the senses.',
-                    onsetEstimate: 'Tip Section',
-                    durationEstimate: 'Duration: ~10m burn',
-                    consumptionGuidance: 'Sativa-dominant start. High airflow.',
+        stackId: 'stack_social_01',
+        id: 'stack_social_01',
+        name: 'The Party Stack',
+        description: 'Limonene + Caryophyllene for social lubrication.',
 
-                    purpose: 'Structure',
-                    cultivars: [{
-                        name: 'Durban Poison',
+        matchScore: 0.92,
+        reasoning: 'Limonene lifts mood, Caryophyllene reduces anxiety.',
+        totalDuration: '3 hours',
+        layers: [
+            {
+                layerName: 'Ice Breaker',
+                timing: '0:00',
+                phaseIntent: 'Uplift, Talkative',
+                whyThisPhase: 'High-Limonene strain to boost mood and energy immediately.',
+                onsetEstimate: '5m',
+                durationEstimate: '45m',
+                consumptionGuidance: 'Vape/Smoke',
+                purpose: 'Energy',
+                cultivars: [
+                    {
+                        name: 'Tangie',
                         ratio: 1.0,
-                        profile: 'Pure Sativa',
-                        characteristics: ['Energetic', 'Clear']
-                    }]
-                },
-                {
-                    layerName: 'Core: Balance',
-                    timing: 'Middle 1/3',
-                    phaseIntent: 'Middle 1/3 of Pre-roll',
-                    whyThisPhase: 'The middle section transitions to GSC (Girl Scout Cookies) for a euphoric, hybrid center that smooths the edge.',
-                    onsetEstimate: 'Middle Section',
-                    durationEstimate: 'Duration: ~15m burn',
-                    consumptionGuidance: 'Hybrid stabilization. Sweet burn.',
-
-                    purpose: 'Structure',
-                    cultivars: [{
-                        name: 'GSC',
+                        profile: 'Sativa',
+                        characteristics: ['Limonene']
+                    }
+                ]
+            },
+            {
+                layerName: 'Vibe Check',
+                timing: '0:45',
+                phaseIntent: 'Relaxed, Happy',
+                whyThisPhase: 'Adding a balanced hybrid keeps the mood light but grounded.',
+                onsetEstimate: '5-10m',
+                durationEstimate: '2h',
+                consumptionGuidance: 'Vape/Smoke',
+                purpose: 'Maintenance',
+                cultivars: [
+                    {
+                        name: 'Gelato',
                         ratio: 1.0,
                         profile: 'Hybrid',
-                        characteristics: ['Euphoric', 'Sweet']
-                    }]
-                },
-                {
-                    layerName: 'Base: Body Ease',
-                    timing: 'Final 1/3',
-                    phaseIntent: 'Final 1/3 of Pre-roll',
-                    whyThisPhase: 'The roach end contains OG Kush, grounding the experience with a classic, heavy body finish.',
-                    onsetEstimate: 'Base Section',
-                    durationEstimate: 'Duration: ~10m burn',
-                    consumptionGuidance: 'Heavy finish. Physical grounding.',
-
-                    purpose: 'Structure',
-                    cultivars: [{
-                        name: 'OG Kush',
-                        ratio: 1.0,
-                        profile: 'Hybrid Indica',
-                        characteristics: ['Classic', 'Earthy']
-                    }]
-                }
-            ]
-        }
+                        characteristics: ['Caryophyllene', 'Limonene']
+                    }
+                ]
+            }
+        ]
     }
+};
+
+export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
+    kind: 'stack',
+    id: 'stack_creative_01',
+    title: 'The Artist Stack',
+    subtitle: 'Unlock Flow',
+    description: 'Bypass the inner critic and access new ideas.',
+    source: 'preset',
+    visualProfile: {
+        dominantEffect: 'creative',
+        color: '#F472B6'
+    },
+    data: {
+        kind: 'stack',
+        stackId: 'stack_creative_01',
+        id: 'stack_creative_01',
+        name: 'The Artist Stack',
+        description: 'Terpinolene for divergence, Pinene for construction.',
+
+        matchScore: 0.96,
+        reasoning: 'Terpinolene promotes divergent thinking.',
+        totalDuration: '3-4 hours',
+        layers: [
+            {
+                layerName: 'Spark',
+                timing: '0:00',
+                phaseIntent: 'Divergent Thought',
+                whyThisPhase: 'Terpinolene is known for "hazy" creative associations.',
+                onsetEstimate: '5m',
+                durationEstimate: '45m',
+                consumptionGuidance: 'Vape',
+                purpose: 'Idea Generation',
+                cultivars: [
+                    {
+                        name: 'Durban Poison',
+                        ratio: 1.0,
+                        profile: 'Sativa',
+                        characteristics: ['Terpinolene']
+                    }
+                ]
+            },
+            {
+                layerName: 'Build',
+                timing: '0:45',
+                phaseIntent: 'Focus, Execution',
+                whyThisPhase: 'Adding Pinene helps organize the ideas into output.',
+                onsetEstimate: '10m',
+                durationEstimate: '2h',
+                consumptionGuidance: 'Tea/Beverage',
+                purpose: 'Execution',
+                cultivars: [
+                    {
+                        name: 'Blue Dream',
+                        ratio: 1.0,
+                        profile: 'Hybrid',
+                        characteristics: ['Myrcene', 'Pinene']
+                    }
+                ]
+            }
+        ]
+    }
+};
+
+export const PRESET_STACKS: StackOutcomeExemplar[] = [
+    FOCUS_STACK_EXEMPLAR,
+    SLEEP_STACK_EXEMPLAR,
+    SOCIAL_STACK_EXEMPLAR,
+    CREATIVE_STACK_EXEMPLAR
 ];
-
-// SAFETY: Enforce Array Compaction (No Holes, No Undefined)
-export const OUTCOME_EXEMPLARS = RAW_EXEMPLARS.flatMap(x => x ? [x] : []);
-
-console.assert(
-    OUTCOME_EXEMPLARS.every((s, i) => s && s.data && typeof s.id === 'string'),
-    'OUTCOME_EXEMPLARS includes invalid or sparse entries',
-    OUTCOME_EXEMPLARS
-);
