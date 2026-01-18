@@ -123,10 +123,10 @@ export default function App() {
             } else {
               throw new Error("Adapter returned null result");
             }
+            // Success - State update triggers ResolvingScreen transition logic
           } else {
             throw new Error(result.error || 'Orchestrator returned failure');
           }
-          setView('input');
         } catch (e: any) {
           console.error('APP: Orchestrator Failed', e);
           setIsAnalyzing(false);
