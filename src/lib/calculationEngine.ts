@@ -422,14 +422,12 @@ const RISK_MITIGATORS: Record<string, Partial<RiskVector>> = {
   caryophyllene: { anxietyRisk: -0.12, paranoiaRisk: -0.08 },
   linalool: { anxietyRisk: -0.15, paranoiaRisk: -0.10 },
 
-  // Clarity enhancers (reduce fog)
-  pinene: { cognitiveFog: -0.08 },
+  // Clarity enhancers & Heaviness reducers
+  pinene: { cognitiveFog: -0.08, physicalHeaviness: -0.08 },
   eucalyptol: { cognitiveFog: -0.10 },
-  limonene: { cognitiveFog: -0.05 },
+  limonene: { cognitiveFog: -0.05, physicalHeaviness: -0.12 },
 
   // Energizing (reduce heaviness)
-  limonene: { physicalHeaviness: -0.12 },
-  pinene: { physicalHeaviness: -0.08 },
   terpinolene: { physicalHeaviness: -0.10 },
 };
 
