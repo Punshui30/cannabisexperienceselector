@@ -42,7 +42,12 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
           renderItem={(exemplar, isActive) => (
             <div className="w-full h-full flex items-center justify-center p-8">
               <motion.button
-                className="relative w-full max-w-sm aspect-[3/4] p-8 rounded-3xl bg-white/5 border border-white/10 text-left overflow-hidden group hover:bg-white/10 transition-colors flex flex-col justify-end"
+                className="relative w-full max-w-sm aspect-[3/4] p-8 rounded-3xl bg-white/5 text-left overflow-hidden group hover:bg-white/10 transition-colors flex flex-col justify-end"
+                style={{
+                  borderColor: `${exemplar.visualProfile.color}40`,
+                  borderWidth: '1px',
+                  boxShadow: `0 0 20px -10px ${exemplar.visualProfile.color}40`
+                }}
                 onClick={() => {
                   if (!exemplar || typeof exemplar !== 'object') {
                     console.error('CRITICAL: PresetStacks passed invalid exemplar', exemplar);
@@ -56,7 +61,16 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
               >
                 {/* Background Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
-                <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: exemplar.visualProfile.color }} />
+
+                {/* Iridescent Strip */}
+                <div
+                  className="absolute top-0 left-0 w-full h-1.5 opacity-80 group-hover:opacity-100 transition-opacity"
+                  style={{
+                    background: `linear-gradient(90deg, ${exemplar.visualProfile.color}, #fff, ${exemplar.visualProfile.color})`,
+                    backgroundSize: '200% 100%',
+                    filter: 'blur(1px)'
+                  }}
+                />
 
                 <div className="relative z-10">
                   <h3 className="text-3xl font-light text-white mb-2 leading-tight serif">{exemplar.title}</h3>
