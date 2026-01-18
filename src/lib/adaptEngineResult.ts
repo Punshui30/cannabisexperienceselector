@@ -5,6 +5,11 @@ export function adaptEngineResult(
     result: EngineResult
 ): UIBlendRecommendation {
 
+    // PASSTHROUGH: If already adapted (has visuals), return as-is
+    if (result.kind === 'blend' && result.cultivars && result.cultivars.length > 0 && (result.cultivars[0] as any).color) {
+        return result as UIBlendRecommendation;
+    }
+
     // Deterministic Confidence
     const confidence = result.matchScore ? Math.max(0.1, Math.min(1.0, result.matchScore)) : 0.85;
 
