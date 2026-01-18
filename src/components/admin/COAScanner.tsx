@@ -11,7 +11,9 @@ type ScanState = 'ready' | 'capturing' | 'processing' | 'confirming' | 'complete
 export function COAScanner({ onClose, onComplete }: Props) {
   const [scanState, setScanState] = useState<ScanState>('ready');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const csvInputRef = useRef<HTMLInputElement>(null);
 
   const handleCapture = () => {
     // Simulate camera/file capture
@@ -26,7 +28,7 @@ export function COAScanner({ onClose, onComplete }: Props) {
       reader.onload = (event) => {
         setCapturedImage(event.target?.result as string);
         setScanState('processing');
-        
+
         // Simulate processing
         setTimeout(() => {
           setScanState('confirming');
@@ -127,39 +129,83 @@ export function COAScanner({ onClose, onComplete }: Props) {
                           rx="4"
                         />
                       </svg>
-                      
+
                       {/* Corner guides */}
                       <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-emerald-400 rounded-tl-lg" />
                       <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-emerald-400 rounded-tr-lg" />
                       <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-emerald-400 rounded-bl-lg" />
                       <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-emerald-400 rounded-br-lg" />
                     </div>
-                    
+
                     <p className="text-sm text-white/50 mt-4">
                       Position COA within frame guides
                     </p>
                   </div>
 
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* OPTION 1: CAMERA */}
+                    <input
+                      ref={cameraInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 transition-colors text-white border border-emerald-400/20"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M7 6L8 3H16L17 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <rect x="2" y="6" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                        <circle cx="12" cy="13" r="3" stroke="currentColor" strokeWidth="2" />
+                      </svg>
+                      <span className="text-xs font-medium uppercase tracking-wide">Capture</span>
+                    </button>
 
-                  <button
-                    onClick={handleCapture}
-                    className="w-full max-w-sm mx-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-colors flex items-center justify-center gap-3"
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <rect x="2" y="6" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
-                      <circle cx="12" cy="13" r="3" stroke="currentColor" strokeWidth="2" />
-                      <path d="M7 6L8 3H16L17 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    Capture COA
-                  </button>
+                    {/* OPTION 2: UPLOAD */}
+                    <input
+                      ref={uploadInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => uploadInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white border border-white/10"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M17 8l-5-5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12 3v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="text-xs font-medium uppercase tracking-wide">Upload</span>
+                    </button>
+
+                    {/* OPTION 3: CSV IMPORT */}
+                    <input
+                      ref={csvInputRef}
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => csvInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white border border-white/10"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M8 13h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M8 17h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="text-xs font-medium uppercase tracking-wide">CSV</span>
+                    </button>
+                  </div>
                 </motion.div>
               )}
 
@@ -194,7 +240,7 @@ export function COAScanner({ onClose, onComplete }: Props) {
                 >
                   <div className="mb-6">
                     <h3 className="text-lg font-light text-white mb-4">Confirm Product Details</h3>
-                    
+
                     {capturedImage && (
                       <div className="mb-6">
                         <img
