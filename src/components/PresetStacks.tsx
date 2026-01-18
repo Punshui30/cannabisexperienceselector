@@ -48,7 +48,7 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
         </button>
 
         <div className="flex items-center gap-3">
-          <img src={logoImg} alt="GO logo" className="w-8 h-auto" />
+          <img src={logoImg} alt="GO logo" className="w-16 h-auto" />
           <div className="flex flex-col items-end">
             <span className="text-sm font-normal text-white serif">Guided Outcomes</span>
             <span className="text-[10px] text-white/40">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></span>

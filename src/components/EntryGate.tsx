@@ -28,12 +28,12 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
 
   const LogoMark = () => (
     <div className="flex flex-col items-center mb-6">
-      <div className="w-24 h-24 mb-4 flex items-center justify-center">
+      <div className="w-40 h-40 mb-6 flex items-center justify-center">
         <img src={logoImg} alt="GO Logo" className="w-full h-full object-contain" />
       </div>
       <div className="mt-2 flex flex-col items-center">
-        <h1 className="text-xl font-normal text-white serif tracking-wide">Guided Outcomes</h1>
-        <p className="text-xs text-white/60">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></p>
+        <h1 className="text-3xl font-normal text-white serif tracking-wide">Guided Outcomes</h1>
+        <p className="text-base text-white/60">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></p>
       </div>
     </div>
   );
