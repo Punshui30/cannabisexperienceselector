@@ -43,17 +43,26 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
             return { success: false, data: [], error: 'Engine returned no results' };
         }
 
-        // 3. LLM (Layer 2) - BLOCKING via PROXY
-        console.log('ORCHESTRATOR: Calling LLM (Layer 2) via Proxy...');
+        // 3. LLM (Layer 2) - NON-BLOCKING / FAIL-OPEN
+        console.log('ORCHESTRATOR: Calling LLM (Layer 2)...');
+        let finalResults = engineResults;
+        let analysisReasoning = `Optimizing for ${targetTerpenes.join(', ')}`;
 
-        // We pass engine results to LLM for "Humanization" and "Reasoning", 
-        // BUT we must validate the *Engine's* or *LLM's* output strains exist in library.
-        // Ideally LLM cleans up rationale.
-        const enrichedResults = await callLLM(input, engineResults, targetTerpenes);
+        try {
+            // Attempt LLM Enrichment
+            const enrichedResults = await callLLM(input, engineResults, targetTerpenes);
+            finalResults = enrichedResults;
+            console.log('ORCHESTRATOR: LLM Enrichment Success');
+        } catch (llmError) {
+            console.warn('ORCHESTRATOR: LLM Failed/Skipped - Using Engine Fallback', llmError);
+            // FAIL OPEN: Continue using 'engineResults'
+            // We do NOT abort. We present the deterministic math.
+        }
 
         // 4. HARD VALIDATION (Mandatory)
         // "If ANY strain is not found... Abort render... Log error... Show fallback UI"
-        const validationError = validateStrict(enrichedResults);
+        // Ensure the results (whether LLM or Engine) are valid.
+        const validationError = validateStrict(finalResults);
         if (validationError) {
             console.error(`ORCHESTRATOR VALIDATION FAILED: ${validationError}`);
             // Return FAILURE so UI shows fallback/error state. 
@@ -65,13 +74,13 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
             };
         }
 
-        console.log('ORCHESTRATOR: LLM Return Success (Validated)');
+        console.log('ORCHESTRATOR: Process Complete');
         return {
             success: true,
-            data: enrichedResults,
+            data: finalResults,
             analysis: {
                 targetTerpenes,
-                reasoning: `Optimizing for ${targetTerpenes.join(', ')}`
+                reasoning: analysisReasoning
             }
         };
 
