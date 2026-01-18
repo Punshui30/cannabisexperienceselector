@@ -1,8 +1,10 @@
 import { motion } from 'motion/react';
-import { assertStack, EngineResult } from '../types/domain';
+import { assertStack, EngineResult, UIStackRecommendation } from '../types/domain';
 import { cn } from './ui/utils';
 import { ACCENTS } from '../lib/accents';
 import logoImg from '../assets/logo.png';
+import { StackLineGraph } from './visuals/StackLineGraph';
+import { TerpeneDisplay } from './visuals/TerpeneDisplay';
 
 interface StackDetailScreenProps {
     stack: EngineResult;
@@ -16,7 +18,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     return (
         <div className="h-screen w-screen bg-transparent text-white p-6 flex flex-col font-sans overflow-hidden">
             {/* Header - Minimal height */}
-            <div className="flex-none flex items-center justify-between mb-6 z-20 relative">
+            <div className="flex-none flex items-center justify-between mb-2 z-20 relative">
                 <button
                     onClick={onBack}
                     className="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
@@ -36,15 +38,27 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 </div>
             </div>
 
-            {/* Title Section */}
-            <div className="flex-none text-center space-y-2 mb-8">
-                <h1 className="text-2xl font-light text-white serif tracking-tight leading-tight">{stack.name}</h1>
-                <p className="text-white/60 text-xs max-w-lg mx-auto leading-relaxed">{stack.reasoning}</p>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#7C5CFF]/30 bg-[#7C5CFF]/10 mt-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#7C5CFF] animate-pulse" />
-                    <span className="text-[#7C5CFF] text-[9px] font-bold uppercase tracking-widest">
-                        {stack.totalDuration}
-                    </span>
+            {/* Title Section & Visuals */}
+            <div className="flex-none text-center space-y-4 mb-4 relative">
+                {/* Background Graph Layer */}
+                <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center opacity-30 pointer-events-none z-0 translate-y-2">
+                    <StackLineGraph stack={stack as UIStackRecommendation} />
+                </div>
+
+                <div className="relative z-10">
+                    <h1 className="text-2xl font-light text-white serif tracking-tight leading-tight">{stack.name}</h1>
+                    <p className="text-white/60 text-xs max-w-lg mx-auto leading-relaxed">{stack.reasoning}</p>
+
+                    <div className="flex justify-center mt-3">
+                        <TerpeneDisplay stack={stack as UIStackRecommendation} />
+                    </div>
+
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#7C5CFF]/30 bg-[#7C5CFF]/10 mt-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#7C5CFF] animate-pulse" />
+                        <span className="text-[#7C5CFF] text-[9px] font-bold uppercase tracking-widest">
+                            {stack.totalDuration}
+                        </span>
+                    </div>
                 </div>
             </div>
 
