@@ -9,41 +9,37 @@ import { PresetStacks } from './components/PresetStacks';
 import { StackDetailScreen } from './components/StackDetailScreen';
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
-import { StrainLibraryScreen } from './components/StrainLibraryScreen'; // NEW
+import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { AdminPanel } from './components/admin/AdminPanel';
-import { processIntent } from './lib/llmOrchestrator'; // NEW: Use Orchestrator
+import { processIntent } from './lib/llmOrchestrator';
+import { adaptEngineResult } from './lib/adaptEngineResult';
 import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
+import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar } from './types/domain';
 import './index.css';
 
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library';
-
-import { EngineResult, IntentSeed, UIStackRecommendation, OutcomeExemplar, UIBlendRecommendation } from './types/domain';
-
-// --- Domain Types ---
-type UserInput = IntentSeed;
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [showEntryGate, setShowEntryGate] = useState(true);
 
-  // VISUAL LAYER CONTROL - Hard-lock enabled
-  const isStatic = false;
-
   const [mode, setMode] = useState<'user' | 'admin'>('user');
   const [view, setView] = useState<ViewState>('splash');
-  const [userInput, setUserInput] = useState<UserInput | null>(null);
+
+  // Input State
+  const [userInput, setUserInput] = useState<IntentSeed | null>(null);
   const [initialInputText, setInitialInputText] = useState<string>('');
 
-  // CONTRACT: State only holds UI-Safe Recommendations
-  const [recommendations, setRecommendations] = useState<(UIStackRecommendation | UIBlendRecommendation)[]>([]);
+  // SPLIT STATE (Strict Firewall)
+  const [stackRec, setStackRec] = useState<UIStackRecommendation | null>(null);
+  const [blendRec, setBlendRec] = useState<UIBlendRecommendation | null>(null);
 
+  // Shared UI State
   const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [selectedRecommendation, setSelectedRecommendation] = useState<(UIStackRecommendation | UIBlendRecommendation) | null>(null);
   const [qrShareOpen, setQRShareOpen] = useState(false);
-
-  // NEW: Analyzing State (Visible Feedback)
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Navigation Handlers
   const handleEnterUser = () => {
     setMode('user');
     setShowEntryGate(false);
@@ -56,11 +52,11 @@ export default function App() {
     setView('input');
   };
 
-  const handleSubmit = (input: UserInput) => {
+  const handleSubmit = (input: IntentSeed) => {
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
-    setSelectedRecommendation(null);
+    setStackRec(null);
+    setBlendRec(null);
     setUserInput(input);
-    setRecommendations([]);
     setIsAnalyzing(true);
     setView('resolving');
   };
@@ -70,10 +66,14 @@ export default function App() {
     if ('inputText' in exemplar) {
       console.log('TRANSITION: Blend Scenario -> Input Pre-fill');
       setInitialInputText(exemplar.inputText);
-      // Auto-submit? User requirement says "Blend Suggestions -> Populate input field -> Trigger Engine"
-      // Wait. Requirement text: "Blend Suggestion Click -> Populate input field -> Trigger engine + LLM -> Render"
-      // So we should auto-trigger.
-      const seed: UserInput = { text: exemplar.inputText, image: undefined };
+
+      // Strict IntentSeed Construction (Prompt A)
+      const seed: IntentSeed = {
+        text: exemplar.inputText,
+        kind: 'blend',
+        mode: 'engine',
+        image: undefined
+      };
       handleSubmit(seed);
       return;
     }
@@ -81,61 +81,54 @@ export default function App() {
     // 2. STACK PRESET (Direct Flow - No Engine)
     console.log(`TRANSITION: Stack Preset -> Detail`);
     setUserInput(null);
-    setRecommendations([]);
-    setIsAnalyzing(false);
+    setBlendRec(null);
 
-    if (exemplar.kind === 'blend') {
-      setSelectedRecommendation(exemplar.data);
-      setView('results');
-    } else {
-      setSelectedRecommendation(exemplar.data);
+    if (exemplar.kind === 'stack') {
+      setStackRec(exemplar.data);
+      setIsAnalyzing(false);
       setView('stack-detail');
+    } else {
+      // Fallback for static blends if exists
+      setBlendRec(exemplar.data);
+      setIsAnalyzing(false);
+      setView('results');
     }
   };
-
-  // --- Adapter Logic ---
-  function adaptToUIBlend(result: EngineResult): UIBlendRecommendation {
-    return {
-      kind: 'blend',
-      id: 'generated-blend',
-      name: result.name || 'Custom Blend',
-      description: result.reasoning || 'No description provided.',
-      confidence: result.matchScore || 0.85,
-      strains: result.cultivars ? result.cultivars.map(c => c.name) : [],
-      terpeneProfile: {}, // TODO: Calculate if data missing, or let UI handle empty
-      reasoning: result.reasoning
-    };
-  }
-
-  // ... inside App component ...
 
   // ASYNC ORCHESTRATION EFFECT
   useEffect(() => {
     if (view === 'resolving' && userInput && isAnalyzing) {
 
+      // Firewall: Preset inputs should likely not be here unless 'engine' mode
+      if (userInput.mode === 'preset') {
+        setIsAnalyzing(false);
+        return;
+      }
+
       const run = async () => {
         console.log('APP: Invoking Orchestrator...');
-        const result = await processIntent(userInput, 'blend-engine');
+        try {
+          const result = await processIntent(userInput, 'blend-engine');
 
-        if (result.success && result.data.length > 0) {
-          // ADAPTER PATTERN: Transform EngineResult -> UIBlendRecommendation
-          // EngineResult is INTERNAL. UIBlendRecommendation is PUBLIC.
-          const adaptedData: UIBlendRecommendation[] = result.data.map(adaptToUIBlend);
+          if (result.success && result.data.length > 0) {
 
-          // Casting to specific union type of state (vs generic EngineResult used before)
-          // We need to update the State Type of 'recommendations' to allow UI types.
-          // setRecommendations(adaptedData); 
-          // NOTE: We must ensure 'setRecommendations' accepts UIBlendRecommendation.
-          // TypeScript Check: const [recommendations, setRecommendations] = useState<(UIStackRecommendation | UIBlendRecommendation)[]>([]);
+            // Adapter Strategy (Prompt B)
+            // Always adapt first result for Blend Flow
+            const adapted = adaptEngineResult(result.data[0]);
 
-          // @ts-ignore - Fixing type in next pass if state def is stale, but logic is paramount.
-          setRecommendations(adaptedData);
-
+            if (adapted) {
+              setBlendRec(adapted);
+              setIsAnalyzing(false);
+            } else {
+              throw new Error("Adapter returned null result");
+            }
+          } else {
+            throw new Error(result.error || 'Orchestrator returned failure');
+          }
+        } catch (e: any) {
+          console.error('APP: Orchestrator Failed', e);
           setIsAnalyzing(false);
-        } else {
-          console.error('APP: Orchestrator Failed', result.error);
-          setIsAnalyzing(false);
-          alert(`Analysis failed: ${result.error || 'Unknown error'}`);
+          alert(`Analysis failed: ${e.message}`);
           setView('input');
         }
       };
@@ -144,28 +137,26 @@ export default function App() {
     }
   }, [view, userInput, isAnalyzing]);
 
-  // ResolvingScreen onComplete should trigger 'results'
+  // ResolvingScreen onComplete trigger
   const handleResolvingComplete = () => {
-    if (recommendations.length > 0) {
-      setView('results');
-    }
+    if (blendRec) setView('results');
+    else if (stackRec) setView('stack-detail'); // Rare fallback
   };
 
-  const handleCalculate = (rec: EngineResult) => {
-    setSelectedRecommendation(rec);
+  const handleCalculate = () => {
     setCalculatorOpen(true);
   };
 
   const handleBack = () => {
     setView('input');
-    setRecommendations([]);
+    setStackRec(null);
+    setBlendRec(null);
     setUserInput(null);
     setIsAnalyzing(false);
   };
 
   return (
     <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
-      {/* Global Background Effects */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/60 rounded-full blur-[120px] animate-pulse-slow" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/60 rounded-full blur-[100px] animate-pulse-slow delay-700" />
@@ -191,7 +182,6 @@ export default function App() {
           </>
         ) : (
           <>
-            {/* ANALYZING OVERLAY (Visible Feedback) */}
             <AnimatePresence>
               {isAnalyzing && (
                 <motion.div
@@ -221,31 +211,27 @@ export default function App() {
             {view === 'resolving' && userInput && (
               <ResolvingScreen
                 input={userInput}
-                recommendation={recommendations[0] || null}
+                recommendation={blendRec || stackRec as any}
                 onComplete={handleResolvingComplete}
               />
             )}
 
-            {/* RESULTS SCREEN */}
-            {view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'blend' && (
+            {/* RESULTS SCREEN (Blends Only) */}
+            {view === 'results' && blendRec && (
               <ResultsScreen
-                recommendations={recommendations}
+                recommendations={[blendRec]} // Array expected by ResultsScreen
                 onCalculate={handleCalculate}
                 onBack={handleBack}
-                onShare={(rec) => {
-                  setSelectedRecommendation(rec);
-                  setQRShareOpen(true);
-                }}
+                onShare={(rec) => setQRShareOpen(true)}
               />
             )}
 
-            {/* STACK DETAIL (Preset or Engine) */}
-            {(view === 'stack-detail' || (view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'stack')) && selectedRecommendation && (
+            {/* STACK DETAIL (Stacks Only) - Prompt D */}
+            {(view === 'stack-detail' || (view === 'results' && stackRec)) && stackRec && (
               <StackDetailScreen
-                stack={selectedRecommendation} // Use selected OR first rec
+                stack={stackRec}
                 onBack={() => {
-                  // If from presets, back to presets. If from engine, back to results/input?
-                  // View state tells us history roughly.
+                  // Back logic
                   if (view === 'results') setView('input');
                   else setView('presets');
                 }}
@@ -259,29 +245,26 @@ export default function App() {
               />
             )}
 
-            {/* NEW: Strain Library Route */}
             {view === 'library' && (
               <StrainLibraryScreen onBack={() => setView('input')} />
             )}
 
             {/* Components */}
-            {calculatorOpen && selectedRecommendation && (
+            {(calculatorOpen && (stackRec || blendRec)) && (
               <CalculatorModal
-                recommendation={selectedRecommendation}
+                recommendation={(stackRec || blendRec)!}
                 onClose={() => setCalculatorOpen(false)}
               />
             )}
-            {qrShareOpen && selectedRecommendation && (
+
+            {/* QR SHARE - Blend Only (Prompt E) */}
+            {qrShareOpen && blendRec && (
               <QRShareModal
-                recommendation={selectedRecommendation} // Typed as generic EngineResult in logic, Modal expects UIBlend?
-                // Note: Share modal likely expects UIBlendRecommendation. 
-                // Casting/Checking might be needed if Stack passed.
-                // For now assume Blend.
+                recommendation={blendRec}
                 onClose={() => setQRShareOpen(false)}
               />
             )}
 
-            {/* Library Access Button on Input Screen (Optional wiring) */}
             {view === 'input' && (
               <button
                 onClick={() => setView('library')}
@@ -290,12 +273,10 @@ export default function App() {
                 Strain Lib
               </button>
             )}
-
           </>
         )}
       </main>
 
-      {/* Admin Quick Access */}
       {!showSplash && !showEntryGate && mode !== 'admin' && (
         <button
           onClick={() => setMode('admin')}
