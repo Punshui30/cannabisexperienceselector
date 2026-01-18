@@ -26,6 +26,12 @@ type UserInput = IntentSeed;
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [showEntryGate, setShowEntryGate] = useState(true);
+
+  // VISUAL LAYER CONTROL
+  // Hard-lock visuals to ENABLED (isStatic = false) to prevent suppression
+  const isStatic = false;
+  console.log('VISUAL LAYER:', isStatic ? 'STATIC' : 'ACTIVE_ANIMATED');
+
   const [mode, setMode] = useState<'user' | 'admin'>('user');
   const [view, setView] = useState<ViewState>('splash');
   const [userInput, setUserInput] = useState<UserInput | null>(null);
