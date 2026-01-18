@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { EngineResult, UIBlendRecommendation } from '../types/domain';
+import { EngineResult, UIBlendRecommendation, assertBlend } from '../types/domain';
 import { adaptEngineResult } from '../lib/adaptEngineResult';
 import { SwipeDeck } from './SwipeDeck';
 import { BlendCard } from './BlendCard';
