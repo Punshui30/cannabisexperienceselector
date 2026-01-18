@@ -36,7 +36,7 @@ export default function App() {
 
   // SPLIT STATE (Strict Firewall)
   const [stackRec, setStackRec] = useState<UIStackRecommendation | null>(null);
-  const [blendRec, setBlendRec] = useState<UIBlendRecommendation | null>(null);
+  const [blendRec, setBlendRec] = useState<UIBlendRecommendation | UIStackRecommendation | null>(null);
 
   // Shared UI State
   const [calculatorOpen, setCalculatorOpen] = useState(false);

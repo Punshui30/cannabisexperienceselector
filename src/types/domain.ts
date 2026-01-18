@@ -120,7 +120,7 @@ export type UIStackRecommendation = {
     reasoning: string;
     totalDuration: string;
     layers: Array<{
-        type: 'cultivar' | 'blend'; // New Discriminator
+        type: 'cultivar' | 'blend';
         layerName: string;
         cultivars: Array<{
             name: string;
@@ -128,19 +128,18 @@ export type UIStackRecommendation = {
             profile: string;
             characteristics: string[];
         }>;
-        phaseIntent: string;
-        whyThisPhase: string;
-        onsetEstimate: string;
-        durationEstimate: string;
-        consumptionGuidance: string;
-        purpose: string;
-        timing: string;
+        phaseIntent?: string;
+        whyThisPhase?: string;
+        onsetEstimate?: string;
+        durationEstimate?: string;
+        consumptionGuidance?: string;
+        purpose?: string;
+        timing?: string;
     }>;
-    // Explicitly disallow single-blend properties
-    cultivars?: never;
-    effects?: never;
-    timeline?: never;
-    confidence?: never;
+    // Common fields allowed
+    effects?: { onset: string; peak: string; duration: string };
+    timeline?: any[];
+    confidence?: number;
 };
 
 /**
