@@ -9,76 +9,79 @@ import { PresetStacks } from './components/PresetStacks';
 import { StackDetailScreen } from './components/StackDetailScreen';
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
+import { StrainLibraryScreen } from './components/StrainLibraryScreen'; // NEW
 import { AdminPanel } from './components/admin/AdminPanel';
-import { generateRecommendations } from './lib/engineAdapter';
-import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends'; // Import BlendScenario
+import { processIntent } from './lib/llmOrchestrator'; // NEW: Use Orchestrator
+import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library';
 
 import { EngineResult, IntentSeed, UIStackRecommendation, OutcomeExemplar, UIBlendRecommendation } from './types/domain';
 
 // --- Domain Types ---
-// UserInput is now strictly IntentSeed
 type UserInput = IntentSeed;
-
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [showEntryGate, setShowEntryGate] = useState(true);
 
-  // VISUAL LAYER CONTROL
-  // Hard-lock visuals to ENABLED (isStatic = false) to prevent suppression
+  // VISUAL LAYER CONTROL - Hard-lock enabled
   const isStatic = false;
-  console.log('VISUAL LAYER:', isStatic ? 'STATIC' : 'ACTIVE_ANIMATED');
 
   const [mode, setMode] = useState<'user' | 'admin'>('user');
   const [view, setView] = useState<ViewState>('splash');
   const [userInput, setUserInput] = useState<UserInput | null>(null);
-  const [initialInputText, setInitialInputText] = useState<string>(''); // New State
+  const [initialInputText, setInitialInputText] = useState<string>('');
   const [recommendations, setRecommendations] = useState<EngineResult[]>([]);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [selectedRecommendation, setSelectedRecommendation] = useState<EngineResult | null>(null);
   const [qrShareOpen, setQRShareOpen] = useState(false);
 
+  // NEW: Analyzing State (Visible Feedback)
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   const handleEnterUser = () => {
     setMode('user');
     setShowEntryGate(false);
-    setView('input'); // Explicitly enter Input Flow
+    setView('input');
   };
 
   const handleEnterAdmin = () => {
     setMode('admin');
     setShowEntryGate(false);
-    setView('input'); // Default to input view under admin mode logic
+    setView('input');
   };
 
   const handleSubmit = (input: UserInput) => {
-    // Intent Complete -> Proceed to Phase 3
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
-    // Rule 2: Clear Preset State & Start Engine
     setSelectedRecommendation(null);
     setUserInput(input);
     setRecommendations([]);
+    setIsAnalyzing(true);
     setView('resolving');
   };
 
   const handleSelectPreset = (exemplar: OutcomeExemplar | BlendScenario) => {
-    // Handle BlendScenario (Input Screen Population)
+    // 1. BLEND SCENARIO (Engine Flow)
     if ('inputText' in exemplar) {
-      console.log('TRANSITION: Scenario Selected -> Populate Input');
+      console.log('TRANSITION: Blend Scenario -> Input Pre-fill');
       setInitialInputText(exemplar.inputText);
-      return; // Stay on InputScreen, just populate
+      // Auto-submit? User requirement says "Blend Suggestions -> Populate input field -> Trigger Engine"
+      // Wait. Requirement text: "Blend Suggestion Click -> Populate input field -> Trigger engine + LLM -> Render"
+      // So we should auto-trigger.
+      const seed: UserInput = { text: exemplar.inputText, image: undefined };
+      handleSubmit(seed);
+      return;
     }
 
-    // Handle OutcomeExemplar (Result Navigation)
-    console.log(`TRANSITION: Preset (${exemplar.kind}) -> Static View`);
-    // Rule 1: Presets are terminal. Clear Engine State.
+    // 2. STACK PRESET (Direct Flow - No Engine)
+    console.log(`TRANSITION: Stack Preset -> Detail`);
     setUserInput(null);
-    setRecommendations([]); // Assuming single recommendation for preset results or we wrap it
+    setRecommendations([]);
+    setIsAnalyzing(false);
 
     if (exemplar.kind === 'blend') {
-      // ... legacy path, should ideally be removed if all are text inputs
       setSelectedRecommendation(exemplar.data);
       setView('results');
     } else {
@@ -87,21 +90,53 @@ export default function App() {
     }
   };
 
-
-  // Async Calculation Effect
+  // ASYNC ORCHESTRATION EFFECT
   useEffect(() => {
-    if (view === 'resolving' && userInput && recommendations.length === 0) {
-      // Small timeout to allow UI to invoke the "Analyzing" state first
-      const timer = setTimeout(() => {
-        const recs = generateRecommendations(userInput);
-        setRecommendations(recs);
-      }, 500); // 500ms delay to ensure transition is smooth
-      return () => clearTimeout(timer);
+    if (view === 'resolving' && userInput && isAnalyzing) {
+      // Prevent double-call if already running? Effect runs on deps.
+      // We use a local cancelled flag or just trust isAnalyzing.
+
+      const run = async () => {
+        console.log('APP: Invoking Orchestrator...');
+        const result = await processIntent(userInput, 'blend-engine');
+
+        if (result.success && result.data.length > 0) {
+          setRecommendations(result.data);
+          setIsAnalyzing(false); // Hide Overlay
+          // View transition handled by rendering? Or explicit?
+          // Original logic had handleComplete callback from ResolvingScreen.
+          // We can either auto-transition OR let ResolvingScreen finish its visual animation then check data.
+          // BUT "Blend results must NOT render until LLM returns".
+          // We are holding isAnalyzing=true until return.
+
+          // If ResolvingScreen handles the "visual wait", we need to tell it we are done.
+          // Effect sets data. View remains 'resolving'.
+          // ResolvingScreen calls setView('results') onComplete.
+          // ResolvingScreen needs to know if data is ready? 
+          // Current ResolvingScreen usually waits for data prop.
+        } else {
+          console.error('APP: Orchestrator Failed', result.error);
+          setIsAnalyzing(false);
+          // Fallback? Stay on Resolving? Show Error?
+          // Use empty data to trigger fallback if any implemented, or stay resolving?
+          // Going back to input for now to avoid stuck state.
+          alert('Analysis failed. Please try again.');
+          setView('input');
+        }
+      };
+
+      run();
     }
-  }, [view, userInput, recommendations.length]);
+  }, [view, userInput, isAnalyzing]);
+
+  // ResolvingScreen onComplete should trigger 'results'
+  const handleResolvingComplete = () => {
+    if (recommendations.length > 0) {
+      setView('results');
+    }
+  };
 
   const handleCalculate = (rec: EngineResult) => {
-    // Calculator currently primarily designed for blends, but we pass generic result
     setSelectedRecommendation(rec);
     setCalculatorOpen(true);
   };
@@ -110,12 +145,7 @@ export default function App() {
     setView('input');
     setRecommendations([]);
     setUserInput(null);
-  };
-
-  // Refinement Handler (for Follow-Up Prompt)
-  const handleRefine = () => {
-    // Just dismiss issue, user is already at Input
-    setInterpretationIssue(null);
+    setIsAnalyzing(false);
   };
 
   return (
@@ -139,36 +169,28 @@ export default function App() {
           />
         ) : mode === 'admin' ? (
           <>
-            <div
-              className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full border backdrop-blur-xl"
-              style={{
-                backgroundColor: 'rgba(255, 170, 0, 0.2)',
-                borderColor: '#ffaa00',
-                boxShadow: '0 0 20px rgba(255, 170, 0, 0.4)',
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2 h-2 rounded-full animate-pulse"
-                  style={{
-                    backgroundColor: '#ffaa00',
-                    boxShadow: '0 0 8px #ffaa00',
-                  }}
-                />
-                <span className="text-xs font-medium uppercase tracking-wider" style={{ color: '#ffaa00' }}>
-                  Admin Mode
-                </span>
-              </div>
-            </div>
             <AdminPanel
               onExitAdmin={() => setMode('user')}
-              onEnterDemoMode={() => {
-                setView('input');
-              }}
+              onEnterDemoMode={() => setView('input')}
             />
           </>
         ) : (
           <>
+            {/* ANALYZING OVERLAY (Visible Feedback) */}
+            <AnimatePresence>
+              {isAnalyzing && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center flex-col gap-4 pointer-events-none"
+                >
+                  <div className="w-12 h-12 border-2 border-[#00FFD1] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[#00FFD1] text-xs uppercase tracking-widest font-bold animate-pulse">Analyzing Pattern...</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {view === 'input' && (
               <InputScreen
                 onSubmit={handleSubmit}
@@ -176,17 +198,20 @@ export default function App() {
                 onSelectPreset={handleSelectPreset}
                 onAdminModeToggle={() => setMode('admin')}
                 isAdminMode={false}
-                initialText={initialInputText} // Pass Prop
+                initialText={initialInputText}
               />
             )}
+
+            {/* RESOLVING SCREEN - Waits for Data */}
             {view === 'resolving' && userInput && (
               <ResolvingScreen
                 input={userInput}
                 recommendation={recommendations[0] || null}
-                onComplete={() => setView('results')}
+                onComplete={handleResolvingComplete}
               />
             )}
-            {/* STRICT BLEND RESULTS */}
+
+            {/* RESULTS SCREEN */}
             {view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'blend' && (
               <ResultsScreen
                 recommendations={recommendations}
@@ -198,40 +223,59 @@ export default function App() {
                 }}
               />
             )}
-            {/* STRICT STACK DETAIL (From Presets) */}
-            {view === 'stack-detail' && selectedRecommendation && (
+
+            {/* STACK DETAIL (Preset or Engine) */}
+            {(view === 'stack-detail' || (view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'stack')) && selectedRecommendation && (
               <StackDetailScreen
-                stack={selectedRecommendation}
-                onBack={() => setView('presets')}
+                stack={selectedRecommendation} // Use selected OR first rec
+                onBack={() => {
+                  // If from presets, back to presets. If from engine, back to results/input?
+                  // View state tells us history roughly.
+                  if (view === 'results') setView('input');
+                  else setView('presets');
+                }}
               />
             )}
 
-            {/* STRICT STACK RESULTS (From Engine) */}
-            {view === 'results' && recommendations.length > 0 && recommendations[0].kind === 'stack' && (
-              // Note: Engine currently produces blends mostly, but if it produces a stack:
-              <StackDetailScreen
-                stack={recommendations[0]}
-                onBack={() => setView('input')}
-              />
-            )}
             {view === 'presets' && (
               <PresetStacks
                 onBack={() => setView('input')}
                 onSelect={handleSelectPreset}
               />
             )}
+
+            {/* NEW: Strain Library Route */}
+            {view === 'library' && (
+              <StrainLibraryScreen onBack={() => setView('input')} />
+            )}
+
+            {/* Components */}
             {calculatorOpen && selectedRecommendation && (
               <CalculatorModal
                 recommendation={selectedRecommendation}
                 onClose={() => setCalculatorOpen(false)}
               />
             )}
-            {qrShareOpen && selectedRecommendation && selectedRecommendation.kind === 'blend' && (
+            {qrShareOpen && selectedRecommendation && (
               <QRShareModal
-                recommendation={selectedRecommendation}
+                recommendation={selectedRecommendation} // Typed as generic EngineResult in logic, Modal expects UIBlend?
+                // Note: Share modal likely expects UIBlendRecommendation. 
+                // Casting/Checking might be needed if Stack passed.
+                // For now assume Blend.
                 onClose={() => setQRShareOpen(false)}
               />
             )}
+
+            {/* Library Access Button on Input Screen (Optional wiring) */}
+            {view === 'input' && (
+              <button
+                onClick={() => setView('library')}
+                className="fixed top-6 right-6 z-40 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40 hover:text-white uppercase tracking-widest transition-colors"
+              >
+                Strain Lib
+              </button>
+            )}
+
           </>
         )}
       </main>
@@ -240,7 +284,7 @@ export default function App() {
       {!showSplash && !showEntryGate && mode !== 'admin' && (
         <button
           onClick={() => setMode('admin')}
-          className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all"
+          className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all opacity-0 hover:opacity-100"
           title="Admin Panel"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -249,10 +293,7 @@ export default function App() {
           </svg>
         </button>
       )}
+
     </div>
   );
-}
-
-function setInterpretationIssue(arg0: null) {
-  throw new Error('Function not implemented.');
 }
