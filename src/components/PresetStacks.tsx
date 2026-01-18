@@ -5,6 +5,7 @@ import type { OutcomeExemplar, UIStackRecommendation } from '../types/domain';
 import logoImg from '../assets/logo.png';
 import { getGlassCardStyles } from '../lib/glassStyles';
 import { getCultivarVisuals } from '../lib/cultivarData';
+import { ProtocolStrip } from './ProtocolStrip';
 
 
 
@@ -77,19 +78,6 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                 <div className="relative z-10 flex flex-col flex-1 justify-end pt-32">
                   <h3 className="text-3xl font-light text-white mb-2 leading-tight serif">{exemplar.title}</h3>
                   <p className="text-white/60 text-sm mb-4 leading-relaxed line-clamp-3">{exemplar.subtitle}</p>
-
-                  import {ProtocolStrip} from './ProtocolStrip';
-                  // ... imports
-
-                  // ... Remove VerticalStackVisual definitions ...
-
-                  // ... Inside PresetStacks ...
-                  {/* VERTICAL STACK VISUALIZATION - ProtocolStrip */}
-                  {exemplar.kind === 'stack' && (
-                    <div className="flex-1 w-full flex items-center justify-center my-4 scale-75 origin-center">
-                      <ProtocolStrip data={exemplar.data as UIStackRecommendation} />
-                    </div>
-                  )}
 
                   <div className="flex justify-between items-center pt-4 border-t border-white/10">
                     <div className="px-3 py-1.5 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[10px] font-bold text-[#00FFD1] uppercase tracking-widest">
