@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { VoiceFeedback } from './VoiceFeedback';
+import { BlendCompositionBar } from './visuals/BlendCompositionBar';
 
 interface BlendCardProps {
   recommendation: UIBlendRecommendation;
@@ -57,48 +58,9 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               </div>
             </div>
 
-            {/* Radial Visualization Section */}
-            <div className="relative h-[280px] w-full flex items-center justify-center py-4">
-              {/* Inner Info */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
-                <div className="text-center">
-                  <span className="block text-[10px] uppercase tracking-[0.2em] text-white/30 mb-1">Ratio</span>
-                  {/* Dynamic breakdown text could go here */}
-                </div>
-              </div>
-
-              {/* SVG Donut Chart */}
-              <svg viewBox="0 0 100 100" className="-rotate-90 w-full h-full max-h-[240px] drop-shadow-2xl">
-                {recommendation.cultivars.filter(Boolean).map((cultivar, idx) => {
-                  // Calculate cumulative stroke dashes
-                  const total = recommendation.cultivars.reduce((acc, c) => acc + c.ratio, 0);
-                  const previousRatios = recommendation.cultivars.slice(0, idx).reduce((acc, c) => acc + c.ratio, 0);
-                  const dashArray = (cultivar.ratio / total) * 314; // 2 * PI * R (R=50 maps to 100 viewbox? No, R=radius)
-                  // Using circumference ≈ 251 for r=40
-                  const radius = 40;
-                  const circumference = 2 * Math.PI * radius;
-                  const strokeDasharray = `${(cultivar.ratio / total) * circumference} ${circumference}`;
-                  const strokeDashoffset = -((previousRatios / total) * circumference);
-
-                  return (
-                    <circle
-                      key={idx}
-                      cx="50"
-                      cy="50"
-                      r={radius}
-                      fill="none"
-                      stroke={cultivar.color}
-                      strokeWidth="8"
-                      strokeDasharray={strokeDasharray}
-                      strokeDashoffset={strokeDashoffset}
-                      strokeLinecap="round" // Optional, round caps might look weird if segments touch
-                      className="transition-all duration-1000 ease-out hover:stroke-width-[10]"
-                    />
-                  );
-                })}
-              </svg>
-
-              {/* Cultivar Labels mapped around or list below */}
+            {/* VISUALIZATION: SINGLE HORIZONTAL PERCENTAGE BAR (Strict Rule 2) */}
+            <div className="w-full py-4 px-2">
+              <BlendCompositionBar blend={recommendation} />
             </div>
 
             {/* Cultivar Legend & Terpene Indicators directly on face */}

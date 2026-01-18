@@ -17,7 +17,7 @@ import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
 import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar } from './types/domain';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library' | 'error';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -25,6 +25,7 @@ export default function App() {
 
   const [mode, setMode] = useState<'user' | 'admin'>('user');
   const [view, setView] = useState<ViewState>('splash');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Input State
   const [userInput, setUserInput] = useState<IntentSeed | null>(null);
@@ -125,11 +126,12 @@ export default function App() {
           } else {
             throw new Error(result.error || 'Orchestrator returned failure');
           }
+          setView('input');
         } catch (e: any) {
           console.error('APP: Orchestrator Failed', e);
           setIsAnalyzing(false);
-          alert(`Analysis failed: ${e.message}`);
-          setView('input');
+          setErrorMessage(e.message || 'Analysis Failed');
+          setView('error');
         }
       };
 
@@ -247,6 +249,27 @@ export default function App() {
 
             {view === 'library' && (
               <StrainLibraryScreen onBack={() => setView('input')} />
+            )}
+
+            {/* ERROR SCREEN */}
+            {view === 'error' && (
+              <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-8 bg-black/90 backdrop-blur-md">
+                <div className="text-[#FF0055] mb-4">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-serif text-white mb-2">Analysis Interrupted</h2>
+                <p className="text-white/60 text-center max-w-sm mb-8">{errorMessage}</p>
+                <button
+                  onClick={() => setView('input')}
+                  className="px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all uppercase text-xs tracking-widest"
+                >
+                  Return to Input
+                </button>
+              </div>
             )}
 
             {/* Components */}

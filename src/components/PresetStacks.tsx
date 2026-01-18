@@ -3,7 +3,7 @@ import { SwipeDeck } from './SwipeDeck';
 import { PRESET_STACKS } from '../data/presetStacks';
 import type { OutcomeExemplar, UIStackRecommendation } from '../types/domain';
 import logoImg from '../assets/logo.png';
-import { StackLineGraph } from './visuals/StackLineGraph';
+// Graph Removed
 import { TerpeneDisplay } from './visuals/TerpeneDisplay';
 
 export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelect: (stack: OutcomeExemplar) => void }) {
@@ -74,12 +74,7 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                   }}
                 />
 
-                {/* VISUAL LAYER: Line Graph (Absolute Top Third) */}
-                <div className="absolute top-8 left-0 right-0 h-24 z-10 opacity-60 pointer-events-none">
-                  {exemplar.kind === 'stack' && (
-                    <StackLineGraph stack={exemplar.data as UIStackRecommendation} />
-                  )}
-                </div>
+                {/* Visual Layer Removed - Static Card Only */}
 
                 {/* Spacer to push content down if needed, but flex-end handles bottom alignment */}
                 {/* We just need to ensure title doesn't overlap graph too much. Graph is top-8 to h-24 (top 32+96=128px). Card height is large. */}

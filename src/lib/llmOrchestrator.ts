@@ -135,8 +135,7 @@ async function callLLM(intent: IntentSeed, engineData: EngineResult[], targets: 
 
         if (!response.ok) {
             console.warn('LLM PROXY FAILED', response.status, response.statusText);
-            // Fallback to engine data if network fails, BUT it must still pass validation.
-            return engineData;
+            throw new Error(`LLM Service Unavailable: ${response.status} ${response.statusText}`);
         }
 
         // Parse result... simplified for this demo as we might not get structured JSON back
@@ -147,6 +146,6 @@ async function callLLM(intent: IntentSeed, engineData: EngineResult[], targets: 
 
     } catch (e) {
         console.warn('LLM NETWORK ERROR', e);
-        return engineData;
+        throw new Error('LLM Network Failure');
     }
 }
