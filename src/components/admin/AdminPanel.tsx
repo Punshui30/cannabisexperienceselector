@@ -22,7 +22,17 @@ export function AdminPanel({
   onEnterDemoMode,
 }: Props) {
   const [currentView, setCurrentView] = useState<AdminView>("home");
-  // ... existing state
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
+  const [showOperatorDemo, setShowOperatorDemo] = useState(false);
+
+  const handleToggleDemoMode = () => {
+    const newMode = !demoMode;
+    setDemoMode(newMode);
+    if (newMode) {
+      onEnterDemoMode();
+    }
+  };
 
   // INTELLIGENCE VIEW
   if (currentView === "intelligence") {
@@ -52,7 +62,6 @@ export function AdminPanel({
         style={{ backgroundColor: COLORS.background }}
       >
         {/* Header - Admin Mode Indicator */}
-        {/* ... existing header ... */}
         <div
           className="flex-shrink-0 px-6 pt-6 pb-4 border-b"
           style={{ borderColor: COLORS.neutral.border }}
