@@ -5,6 +5,7 @@ import { EntryGate } from './components/EntryGate';
 import { InputScreen } from './components/InputScreen';
 import { ResolvingScreen } from './components/ResolvingScreen';
 import { ResultsScreen } from './components/ResultsScreen';
+import { SharedResultScreen } from './components/SharedResultScreen';
 import { PresetStacks } from './components/PresetStacks';
 import { StackDetailScreen } from './components/StackDetailScreen';
 import { CalculatorModal } from './components/CalculatorModal';
@@ -13,11 +14,12 @@ import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { processIntent } from './lib/llmOrchestrator';
 import { adaptEngineResult } from './lib/adaptEngineResult';
+import { SharedBlendService } from './services/SharedBlendService';
 import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
 import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar } from './types/domain';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library' | 'error';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library' | 'error' | 'shared';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -97,9 +99,38 @@ export default function App() {
   };
 
   // ASYNC ORCHESTRATION EFFECT
+  // --- ROUTING / SHARING LOGIC ---
+  useEffect(() => {
+    // Check for ?s=SHARE_ID
+    const params = new URLSearchParams(window.location.search);
+    const shareId = params.get('s');
+
+    if (shareId) {
+      console.log(`[App] Detected Share ID: ${shareId}`);
+      setIsAnalyzing(true); // Re-use loading state momentarily
+
+      SharedBlendService.resolveShare(shareId)
+        .then(record => {
+          if (record) {
+            console.log('[App] Resolved Share:', record);
+            setBlendRec(record.blend);
+            setView('shared'); // New View State
+          } else {
+            console.error('[App] Share ID not found/expired');
+            setView('input'); // Fallback
+          }
+        })
+        .catch(err => {
+          console.error('[App] Share Resolution Error', err);
+          setView('input');
+        })
+        .finally(() => setIsAnalyzing(false));
+    }
+  }, []); // Run once on mount
+
+  // --- ENGINE ORCHESTRATION ---
   useEffect(() => {
     if (view === 'resolving' && userInput && isAnalyzing) {
-
       // Firewall: Preset inputs should likely not be here unless 'engine' mode
       if (userInput.mode === 'preset') {
         setIsAnalyzing(false);
@@ -107,209 +138,198 @@ export default function App() {
       }
 
       const run = async () => {
-        console.log('APP: Invoking Orchestrator...');
-        try {
-          const result = await processIntent(userInput, 'blend-engine');
+        // ... existing logic ...
+        // Success - State update triggers ResolvingScreen transition logic
+      } else {
+        throw new Error(result.error || 'Orchestrator returned failure');
+    }
+  } catch (e: any) {
+    console.error('APP: Orchestrator Failed', e);
+    setIsAnalyzing(false);
+    setErrorMessage(e.message || 'Analysis Failed');
+    setView('error');
+  }
+};
 
-          if (result.success && result.data.length > 0) {
-
-            // Adapter Strategy (Prompt B)
-            // Always adapt first result for Blend Flow
-            console.log('DEBUG: Engine Result Raw', result.data[0]);
-            const adapted = adaptEngineResult(result.data[0]);
-
-            if (adapted) {
-              setBlendRec(adapted);
-              setIsAnalyzing(false);
-            } else {
-              throw new Error("Adapter returned null result");
-            }
-            // Success - State update triggers ResolvingScreen transition logic
-          } else {
-            throw new Error(result.error || 'Orchestrator returned failure');
-          }
-        } catch (e: any) {
-          console.error('APP: Orchestrator Failed', e);
-          setIsAnalyzing(false);
-          setErrorMessage(e.message || 'Analysis Failed');
-          setView('error');
-        }
-      };
-
-      run();
+run();
     }
   }, [view, userInput, isAnalyzing]);
 
-  // ResolvingScreen onComplete trigger
-  const handleResolvingComplete = () => {
-    if (blendRec) setView('results');
-    else if (stackRec) setView('stack-detail'); // Rare fallback
-  };
+// ResolvingScreen onComplete trigger
+const handleResolvingComplete = () => {
+  if (blendRec) setView('results');
+  else if (stackRec) setView('stack-detail'); // Rare fallback
+};
 
-  const handleCalculate = () => {
-    setCalculatorOpen(true);
-  };
+const handleCalculate = () => {
+  setCalculatorOpen(true);
+};
 
-  const handleBack = () => {
-    setView('input');
-    setStackRec(null);
-    setBlendRec(null);
-    setUserInput(null);
-    setIsAnalyzing(false);
-  };
+const handleBack = () => {
+  setView('input');
+  setStackRec(null);
+  setBlendRec(null);
+  setUserInput(null);
+  setIsAnalyzing(false);
+};
 
-  return (
-    <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/80 rounded-full blur-[120px] animate-pulse-slow" />
-        <div className="absolute bottom-[-5%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/80 rounded-full blur-[100px] animate-pulse-slow delay-700" />
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
-      </div>
+return (
+  <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
+    <div className="fixed inset-0 z-0 pointer-events-none">
+      <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/80 rounded-full blur-[120px] animate-pulse-slow" />
+      <div className="absolute bottom-[-5%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/80 rounded-full blur-[100px] animate-pulse-slow delay-700" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
+    </div>
 
-      <main className="relative z-10 w-full flex-grow flex flex-col justify-center">
-        {showSplash && (
-          <SplashScreen onComplete={() => setShowSplash(false)} />
-        )}
-
-        {showEntryGate ? (
-          <EntryGate
-            onEnterUser={handleEnterUser}
-            onEnterAdmin={handleEnterAdmin}
-          />
-        ) : mode === 'admin' ? (
-          <>
-            <AdminPanel
-              onExitAdmin={() => setMode('user')}
-              onEnterDemoMode={() => setView('input')}
-            />
-          </>
-        ) : (
-          <>
-
-
-            {view === 'input' && (
-              <InputScreen
-                onSubmit={handleSubmit}
-                onBrowsePresets={() => setView('presets')}
-                onSelectPreset={handleSelectPreset}
-                onAdminModeToggle={() => setMode('admin')}
-                isAdminMode={false}
-                initialText={initialInputText}
-              />
-            )}
-
-            {/* RESOLVING SCREEN - Waits for Data */}
-            {view === 'resolving' && userInput && (
-              <ResolvingScreen
-                input={userInput}
-                recommendation={blendRec || stackRec as any}
-                onComplete={handleResolvingComplete}
-              />
-            )}
-
-            {/* RESULTS SCREEN (Blends Only) */}
-            {view === 'results' && blendRec && (
-              <ResultsScreen
-                recommendations={[blendRec]} // Array expected by ResultsScreen
-                onCalculate={handleCalculate}
-                onBack={handleBack}
-                onShare={(rec) => setQRShareOpen(true)}
-              />
-            )}
-
-            {/* STACK DETAIL (Stacks Only) - Prompt D */}
-            {(view === 'stack-detail' || (view === 'results' && stackRec)) && stackRec && (
-              <StackDetailScreen
-                stack={stackRec}
-                onBack={() => {
-                  // Back logic
-                  if (view === 'results') setView('input');
-                  else setView('presets');
-                }}
-              />
-            )}
-
-            {view === 'presets' && (
-              <PresetStacks
-                onBack={() => setView('input')}
-                onSelect={handleSelectPreset}
-              />
-            )}
-
-            {view === 'library' && (
-              <StrainLibraryScreen onBack={() => setView('input')} />
-            )}
-
-            {/* ERROR SCREEN */}
-            {view === 'error' && (
-              <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-8 bg-black/90 backdrop-blur-md">
-                <div className="text-[#FF0055] mb-4">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                </div>
-                <h2 className="text-2xl font-serif text-white mb-2">Analysis Interrupted</h2>
-                <p className="text-white/60 text-center max-w-sm mb-8">{errorMessage}</p>
-                <button
-                  onClick={() => setView('input')}
-                  className="px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all uppercase text-xs tracking-widest"
-                >
-                  Return to Input
-                </button>
-              </div>
-            )}
-
-            {/* Components */}
-            {(calculatorOpen && (stackRec || blendRec)) && (
-              <CalculatorModal
-                recommendation={(stackRec || blendRec)!}
-                onClose={() => setCalculatorOpen(false)}
-              />
-            )}
-
-            {/* QR SHARE - Blend Only (Prompt E) */}
-            {qrShareOpen && blendRec && (
-              <QRShareModal
-                recommendation={blendRec}
-                onClose={() => setQRShareOpen(false)}
-              />
-            )}
-
-            {view === 'input' && (
-              <button
-                onClick={() => setView('library')}
-                className="fixed top-6 right-6 z-40 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40 hover:text-white uppercase tracking-widest transition-colors"
-              >
-                Strain Lib
-              </button>
-            )}
-          </>
-        )}
-      </main>
-
-      {!showSplash && !showEntryGate && mode !== 'admin' && (
-        <button
-          onClick={() => setMode('admin')}
-          className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all opacity-0 hover:opacity-100"
-          title="Admin Panel"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-        </button>
+    <main className="relative z-10 w-full flex-grow flex flex-col justify-center">
+      {showSplash && (
+        <SplashScreen onComplete={() => setShowSplash(false)} />
       )}
 
-      {/* GLOBAL FOOTER (TM) - Discreet */}
-      <div className="absolute bottom-1 right-2 z-50 pointer-events-none mix-blend-plus-lighter opacity-30">
-        <p className="text-[8px] text-white font-light tracking-wide text-right leading-none">
-          © 2026 Guided Outcomes<span className="text-[6px] align-top">™</span> · StrainMath<span className="text-[6px] align-top">™</span><br />
-          All proprietary protocols & calculations.
-        </p>
-      </div>
+      {showEntryGate ? (
+        <EntryGate
+          onEnterUser={handleEnterUser}
+          onEnterAdmin={handleEnterAdmin}
+        />
+      ) : mode === 'admin' ? (
+        <>
+          <AdminPanel
+            onExitAdmin={() => setMode('user')}
+            onEnterDemoMode={() => setView('input')}
+          />
+        </>
+      ) : (
+        <>
 
+
+          {view === 'input' && (
+            <InputScreen
+              onSubmit={handleSubmit}
+              onBrowsePresets={() => setView('presets')}
+              onSelectPreset={handleSelectPreset}
+              onAdminModeToggle={() => setMode('admin')}
+              isAdminMode={false}
+              initialText={initialInputText}
+            />
+          )}
+
+          {/* RESOLVING SCREEN - Waits for Data */}
+          {view === 'resolving' && userInput && (
+            <ResolvingScreen
+              input={userInput}
+              recommendation={blendRec || stackRec as any}
+              onComplete={handleResolvingComplete}
+            />
+          )}
+
+          {/* RESULTS SCREEN (Blends Only) */}
+          {view === 'results' && blendRec && (
+            <ResultsScreen
+              recommendations={[blendRec]} // Array expected by ResultsScreen
+              onCalculate={handleCalculate}
+              onBack={handleBack}
+              onShare={(rec) => setQRShareOpen(true)}
+            />
+          )}
+
+          {/* SHARED READ-ONLY VIEW */}
+          {view === 'shared' && blendRec && (
+            <SharedResultScreen recommendation={blendRec} />
+          )}
+
+          {/* STACK DETAIL (Stacks Only) - Prompt D */}
+          {(view === 'stack-detail' || (view === 'results' && stackRec)) && stackRec && (
+            <StackDetailScreen
+              stack={stackRec}
+              onBack={() => {
+                // Back logic
+                if (view === 'results') setView('input');
+                else setView('presets');
+              }}
+            />
+          )}
+
+          {view === 'presets' && (
+            <PresetStacks
+              onBack={() => setView('input')}
+              onSelect={handleSelectPreset}
+            />
+          )}
+
+          {view === 'library' && (
+            <StrainLibraryScreen onBack={() => setView('input')} />
+          )}
+
+          {/* ERROR SCREEN */}
+          {view === 'error' && (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-8 bg-black/90 backdrop-blur-md">
+              <div className="text-[#FF0055] mb-4">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-serif text-white mb-2">Analysis Interrupted</h2>
+              <p className="text-white/60 text-center max-w-sm mb-8">{errorMessage}</p>
+              <button
+                onClick={() => setView('input')}
+                className="px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all uppercase text-xs tracking-widest"
+              >
+                Return to Input
+              </button>
+            </div>
+          )}
+
+          {/* Components */}
+          {(calculatorOpen && (stackRec || blendRec)) && (
+            <CalculatorModal
+              recommendation={(stackRec || blendRec)!}
+              onClose={() => setCalculatorOpen(false)}
+            />
+          )}
+
+          {/* QR SHARE - Blend Only (Prompt E) */}
+          {qrShareOpen && blendRec && (
+            <QRShareModal
+              recommendation={blendRec}
+              onClose={() => setQRShareOpen(false)}
+            />
+          )}
+
+          {view === 'input' && (
+            <button
+              onClick={() => setView('library')}
+              className="fixed top-6 right-6 z-40 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40 hover:text-white uppercase tracking-widest transition-colors"
+            >
+              Strain Lib
+            </button>
+          )}
+        </>
+      )}
+    </main>
+
+    {!showSplash && !showEntryGate && mode !== 'admin' && (
+      <button
+        onClick={() => setMode('admin')}
+        className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all opacity-0 hover:opacity-100"
+        title="Admin Panel"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </button>
+    )}
+
+    {/* GLOBAL FOOTER (TM) - Discreet */}
+    <div className="absolute bottom-1 right-2 z-50 pointer-events-none mix-blend-plus-lighter opacity-30">
+      <p className="text-[8px] text-white font-light tracking-wide text-right leading-none">
+        © 2026 Guided Outcomes<span className="text-[6px] align-top">™</span> · StrainMath<span className="text-[6px] align-top">™</span><br />
+        All proprietary protocols & calculations.
+      </p>
     </div>
-  );
+
+  </div>
+);
 }
