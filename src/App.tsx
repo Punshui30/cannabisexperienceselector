@@ -23,11 +23,30 @@ import './index.css';
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library' | 'error' | 'shared' | 'remote-access';
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [showEntryGate, setShowEntryGate] = useState(true);
+  // ROUTING / INITIALIZATION
+  const [showSplash, setShowSplash] = useState(() => {
+    if (window.location.pathname.includes('/preview') || window.location.search.includes('view=remote-access')) {
+      return false;
+    }
+    return true;
+  });
+
+  const [showEntryGate, setShowEntryGate] = useState(() => {
+    if (window.location.pathname.includes('/preview') || window.location.search.includes('view=remote-access')) {
+      return false;
+    }
+    return true;
+  });
 
   const [mode, setMode] = useState<'user' | 'admin'>('user');
-  const [view, setView] = useState<ViewState>('splash');
+
+  const [view, setView] = useState<ViewState>(() => {
+    // Check for public routes
+    if (window.location.pathname.includes('/preview') || window.location.search.includes('view=remote-access')) {
+      return 'remote-access';
+    }
+    return 'splash';
+  });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Input State
