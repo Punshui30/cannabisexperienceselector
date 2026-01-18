@@ -19,7 +19,7 @@ import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
 import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar } from './types/domain';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library' | 'error' | 'shared';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library' | 'error' | 'shared' | 'remote-access';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -101,11 +101,17 @@ export default function App() {
   // ASYNC ORCHESTRATION EFFECT
   // --- ROUTING / SHARING LOGIC ---
   useEffect(() => {
-    // Check for ?s=SHARE_ID
+    // 1. Check for Share ID
     const params = new URLSearchParams(window.location.search);
     const shareId = params.get('s');
 
-    if (shareId) {
+    // 2. Check for Remote Access Preview
+    const isRemotePreview = window.location.pathname.includes('/preview') || params.get('mode') === 'preview';
+
+    if (isRemotePreview) {
+      console.log('[App] Entering Remote Access Preview Mode');
+      setView('remote-access');
+    } else if (shareId) {
       console.log(`[App] Detected Share ID: ${shareId}`);
       setIsAnalyzing(true); // Re-use loading state momentarily
 
@@ -235,6 +241,11 @@ return (
           {/* SHARED READ-ONLY VIEW */}
           {view === 'shared' && blendRec && (
             <SharedResultScreen recommendation={blendRec} />
+          )}
+
+          {/* REMOTE ACCESS PREVIEW (Customer Demo) */}
+          {view === 'remote-access' && (
+            <RemoteAccessPreview />
           )}
 
           {/* STACK DETAIL (Stacks Only) - Prompt D */}
