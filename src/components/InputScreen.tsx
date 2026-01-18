@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, Camera, Upload, Search } from 'lucide-react';
-import { StrainLibrary } from './StrainLibrary';
+import { Mic, Camera, Search } from 'lucide-react';
 import { IntentSeed as UserInput } from '../types/domain';
-import { BLEND_SCENARIOS } from '../data/presetBlends';
+import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { SwipeDeck } from './SwipeDeck';
 import type { OutcomeExemplar } from '../types/domain'; // Import OutcomeExemplar
-import logoImg from '../assets/logo.png';
 
 // --- DESIGN TOKENS ---
 const GLASS_INPUT = "w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:border-[#00FFD1]/50 transition-colors text-sm";
@@ -142,7 +140,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   };
 
   return (
-    <div className="w-full h-screen flex flex-col relative z-10 overflow-hidden bg-black"> {/* h-screen fixed */}
+    <div className="w-full h-screen flex flex-col relative z-10 overflow-hidden bg-transparent"> {/* h-screen fixed */}
 
       {/* --- HEADER (Fixed) --- */}
       <div className="flex-shrink-0 pt-12 px-6 pb-4 bg-gradient-to-b from-black via-black to-transparent z-20">

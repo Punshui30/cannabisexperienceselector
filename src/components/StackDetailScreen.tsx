@@ -1,5 +1,7 @@
 import { motion } from 'motion/react';
 import { assertStack, EngineResult } from '../types/domain';
+import { cn } from './ui/utils';
+import { ACCENTS } from '../lib/accents';
 import logoImg from '../assets/logo.png';
 
 interface StackDetailScreenProps {
@@ -12,7 +14,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     assertStack(stack);
 
     return (
-        <div className="h-screen w-screen bg-black text-white p-6 flex flex-col font-sans overflow-hidden">
+        <div className="h-screen w-screen bg-transparent text-white p-6 flex flex-col font-sans overflow-hidden">
             {/* Header - Minimal height */}
             <div className="flex-none flex items-center justify-between mb-6 z-20 relative">
                 <button
@@ -50,75 +52,91 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
             <div className="flex-1 w-full max-w-6xl mx-auto flex flex-col justify-center">
                 <div className="flex flex-row items-stretch justify-between gap-4 h-full max-h-[400px]">
 
-                    {stack.layers.map((layer, idx) => (
-                        <div key={idx} className="flex-1 flex flex-col relative group">
+                    {stack.layers.map((layer, idx) => {
+                        // ROBUST KEY DETECTION
+                        const raw = layer.layerName.toLowerCase();
+                        let sectionKey: keyof typeof ACCENTS = 'core';
 
-                            {/* Connector Line (Horizontal) */}
-                            {idx < stack.layers.length - 1 && (
-                                <div className="absolute top-[20px] right-[-28px] w-10 h-[2px] bg-gradient-to-r from-[#7C5CFF] to-[#00FFD1] opacity-30 z-0 hidden md:block" />
-                            )}
-                            {/* Connector Arrow */}
-                            {idx < stack.layers.length - 1 && (
-                                <div className="absolute top-[8px] right-[-24px] w-6 h-6 rounded-full bg-[#111] border border-white/20 flex items-center justify-center z-10 hidden md:flex">
-                                    <span className="text-[8px] text-white/40">→</span>
-                                </div>
-                            )}
+                        if (raw.includes('tip')) sectionKey = 'tip';
+                        else if (raw.includes('base') || raw.includes('finish')) sectionKey = 'base';
+                        else sectionKey = 'core'; // covers 'core', 'middle', 'center'
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.15 }}
-                                className="h-full bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-all flex flex-col"
-                            >
-                                {/* Phase Header */}
-                                <div className="flex justify-between items-start mb-4 border-b border-white/5 pb-3">
-                                    <div>
-                                        <div className="text-[9px] uppercase tracking-widest text-[#00FFD1] font-bold mb-1">{layer.onsetEstimate}</div>
-                                        <h3 className="text-lg text-white font-medium">{layer.layerName.split(':')[0]}</h3>
-                                        <span className="text-xs text-white/60">{layer.layerName.split(':')[1]}</span>
+                        const accent = ACCENTS[sectionKey];
+
+                        return (
+                            <div key={idx} className="flex-1 flex flex-col relative group">
+
+                                {/* Connector Line (Horizontal) */}
+                                {idx < stack.layers.length - 1 && (
+                                    <div className="absolute top-[20px] right-[-28px] w-10 h-[2px] bg-gradient-to-r from-[#7C5CFF] to-[#00FFD1] opacity-30 z-0 hidden md:block" />
+                                )}
+                                {/* Connector Arrow */}
+                                {idx < stack.layers.length - 1 && (
+                                    <div className="absolute top-[8px] right-[-24px] w-6 h-6 rounded-full bg-[#111] border border-white/20 flex items-center justify-center z-10 hidden md:flex">
+                                        <span className="text-[8px] text-white/40">→</span>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-[8px] uppercase tracking-widest text-white/40 mb-1">Burn</div>
-                                        <div className="font-mono text-xs text-white/80">~{idx === 0 ? '10' : idx === 1 ? '15' : '10'}m</div>
-                                    </div>
-                                </div>
+                                )}
 
-                                {/* Content */}
-                                <div className="flex-1 space-y-4">
-                                    <div>
-                                        <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Physical Position</div>
-                                        <p className="text-white/90 text-xs leading-relaxed border-l-2 border-[#7C5CFF] pl-2">
-                                            {layer.phaseIntent}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Transition Logic</div>
-                                        <p className="text-white/60 text-[10px] italic leading-relaxed">
-                                            "{layer.whyThisPhase}"
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Combustion</div>
-                                        <p className="text-white/90 text-[10px] leading-relaxed border-l-2 border-[#00FFD1] pl-2">
-                                            {layer.consumptionGuidance}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Chemicals (Cultivars - Minimal) */}
-                                <div className="mt-4 pt-3 border-t border-white/5">
-                                    {layer.cultivars.map((c, cIdx) => (
-                                        <div key={cIdx} className="flex items-center justify-between">
-                                            <span className="text-white/90 text-xs font-medium">{c.name}</span>
-                                            <span className="text-white/40 text-[9px]">{c.profile}</span>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.15 }}
+                                    className={cn(
+                                        "h-full bg-white/5 border rounded-2xl p-5 hover:bg-white/[0.07] transition-all flex flex-col",
+                                        accent.border,
+                                        accent.glow
+                                    )}
+                                >
+                                    {/* Phase Header */}
+                                    <div className={cn("flex justify-between items-start mb-4 border-b border-white/5 pb-3", accent.text)}>
+                                        <div>
+                                            <div className="text-[9px] uppercase tracking-widest opacity-80 font-bold mb-1">{layer.onsetEstimate}</div>
+                                            <h3 className="text-lg font-medium text-white">{layer.layerName.split(':')[0]}</h3>
+                                            <span className="text-xs text-white/60">{layer.layerName.split(':')[1]}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        </div>
-                    ))}
+                                        <div className="text-right">
+                                            <div className="text-[8px] uppercase tracking-widest text-white/40 mb-1">Burn</div>
+                                            <div className="font-mono text-xs text-white/80">~{idx === 0 ? '10' : idx === 1 ? '15' : '10'}m</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 space-y-4">
+                                        <div>
+                                            <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Physical Position</div>
+                                            <p className="text-white/90 text-xs leading-relaxed border-l-2 border-[#7C5CFF] pl-2">
+                                                {layer.phaseIntent}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Transition Logic</div>
+                                            <p className="text-white/60 text-[10px] italic leading-relaxed">
+                                                "{layer.whyThisPhase}"
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Combustion</div>
+                                            <p className="text-white/90 text-[10px] leading-relaxed border-l-2 border-[#00FFD1] pl-2">
+                                                {layer.consumptionGuidance}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Chemicals (Cultivars - Minimal) */}
+                                    <div className="mt-4 pt-3 border-t border-white/5">
+                                        {layer.cultivars.map((c, cIdx) => (
+                                            <div key={cIdx} className="flex items-center justify-between">
+                                                <span className="text-white/90 text-xs font-medium">{c.name}</span>
+                                                <span className="text-white/40 text-[9px]">{c.profile}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* Progress Indicator (Bottom) */}
