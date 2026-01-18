@@ -70,8 +70,9 @@ export async function analyzeIntent(seed: IntentSeed): Promise<IntentSpec> {
         });
 
         if (!response.ok) {
-            console.warn('SEMANTIC ADAPTER: API Failure', response.status);
-            return createFallbackSpec(inputText, "API Unreachable");
+            const errText = await response.text();
+            console.warn('SEMANTIC ADAPTER: API Failure', response.status, errText);
+            return createFallbackSpec(inputText, `API Error: ${response.status}`);
         }
 
         const data = await response.json();
