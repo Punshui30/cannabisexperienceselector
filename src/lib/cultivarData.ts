@@ -41,6 +41,11 @@ export const CULTIVAR_MAP: Record<string, CultivarVisualConfig> = {
     "OG Kush": { color: "#166534", terpenes: ["Myrcene", "Limonene", "Caryophyllene"] },
     "GG4": { color: "#52525B", terpenes: ["Caryophyllene", "Myrcene", "Humulene"] },
     "Bubba Kush": { color: "#312E81", terpenes: ["Caryophyllene", "Limonene", "Myrcene"] },
+    "Lemon Haze": { color: "#FEF08A", terpenes: ["Limonene", "Terpinolene", "Caryophyllene"] },
+    "Sour Tangie": { color: "#F97316", terpenes: ["Limonene", "Caryophyllene", "Myrcene"] },
+    "Blueberry": { color: "#1E3A8A", terpenes: ["Myrcene", "Caryophyllene", "Pinene"] },
+    "Strawberry Cough": { color: "#BE123C", terpenes: ["Caryophyllene", "Limonene", "Pinene"] },
+    "Wedding Cake": { color: "#F472B6", terpenes: ["Limonene", "Caryophyllene", "Myrcene"] },
 
     // Fallback
     "Unknown": { color: "#9CA3AF", terpenes: ["Myrcene", "Limonene", "Caryophyllene"] }
