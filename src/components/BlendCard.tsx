@@ -31,7 +31,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
         <div
           className="absolute -inset-1 blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"
           style={{
-            background: `linear-gradient(45deg, ${recommendation.cultivars[0]?.color}40, ${recommendation.cultivars[1]?.color}40)`
+            background: `linear-gradient(45deg, ${(recommendation.cultivars[0]?.color || '#00FFD1')}40, ${(recommendation.cultivars[1]?.color || '#ffffff')}40)`
           }}
         />
 

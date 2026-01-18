@@ -25,10 +25,8 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
     <div className="w-full h-full flex flex-col bg-transparent overflow-hidden font-sans relative">
       {/* BACKGROUND */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/80 to-transparent z-10" />
-        <div className="w-full h-full opacity-40 mix-blend-screen scale-110 blur-sm">
-          <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1621509426999-56d445c5855e?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center" />
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-black" />
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-10 opacity-50" />
       </div>
 
       <div className="relative z-20 flex flex-col h-full">
