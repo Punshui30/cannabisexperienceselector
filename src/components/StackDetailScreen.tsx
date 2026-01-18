@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Clock, Share2, Layers, Leaf } from 'lucide-react';
 import { UIStackRecommendation } from '../types/domain';
-import { StackCompositionBar } from './visuals/StackCompositionBar';
-import { getCultivarVisuals } from '../lib/cultivarData';
-import { getGlassCardStyles } from '../lib/glassStyles';
+import { ProtocolStrip } from './ProtocolStrip';
 
-interface StackDetailScreenProps {
-    stack: UIStackRecommendation;
-    onBack: () => void;
-}
+// ... (keep interface)
 
 export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
@@ -35,83 +30,29 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 </div>
             </div>
 
-            <div className="flex flex-col gap-4 h-full relative z-10 pb-32">
+            <div className="flex flex-col gap-6 h-full relative z-10 pb-32 px-4">
 
                 {/* Stack Header Block */}
-                <div className="shrink-0 pt-4">
-                    <div className="flex items-center gap-2 mb-1">
-                        <Layers size={12} className="text-[#00FFD1]" />
-                        <span className="text-[#00FFD1] text-[9px] uppercase tracking-widest font-bold">Protocol</span>
+                <div className="shrink-0 pt-4 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                        <Layers size={14} className="text-[#00FFD1]" />
+                        <span className="text-[#00FFD1] text-[10px] uppercase tracking-widest font-bold">Protocol</span>
                     </div>
-                    <h1 className="text-2xl font-serif text-white mb-1 leading-tight">
+                    <h1 className="text-3xl font-serif text-white mb-2 leading-tight">
                         {stack.name}
                     </h1>
-                    <p className="text-white/60 text-xs leading-normal line-clamp-2">
+                    <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto">
                         {stack.description}
                     </p>
-                </div>
-
-                {/* VISUALIZATION - Compact */}
-                <div className="w-full bg-white/5 rounded-xl p-3 border border-white/10 shrink-0">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                            <Leaf size={12} className="text-white/60 shrink-0" />
-                            <span className="text-[9px] uppercase tracking-widest text-white/60 truncate">Composition</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[9px] text-white/40 shrink-0">
-                            <Clock size={10} />
-                            <span>{stack.totalDuration}</span>
-                        </div>
-                    </div>
-                    <StackCompositionBar stack={stack} />
-                </div>
-
-                {/* TIMELINE SEQUENCE - The "One Card" Solution */}
-                <div className="flex flex-col flex-1 min-h-0 bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-                    <div className="p-3 border-b border-white/5 bg-white/[0.02]">
-                        <span className="text-[9px] uppercase tracking-widest text-white/40 font-bold">Sequence</span>
-                    </div>
-
-                    <div className="overflow-y-auto p-3 flex flex-col gap-4">
-                        {stack.layers.map((layer, index) => (
-                            <div key={index} className="relative pl-4 border-l border-white/10 last:border-0">
-                                {/* Timeline Dot */}
-                                <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-[#00FFD1] shadow-[0_0_8px_rgba(0,255,209,0.3)] ring-4 ring-black" />
-
-                                {/* Header Row */}
-                                <div className="flex items-baseline justify-between mb-1">
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-[#00FFD1] font-mono text-xs font-bold">{layer.timing}</span>
-                                        <h3 className="text-sm font-serif text-white">{layer.layerName}</h3>
-                                    </div>
-                                    <span className="text-[9px] uppercase text-white/40 tracking-wider hidden sm:block">Phase 0{index + 1}</span>
-                                </div>
-
-                                {/* Intent */}
-                                <p className="text-[10px] text-white/60 italic mb-2">{layer.phaseIntent}</p>
-
-                                {/* Cultivar List - Minimal */}
-                                <div className="space-y-1.5">
-                                    {layer.cultivars.map((c, i) => {
-                                        const visuals = getCultivarVisuals(c.name);
-                                        return (
-                                            <div key={i} className="flex items-center gap-2 bg-white/5 rounded p-1.5 border border-white/5">
-                                                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: visuals.color }} />
-                                                <span className="text-[10px] font-medium text-white truncate flex-1">{c.name}</span>
-                                                {/* Tiny Terp Tags */}
-                                                <div className="flex gap-1 shrink-0">
-                                                    {visuals.terpenes.slice(0, 1).map(t => (
-                                                        <span key={t} className="text-[8px] opacity-40 uppercase">{t}</span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ))}
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] text-white/40 mt-3">
+                        <Clock size={10} />
+                        <span>{stack.totalDuration} Protocol Duration</span>
                     </div>
                 </div>
+
+                {/* SINGLE SOURCE VISUALIZATION */}
+                <ProtocolStrip data={stack} />
+
             </div>
 
             {/* CALCULATOR BUTTON - Floating Action Style */}
@@ -152,20 +93,39 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                             </div>
                         </div>
 
-                        {/* Recipe Output */}
-                        <div className="space-y-3">
-                            <span className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Layer Breakdown</span>
+                        {/* Recipe Output - CORRECTED LOGIC */}
+                        <div className="space-y-4">
+                            <span className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Assembly Instructions</span>
                             {stack.layers.map((layer, idx) => {
-                                // Logic: Preroll Size / Number of Layers = Grams per Layer (Simplified Equal Split for now based on concept)
-                                const amount = (prerollSize / stack.layers.length).toFixed(2);
+                                // Logic refinement: 
+                                // Total Preroll / Num Layers = Grams per Layer
+                                // Grams per Layer / Num Cultivars in Layer = Grams per Cultivar (Assuming equal ratio for now unless defined)
+                                const layerGrams = prerollSize / stack.layers.length;
 
                                 return (
-                                    <div key={idx} className="flex justify-between items-center p-3 rounded bg-white/5 border border-white/5">
-                                        <span className="text-sm text-white font-medium">{layer.layerName}</span>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-lg font-mono text-[#00FFD1]">{amount}</span>
-                                            <span className="text-xs text-white/40 font-mono">g</span>
+                                    <div key={idx} className="space-y-2">
+                                        <div className="flex items-center gap-2 text-xs font-bold text-white/50 uppercase tracking-wider">
+                                            <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[9px]">{idx + 1}</span>
+                                            {layer.layerName}
                                         </div>
+
+                                        {layer.cultivars.map((cultivar, cIdx) => {
+                                            // Handle blended phases
+                                            const cultivarGrams = (layerGrams * (cultivar.ratio || (1 / layer.cultivars.length))).toFixed(2);
+
+                                            return (
+                                                <div key={cIdx} className="flex justify-between items-center p-3 rounded bg-white/5 border border-white/5 ml-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: getCultivarVisuals(cultivar.name).color }} />
+                                                        <span className="text-sm text-white font-medium">{cultivar.name}</span>
+                                                    </div>
+                                                    <div className="flex items-baseline gap-1">
+                                                        <span className="text-lg font-mono text-[#00FFD1]">{cultivarGrams}</span>
+                                                        <span className="text-xs text-white/40 font-mono">g</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 );
                             })}

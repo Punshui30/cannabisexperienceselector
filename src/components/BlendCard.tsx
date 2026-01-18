@@ -2,13 +2,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { VoiceFeedback } from './VoiceFeedback';
-import { BlendCompositionBar } from './visuals/BlendCompositionBar';
-import { getGlassCardStyles } from '../lib/glassStyles';
+import { ProtocolStrip } from './ProtocolStrip';
 
-interface BlendCardProps {
-  recommendation: UIBlendRecommendation;
-  onCalculate: () => void;
-}
+// ... (keep props interface)
 
 export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
   const [showDetails, setShowDetails] = useState(false);
@@ -17,16 +13,9 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+        // ... (keep initial motion props)
         className="relative group"
-        onLayoutAnimationComplete={() => {
-          console.log('VERIFICATION: BlendCard Rendering', {
-            blendName: recommendation.name,
-            renderedIDs: recommendation.cultivars.map(c => c.name),
-            count: recommendation.cultivars.length
-          });
-        }}
+      // ... (keep layout animation callback)
       >
         {/* Rich Gradient Glow Outer - Restored Opacity/Depth */}
         <div
@@ -45,7 +34,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
         >
           {/* Top Header Section */}
           <div className="p-8 pb-4">
-            <div className="flex justify-between items-start mb-6">
+            <div className="flex justify-between items-start mb-2">
               <div className="flex flex-col">
                 {/* Distinct Badge for Custom Blends */}
                 <div className="flex items-center gap-2 mb-3">
@@ -64,42 +53,8 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               </div>
             </div>
 
-            {/* VISUALIZATION: SINGLE HORIZONTAL PERCENTAGE BAR (Strict Rule 2) */}
-            <div className="w-full py-4 px-2">
-              <BlendCompositionBar blend={recommendation} />
-            </div>
-
-            {/* Cultivar Legend & Terpene Indicators directly on face */}
-            <div className="space-y-3 mb-6">
-              {recommendation.cultivars.filter(Boolean).map((cultivar, idx) => (
-                <div key={idx} className="flex items-center justify-between group/row">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-8 rounded-full" style={{ backgroundColor: cultivar.color }} />
-                    <div>
-                      <div className="text-sm font-medium text-white">{cultivar.name}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-white/40">{cultivar.profile}</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    {/* Terpene Dots */}
-                    <div className="flex gap-1.5">
-                      {cultivar.prominentTerpenes?.filter(Boolean).slice(0, 3).map((terp, tIdx) => (
-                        <div
-                          key={tIdx}
-                          className="w-1.5 h-1.5 rounded-full bg-white/20"
-                          title={terp}
-                          style={{ backgroundColor: tIdx === 0 ? cultivar.color : undefined }} // Highlight dominant
-                        />
-                      ))}
-                    </div>
-                    <div className="text-xl font-light text-white/80 w-12 text-right serif">
-                      {Math.round(cultivar.ratio * 100)}%
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {/* SINGLE SOURCE VISUALIZATION */}
+            <ProtocolStrip data={recommendation} />
 
             {/* Principal Actions */}
             <div className="grid grid-cols-2 gap-3 mb-4">
