@@ -74,11 +74,11 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
         </div>
 
         {/* MIDDLE: SWIPE DECK */}
-        <div className="flex-1 w-full relative z-10 min-h-0 overflow-hidden">
+        <div className="flex-1 w-full relative z-10 min-h-0">
           <SwipeDeck
             items={recommendations}
             renderItem={(rec, isActive) => (
-              <div className="w-full h-full flex items-center justify-center p-4 sm:p-6">
+              <div className="w-full h-full flex items-center justify-center p-4 sm:p-6" style={{ minHeight: '400px' }}>
                 <div className="w-full max-w-xl h-full max-h-[600px]">
                   <BlendCard recommendation={rec as any} onCalculate={() => onCalculate(rec)} />
                 </div>
