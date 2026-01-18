@@ -144,6 +144,13 @@ export function getTerpeneColor(terpeneName: string): string {
     return TERPENE_COLORS[terpeneName] || TERPENE_COLORS["Unknown"];
 }
 
+export function getSafeColor(name: string): string {
+    const visuals = getCultivarVisuals(name);
+    if (visuals && visuals.color) return visuals.color;
+    // Fallback based on hash of name to keep it consistent but deterministic
+    return "#00FFD1";
+}
+
 import { UIStackRecommendation } from '../types/domain';
 
 export function getStackTerpeneProfile(stack: UIStackRecommendation): { name: string; weight: number; color: string }[] {

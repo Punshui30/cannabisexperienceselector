@@ -30,10 +30,10 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
       </div>
 
       <div className="relative z-20 flex flex-col h-full">
-        {/* DEBUG OVERLAY */}
-        <div className="absolute top-0 left-0 w-full z-50 pointer-events-none p-4" style={{ background: 'rgba(0,0,0,0.8)' }}>
-          <h3 className="text-red-500 font-bold">DEBUG DATA (Screen Capture This)</h3>
-          <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap h-48 overflow-y-auto pointer-events-auto select-text border border-red-500 bg-black">
+        {/* DEBUG OVERLAY (Bottom) */}
+        <div className="absolute bottom-[-200px] left-0 w-full z-50 pointer-events-none p-4 opacity-50 hover:opacity-100 transition-opacity">
+          <h3 className="text-red-500 font-bold text-xs">DEBUG</h3>
+          <pre className="text-[9px] text-green-400 font-mono whitespace-pre-wrap h-24 overflow-y-auto pointer-events-auto select-text bg-black/80 border border-white/10">
             {JSON.stringify(recommendations, null, 2)}
           </pre>
         </div>
@@ -43,13 +43,16 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
           <div className="flex justify-between items-start mb-6">
             <button
               onClick={onBack}
-              className="w-10 h-10 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-white/60 hover:text-white backdrop-blur-md transition-colors"
+              className="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
             >
-              <ArrowLeft size={20} />
+              <span className="text-[10px] uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">Restart</span>
             </button>
 
             <div className="flex gap-4">
               <div className="text-right">
+                <div className="text-[9px] text-[#00FFD1] uppercase tracking-widest border border-[#00FFD1]/30 px-2 py-0.5 rounded-full bg-[#00FFD1]/5 mb-2">
+                  Live v2.5
+                </div>
                 <div className="inline-block px-3 py-1 rounded-full bg-[#ffd700]/10 border border-[#ffd700]/20 backdrop-blur-md">
                   <span className="text-[10px] font-bold text-[#ffd700] tracking-widest uppercase">
                     <span className="serif">StrainMath</span><span className="text-[8px] align-top opacity-60">™</span> Output
