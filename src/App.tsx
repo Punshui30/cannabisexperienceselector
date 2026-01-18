@@ -248,9 +248,9 @@ export default function App() {
             )}
 
             {/* RESULTS SCREEN (Blends Only) */}
-            {view === 'results' && blendRec && (
+            {view === 'results' && blendRec && blendRec.kind === 'blend' && (
               <ResultsScreen
-                recommendations={[blendRec]} // Array expected by ResultsScreen
+                recommendations={[blendRec as UIBlendRecommendation]} // Safe cast after check
                 onCalculate={handleCalculate}
                 onBack={handleBack}
                 onShare={(rec) => setQRShareOpen(true)}
@@ -258,8 +258,8 @@ export default function App() {
             )}
 
             {/* SHARED READ-ONLY VIEW */}
-            {view === 'shared' && blendRec && (
-              <SharedResultScreen recommendation={blendRec} />
+            {view === 'shared' && blendRec && blendRec.kind === 'blend' && (
+              <SharedResultScreen recommendation={blendRec as UIBlendRecommendation} />
             )}
 
             {/* REMOTE ACCESS PREVIEW (Customer Demo) */}
@@ -268,9 +268,10 @@ export default function App() {
             )}
 
             {/* STACK DETAIL (Stacks Only) - Prompt D */}
-            {(view === 'stack-detail' || (view === 'results' && stackRec)) && stackRec && (
+            {/* Logic: If explicitly in stack-detail view, OR if in results view but we have a stack result */}
+            {((view === 'stack-detail' && stackRec) || (view === 'results' && blendRec && blendRec.kind === 'stack')) && (
               <StackDetailScreen
-                stack={stackRec}
+                stack={(stackRec || blendRec) as UIStackRecommendation}
                 onBack={() => {
                   // Back logic
                   if (view === 'results') setView('input');
@@ -320,9 +321,9 @@ export default function App() {
             )}
 
             {/* QR SHARE - Blend Only (Prompt E) */}
-            {qrShareOpen && blendRec && (
+            {qrShareOpen && blendRec && blendRec.kind === 'blend' && (
               <QRShareModal
-                recommendation={blendRec}
+                recommendation={blendRec as UIBlendRecommendation}
                 onClose={() => setQRShareOpen(false)}
               />
             )}

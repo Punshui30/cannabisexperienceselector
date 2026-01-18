@@ -17,6 +17,7 @@ function adaptToStack(result: EngineResult): UIStackRecommendation {
         name: result.name || 'Custom Stack',
         description: result.description || 'optimized protocol',
         matchScore: result.matchScore || 0.9,
+        totalDuration: result.totalDuration || result.effects?.duration || '2-3h',
         confidence: 0.9,
         reasoning: result.reasoning || 'Layered for optimal effect.',
         effects: {
