@@ -10,14 +10,21 @@ import { Inventory } from './calculationEngine';
 import chemotypeData from '../data/chemotype_reference.json';
 
 // Helper to convert snake_case JSON to Inventory Cultivar
-const cultivars = chemotypeData.cultivars.map(c => ({
-    id: c.id,
-    name: c.name,
-    thcPercent: c.thc_percent,
-    cbdPercent: c.cbd_percent,
-    available: true,
-    terpenes: c.terpenes
-}));
+const cultivars = chemotypeData.cultivars.map(c => {
+    // Validate Chemotype Data availability
+    if (!c.terpenes || Object.keys(c.terpenes).length === 0) {
+        console.warn(`Inventory: Missing terpenes for ${c.name} (${c.id})`);
+    }
+
+    return {
+        id: c.id,
+        name: c.name,
+        thcPercent: c.thc_percent,
+        cbdPercent: c.cbd_percent,
+        available: true,
+        terpenes: c.terpenes
+    };
+});
 
 export const INVENTORY: Inventory = {
     timestamp: new Date().toISOString(),

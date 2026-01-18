@@ -361,11 +361,19 @@ export function generateRecommendations(input: IntentSeed, intentOverride?: Inte
 
       const prominentTerpenes = (() => {
         const inv = INVENTORY.cultivars.find(i => i.id === c.id);
-        if (!inv || !inv.terpenes) return ['Myrcene', 'Pinene', 'Caryophyllene'];
-        return Object.entries(inv.terpenes)
-          .sort(([, a], [, b]) => b - a)
+        if (!inv) console.warn(`EngineAdapter: Strain ${c.id} (${c.name}) not found in Inventory`);
+
+        if (!inv || !inv.terpenes) {
+          console.warn(`EngineAdapter: No terpenes for ${c.name}, using fallback`);
+          return ['Myrcene', 'Limonene', 'Caryophyllene'];
+        }
+
+        const sorted = Object.entries(inv.terpenes)
+          .sort(([, a], [, b]) => (b as number) - (a as number))
           .slice(0, 3)
           .map(([name]) => name.charAt(0).toUpperCase() + name.slice(1));
+
+        return sorted;
       })();
 
       return {
