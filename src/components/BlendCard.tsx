@@ -3,13 +3,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { VoiceFeedback } from './VoiceFeedback';
 import { SpatialStack } from './SpatialStack';
+import { CardShell } from './CardShell';
 
-// ...
-
-{/* SINGLE SOURCE VISUALIZATION */ }
-<SpatialStack data={recommendation} compact={true} />
-
-// ... (keep props interface)
+interface BlendCardProps {
+  recommendation: UIBlendRecommendation;
+  onCalculate: () => void;
+}
 
 export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
   const [showDetails, setShowDetails] = useState(false);
@@ -18,27 +17,31 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
   return (
     <>
       <motion.div
-        // ... (keep initial motion props)
-        className="relative group"
-      // ... (keep layout animation callback)
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative group h-full"
+        onLayoutAnimationComplete={() => {
+          console.log('VERIFICATION: BlendCard Rendering', {
+            blendName: recommendation.name,
+            count: recommendation.cultivars.length
+          });
+        }}
       >
-        {/* Rich Gradient Glow Outer - Restored Opacity/Depth */}
+        {/* Rich Gradient Glow Outer */}
         <div
-          className="absolute -inset-1 blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-700"
+          className="absolute -inset-1 blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"
           style={{
             background: `linear-gradient(45deg, ${recommendation.cultivars[0]?.color}40, ${recommendation.cultivars[1]?.color}40)`
           }}
         />
 
-        <div
-          className="relative overflow-hidden shadow-2xl rounded-3xl"
-          style={getGlassCardStyles(
-            recommendation.cultivars[0]?.color,
-            recommendation.cultivars[1]?.color
-          )}
+        <CardShell
+          color={recommendation.cultivars[0]?.color}
+          secondaryColor={recommendation.cultivars[1]?.color}
+          className="h-full"
         >
           {/* Top Header Section */}
-          <div className="p-8 pb-4">
+          <div className="pb-4">
             <div className="flex justify-between items-start mb-2">
               <div className="flex flex-col">
                 {/* Distinct Badge for Custom Blends */}
@@ -58,11 +61,11 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               </div>
             </div>
 
-            {/* SINGLE SOURCE VISUALIZATION */}
-            <ProtocolStrip data={recommendation} />
+            {/* SINGLE SOURCE VISUALIZATION: SpatialStack */}
+            <SpatialStack data={recommendation} compact={true} />
 
             {/* Principal Actions */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-2 gap-3 mb-4 mt-6">
               <button
                 onClick={() => setShowVoiceFeedback(true)}
                 className="py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest"
@@ -84,7 +87,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               Calculate Recipe
             </button>
           </div>
-        </div>
+        </CardShell>
       </motion.div>
 
       {/* Details Modal */}

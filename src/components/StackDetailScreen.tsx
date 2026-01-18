@@ -1,32 +1,21 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Clock, Share2, Layers, Leaf } from 'lucide-react';
+import { ArrowLeft, Clock, Share2, Layers } from 'lucide-react';
 import { UIStackRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
+import { getCultivarVisuals } from '../lib/cultivarData';
 
-// ... (inside render)
-
-{/* VISUALIZATION HERO */ }
-<div className="flex-1 flex items-center justify-center w-full max-w-md mx-auto py-8">
-    <SpatialStack data={finalStack} />
-</div>
-
-{/* Calculator Section */ }
-<div className="mt-8 px-4">
-    {/* ... Keep Calculator ... */}
-    import {getCultivarVisuals} from '../lib/cultivarData';
-
-    interface StackDetailScreenProps {
-        stack: UIStackRecommendation;
+interface StackDetailScreenProps {
+    stack: UIStackRecommendation;
     onBack: () => void;
 }
 
-    export function StackDetailScreen({stack, onBack}: StackDetailScreenProps) {
+export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
     const [prerollSize, setPrerollSize] = useState<number>(1.0); // Grams
 
-        if (!stack) return null;
+    if (!stack) return null;
 
-        return (
+    return (
         <div className="w-full h-full bg-black text-white overflow-y-auto overflow-x-hidden font-sans relative">
             {/* Background - Minimal */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-black pointer-events-none" />
@@ -65,8 +54,10 @@ import { SpatialStack } from './SpatialStack';
                     </div>
                 </div>
 
-                {/* SINGLE SOURCE VISUALIZATION */}
-                <ProtocolStrip data={stack} />
+                {/* VISUALIZATION HERO - SpatialStack */}
+                <div className="flex-1 flex items-center justify-center w-full max-w-md mx-auto py-8">
+                    <SpatialStack data={stack} />
+                </div>
 
             </div>
 
@@ -153,5 +144,5 @@ import { SpatialStack } from './SpatialStack';
                 </div>
             )}
         </div>
-        );
+    );
 }
