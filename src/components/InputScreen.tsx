@@ -260,14 +260,67 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`relative w-full h-64 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive ? "border-[#00FFD1] bg-[#00FFD1]/5" : uploadedImage ? "border-emerald-400/50 bg-emerald-400/5" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
+                className={`relative w-full h-64 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive ? "border-[#00FFD1] bg-[#00FFD1]/5" : uploadedImage ? "border-emerald-400/50 bg-emerald-400/5" : "border-white/10 bg-white/5"}`}
               >
-                {/* Upload Content */}
-                <input type="file" id="file-upload" className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])} />
+                {/* Hidden Inputs */}
+                <input
+                  type="file"
+                  id="camera-upload"
+                  className="hidden"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])}
+                />
+                <input
+                  type="file"
+                  id="file-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])}
+                />
+
                 {uploadedImage ? (
-                  <div className="text-center"><p className="text-emerald-400 font-medium text-sm mb-1">{uploadedImage.name}</p></div>
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Check size={24} className="text-emerald-400" />
+                    </div>
+                    <p className="text-emerald-400 font-medium text-sm mb-1">Image Captured</p>
+                    <p className="text-white/40 text-xs max-w-[200px] truncate">{uploadedImage.name}</p>
+                    <button
+                      onClick={() => setUploadedImage(null)}
+                      className="mt-4 text-xs uppercase tracking-widest text-white/40 hover:text-white"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 ) : (
-                  <label htmlFor="file-upload" className="flex flex-col items-center cursor-pointer w-full h-full justify-center p-8"><Camera className="text-white/20 mb-4" size={20} /><p className="text-white font-medium mb-1">Upload Label</p></label>
+                  <div className="flex flex-col items-center gap-6 w-full px-8">
+                    <p className="text-white/40 text-xs uppercase tracking-widest font-medium mb-2">Select capture method</p>
+
+                    <div className="flex gap-4 w-full">
+                      {/* Camera Button */}
+                      <label
+                        htmlFor="camera-upload"
+                        className="flex-1 h-32 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 cursor-pointer flex flex-col items-center justify-center gap-3 transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#00FFD1]/20 transition-colors">
+                          <Camera size={20} className="text-white/60 group-hover:text-[#00FFD1]" />
+                        </div>
+                        <span className="text-xs font-medium text-white/60 group-hover:text-white">Take Photo</span>
+                      </label>
+
+                      {/* Upload Button */}
+                      <label
+                        htmlFor="file-upload"
+                        className="flex-1 h-32 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 cursor-pointer flex flex-col items-center justify-center gap-3 transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#00FFD1]/20 transition-colors">
+                          <Upload size={20} className="text-white/60 group-hover:text-[#00FFD1]" />
+                        </div>
+                        <span className="text-xs font-medium text-white/60 group-hover:text-white">Upload File</span>
+                      </label>
+                    </div>
+                  </div>
                 )}
               </div>
             </motion.div>
