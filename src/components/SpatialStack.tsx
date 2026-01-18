@@ -71,7 +71,13 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
 
                                 {/* Right: Strain/Cultivar */}
                                 <div className="flex flex-col items-end">
-                                    <span className="text-[9px] text-[#00FFD1] uppercase tracking-widest">
+                                    <span
+                                        className="text-[10px] font-bold uppercase tracking-widest"
+                                        style={{
+                                            color: color,
+                                            textShadow: `0 0 10px ${color}40`
+                                        }}
+                                    >
                                         {mainCultivar?.name}
                                     </span>
                                     <span className="text-[9px] text-white/40 italic">
@@ -79,8 +85,13 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                                     </span>
                                 </div>
 
-                                {/* Depth/Side Glint */}
-                                <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
+                                {/* Depth/Side Glint - Colorized */}
+                                <div
+                                    className="absolute inset-y-0 right-0 w-8 pointer-events-none"
+                                    style={{
+                                        background: `linear-gradient(to left, ${color}20, transparent)`
+                                    }}
+                                />
                             </div>
 
                             {/* Connecting Line (if not last) */}
