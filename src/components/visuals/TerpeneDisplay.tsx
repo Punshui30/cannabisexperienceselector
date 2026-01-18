@@ -1,28 +1,9 @@
-import { getCultivarVisuals, getTerpeneColor } from '../../lib/cultivarData';
+import { getStackTerpeneProfile } from '../../lib/cultivarData';
 import { UIStackRecommendation } from '../../types/domain';
 
 export function TerpeneDisplay({ stack }: { stack: UIStackRecommendation }) {
-    // Aggregate terpenes
-    // Strategy: Flatten all cultivars, get their mapped terpenes, find unique top 3
-
-    const allTerpenes: { name: string; color: string }[] = [];
-
-    stack.layers.forEach(layer => {
-        layer.cultivars.forEach(cultivar => {
-            const visuals = getCultivarVisuals(cultivar.name);
-            visuals.terpenes.forEach(t => {
-                // USE STRICT TERPENE COLOR
-                allTerpenes.push({ name: t, color: getTerpeneColor(t) });
-            });
-        });
-    });
-
-    // Unique by name, take first 3 distinct names (preserving color of first occurrence)
-    const uniqueTerpenes = Array.from(new Set(allTerpenes.map(t => t.name)))
-        .slice(0, 3)
-        .map(name => {
-            return allTerpenes.find(t => t.name === name)!;
-        });
+    // Use Shared Logic to guarantee 1:1 binding with Graph
+    const uniqueTerpenes = getStackTerpeneProfile(stack);
 
     if (uniqueTerpenes.length === 0) return null;
 

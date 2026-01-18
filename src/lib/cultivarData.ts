@@ -56,3 +56,35 @@ export function getCultivarVisuals(name: string): CultivarVisualConfig {
 export function getTerpeneColor(terpeneName: string): string {
     return TERPENE_COLORS[terpeneName] || TERPENE_COLORS["Unknown"];
 }
+
+import { UIStackRecommendation } from '../types/domain';
+
+export function getStackTerpeneProfile(stack: UIStackRecommendation): { name: string; weight: number; color: string }[] {
+    const terpeneWeights: Record<string, number> = {};
+    const layerWeight = 1 / (stack.layers?.length || 1);
+
+    stack.layers.forEach(layer => {
+        layer.cultivars.forEach(cultivar => {
+            const visuals = getCultivarVisuals(cultivar.name);
+            const cultivarWeight = (cultivar.ratio || 1) * layerWeight;
+
+            visuals.terpenes.forEach((t, idx) => {
+                // Weight degradation: Primary terpene gets more weight than secondary
+                // Visuals.terpenes is ordered list.
+                const prominence = 1 / (idx + 1);
+
+                if (!terpeneWeights[t]) terpeneWeights[t] = 0;
+                terpeneWeights[t] += (cultivarWeight * prominence);
+            });
+        });
+    });
+
+    return Object.entries(terpeneWeights)
+        .map(([name, weight]) => ({
+            name,
+            weight,
+            color: getTerpeneColor(name)
+        }))
+        .sort((a, b) => b.weight - a.weight)
+        .slice(0, 3);
+}
