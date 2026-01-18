@@ -1,6 +1,18 @@
 // Canonical Mapping for Visuals & Credibility
 // Maps Cultivar Name -> { color, terpenes }
 
+export const TERPENE_COLORS: Record<string, string> = {
+    "Myrcene": "#7C3AED", // Deep Purple (Sedating)
+    "Limonene": "#FACC15", // Bright Yellow (Mood)
+    "Caryophyllene": "#EA580C", // Orange/Spice (Relief)
+    "Pinene": "#10B981", // Green (Focus)
+    "Linalool": "#C084FC", // Lavender (Calm)
+    "Terpinolene": "#A3E635", // Lime (Uplifting)
+    "Ocimene": "#F472B6", // Pink (Sweet)
+    "Humulene": "#8B5CF6", // Violet (Suppress)
+    "Unknown": "#9CA3AF"
+};
+
 export interface CultivarVisualConfig {
     color: string;
     terpenes: string[];
@@ -39,4 +51,8 @@ export function getCultivarVisuals(name: string): CultivarVisualConfig {
     const keys = Object.keys(CULTIVAR_MAP);
     const normalizedKey = keys.find(k => k.toLowerCase() === name.trim().toLowerCase());
     return normalizedKey ? CULTIVAR_MAP[normalizedKey] : CULTIVAR_MAP["Unknown"];
+}
+
+export function getTerpeneColor(terpeneName: string): string {
+    return TERPENE_COLORS[terpeneName] || TERPENE_COLORS["Unknown"];
 }

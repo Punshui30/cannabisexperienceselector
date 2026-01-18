@@ -1,4 +1,4 @@
-import { getCultivarVisuals } from '../../lib/cultivarData';
+import { getCultivarVisuals, getTerpeneColor } from '../../lib/cultivarData';
 import { UIStackRecommendation } from '../../types/domain';
 
 export function TerpeneDisplay({ stack }: { stack: UIStackRecommendation }) {
@@ -11,7 +11,8 @@ export function TerpeneDisplay({ stack }: { stack: UIStackRecommendation }) {
         layer.cultivars.forEach(cultivar => {
             const visuals = getCultivarVisuals(cultivar.name);
             visuals.terpenes.forEach(t => {
-                allTerpenes.push({ name: t, color: visuals.color });
+                // USE STRICT TERPENE COLOR
+                allTerpenes.push({ name: t, color: getTerpeneColor(t) });
             });
         });
     });
@@ -27,8 +28,8 @@ export function TerpeneDisplay({ stack }: { stack: UIStackRecommendation }) {
 
     return (
         <div>
-            <div className="text-[9px] uppercase tracking-widest text-white/40 mb-2 font-bold">Dominant Terpenes</div>
-            <div className="flex flex-wrap gap-2">
+            <div className="text-[9px] uppercase tracking-widest text-white/40 mb-2 font-bold opacity-70">Dominant Terpenes</div>
+            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                 {uniqueTerpenes.map((terp, idx) => (
                     <div key={idx} className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 border border-white/5">
                         <span
