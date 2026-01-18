@@ -84,20 +84,7 @@ function adaptToStack(result: EngineResult): any {
         }))
     };
 }
-onset: "5-10m",
-    peak: "30-45m",
-        duration: "2-3h"
-            },
-timeline: [
-    { time: "0m", feeling: "Onset" },
-    { time: "30m", feeling: "Peak Experience" },
-    { time: "2h", feeling: "Tapering Off" }
-],
-    terpeneProfile: (result as any).terpeneWeights || {},
-        visualProfile: {
-    dominantEffect: 'balance',
-        color: '#FFD700'
-}
+
         };
     }
 ```
