@@ -1,6 +1,5 @@
-import React, { useRef } from 'react';
-import { motion } from 'motion/react';
-import { ArrowLeft, Clock, Share2, Layers, Leaf, Info } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Clock, Share2, Layers, Leaf } from 'lucide-react';
 import { UIStackRecommendation } from '../types/domain';
 import { StackCompositionBar } from './visuals/StackCompositionBar';
 import { getCultivarVisuals } from '../lib/cultivarData';
@@ -12,8 +11,8 @@ interface StackDetailScreenProps {
 }
 
 export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
-    // 3. STACK DETAIL LAYOUT — FIX THE DISASTER
-    // ONE vertical scroll container. ONE card per stack. NO columns.
+    const [isCalculating, setIsCalculating] = useState(false);
+    const [prerollSize, setPrerollSize] = useState<number>(1.0); // Grams
 
     if (!stack) return null;
 
@@ -36,10 +35,10 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 </div>
             </div>
 
-            <div className="flex flex-col gap-4 h-full">
+            <div className="flex flex-col gap-4 h-full relative z-10 pb-32">
 
                 {/* Stack Header Block */}
-                <div className="shrink-0">
+                <div className="shrink-0 pt-4">
                     <div className="flex items-center gap-2 mb-1">
                         <Layers size={12} className="text-[#00FFD1]" />
                         <span className="text-[#00FFD1] text-[9px] uppercase tracking-widest font-bold">Protocol</span>
@@ -113,20 +112,6 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                         ))}
                     </div>
                 </div>
-                import {useState} from 'react';
-
-                // ... 
-
-                export function StackDetailScreen({stack, onBack}: StackDetailScreenProps) {
-    // Calculator State
-    const [isCalculating, setIsCalculating] = useState(false);
-                const [prerollSize, setPrerollSize] = useState<number>(1.0); // Grams
-
-                    // ...
-
-                    {/* TIMELINE SEQUENCE */}
-                    {/* ... (Timeline content) ... */}
-
             </div>
 
             {/* CALCULATOR BUTTON - Floating Action Style */}
@@ -157,8 +142,8 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                                         key={size}
                                         onClick={() => setPrerollSize(size)}
                                         className={`flex-1 py-3 rounded-lg border text-sm font-bold transition-all ${prerollSize === size
-                                                ? 'bg-[#00FFD1] border-[#00FFD1] text-black'
-                                                : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                                            ? 'bg-[#00FFD1] border-[#00FFD1] text-black'
+                                            : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
                                             }`}
                                     >
                                         {size}g
@@ -172,7 +157,6 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                             <span className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Layer Breakdown</span>
                             {stack.layers.map((layer, idx) => {
                                 // Logic: Preroll Size / Number of Layers = Grams per Layer (Simplified Equal Split for now based on concept)
-                                // Or based on Duration ratios? Assuming equal physical layers for stack building ease.
                                 const amount = (prerollSize / stack.layers.length).toFixed(2);
 
                                 return (
@@ -194,6 +178,5 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 </div>
             )}
         </div>
-        </div >
     );
 }

@@ -3,10 +3,32 @@ import { SwipeDeck } from './SwipeDeck';
 import { PRESET_STACKS } from '../data/presetStacks';
 import type { OutcomeExemplar, UIStackRecommendation } from '../types/domain';
 import logoImg from '../assets/logo.png';
-// Graph Removed
-import { TerpeneDisplay } from './visuals/TerpeneDisplay';
 import { getGlassCardStyles } from '../lib/glassStyles';
-import { StackCompositionBar } from './visuals/StackCompositionBar';
+import { getCultivarVisuals } from '../lib/cultivarData';
+
+// Vertical Stack Visual Helper
+const VerticalStackVisual = ({ stack }: { stack: UIStackRecommendation }) => {
+  return (
+    <div className="flex-1 w-full flex flex-col items-center justify-center my-4 relative">
+      <div className="w-12 h-32 rounded-lg overflow-hidden flex flex-col-reverse shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5">
+        {stack.layers.map((layer, idx) => {
+          return layer.cultivars.map((c, cIdx) => (
+            <div
+              key={`${idx}-${cIdx}`}
+              className="flex-1 w-full relative group/segment"
+              style={{ backgroundColor: getCultivarVisuals(c.name).color }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50" />
+            </div>
+          ));
+        })}
+      </div>
+      <span className="absolute -right-4 top-1/2 -translate-y-1/2 translate-x-full text-[9px] uppercase tracking-widest text-white/20 rotate-90 origin-left">
+        Protocol
+      </span>
+    </div>
+  );
+};
 
 export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelect: (stack: OutcomeExemplar) => void }) {
   // No Engine Logic Here - Strictly UI/Static Data
@@ -49,7 +71,6 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                 className="relative w-full max-w-sm aspect-[3/4] p-8 rounded-3xl bg-white/5 text-left overflow-hidden group hover:bg-white/10 transition-colors flex flex-col"
                 style={{
                   ...getGlassCardStyles(exemplar.visualProfile.color),
-                  // Override specific layout needs if any
                 }}
                 onClick={() => {
                   if (!exemplar || typeof exemplar !== 'object') {
@@ -75,41 +96,13 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                   }}
                 />
 
-                {/* Visual Layer Removed - Static Card Only */}
-
-                {/* Spacer to push content down if needed, but flex-end handles bottom alignment */}
-                {/* We just need to ensure title doesn't overlap graph too much. Graph is top-8 to h-24 (top 32+96=128px). Card height is large. */}
-
                 <div className="relative z-10 flex flex-col flex-1 justify-end pt-32">
                   <h3 className="text-3xl font-light text-white mb-2 leading-tight serif">{exemplar.title}</h3>
                   <p className="text-white/60 text-sm mb-4 leading-relaxed line-clamp-3">{exemplar.subtitle}</p>
 
-                  {/* TERPENE INFO & GRAPH */}
                   {/* VERTICAL STACK VISUALIZATION */}
                   {exemplar.kind === 'stack' && (
-                    <div className="flex-1 w-full flex flex-col items-center justify-center my-4 relative">
-                      {/* The Vertical Tube */}
-                      <div className="w-16 h-32 rounded-lg overflow-hidden flex flex-col-reverse shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5">
-                        {(exemplar.data as UIStackRecommendation).layers.map((layer, idx) => {
-                          // Assuming equal visual weight for simplified stack preview
-                          // Or calculate relative to duration? Equal is better for "Layering" concept visualization.
-                          return layer.cultivars.map((c, cIdx) => (
-                            <div
-                              key={`${idx}-${cIdx}`}
-                              className="flex-1 w-full relative group/segment"
-                              style={{ backgroundColor: getCultivarVisuals(c.name).color }}
-                            >
-                              {/* Shine/Glass Effect overlay per segment */}
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50" />
-                            </div>
-                          ));
-                        })}
-                      </div>
-                      {/* Label */}
-                      <span className="absolute -right-4 top-1/2 -translate-y-1/2 translate-x-full text-[9px] uppercase tracking-widest text-white/20 rotate-90 origin-left">
-                        Protocol
-                      </span>
-                    </div>
+                    <VerticalStackVisual stack={exemplar.data as UIStackRecommendation} />
                   )}
 
                   <div className="flex justify-between items-center pt-4 border-t border-white/10">
