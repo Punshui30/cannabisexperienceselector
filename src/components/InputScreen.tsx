@@ -51,12 +51,16 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     if (!canSubmit()) return;
 
     const input: UserInput = {
-      kind: 'intentSeed',
-      mode,
-      text: mode === 'describe' ? description : undefined,
+      kind: 'blend',
+      mode: 'engine',
+      text: mode === 'describe'
+        ? description
+        : mode === 'strain'
+          ? `${strainName}${growerName ? ' by ' + growerName : ''}`.trim()
+          : "Product Image Input", // Fallback text for image-only
+      image: mode === 'product' && uploadedImage ? URL.createObjectURL(uploadedImage) : undefined,
       strainName: mode === 'strain' ? strainName : undefined,
-      grower: mode === 'strain' ? growerName : undefined,
-      image: mode === 'product' && uploadedImage ? URL.createObjectURL(uploadedImage) : undefined
+      grower: mode === 'strain' ? growerName : undefined
     };
 
     onSubmit(input);
