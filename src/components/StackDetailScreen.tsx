@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, Share2, Layers, Leaf, Info } from 'lucide-react';
 import { UIStackRecommendation } from '../types/domain';
 import { StackCompositionBar } from './visuals/StackCompositionBar';
 import { getCultivarVisuals } from '../lib/cultivarData';
+import { getGlassCardStyles } from '../lib/glassStyles';
 
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
@@ -70,10 +71,6 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 <div className="flex flex-col gap-4">
                     <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold pl-2">Sequence</span>
 
-                    import {getGlassCardStyles} from '../lib/glassStyles';
-
-                    // ... existing code ...
-
                     {stack.layers.map((layer, index) => {
                         const primaryColor = layer.cultivars[0] ? getCultivarVisuals(layer.cultivars[0].name).color : '#ffffff';
                         const secondaryColor = layer.cultivars[1] ? getCultivarVisuals(layer.cultivars[1].name).color : primaryColor;
@@ -128,7 +125,8 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
 
                                 </div>
                             </div>
-                        ))}
+                        );
+                    })}
                 </div>
 
                 {/* Footer Padding */}
