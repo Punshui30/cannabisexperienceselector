@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
-import { getCultivarVisuals } from '../lib/cultivarData';
-import { UIStackRecommendation } from '../types/domain';
+import { getCultivarVisuals } from '../../lib/cultivarData';
+import { UIStackRecommendation } from '../../types/domain';
 
 export function StackLineGraph({ stack }: { stack: UIStackRecommendation }) {
     if (!stack.layers || stack.layers.length === 0) return null;
