@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import type { EngineResult, IntentSeed } from '../types/domain';
 
 interface ResolvingScreenProps {
@@ -8,17 +8,69 @@ interface ResolvingScreenProps {
     onComplete: () => void;
 }
 
+const PHRASES = [
+    // Primary rotation (core analysis)
+    "Interpreting your desired outcome…",
+    "Mapping effects to real chemistry…",
+    "Analyzing terpene interactions…",
+    "Balancing clarity, focus, and comfort…",
+    "Translating intent into measurable targets…",
+    "Resolving optimal ratios from available inventory…",
+
+    // Blend-specific / StrainMath-specific
+    "Evaluating how cultivars behave together…",
+    "Designing a blend, not guessing a strain…",
+    "Accounting for batch-level variation…",
+    "Optimizing ratios for repeatable effects…",
+    "Composing effects that don't exist in a single plant…",
+
+    // COA / precision credibility cues
+    "Referencing lab-verified COA data…",
+    "Aligning chemistry with in-store inventory…",
+    "Filtering candidates by measurable outcomes…",
+    "Validating effect stability across components…",
+
+    // Personalized reassurance
+    "Specific to how you want to feel…",
+    "Avoiding effects you said you don't want…",
+    "Prioritizing smoothness over intensity…",
+    "Reducing edge, preserving clarity…"
+];
+
+const CLOSING_PHRASES = [
+    "Finalizing your custom blend…",
+    "Preparing your recommendations…",
+    "Results ready."
+];
+
 export function ResolvingScreen({ onComplete, recommendation }: ResolvingScreenProps) {
+    const [phraseIndex, setPhraseIndex] = useState(0);
+    const [isClosing, setIsClosing] = useState(false);
+
     // Timer to handle transition - Implementation Detail, not UI
     // Reactive Bridge: complete immediately when results are ready
     useEffect(() => {
         if (recommendation) {
-            // Visual Bridge: Ensure at least a fleeting presence (e.g. 800ms) or immediate? 
-            // User said "Disappear immediately when results are ready". 
-            // We will do immediate.
-            onComplete();
+            setIsClosing(true);
+            // Quick closing sequence then complete
+            const timer = setTimeout(() => {
+                onComplete();
+            }, 800);
+            return () => clearTimeout(timer);
         }
     }, [recommendation, onComplete]);
+
+    // Cycling Timer
+    useEffect(() => {
+        if (isClosing) return;
+
+        const interval = setInterval(() => {
+            setPhraseIndex(prev => (prev + 1) % PHRASES.length);
+        }, 2200);
+        return () => clearInterval(interval);
+    }, [isClosing]);
+
+    const currentPhrase = isClosing ? "Finalizing details..." : PHRASES[phraseIndex];
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center relative bg-black overflow-hidden font-sans">
@@ -66,20 +118,20 @@ export function ResolvingScreen({ onComplete, recommendation }: ResolvingScreenP
             </div>
 
             {/* Content Overlay */}
-            <div className="relative z-10 flex flex-col items-center justify-center space-y-8">
-                {/* No Spinners. No Icons. Just Presence. */}
-            </div>
-
-            {/* Single Line Copy - Low Third */}
-            <div className="absolute bottom-16 left-0 right-0 text-center">
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.4 }}
-                    transition={{ duration: 1.5 }}
-                    className="text-white text-[10px] uppercase tracking-[0.3em] font-medium"
-                >
-                    Composing your blend
-                </motion.p>
+            <div className="relative z-10 flex flex-col items-center justify-center space-y-8 h-32">
+                <AnimatePresence mode="wait">
+                    <motion.p
+                        key={isClosing ? 'closing' : phraseIndex}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.5 }}
+                        className="text-white text-sm md:text-base tracking-widest font-light text-center px-8 relative z-50 text-shadow-lg"
+                        style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                    >
+                        {currentPhrase}
+                    </motion.p>
+                </AnimatePresence>
             </div>
 
             {/* Subtle Grain Overlay (Optional Polish) */}
