@@ -39,7 +39,9 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                     // 3. Stack profile color
                     // 4. White fallback
                     const visuals = mainCultivar ? getCultivarVisuals(mainCultivar.name) : null;
-                    const color = mainCultivar?.color || visuals?.color || data.visualProfile?.color || '#ffffff';
+                    // Fix: UIStackRecommendation does not typically have visualProfile on the top level in this domain, 
+                    // and cultivar objects in layers don't have color properties directly.
+                    const color = visuals?.color || '#ffffff';
 
                     return (
                         <motion.div
