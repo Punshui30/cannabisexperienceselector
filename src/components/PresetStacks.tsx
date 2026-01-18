@@ -85,10 +85,30 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                   <p className="text-white/60 text-sm mb-4 leading-relaxed line-clamp-3">{exemplar.subtitle}</p>
 
                   {/* TERPENE INFO & GRAPH */}
+                  {/* VERTICAL STACK VISUALIZATION */}
                   {exemplar.kind === 'stack' && (
-                    <div className="mb-6 space-y-4">
-                      <StackCompositionBar stack={exemplar.data as UIStackRecommendation} />
-                      <TerpeneDisplay stack={exemplar.data as UIStackRecommendation} />
+                    <div className="flex-1 w-full flex flex-col items-center justify-center my-4 relative">
+                      {/* The Vertical Tube */}
+                      <div className="w-16 h-32 rounded-lg overflow-hidden flex flex-col-reverse shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5">
+                        {(exemplar.data as UIStackRecommendation).layers.map((layer, idx) => {
+                          // Assuming equal visual weight for simplified stack preview
+                          // Or calculate relative to duration? Equal is better for "Layering" concept visualization.
+                          return layer.cultivars.map((c, cIdx) => (
+                            <div
+                              key={`${idx}-${cIdx}`}
+                              className="flex-1 w-full relative group/segment"
+                              style={{ backgroundColor: getCultivarVisuals(c.name).color }}
+                            >
+                              {/* Shine/Glass Effect overlay per segment */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50" />
+                            </div>
+                          ));
+                        })}
+                      </div>
+                      {/* Label */}
+                      <span className="absolute -right-4 top-1/2 -translate-y-1/2 translate-x-full text-[9px] uppercase tracking-widest text-white/20 rotate-90 origin-left">
+                        Protocol
+                      </span>
                     </div>
                   )}
 

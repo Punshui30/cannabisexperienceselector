@@ -113,7 +113,87 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                         ))}
                     </div>
                 </div>
+                import {useState} from 'react';
+
+                // ... 
+
+                export function StackDetailScreen({stack, onBack}: StackDetailScreenProps) {
+    // Calculator State
+    const [isCalculating, setIsCalculating] = useState(false);
+                const [prerollSize, setPrerollSize] = useState<number>(1.0); // Grams
+
+                    // ...
+
+                    {/* TIMELINE SEQUENCE */}
+                    {/* ... (Timeline content) ... */}
+
             </div>
+
+            {/* CALCULATOR BUTTON - Floating Action Style */}
+            <div className="flex-shrink-0 pt-4 pb-8 flex justify-center sticky bottom-0 z-40 bg-gradient-to-t from-black via-black to-transparent pointer-events-none">
+                <button
+                    onClick={() => setIsCalculating(true)}
+                    className="pointer-events-auto shadow-[0_0_20px_rgba(0,255,209,0.3)] bg-[#00FFD1] text-black font-bold uppercase tracking-widest text-xs px-8 py-4 rounded-full hover:scale-105 active:scale-95 transition-transform flex items-center gap-2"
+                >
+                    <Layers size={14} /> Calculate Recipe
+                </button>
+            </div>
+
+            {/* CALCULATOR MODAL */}
+            {isCalculating && (
+                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setIsCalculating(false)}>
+                    <div className="w-full max-w-sm bg-[#111] border border-white/10 rounded-2xl p-6" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-serif text-white">Stack Recipe</h3>
+                            <button onClick={() => setIsCalculating(false)} className="text-white/40 hover:text-white">✕</button>
+                        </div>
+
+                        {/* Input Scroller - Stylized */}
+                        <div className="mb-8">
+                            <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-3">Total Flower (Grams)</label>
+                            <div className="flex gap-2">
+                                {[0.5, 1.0, 1.5].map(size => (
+                                    <button
+                                        key={size}
+                                        onClick={() => setPrerollSize(size)}
+                                        className={`flex-1 py-3 rounded-lg border text-sm font-bold transition-all ${prerollSize === size
+                                                ? 'bg-[#00FFD1] border-[#00FFD1] text-black'
+                                                : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                                            }`}
+                                    >
+                                        {size}g
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Recipe Output */}
+                        <div className="space-y-3">
+                            <span className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Layer Breakdown</span>
+                            {stack.layers.map((layer, idx) => {
+                                // Logic: Preroll Size / Number of Layers = Grams per Layer (Simplified Equal Split for now based on concept)
+                                // Or based on Duration ratios? Assuming equal physical layers for stack building ease.
+                                const amount = (prerollSize / stack.layers.length).toFixed(2);
+
+                                return (
+                                    <div key={idx} className="flex justify-between items-center p-3 rounded bg-white/5 border border-white/5">
+                                        <span className="text-sm text-white font-medium">{layer.layerName}</span>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-lg font-mono text-[#00FFD1]">{amount}</span>
+                                            <span className="text-xs text-white/40 font-mono">g</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="mt-6 text-center">
+                            <p className="text-[10px] text-white/30 italic">Grind layers separately. Pack sequentially.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
+        </div >
     );
 }

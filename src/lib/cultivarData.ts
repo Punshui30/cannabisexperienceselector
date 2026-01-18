@@ -18,37 +18,37 @@ export interface CultivarVisualConfig {
     terpenes: string[];
 }
 
-export const CULTIVAR_MAP: Record<string, CultivarVisualConfig> = {
-    // Focus Stacks
-    "Jack Herer": { color: "#10B981", terpenes: ["Terpinolene", "Ocimene", "Pinene"] }, // Sativa - Green/Energy
-    "Blue Dream": { color: "#3B82F6", terpenes: ["Myrcene", "Pinene", "Caryophyllene"] }, // Hybrid - Blue/Calm
-    "ACDC": { color: "#C026D3", terpenes: ["Myrcene", "Pinene", "Caryophyllene"] }, // CBD - Purple/Comfort
-    "Harlequin": { color: "#EC4899", terpenes: ["Myrcene", "Pinene", "Caryophyllene"] }, // CBD - Pink
+// Focus Stacks - Electric Greens & Blues
+"Jack Herer": { color: "#00FF9D", terpenes: ["Terpinolene", "Ocimene", "Pinene"] }, // Neon Mint
+"Blue Dream": { color: "#3B82F6", terpenes: ["Myrcene", "Pinene", "Caryophyllene"] }, // Electric Blue
+"ACDC": { color: "#D946EF", terpenes: ["Myrcene", "Pinene", "Caryophyllene"] }, // Hot Magenta
+"Harlequin": { color: "#FF00FF", terpenes: ["Myrcene", "Pinene", "Caryophyllene"] }, // Neon Pink
 
-    // Sleep/Deep Stacks
-    "Granddaddy Purple": { color: "#7C3AED", terpenes: ["Myrcene", "Linalool", "Caryophyllene"] }, // Indica - Deep Purple
-    "Northern Lights": { color: "#4F46E5", terpenes: ["Myrcene", "Caryophyllene", "Limonene"] }, // Indica - Indigo
+// Sleep/Deep Stacks - Deep Neon Purples & Indigos
+"Granddaddy Purple": { color: "#7C3AED", terpenes: ["Myrcene", "Linalool", "Caryophyllene"] }, // Deep Violet
+"Northern Lights": { color: "#6366F1", terpenes: ["Myrcene", "Caryophyllene", "Limonene"] }, // Indigo Neon
+"Bubba Kush": { color: "#4F46E5", terpenes: ["Caryophyllene", "Limonene", "Myrcene"] }, // Electric Indigo
 
-    // Social/Fun
-    "Gelato": { color: "#F59E0B", terpenes: ["Caryophyllene", "Limonene", "Humulene"] }, // Hybrid - Amber
-    "Zkittlez": { color: "#EF4444", terpenes: ["Caryophyllene", "Humulene", "Linalool"] }, // Indica - Red/Sweet
-    "Durban Poison": { color: "#FACC15", terpenes: ["Terpinolene", "Myrcene", "Ocimene"] }, // Sativa - Yellow/Bright
-    "Cannatonic": { color: "#34D399", terpenes: ["Myrcene", "Pinene", "Linalool"] },
-    "Super Lemon Haze": { color: "#FDE047", terpenes: ["Terpinolene", "Limonene", "Caryophyllene"] },
+// Social/Fun - Vivid Warm Tones
+"Gelato": { color: "#FFaa00", terpenes: ["Caryophyllene", "Limonene", "Humulene"] }, // Bright Amber
+"Zkittlez": { color: "#FF4500", terpenes: ["Caryophyllene", "Humulene", "Linalool"] }, // Neon Orange-Red
+"Durban Poison": { color: "#FFFF00", terpenes: ["Terpinolene", "Myrcene", "Ocimene"] }, // Pure Yellow
+"Cannatonic": { color: "#10B981", terpenes: ["Myrcene", "Pinene", "Linalool"] }, // Emerald
+"Super Lemon Haze": { color: "#FAFF00", terpenes: ["Terpinolene", "Limonene", "Caryophyllene"] }, // High-Vis Yellow
+"Tangie": { color: "#FF5E00", terpenes: ["Limonene"] }, // Hyper Orange
 
-    // Balance/Recovery
-    "GSC": { color: "#A855F7", terpenes: ["Caryophyllene", "Limonene", "Humulene"] },
-    "OG Kush": { color: "#166534", terpenes: ["Myrcene", "Limonene", "Caryophyllene"] },
-    "GG4": { color: "#52525B", terpenes: ["Caryophyllene", "Myrcene", "Humulene"] },
-    "Bubba Kush": { color: "#312E81", terpenes: ["Caryophyllene", "Limonene", "Myrcene"] },
-    "Lemon Haze": { color: "#FEF08A", terpenes: ["Limonene", "Terpinolene", "Caryophyllene"] },
-    "Sour Tangie": { color: "#F97316", terpenes: ["Limonene", "Caryophyllene", "Myrcene"] },
-    "Blueberry": { color: "#1E3A8A", terpenes: ["Myrcene", "Caryophyllene", "Pinene"] },
-    "Strawberry Cough": { color: "#BE123C", terpenes: ["Caryophyllene", "Limonene", "Pinene"] },
-    "Wedding Cake": { color: "#F472B6", terpenes: ["Limonene", "Caryophyllene", "Myrcene"] },
+// Balance/Recovery - Rich Accents
+"GSC": { color: "#A855F7", terpenes: ["Caryophyllene", "Limonene", "Humulene"] }, // Purple
+"OG Kush": { color: "#22D3EE", terpenes: ["Myrcene", "Limonene", "Caryophyllene"] }, // Cyan
+"GG4": { color: "#9CA3AF", terpenes: ["Caryophyllene", "Myrcene", "Humulene"] }, // Silver
+"Lemon Haze": { color: "#FDE047", terpenes: ["Limonene", "Terpinolene", "Caryophyllene"] },
+"Sour Tangie": { color: "#F97316", terpenes: ["Limonene", "Caryophyllene", "Myrcene"] },
+"Blueberry": { color: "#2563EB", terpenes: ["Myrcene", "Caryophyllene", "Pinene"] }, // Royal Blue
+"Strawberry Cough": { color: "#F43F5E", terpenes: ["Caryophyllene", "Limonene", "Pinene"] }, // Rose Red
+"Wedding Cake": { color: "#F472B6", terpenes: ["Limonene", "Caryophyllene", "Myrcene"] },
 
-    // Fallback
-    "Unknown": { color: "#9CA3AF", terpenes: ["Myrcene", "Limonene", "Caryophyllene"] }
+// Fallback
+"Unknown": { color: "#94A3B8", terpenes: ["Myrcene", "Limonene", "Caryophyllene"] }
 };
 
 export function getCultivarVisuals(name: string): CultivarVisualConfig {
