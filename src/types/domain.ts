@@ -1,37 +1,24 @@
-
 import { BlendEvaluation } from "../lib/calculationEngine";
 
 /**
  * 1. IntentSeed (Input & Presets)
- * - Input-side only
- * - No engine output
- * - No cultivars
- * - No chemistry
+ * - Required for all flows
+ * - Must be strictly typed
  */
 export type IntentSeed = {
-    kind: 'intentSeed';
-    mode: 'describe' | 'product' | 'strain';
-    text?: string;
+    kind: 'stack' | 'blend';
+    mode: 'preset' | 'engine';
+    text: string;
     image?: string;
-    strainName?: string;
-    grower?: string;
 };
 
 /**
  * Preset Kinds
- * - intent: Text-only helpers (InputScreen)
- * - blend: Static blend results (ResultsScreen)
- * - stack: Static stack results (StackDetailScreen)
  */
 export type PresetKind = 'intent' | 'blend' | 'stack';
 
 /**
  * 2. OutcomeExemplar (Static, Educational)
- * - Was "Preset Stack"
- * - Static description only
- * - Must route to PresetDetailScreen
- * - MUST NOT render BlendCard or Stack visuals
- * - MUST NOT expect cultivars
  */
 export type OutcomeExemplar = StackOutcomeExemplar | BlendOutcomeExemplar;
 
@@ -64,15 +51,15 @@ export type BlendOutcomeExemplar = {
 };
 
 /**
- * 3. BlendRecommendation (Engine Output - Single)
- * - Single holistic chemotype
- * - One blended profile
- * - One effect curve
+ * 3. UIBlendRecommendation (Public UI Contract)
  */
 export type UIBlendRecommendation = {
     kind: 'blend';
     id: string;
     name: string;
+    matchScore: number;
+    confidence: number;
+    reasoning: string;
     cultivars: {
         name: string;
         ratio: number;
@@ -81,9 +68,6 @@ export type UIBlendRecommendation = {
         prominentTerpenes: string[];
         color: string;
     }[];
-    matchScore: number;
-    confidence: number;
-    reasoning: string;
     effects: {
         onset: string;
         peak: string;
@@ -93,19 +77,20 @@ export type UIBlendRecommendation = {
         time: string;
         feeling: string;
     }[];
+    terpeneProfile: Record<string, number>; // Required by UI
+    description?: string; // Optional helper
     blendEvaluation?: BlendEvaluation;
 };
 
 /**
- * 4. StackRecommendation (Engine Output - Multi-Phase)
- * - 2-6 phases
- * - Ordered timeline
- * - Explicit chronological intent
+ * 4. UIStackRecommendation (Public UI Contract)
  */
 export type UIStackRecommendation = {
     kind: 'stack';
-    id: string;
+    stackId: string; // was id
+    id: string; // keep for compat if needed, or unify
     name: string;
+    description: string;
     matchScore: number;
     reasoning: string;
     totalDuration: string;
@@ -117,37 +102,46 @@ export type UIStackRecommendation = {
             profile: string;
             characteristics: string[];
         }>;
-        // Semantic Timeline Fields
         phaseIntent: string;
         whyThisPhase: string;
         onsetEstimate: string;
         durationEstimate: string;
         consumptionGuidance: string;
-
-        // Legacy / Display
         purpose: string;
         timing: string;
     }>;
-    // Explicitly disallow single-blend properties to catch rendering errors
+    // Explicitly disallow single-blend properties
     cultivars?: never;
     effects?: never;
     timeline?: never;
+    confidence?: never;
 };
 
 /**
- * Union type for any Engine Result
+ * Internal Engine Result (NOT FOR UI)
  */
-export type EngineResult = UIBlendRecommendation | UIStackRecommendation;
+export type EngineResult = {
+    // Defined vaguely to allow adapter to ingest anything engine throws
+    kind?: string;
+    name?: string;
+    reasoning?: string;
+    matchScore?: number;
+    cultivars?: any[];
+    terpeneWeights?: Record<string, number>;
+    layers?: any[];
+    // ... allow partials we adapt from
+    [key: string]: any;
+};
 
 // --- Runtime Guards ---
 
-export function assertBlend(rec: EngineResult): asserts rec is UIBlendRecommendation {
+export function assertBlend(rec: any): asserts rec is UIBlendRecommendation {
     if (!rec || rec.kind !== 'blend') {
         throw new Error(`BlendDetailScreen received invalid or non-blend recommendation (kind: ${rec?.kind})`);
     }
 }
 
-export function assertStack(rec: EngineResult): asserts rec is UIStackRecommendation {
+export function assertStack(rec: any): asserts rec is UIStackRecommendation {
     if (!rec || rec.kind !== 'stack') {
         throw new Error(`StackDetailScreen received invalid or non-stack recommendation (kind: ${rec?.kind})`);
     }
