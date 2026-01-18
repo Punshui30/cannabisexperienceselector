@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { VoiceFeedback } from './VoiceFeedback';
-import { ProtocolStrip } from './ProtocolStrip';
+import { SpatialStack } from './SpatialStack';
+
+// ...
+
+{/* SINGLE SOURCE VISUALIZATION */ }
+<SpatialStack data={recommendation} compact={true} />
 
 // ... (keep props interface)
 

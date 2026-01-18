@@ -5,7 +5,20 @@ import type { OutcomeExemplar, UIStackRecommendation } from '../types/domain';
 import logoImg from '../assets/logo.png';
 import { getGlassCardStyles } from '../lib/glassStyles';
 import { getCultivarVisuals } from '../lib/cultivarData';
-import { ProtocolStrip } from './ProtocolStrip';
+import { SpatialStack } from './SpatialStack';
+
+// ... (keep usage in JSX)
+
+{/* VERTICAL STACK VISUALIZATION - SpatialStack */ }
+{
+  exemplar.kind === 'stack' && (
+    <div className="flex-1 w-full flex items-center justify-center my-4">
+      <SpatialStack data={exemplar.data as UIStackRecommendation} compact={true} />
+    </div>
+  )
+}
+
+// ...
 import { CardShell } from './CardShell';
 
 export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelect: (stack: OutcomeExemplar) => void }) {
