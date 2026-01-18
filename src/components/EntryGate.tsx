@@ -165,8 +165,16 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
               className="w-full max-w-sm p-8 glass-card flex flex-col items-center text-center"
             >
               <div className="mb-8">
-                <div className="w-12 h-12 rounded-full bg-[#BF5AF2]/20 flex items-center justify-center mb-6 mx-auto border border-[#BF5AF2]/40">
-                  <Info className="w-6 h-6 text-[#BF5AF2]" />
+                <div className="w-16 h-16 rounded-full bg-[#BF5AF2]/10 flex items-center justify-center mb-6 mx-auto border border-[#BF5AF2]/30 shadow-[0_0_20px_rgba(191,90,242,0.15)]">
+                  {/* Custom Interpretation Eye Icon */}
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#BF5AF2" strokeWidth="1.5">
+                    {/* Minimal Eye Shape */}
+                    <path d="M4 16C4 16 9 6 16 6C23 6 28 16 28 16C28 16 23 26 16 26C9 26 4 16 4 16Z" strokeOpacity="0.8" />
+                    {/* Stacked Lines (Insight/Interpretation) - No Pupil */}
+                    <path d="M12 16H20" strokeOpacity="0.6" strokeLinecap="round" />
+                    <path d="M13.5 13H18.5" strokeOpacity="0.6" strokeLinecap="round" />
+                    <path d="M13.5 19H18.5" strokeOpacity="0.6" strokeLinecap="round" />
+                  </svg>
                 </div>
 
                 {explanationStep === 0 && (
@@ -179,23 +187,23 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
                 )}
                 {explanationStep === 1 && (
                   <>
-                    <h3 className="text-2xl font-light text-white mb-4 serif">Strain Math™</h3>
+                    <h3 className="text-2xl font-light text-white mb-4 serif">Blends Create<br />Reliable Outcomes</h3>
                     <p className="text-white/50 leading-relaxed text-sm">
-                      Our engine calculates how different cultivars combine to create new effects that don't exist in a single plant.
+                      By combining multiple cultivars in precise ratios, StrainMath™ creates blends that behave more consistently than any single strain.
                     </p>
                   </>
                 )}
                 {explanationStep === 2 && (
                   <>
-                    <h3 className="text-2xl font-light text-white mb-4 serif">Your Guide</h3>
-                    <p className="text-white/50 leading-relaxed text-sm">
-                      Use the "Describe" mode to tell us how you want to feel, and we'll build the recipe for you.
+                    <h3 className="text-2xl font-light text-white mb-4 serif">You Describe the Goal.<br />We Build the Recipe.</h3>
+                    <p className="text-white/50 leading-relaxed text-sm mb-4">
+                      Instead of guessing from menus, you describe how you want to feel. StrainMath™ calculates a custom blend or stack designed to deliver that outcome.
                     </p>
                   </>
                 )}
               </div>
 
-              <div className="flex items-center justify-between w-full">
+              <div className="flex items-center justify-between w-full mt-4">
                 <div className="flex space-x-2">
                   {[0, 1, 2].map((i) => (
                     <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === explanationStep ? 'bg-[#BF5AF2] w-4' : 'bg-white/10'}`} />
@@ -204,9 +212,9 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
                 <button
                   onClick={() => {
                     if (explanationStep < 2) setExplanationStep(prev => prev + 1);
-                    else onEnterUser(); // Replaced setStep('mode') with direct entry
+                    else onEnterUser(); // Direct entry
                   }}
-                  className="text-[#BF5AF2] font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all"
+                  className="text-[#BF5AF2] font-medium text-sm flex items-center gap-2 hover:gap-3 transition-all uppercase tracking-wider"
                 >
                   {explanationStep < 2 ? 'Next' : 'Get Started'} <ArrowRight size={16} />
                 </button>
