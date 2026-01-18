@@ -219,8 +219,8 @@ export function OperatorDemo({ onComplete, onExit }: Props) {
                 <div className="text-sm font-medium" style={{ color: COLORS.foreground }}>
                   Operator Demo
                 </div>
-                <div className="text-xs" style={{ color: COLORS.neutral.text.tertiary }}>
-                  Powered by StrainMath™
+                <div className="text-xs text-[#ffd700]">
+                  Powered by <span className="serif">StrainMath</span>™
                 </div>
               </div>
             </div>
@@ -331,10 +331,10 @@ export function OperatorDemo({ onComplete, onExit }: Props) {
             </div>
             <button
               onClick={handleSkip}
-              className="text-xs"
-              style={{ color: COLORS.blend.primary }}
+              className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-xs font-semibold uppercase tracking-wider"
+              style={{ color: COLORS.foreground }}
             >
-              Skip →
+              Next ❯
             </button>
           </div>
         </div>
@@ -371,15 +371,16 @@ export function OperatorDemo({ onComplete, onExit }: Props) {
 
                 {/* Narration text (simulating captions) */}
                 <div
-                  className="text-base leading-relaxed space-y-3 max-w-xl mx-auto"
-                  style={{ color: COLORS.neutral.text.secondary }}
+                  className="text-lg leading-relaxed space-y-3 max-w-xl mx-auto font-medium"
+                  style={{ color: COLORS.foreground }}
                 >
                   {scene.narration.map((line, idx) => (
                     <motion.p
                       key={idx}
                       initial={{ opacity: 0 }}
-                      animate={{ opacity: isMuted ? 0.8 : 0.5 }}
-                      transition={{ delay: 0.3 + idx * 0.1 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.1 + idx * 0.1 }}
+                      className="drop-shadow-md"
                     >
                       {line}
                     </motion.p>
