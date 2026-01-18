@@ -30,6 +30,14 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
       </div>
 
       <div className="relative z-20 flex flex-col h-full">
+        {/* DEBUG OVERLAY */}
+        <div className="absolute top-0 left-0 w-full z-50 pointer-events-none p-4" style={{ background: 'rgba(0,0,0,0.8)' }}>
+          <h3 className="text-red-500 font-bold">DEBUG DATA (Screen Capture This)</h3>
+          <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap h-48 overflow-y-auto pointer-events-auto select-text border border-red-500 bg-black">
+            {JSON.stringify(recommendations, null, 2)}
+          </pre>
+        </div>
+
         {/* HEADER */}
         <div className="flex-shrink-0 pt-12 px-6 pb-2">
           <div className="flex justify-between items-start mb-6">
