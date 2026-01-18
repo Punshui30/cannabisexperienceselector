@@ -20,48 +20,39 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="relative group h-full"
-        onLayoutAnimationComplete={() => {
-          console.log('VERIFICATION: BlendCard Rendering', {
-            blendName: recommendation.name,
-            count: recommendation.cultivars.length
-          });
-        }}
       >
-        {/* Rich Gradient Glow Outer */}
+        {/* Soft Ambient Glow */}
         <div
-          className="absolute -inset-1 blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"
+          className="absolute -inset-4 blur-3xl opacity-20 pointer-events-none transition-opacity duration-1000"
           style={{
-            background: `linear-gradient(45deg, ${(recommendation.cultivars[0]?.color || '#00FFD1')}40, ${(recommendation.cultivars[1]?.color || '#ffffff')}40)`
+            background: `radial-gradient(circle, ${(recommendation.cultivars[0]?.color || '#00FFD1')}30, transparent 70%)`
           }}
         />
 
         <CardShell
           color={recommendation.cultivars[0]?.color}
           secondaryColor={recommendation.cultivars[1]?.color}
-          className="h-full"
+          className="h-full flex flex-col p-6"
         >
-          {/* Top Header Section */}
-          <div className="pb-4">
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex flex-col">
-                {/* Distinct Badge for Custom Blends */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="px-2 py-0.5 rounded border border-[#00FFD1] bg-[#00FFD1]/10 text-[#00FFD1] text-[9px] font-bold uppercase tracking-widest">
-                    Custom Blend
-                  </div>
-                </div>
-                <h2 className="text-4xl font-light text-white mb-2 serif tracking-tight leading-none">
-                  {recommendation.name}
-                </h2>
-                {/* Score moved here for cleaner layout */}
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-2xl font-light text-[#00FFD1] serif">{recommendation.matchScore}%</span>
-                  <span className="text-[9px] uppercase tracking-widest text-[#00FFD1]/60">Match</span>
-                </div>
-              </div>
+          {/* Header */}
+          <div className="flex flex-col items-center text-center pb-6 border-b border-white/5">
+            <div className="mb-4 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/50">
+                {recommendation.matchScore}% Match
+              </span>
             </div>
 
-            {/* SINGLE SOURCE VISUALIZATION: SpatialStack - Adapted from Blend */}
+            <h2 className="text-3xl font-light text-white mb-2 serif tracking-tight leading-tight">
+              {recommendation.name}
+            </h2>
+
+            <p className="text-xs text-white/40 font-medium tracking-wide">
+              {recommendation.effects?.onset || 'Fast'} Onset • {recommendation.effects?.duration || '2-4h'} Duration
+            </p>
+          </div>
+
+          <div className="flex-1 py-6 flex flex-col justify-center">
+            {/* Visualization */}
             <SpatialStack
               data={{
                 kind: 'stack',
@@ -92,29 +83,32 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               }}
               compact={true}
             />
+          </div>
 
-            {/* Principal Actions */}
-            <div className="grid grid-cols-2 gap-3 mb-4 mt-6">
+          {/* Actions */}
+          <div className="space-y-4">
+            <button
+              onClick={onCalculate}
+              className="w-full py-4 rounded-xl bg-[#00FFD1] text-black font-bold text-sm uppercase tracking-widest hover:bg-[#00FFD1]/90 transition-colors shadow-[0_0_20px_rgba(0,255,209,0.3)] hover:shadow-[0_0_30px_rgba(0,255,209,0.5)]"
+            >
+              Calculate Recipe
+            </button>
+
+            <div className="flex justify-center gap-6">
               <button
                 onClick={() => setShowVoiceFeedback(true)}
-                className="py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest"
+                className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
               >
                 Feedback
               </button>
+              <div className="w-px h-3 bg-white/10 self-center" />
               <button
                 onClick={() => setShowDetails(true)}
-                className="py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest"
+                className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
               >
                 Chemistry
               </button>
             </div>
-
-            <button
-              onClick={onCalculate}
-              className="w-full btn-neon-green"
-            >
-              Calculate Recipe
-            </button>
           </div>
         </CardShell>
       </motion.div>

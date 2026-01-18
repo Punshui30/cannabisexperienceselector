@@ -39,34 +39,30 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
         </div>
 
         {/* HEADER */}
-        <div className="flex-shrink-0 pt-12 px-6 pb-2">
-          <div className="flex justify-between items-start mb-6">
+        <div className="flex-shrink-0 pt-16 px-6 pb-6 relative z-30">
+          <div className="flex justify-between items-start mb-8">
             <button
               onClick={onBack}
-              className="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 transition-colors backdrop-blur-md"
             >
-              <span className="text-[10px] uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">Restart</span>
+              <ArrowLeft size={12} className="text-white/40 group-hover:text-white transition-colors" />
+              <span className="text-[9px] uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">Back</span>
             </button>
 
             <div className="flex gap-4">
               <div className="text-right">
-                <div className="text-[9px] text-[#00FFD1] uppercase tracking-widest border border-[#00FFD1]/30 px-2 py-0.5 rounded-full bg-[#00FFD1]/5 mb-2">
-                  Live v2.5
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/20 border border-white/10 backdrop-blur-md">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] shadow-[0_0_8px_#00FFD1]" />
+                  <span className="text-[9px] font-medium text-white/60 uppercase tracking-widest">Live v2.5</span>
                 </div>
-                <div className="inline-block px-3 py-1 rounded-full bg-[#ffd700]/10 border border-[#ffd700]/20 backdrop-blur-md">
-                  <span className="text-[10px] font-bold text-[#ffd700] tracking-widest uppercase">
-                    <span className="serif">StrainMath</span><span className="text-[8px] align-top opacity-60">™</span> Output
-                  </span>
-                </div>
-                <p className="text-[10px] text-white/40 mt-1 uppercase tracking-wider">Confidence: 94%</p>
               </div>
 
               {onShare && (
                 <button
                   onClick={() => onShare(activeRec as any)}
-                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-[#00FFD1] transition-colors"
+                  className="w-8 h-8 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-white/40 hover:text-[#00FFD1] transition-colors"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     <path d="M16 6l-4-4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     <path d="M12 2v13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -76,11 +72,11 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
             </div>
           </div>
 
-          <div className="text-center mb-4">
-            <h1 className="text-3xl font-light text-white mb-2 serif tracking-tight">Your Blends</h1>
-            <p className="text-[#00FFD1] text-[10px] uppercase tracking-[0.3em] font-semibold">
+          <div className="text-center">
+            <p className="text-[#00FFD1] text-[9px] uppercase tracking-[0.4em] mb-3 opacity-80">
               Engine Result #{activeIndex + 1}
             </p>
+            <h1 className="text-4xl font-light text-white serif tracking-tight">Your Blends</h1>
           </div>
         </div>
 
