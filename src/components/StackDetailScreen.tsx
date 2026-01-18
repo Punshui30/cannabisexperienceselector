@@ -99,35 +99,55 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                                         "h-full bg-white/5 border rounded-2xl p-5 hover:bg-white/[0.07] transition-all flex flex-col",
                                         accent.border,
                                         accent.glow
+                                    )}
+                                >
+                                    {/* Phase Header */}
+                                    <div className={cn("flex justify-between items-start mb-4 border-b border-white/5 pb-3", accent.text)}>
+                                        <div>
+                                            <div className="text-[9px] uppercase tracking-widest opacity-80 font-bold mb-1">{layer.onsetEstimate}</div>
+                                            <h3 className="text-lg font-medium text-white">{layer.layerName.split(':')[0]}</h3>
+                                            <span className="text-xs text-white/60">{layer.layerName.split(':')[1]}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-1 space-y-4">
+                                        <div>
+                                            <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Physical Position</div>
+                                            <p className="text-white/90 text-xs leading-relaxed border-l-2 border-[#7C5CFF] pl-2">
+                                                {layer.phaseIntent}
+                                            </p>
+                                        </div>
+
+                                        <div>
                                             <div className="text-[9px] uppercase tracking-widest text-white/30 mb-1 font-bold">Combustion</div>
                                             <p className="text-white/90 text-[10px] leading-relaxed border-l-2 border-[#00FFD1] pl-2">
                                                 {layer.consumptionGuidance}
                                             </p>
                                         </div>
-            </div>
+                                    </div>
 
-            {/* Chemicals (Cultivars - Minimal) */}
-            <div className="mt-4 pt-3 border-t border-white/5">
-                {layer.cultivars.map((c, cIdx) => (
-                    <div key={cIdx} className="flex items-center justify-between">
-                        <span className="text-white/90 text-xs font-medium">{c.name}</span>
-                        <span className="text-white/40 text-[9px]">{c.profile}</span>
-                    </div>
-                ))}
-            </div>
-        </motion.div>
-                            </div >
+                                    {/* Chemicals (Cultivars - Minimal) */}
+                                    <div className="mt-4 pt-3 border-t border-white/5">
+                                        {layer.cultivars.map((c, cIdx) => (
+                                            <div key={cIdx} className="flex items-center justify-between">
+                                                <span className="text-white/90 text-xs font-medium">{c.name}</span>
+                                                <span className="text-white/40 text-[9px]">{c.profile}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </div>
                         );
-})}
-                </div >
+                    })}
+                </div>
 
-    {/* Progress Indicator (Bottom) */ }
-    < div className = "flex items-center justify-center gap-2 mt-8 opacity-30" >
+                {/* Progress Indicator (Bottom) */}
+                <div className="flex items-center justify-center gap-2 mt-8 opacity-30">
                     <span className="text-[9px] uppercase tracking-widest text-white">Start</span>
                     <div className="w-64 h-px bg-gradient-to-r from-white to-transparent" />
                     <span className="text-[9px] uppercase tracking-widest text-white">Finish</span>
-                </div >
-            </div >
-        </div >
+                </div>
+            </div>
+        </div>
     );
 }
