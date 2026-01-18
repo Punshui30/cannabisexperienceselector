@@ -115,6 +115,7 @@ export default function App() {
 
             // Adapter Strategy (Prompt B)
             // Always adapt first result for Blend Flow
+            console.log('DEBUG: Engine Result Raw', result.data[0]);
             const adapted = adaptEngineResult(result.data[0]);
 
             if (adapted) {
@@ -184,19 +185,7 @@ export default function App() {
           </>
         ) : (
           <>
-            <AnimatePresence>
-              {isAnalyzing && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center flex-col gap-4 pointer-events-none"
-                >
-                  <div className="w-12 h-12 border-2 border-[#00FFD1] border-t-transparent rounded-full animate-spin" />
-                  <span className="text-[#00FFD1] text-xs uppercase tracking-widest font-bold animate-pulse">Analyzing Pattern...</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+
 
             {view === 'input' && (
               <InputScreen
