@@ -65,31 +65,25 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
                         profile: 'Sativa',
                         characteristics: ['Limonene', 'Terpinolene']
                     }
-                        name: 'Super Lemon Haze',
-                    ratio: 0.5,
-                    profile: 'Sativa-Hybrid',
-                    characteristics: ['Limonene', 'Caryophyllene']
-                    }
-        ]
-    },
+                ]
+            },
             {
-    layerName: 'Landing',
-        timing: '3:30',
-            phaseIntent: 'Reset, Relax',
+                layerName: 'Landing',
+                timing: '3:30',
+                phaseIntent: 'Reset, Relax',
                 whyThisPhase: 'A CBD-rich finish clears the head and transitions out of hyper-focus.',
-                    onsetEstimate: '10m',
-                        durationEstimate: '1h',
-                            consumptionGuidance: 'Tea/Beverage',
-                                purpose: 'Wind Down',
-                                    cultivars: [
-                                        {
-                                            name: 'Cannatonic',
-                                            ratio: 1.0,
-                                            profile: 'CBD',
-                                            characteristics: ['CBD', 'Myrcene']
-                                        }
-                                    ]
-}
+                durationEstimate: '1h',
+                consumptionGuidance: 'Tea/Beverage',
+                purpose: 'Wind Down',
+                cultivars: [
+                    {
+                        name: 'Cannatonic',
+                        ratio: 1.0,
+                        profile: 'CBD',
+                        characteristics: ['CBD', 'Myrcene']
+                    }
+                ]
+            }
         ]
     }
 };
