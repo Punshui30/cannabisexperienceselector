@@ -147,7 +147,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     <div className="w-full h-screen flex flex-col relative z-10 overflow-hidden bg-transparent"> {/* h-screen fixed */}
 
       {/* --- HEADER (Fixed) --- */}
-      <div className="flex-shrink-0 pt-12 px-6 pb-4 bg-gradient-to-b from-black via-black to-transparent z-20">
+      <div className="flex-shrink-0 pt-12 px-6 pb-4 bg-gradient-to-b from-black/90 via-black/50 to-transparent z-20">
         <div className="flex justify-between items-start mb-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -294,7 +294,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
       </div>
 
       {/* --- FOOTER (Fixed) --- */}
-      <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-gradient-to-t from-black via-black to-transparent z-20 flex flex-col gap-3">
+      <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3">
         <button
           onClick={handleSubmit}
           disabled={!canSubmit()}
