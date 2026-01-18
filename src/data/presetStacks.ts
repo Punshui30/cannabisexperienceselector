@@ -64,6 +64,24 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
                         characteristics: ['Limonene', 'Caryophyllene']
                     }
                 ]
+            },
+            {
+                layerName: 'Landing',
+                timing: '3:30',
+                phaseIntent: 'Reset, Relax',
+                whyThisPhase: 'A CBD-rich finish clears the head and transitions out of hyper-focus.',
+                onsetEstimate: '10m',
+                durationEstimate: '1h',
+                consumptionGuidance: 'Tea/Beverage',
+                purpose: 'Wind Down',
+                cultivars: [
+                    {
+                        name: 'Cannatonic',
+                        ratio: 1.0,
+                        profile: 'CBD',
+                        characteristics: ['CBD', 'Myrcene']
+                    }
+                ]
             }
         ]
     }
@@ -124,6 +142,24 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
                         ratio: 1.0,
                         profile: 'Indica',
                         characteristics: ['Caryophyllene', 'Myrcene']
+                    }
+                ]
+            },
+            {
+                layerName: 'Restoration',
+                timing: '6:00',
+                phaseIntent: 'Wake Refreshed',
+                whyThisPhase: 'Prevents grogginess by tapering off heavy sedatives before waking.',
+                onsetEstimate: '0m',
+                durationEstimate: '2h',
+                consumptionGuidance: 'None (Metabolic)',
+                purpose: 'Completion',
+                cultivars: [
+                    {
+                        name: 'Harlequin',
+                        ratio: 1.0,
+                        profile: 'CBD-Hybrid',
+                        characteristics: ['CBD', 'Pinene']
                     }
                 ]
             }
@@ -188,6 +224,24 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
                         characteristics: ['Caryophyllene', 'Limonene']
                     }
                 ]
+            },
+            {
+                layerName: 'Afterglow',
+                timing: '2:30',
+                phaseIntent: 'Calm Release',
+                whyThisPhase: 'Gentle descent to prevent crashing after high energy.',
+                onsetEstimate: '5m',
+                durationEstimate: '1h',
+                consumptionGuidance: 'Vape',
+                purpose: 'Wind Down',
+                cultivars: [
+                    {
+                        name: 'Blue Dream',
+                        ratio: 1.0,
+                        profile: 'Hybrid',
+                        characteristics: ['Myrcene', 'Pinene']
+                    }
+                ]
             }
         ]
     }
@@ -247,6 +301,24 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
                         name: 'Blue Dream',
                         ratio: 1.0,
                         profile: 'Hybrid',
+                        characteristics: ['Myrcene', 'Pinene']
+                    }
+                ]
+            },
+            {
+                layerName: 'Reflect',
+                timing: '3:00',
+                phaseIntent: 'Appreciation',
+                whyThisPhase: 'A euphoric finish to review work with satisfaction.',
+                onsetEstimate: '5m',
+                durationEstimate: '1h',
+                consumptionGuidance: 'Vape',
+                purpose: 'Integration',
+                cultivars: [
+                    {
+                        name: 'Maui Wowie',
+                        ratio: 1.0,
+                        profile: 'Sativa',
                         characteristics: ['Myrcene', 'Pinene']
                     }
                 ]
