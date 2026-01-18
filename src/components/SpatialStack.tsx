@@ -54,79 +54,87 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                             {/* The Slab */}
                             <div
                                 className={`
-                                    relative w-full min-h-[80px] py-3
-                                    flex items-center justify-between px-6
-                                    border-l-4 border-r-4 border-y border-white/10
+                                    relative w-full py-4 px-6
+                                    flex flex-col gap-4
+                                    border-l-4 border-r-4 border-y border-white/5
                                     transition-all duration-300
-                                    hover:border-white/30 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]
-                                    ${isFirst ? 'rounded-t-lg' : ''}
-                                    ${isLast ? 'rounded-b-lg' : ''}
+                                    hover:border-white/20 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]
+                                    ${isFirst ? 'rounded-t-xl' : ''}
+                                    ${isLast ? 'rounded-b-xl' : ''}
                                 `}
                                 style={{
-                                    background: `linear-gradient(90deg, ${color}20, ${color}10)`,
-                                    borderColor: `${color}60`,
-                                    boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.3)`
+                                    background: `linear-gradient(180deg, ${color}15, ${color}05)`,
+                                    borderColor: `${color}40`,
+                                    boxShadow: `0 4px 20px -5px rgba(0, 0, 0, 0.5)`
                                 }}
                             >
-                                {/* Left: Phase Name */}
-                                <div className="flex flex-col items-start min-w-[30%]">
-                                    <span className="text-[10px] uppercase tracking-widest text-white/60 font-medium">
-                                        Phase {index + 1}
-                                    </span>
-                                    <span className="text-lg font-light text-white serif tracking-wide leading-tight">
-                                        {layer.layerName}
-                                    </span>
+                                {/* Header: Phase Name */}
+                                <div className="flex justify-between items-baseline border-b border-white/5 pb-2 mb-1">
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] uppercase tracking-[0.2em] text-white/50 font-bold mb-0.5">
+                                            Phase {index + 1}
+                                        </span>
+                                        <span className="text-xl text-white font-serif tracking-wide">
+                                            {layer.layerName}
+                                        </span>
+                                    </div>
+                                    {/* Optional: Phase timing or type indicator if needed */}
                                 </div>
 
-                                {/* Right: Strain/Cultivar list */}
-                                <div className="flex flex-col items-end gap-1.5 flex-1 max-w-[65%]">
-                                    {layer.type === 'blend' ? (
-                                        <div className="flex flex-col items-end gap-1 w-full">
-                                            <span className="text-[8px] uppercase tracking-widest text-white/40 mb-0.5 self-end">Blend Composition</span>
-                                            {layer.cultivars.map((c, i) => {
-                                                // Resolve color for this specific cultivar
-                                                // Fallback: Check profile (sativa/indica/hybrid) string match
-                                                let cColor = '#10B981'; // Default hybrid/green
-                                                if (c.profile?.toLowerCase().includes('sativa')) cColor = '#F59E0B';
-                                                if (c.profile?.toLowerCase().includes('indica')) cColor = '#8B5CF6';
+                                {/* Content: Strain/Cultivar list (Full Width) */}
+                                <div className="flex flex-col gap-3">
+                                    {layer.cultivars.map((c, i) => {
+                                        // Resolve colors
+                                        let cColor = '#10B981';
+                                        if (c.profile?.toLowerCase().includes('sativa')) cColor = '#F59E0B';
+                                        if (c.profile?.toLowerCase().includes('indica')) cColor = '#8B5CF6';
 
-                                                // Check if explicit visuals exist (overrides profile)
-                                                const cVis = getCultivarVisuals(c.name);
-                                                if (cVis && cVis.color) cColor = cVis.color;
+                                        const cVis = getCultivarVisuals(c.name);
+                                        if (cVis && cVis.color) cColor = cVis.color;
 
-                                                return (
-                                                    <div key={i} className="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1 border border-white/5 w-fit ml-auto">
-                                                        <div className="w-1.5 h-1.5 rounded-full shadow-[0_0_5px_currentColor]" style={{ backgroundColor: cColor, color: cColor }} />
-                                                        <span className="text-xs font-bold tracking-wide text-white leading-none">
+                                        // Ratio for visual bar (default to equal split if missing)
+                                        const ratio = c.ratio || (1 / layer.cultivars.length);
+                                        const percent = Math.round(ratio * 100);
+
+                                        return (
+                                            <div key={i} className="relative py-1">
+                                                {/* Text Row */}
+                                                <div className="flex justify-between items-end relative z-10 mb-1.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <div
+                                                            className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]"
+                                                            style={{ backgroundColor: cColor, color: cColor }}
+                                                        />
+                                                        <span className="text-sm font-medium text-white/90">
                                                             {c.name}
                                                         </span>
-                                                        {c.ratio && (
-                                                            <span className="text-[9px] text-white/40 font-mono ml-1 border-l border-white/10 pl-2">
-                                                                {c.ratio}
-                                                            </span>
-                                                        )}
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        // Single Cultivar (Stacks)
-                                        <span
-                                            className="text-[10px] font-bold uppercase tracking-widest text-right"
-                                            style={{
-                                                color: color,
-                                                textShadow: `0 0 10px ${color}40`
-                                            }}
-                                        >
-                                            {mainCultivar?.name}
-                                        </span>
-                                    )}
-                                    <span className="text-[9px] text-white/40 italic mt-1">
-                                        {layer.onsetEstimate}
-                                    </span>
+                                                    {/* Hide % if singular, show if blend */}
+                                                    {layer.cultivars.length > 1 && (
+                                                        <span className="text-[10px] font-mono text-white/40">
+                                                            {percent}%
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Visual Progress Bar (Contribution) */}
+                                                {layer.cultivars.length > 1 && (
+                                                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                                        <motion.div
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${percent}%` }}
+                                                            transition={{ delay: 0.5 + (i * 0.1), duration: 0.8, ease: "easeOut" }}
+                                                            className="h-full rounded-full opacity-60"
+                                                            style={{ backgroundColor: cColor }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
 
-                                {/* Depth/Side Glint - Colorized */}
+                                {/* Color Glint on Right Edge */}
                                 <div
                                     className="absolute inset-y-0 right-0 w-8 pointer-events-none"
                                     style={{
@@ -137,7 +145,7 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
 
                             {/* Connecting Line (if not last) */}
                             {!isLast && (
-                                <div className="h-2 w-[90%] mx-auto border-x border-white/5 bg-black/20" />
+                                <div className="h-1 w-[90%] mx-auto border-x border-white/5 bg-black/20" />
                             )}
                         </motion.div>
                     );

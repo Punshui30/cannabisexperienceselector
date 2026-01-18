@@ -10,6 +10,7 @@ import { PresetStacks } from './components/PresetStacks';
 import { StackDetailScreen } from './components/StackDetailScreen';
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
+import { RemoteAccessPreview } from './components/RemoteAccessPreview';
 import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { processIntent } from './lib/llmOrchestrator';
@@ -198,7 +199,7 @@ export default function App() {
   };
 
   return (
-    <div className="dark min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
+    <div className="dark min-h-[100dvh] bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col supports-[min-height:100dvh]:min-h-[100dvh]">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/80 rounded-full blur-[120px] animate-pulse-slow" />
         <div className="absolute bottom-[-5%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/80 rounded-full blur-[100px] animate-pulse-slow delay-700" />

@@ -5,16 +5,32 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Activity, Droplet, X } from 'lucide-react';
 
 export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
-    const strains = Object.entries(CULTIVAR_MAP).sort((a, b) => a[0].localeCompare(b[0]));
+    // SOURCE OF TRUTH: Iterate over the real Inventory/JSON data
+    const strains = INVENTORY.cultivars.sort((a, b) => a.name.localeCompare(b.name));
+
+    // State
     const [selectedName, setSelectedName] = useState<string | null>(null);
 
-    // Helper to find chemotype data
+    // Helpers
     const getChemotype = (name: string) => {
         return INVENTORY.cultivars.find(c => c.name.toLowerCase() === name.toLowerCase());
     };
 
+    const getVisuals = (name: string, type: string) => {
+        // Try lookup
+        if (CULTIVAR_MAP[name]) return CULTIVAR_MAP[name];
+
+        // Fallback Logic
+        const isSativa = type?.toLowerCase() === 'sativa';
+        const isIndica = type?.toLowerCase() === 'indica';
+        return {
+            color: isSativa ? '#F59E0B' : isIndica ? '#8B5CF6' : '#10B981',
+            terpenes: ['Myrcene', 'Limonene'] // Generic fallback if missing from map
+        };
+    };
+
     const selectedChemotype = selectedName ? getChemotype(selectedName) : null;
-    const selectedVisuals = selectedName ? CULTIVAR_MAP[selectedName] : null;
+    const selectedVisuals = selectedName && selectedChemotype ? getVisuals(selectedName, selectedChemotype.type || 'hybrid') : null;
 
     return (
         <div className="fixed inset-0 flex flex-col bg-black text-white font-sans overflow-hidden">
@@ -31,54 +47,63 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                 </button>
                 <div className="flex flex-col items-end">
                     <span className="text-sm font-medium serif">Strain Library</span>
-                    <span className="text-[10px] text-white/40">Chemotype Database v2.1</span>
+                    <span className="text-[10px] text-white/40">Real Inventory: {strains.length} Strains</span>
                 </div>
             </div>
 
             {/* Grid Content */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8">
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-32">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
-                    {strains.map(([name, data], idx) => (
-                        <motion.div
-                            key={name}
-                            onClick={() => setSelectedName(name)}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="relative p-6 rounded-2xl bg-white/5 border border-white/5 overflow-hidden group hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
-                        >
-                            {/* Color Block Indicator */}
-                            <div
-                                className="absolute top-0 right-0 w-24 h-24 blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity"
-                                style={{ backgroundColor: data.color }}
-                            />
+                    {strains.map((strain, idx) => {
+                        const visuals = getVisuals(strain.name, strain.type || 'hybrid');
+                        // Convert dict to array for terpenes if needed or use from record
+                        const topTerpenes = strain.terpenes ? Object.entries(strain.terpenes)
+                            .sort(([, a], [, b]) => (b as number) - (a as number))
+                            .slice(0, 3)
+                            .map(([k]) => k) : [];
 
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div
-                                        className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]"
-                                        style={{ backgroundColor: data.color, color: data.color }}
-                                    />
-                                    <h3 className="text-xl font-light serif text-white group-hover:text-[#00FFD1] transition-colors">{name}</h3>
-                                </div>
+                        return (
+                            <motion.div
+                                key={strain.id}
+                                onClick={() => setSelectedName(strain.name)}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.05 }}
+                                className="relative p-6 rounded-2xl bg-white/5 border border-white/5 overflow-hidden group hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
+                            >
+                                {/* Color Block Indicator */}
+                                <div
+                                    className="absolute top-0 right-0 w-24 h-24 blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity"
+                                    style={{ backgroundColor: visuals.color }}
+                                />
 
-                                <div className="space-y-3">
-                                    <div className="text-[9px] uppercase tracking-widest text-white/30 font-bold">Terpene Profile</div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {data.terpenes.map(t => (
-                                            <div key={t} className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 border border-white/5">
-                                                <span
-                                                    className="w-1.5 h-1.5 rounded-full"
-                                                    style={{ backgroundColor: getTerpeneColor(t) }}
-                                                />
-                                                <span className="text-[10px] text-white/70">{t}</span>
-                                            </div>
-                                        ))}
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div
+                                            className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]"
+                                            style={{ backgroundColor: visuals.color, color: visuals.color }}
+                                        />
+                                        <h3 className="text-xl font-light serif text-white group-hover:text-[#00FFD1] transition-colors">{strain.name}</h3>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="text-[9px] uppercase tracking-widest text-white/30 font-bold">Terpene Profile</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {topTerpenes.map(t => (
+                                                <div key={t} className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 border border-white/5">
+                                                    <span
+                                                        className="w-1.5 h-1.5 rounded-full"
+                                                        style={{ backgroundColor: getTerpeneColor(t) }}
+                                                    />
+                                                    <span className="text-[10px] text-white/70">{t}</span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        )
+                    })}
                 </div>
             </div>
 

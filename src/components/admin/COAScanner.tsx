@@ -15,10 +15,7 @@ export function COAScanner({ onClose, onComplete }: Props) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
-  const handleCapture = () => {
-    // Simulate camera/file capture
-    fileInputRef.current?.click();
-  };
+
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

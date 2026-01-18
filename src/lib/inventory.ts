@@ -22,6 +22,7 @@ const cultivars = chemotypeData.cultivars.map(c => {
         thcPercent: c.thc_percent,
         cbdPercent: c.cbd_percent,
         available: true,
+        type: c.type,
         terpenes: c.terpenes
     };
 });

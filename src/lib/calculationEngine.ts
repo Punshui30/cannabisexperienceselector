@@ -85,6 +85,7 @@ export interface Cultivar {
   cbdPercent: number;
   terpenes: Record<string, number>;
   available: boolean;
+  type?: string;
   grower?: string;
   batch?: string;
 }

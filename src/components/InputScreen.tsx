@@ -237,7 +237,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={placeholderText}
+                  placeholder="Describe how you want to feel, what you want to avoid, or a scenario..."
                   className={`${GLASS_INPUT} h-32 resize-none transition-all placeholder:text-white/30`}
                 />
                 {/* NO CHIPS HERE */}

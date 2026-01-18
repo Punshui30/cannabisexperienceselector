@@ -37,7 +37,7 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
       </div>
 
       {/* Swipe Deck Area */}
-      <div className="flex-1 w-full relative z-10 min-h-0 overflow-hidden">
+      <div className="flex-1 w-full relative z-10 min-h-0 overflow-hidden pb-32">
         <SwipeDeck
           items={PRESET_STACKS}
           renderItem={(exemplar, isActive) => (
