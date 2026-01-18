@@ -70,56 +70,65 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 <div className="flex flex-col gap-4">
                     <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold pl-2">Sequence</span>
 
-                    {stack.layers.map((layer, index) => (
-                        <div
-                            key={index}
-                            className="w-full rounded-2xl bg-[#0a0a0a] border border-white/10 overflow-hidden relative"
-                        >
-                            {/* Accent Line */}
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#00FFD1]/30" />
+                    import {getGlassCardStyles} from '../lib/glassStyles';
 
-                            <div className="p-5 pl-7">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-[10px] uppercase tracking-widest text-white/40">Phase 0{index + 1}</span>
-                                    <span className="text-[10px] font-mono text-[#00FFD1] bg-[#00FFD1]/10 px-2 py-0.5 rounded">
-                                        {layer.timing}
-                                    </span>
-                                </div>
-                                <h3 className="text-xl font-serif text-white mb-1">{layer.layerName}</h3>
-                                <p className="text-sm text-white/60 italic mb-4">{layer.phaseIntent}</p>
+                    // ... existing code ...
 
-                                {/* Cultivars in this Phase */}
-                                <div className="space-y-3 pt-3 border-t border-white/5">
-                                    {layer.cultivars.map((c, i) => {
-                                        const visuals = getCultivarVisuals(c.name);
-                                        return (
-                                            <div key={i} className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: visuals.color }} />
-                                                    <span className="text-sm font-medium text-white">{c.name}</span>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    {visuals.terpenes.slice(0, 2).map(t => (
-                                                        <span key={t} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/40 border border-white/5">
-                                                            {t}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                    {stack.layers.map((layer, index) => {
+                        const primaryColor = layer.cultivars[0] ? getCultivarVisuals(layer.cultivars[0].name).color : '#ffffff';
+                        const secondaryColor = layer.cultivars[1] ? getCultivarVisuals(layer.cultivars[1].name).color : primaryColor;
 
-                                <div className="mt-4 pt-4 border-t border-white/5 flex gap-4">
-                                    <div>
-                                        <span className="block text-[9px] uppercase text-white/30 mb-0.5">Focus</span>
-                                        <span className="text-xs text-white/80">{layer.whyThisPhase}</span>
+                        return (
+                            <div
+                                key={index}
+                                className="w-full rounded-2xl overflow-hidden relative"
+                                style={getGlassCardStyles(primaryColor, secondaryColor)}
+                            >
+                                {/* Accent Line */}
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#00FFD1]/30" />
+
+                                <div className="p-5 pl-7">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] uppercase tracking-widest text-white/40">Phase 0{index + 1}</span>
+                                        <span className="text-[10px] font-mono text-[#00FFD1] bg-[#00FFD1]/10 px-2 py-0.5 rounded">
+                                            {layer.timing}
+                                        </span>
                                     </div>
-                                </div>
+                                    <h3 className="text-xl font-serif text-white mb-1">{layer.layerName}</h3>
+                                    <p className="text-sm text-white/60 italic mb-4">{layer.phaseIntent}</p>
 
+                                    {/* Cultivars in this Phase */}
+                                    <div className="space-y-3 pt-3 border-t border-white/5">
+                                        {layer.cultivars.map((c, i) => {
+                                            const visuals = getCultivarVisuals(c.name);
+                                            return (
+                                                <div key={i} className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: visuals.color }} />
+                                                        <span className="text-sm font-medium text-white">{c.name}</span>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        {visuals.terpenes.slice(0, 2).map(t => (
+                                                            <span key={t} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/40 border border-white/5">
+                                                                {t}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div className="mt-4 pt-4 border-t border-white/5 flex gap-4">
+                                        <div>
+                                            <span className="block text-[9px] uppercase text-white/30 mb-0.5">Focus</span>
+                                            <span className="text-xs text-white/80">{layer.whyThisPhase}</span>
+                                        </div>
+                                    </div>
+
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
 
                 {/* Footer Padding */}

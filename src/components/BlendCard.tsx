@@ -36,7 +36,17 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
           }}
         />
 
-        <div className="relative glass-card border-white/10 bg-black/60 overflow-hidden shadow-2xl">
+        import {getGlassCardStyles} from '../lib/glassStyles';
+
+        // ...
+
+        <div
+          className="relative overflow-hidden shadow-2xl rounded-3xl"
+          style={getGlassCardStyles(
+            recommendation.cultivars[0]?.color,
+            recommendation.cultivars[1]?.color
+          )}
+        >
           {/* Top Header Section */}
           <div className="p-8 pb-4">
             <div className="flex justify-between items-start mb-6">

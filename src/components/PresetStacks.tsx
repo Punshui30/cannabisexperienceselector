@@ -42,67 +42,70 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
         <SwipeDeck
           items={PRESET_STACKS}
           renderItem={(exemplar, isActive) => (
-            <div className="w-full h-full flex items-center justify-center p-8">
-              <motion.button
-                className="relative w-full max-w-sm aspect-[3/4] p-8 rounded-3xl bg-white/5 text-left overflow-hidden group hover:bg-white/10 transition-colors flex flex-col"
-                style={{
-                  borderColor: `${exemplar.visualProfile.color}40`,
-                  borderWidth: '1px',
-                  boxShadow: `0 0 20px -10px ${exemplar.visualProfile.color}40`
-                }}
-                onClick={() => {
-                  if (!exemplar || typeof exemplar !== 'object') {
-                    console.error('CRITICAL: PresetStacks passed invalid exemplar', exemplar);
-                    return;
-                  }
-                  onSelect(exemplar);
-                }}
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
+import { getGlassCardStyles} from '../lib/glassStyles';
 
-                {/* Iridescent Strip */}
-                <div
-                  className="absolute top-0 left-0 w-full h-1.5 opacity-80 group-hover:opacity-100 transition-opacity z-20"
-                  style={{
-                    background: `linear-gradient(90deg, ${exemplar.visualProfile.color}, #fff, ${exemplar.visualProfile.color})`,
-                    backgroundSize: '200% 100%',
-                    filter: 'blur(1px)'
-                  }}
-                />
+        // ... 
 
-                {/* Visual Layer Removed - Static Card Only */}
+        <div className="w-full h-full flex items-center justify-center p-8">
+          <motion.button
+            className="relative w-full max-w-sm aspect-[3/4] p-8 rounded-3xl bg-white/5 text-left overflow-hidden group hover:bg-white/10 transition-colors flex flex-col"
+            style={{
+              ...getGlassCardStyles(exemplar.visualProfile.color),
+              // Override specific layout needs if any
+            }}
+            onClick={() => {
+              if (!exemplar || typeof exemplar !== 'object') {
+                console.error('CRITICAL: PresetStacks passed invalid exemplar', exemplar);
+                return;
+              }
+              onSelect(exemplar);
+            }}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
 
-                {/* Spacer to push content down if needed, but flex-end handles bottom alignment */}
-                {/* We just need to ensure title doesn't overlap graph too much. Graph is top-8 to h-24 (top 32+96=128px). Card height is large. */}
+            {/* Iridescent Strip */}
+            <div
+              className="absolute top-0 left-0 w-full h-1.5 opacity-80 group-hover:opacity-100 transition-opacity z-20"
+              style={{
+                background: `linear-gradient(90deg, ${exemplar.visualProfile.color}, #fff, ${exemplar.visualProfile.color})`,
+                backgroundSize: '200% 100%',
+                filter: 'blur(1px)'
+              }}
+            />
 
-                <div className="relative z-10 flex flex-col flex-1 justify-end pt-32">
-                  <h3 className="text-3xl font-light text-white mb-2 leading-tight serif">{exemplar.title}</h3>
-                  <p className="text-white/60 text-sm mb-4 leading-relaxed line-clamp-3">{exemplar.subtitle}</p>
+            {/* Visual Layer Removed - Static Card Only */}
 
-                  {/* TERPENE INFO */}
-                  {exemplar.kind === 'stack' && (
-                    <div className="mb-4">
-                      <TerpeneDisplay stack={exemplar.data as UIStackRecommendation} />
-                    </div>
-                  )}
+            {/* Spacer to push content down if needed, but flex-end handles bottom alignment */}
+            {/* We just need to ensure title doesn't overlap graph too much. Graph is top-8 to h-24 (top 32+96=128px). Card height is large. */}
 
-                  <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                    <div className="px-3 py-1.5 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[10px] font-bold text-[#00FFD1] uppercase tracking-widest">
-                      View Journey
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/20 group-hover:text-[#00FFD1] group-hover:bg-[#00FFD1]/10 group-hover:border-[#00FFD1]/40 transition-all">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M5 12h14M12 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </div>
+            <div className="relative z-10 flex flex-col flex-1 justify-end pt-32">
+              <h3 className="text-3xl font-light text-white mb-2 leading-tight serif">{exemplar.title}</h3>
+              <p className="text-white/60 text-sm mb-4 leading-relaxed line-clamp-3">{exemplar.subtitle}</p>
+
+              {/* TERPENE INFO */}
+              {exemplar.kind === 'stack' && (
+                <div className="mb-4">
+                  <TerpeneDisplay stack={exemplar.data as UIStackRecommendation} />
                 </div>
-              </motion.button>
+              )}
+
+              <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                <div className="px-3 py-1.5 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[10px] font-bold text-[#00FFD1] uppercase tracking-widest">
+                  View Journey
+                </div>
+                <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/20 group-hover:text-[#00FFD1] group-hover:bg-[#00FFD1]/10 group-hover:border-[#00FFD1]/40 transition-all">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
             </div>
+          </motion.button>
+        </div>
           )}
         />
       </div>
@@ -111,6 +114,6 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
       <div className="absolute bottom-6 left-0 right-0 text-center opacity-20 pointer-events-none">
         <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath Intellectual Property</p>
       </div>
-    </div>
+    </div >
   );
 }
