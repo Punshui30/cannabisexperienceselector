@@ -79,13 +79,20 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                                 {/* Right: Strain/Cultivar */}
                                 <div className="flex flex-col items-end">
                                     <span
-                                        className="text-[10px] font-bold uppercase tracking-widest"
+                                        className="text-[10px] font-bold uppercase tracking-widest text-right"
                                         style={{
                                             color: color,
                                             textShadow: `0 0 10px ${color}40`
                                         }}
                                     >
-                                        {mainCultivar?.name}
+                                        {layer.type === 'blend' ? (
+                                            <>
+                                                <span className="opacity-60 text-[8px] mr-1">BLEND:</span>
+                                                {layer.cultivars.map(c => c.name).join(' + ')}
+                                            </>
+                                        ) : (
+                                            mainCultivar?.name
+                                        )}
                                     </span>
                                     <span className="text-[9px] text-white/40 italic">
                                         {layer.onsetEstimate}

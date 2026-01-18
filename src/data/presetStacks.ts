@@ -24,6 +24,7 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
         totalDuration: '4 hours',
         layers: [
             {
+                type: 'cultivar',
                 layerName: 'Ignition',
                 timing: '0:00',
                 phaseIntent: 'Rapid Onset, Clear Head',
@@ -42,10 +43,11 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 ]
             },
             {
+                type: 'blend',
                 layerName: 'Cruise Control',
                 timing: '0:45',
                 phaseIntent: 'Sustain, Level, Create',
-                whyThisPhase: 'Introducing a balanced hybrid prevents the "crash" and adds a creative limonene layer.',
+                whyThisPhase: 'Introducing a balanced blend prevents the "crash" and adds a creative limonene layer.',
                 onsetEstimate: '5-10m',
                 durationEstimate: '2-3h',
                 consumptionGuidance: 'Small dose, Edible or Vape',
@@ -60,29 +62,34 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
                     {
                         name: 'Super Lemon Haze',
                         ratio: 0.5,
-                        profile: 'Sativa-Hybrid',
-                        characteristics: ['Limonene', 'Caryophyllene']
+                        profile: 'Sativa',
+                        characteristics: ['Limonene', 'Terpinolene']
                     }
-                ]
-            },
+                        name: 'Super Lemon Haze',
+                    ratio: 0.5,
+                    profile: 'Sativa-Hybrid',
+                    characteristics: ['Limonene', 'Caryophyllene']
+                    }
+        ]
+    },
             {
-                layerName: 'Landing',
-                timing: '3:30',
-                phaseIntent: 'Reset, Relax',
+    layerName: 'Landing',
+        timing: '3:30',
+            phaseIntent: 'Reset, Relax',
                 whyThisPhase: 'A CBD-rich finish clears the head and transitions out of hyper-focus.',
-                onsetEstimate: '10m',
-                durationEstimate: '1h',
-                consumptionGuidance: 'Tea/Beverage',
-                purpose: 'Wind Down',
-                cultivars: [
-                    {
-                        name: 'Cannatonic',
-                        ratio: 1.0,
-                        profile: 'CBD',
-                        characteristics: ['CBD', 'Myrcene']
-                    }
-                ]
-            }
+                    onsetEstimate: '10m',
+                        durationEstimate: '1h',
+                            consumptionGuidance: 'Tea/Beverage',
+                                purpose: 'Wind Down',
+                                    cultivars: [
+                                        {
+                                            name: 'Cannatonic',
+                                            ratio: 1.0,
+                                            profile: 'CBD',
+                                            characteristics: ['CBD', 'Myrcene']
+                                        }
+                                    ]
+}
         ]
     }
 };

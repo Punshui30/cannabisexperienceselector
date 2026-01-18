@@ -99,6 +99,7 @@ export type UIStackRecommendation = {
     reasoning: string;
     totalDuration: string;
     layers: Array<{
+        type: 'cultivar' | 'blend'; // New Discriminator
         layerName: string;
         cultivars: Array<{
             name: string;

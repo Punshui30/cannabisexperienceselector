@@ -113,6 +113,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                                         <div className="flex items-center gap-2 text-xs font-bold text-white/50 uppercase tracking-wider">
                                             <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[9px]">{idx + 1}</span>
                                             {layer.layerName}
+                                            {layer.type === 'blend' && <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#00FFD1]/10 text-[#00FFD1] ml-2">BLEND</span>}
                                         </div>
 
                                         {layer.cultivars.map((cultivar, cIdx) => {
