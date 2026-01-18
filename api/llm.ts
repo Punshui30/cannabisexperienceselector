@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import OpenAI from 'openai';
 
 export default async function handler(
     request: VercelRequest,
@@ -18,35 +19,28 @@ export default async function handler(
 
     if (!API_KEY) {
         console.error('SERVER: Missing OPENAI_API_KEY');
-        return response.status(500).json({ error: 'Server Configuration Error' });
+        return response.status(500).json({ error: 'Server Configuration Error: Missing API Key' });
     }
 
     try {
-        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${API_KEY}`
-            },
-            body: JSON.stringify({
-                model: model || 'gpt-4-turbo',
-                messages,
-                temperature: temperature || 0.7,
-                max_tokens: 500
-            })
+        const openai = new OpenAI({
+            apiKey: API_KEY,
         });
 
-        if (!openaiResponse.ok) {
-            const errorText = await openaiResponse.text();
-            console.error('OPENAI API ERROR:', errorText);
-            return response.status(openaiResponse.status).json({ error: 'Upstream API Error', details: errorText });
-        }
+        const completion = await openai.chat.completions.create({
+            model: model || 'gpt-4-turbo',
+            messages,
+            temperature: temperature || 0.7,
+            max_tokens: 500,
+        });
 
-        const data = await openaiResponse.json();
-        return response.status(200).json(data);
+        return response.status(200).json(completion);
 
-    } catch (error) {
-        console.error('PROXY ERROR:', error);
-        return response.status(500).json({ error: 'Internal Server Error' });
+    } catch (error: any) {
+        console.error('OPENAI SDK ERROR:', error);
+        // Better error bubbling
+        const status = error.status || 500;
+        const message = error.message || 'Internal Server Error';
+        return response.status(status).json({ error: message, details: error });
     }
 }
