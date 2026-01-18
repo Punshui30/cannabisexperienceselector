@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { SwipeDeck } from './SwipeDeck';
-import { OUTCOME_EXEMPLARS } from '../data/presetStacks';
+import { PRESET_STACKS } from '../data/presetStacks';
 import type { OutcomeExemplar, UIStackRecommendation } from '../types/domain';
 import logoImg from '../assets/logo.png';
 import { StackLineGraph } from './visuals/StackLineGraph';
@@ -40,7 +40,7 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
       {/* Swipe Deck Area */}
       <div className="flex-1 w-full relative z-10 min-h-0 overflow-hidden">
         <SwipeDeck
-          items={OUTCOME_EXEMPLARS}
+          items={PRESET_STACKS}
           renderItem={(exemplar, isActive) => (
             <div className="w-full h-full flex items-center justify-center p-8">
               <motion.button
