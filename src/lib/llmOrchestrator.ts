@@ -75,6 +75,29 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
         }
 
         console.log('ORCHESTRATOR: Process Complete - Success');
+
+        // INSTRUMENTATION: Log to Merchant Intelligence
+        try {
+            const topResult = engineResults[0];
+            const intentCategory = intentSpec.terpenePreferences.include[0] ?
+                (intentSpec.terpenePreferences.include[0] === 'Limonene' ? 'Focus' :
+                    intentSpec.terpenePreferences.include[0] === 'Myrcene' ? 'Relax' : 'Other')
+                : 'Other';
+
+            const { Intelligence } = await import('./merchantIntelligence');
+            Intelligence.logResolution({
+                inputMode: mode === 'blend-engine' ? 'freeform' : 'preset',
+                inputText: input.text,
+                blendId: topResult.id || 'unknown',
+                blendName: topResult.name || 'Custom Blend',
+                confidenceScore: topResult.matchScore || 0.85,
+                componentSkus: topResult.cultivars?.map(c => c.name) || [],
+                outcomeCategory: intentCategory as any
+            });
+        } catch (e) {
+            console.warn('Orchestrator: Failed to log intelligence event', e); // Non-blocking
+        }
+
         return {
             success: true,
             data: engineResults,
