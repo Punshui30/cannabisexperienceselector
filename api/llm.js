@@ -1,10 +1,20 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import OpenAI from 'openai';
+const { OpenAI } = require('openai');
 
-export default async function handler(
-    request: VercelRequest,
-    response: VercelResponse
-) {
+module.exports = async function handler(request, response) {
+    // Enable CORS just in case, though Vercel usually handles same-origin
+    response.setHeader('Access-Control-Allow-Credentials', true);
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    response.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    );
+
+    if (request.method === 'OPTIONS') {
+        response.status(200).end();
+        return;
+    }
+
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -36,11 +46,11 @@ export default async function handler(
 
         return response.status(200).json(completion);
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('OPENAI SDK ERROR:', error);
-        // Better error bubbling
+
         const status = error.status || 500;
         const message = error.message || 'Internal Server Error';
-        return response.status(status).json({ error: message, details: error });
+        return response.status(status).json({ error: message, details: error.toString() });
     }
-}
+};
