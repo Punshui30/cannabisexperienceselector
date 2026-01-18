@@ -137,11 +137,34 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     if (isListening) {
       recognition.stop();
       setIsListening(false);
-    } else {
-      recognition.start();
-      setIsListening(true);
     }
   };
+
+  /* TYPEWRITER EFFECT */
+  const [placeholderText, setPlaceholderText] = useState('');
+
+  const INSTRUCTIONS: Record<string, string> = {
+    describe: "Describe how you want to feel, what you want to avoid, or a scenario...",
+    product: "Take a picture of a product label that you like...",
+    strain: "Enter a strain name and a brand or grower..."
+  };
+
+  useEffect(() => {
+    setPlaceholderText('');
+    const targetText = INSTRUCTIONS[mode] || '';
+    let index = 0;
+
+    const intervalId = setInterval(() => {
+      if (index < targetText.length) {
+        setPlaceholderText(prev => prev + targetText.charAt(index));
+        index++;
+      } else {
+        clearInterval(intervalId);
+      }
+    }, 30);
+
+    return () => clearInterval(intervalId);
+  }, [mode]);
 
   return (
     <div className="w-full h-screen flex flex-col relative z-10 overflow-hidden bg-transparent"> {/* h-screen fixed */}
@@ -202,8 +225,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Tell us how you want to feel..."
-                  className={`${GLASS_INPUT} h-32 resize-none`} // Anchored height h-32
+                  placeholder={placeholderText}
+                  className={`${GLASS_INPUT} h-32 resize-none transition-all placeholder:text-white/30`}
                 />
                 {/* NO CHIPS HERE */}
                 <button
@@ -240,7 +263,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
           {mode === 'strain' && (
             <motion.div key="strain" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-shrink-0">
-              <input type="text" value={strainName} onChange={(e) => setStrainName(e.target.value)} placeholder="Strain name..." className={`${GLASS_INPUT} mb-4`} />
+              <input type="text" value={strainName} onChange={(e) => setStrainName(e.target.value)} placeholder={placeholderText} className={`${GLASS_INPUT} mb-4 placeholder:text-white/30`} />
             </motion.div>
           )}
         </AnimatePresence>
