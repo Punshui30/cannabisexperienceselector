@@ -166,15 +166,37 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
             >
               <div className="mb-8">
                 <div className="w-16 h-16 rounded-full bg-[#BF5AF2]/10 flex items-center justify-center mb-6 mx-auto border border-[#BF5AF2]/30 shadow-[0_0_20px_rgba(191,90,242,0.15)]">
-                  {/* Custom Interpretation Eye Icon */}
-                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#BF5AF2" strokeWidth="1.5">
-                    {/* Minimal Eye Shape */}
-                    <path d="M4 16C4 16 9 6 16 6C23 6 28 16 28 16C28 16 23 26 16 26C9 26 4 16 4 16Z" strokeOpacity="0.8" />
-                    {/* Stacked Lines (Insight/Interpretation) - No Pupil */}
-                    <path d="M12 16H20" strokeOpacity="0.6" strokeLinecap="round" />
-                    <path d="M13.5 13H18.5" strokeOpacity="0.6" strokeLinecap="round" />
-                    <path d="M13.5 19H18.5" strokeOpacity="0.6" strokeLinecap="round" />
-                  </svg>
+                  {/* ICONOGRAPHY SWITCHER */}
+                  {explanationStep === 0 && (
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#BF5AF2" strokeWidth="1.5">
+                      <title>Interpretation Eye</title>
+                      <path d="M4 16C4 16 9 6 16 6C23 6 28 16 28 16C28 16 23 26 16 26C9 26 4 16 4 16Z" strokeOpacity="0.8" />
+                      <path d="M12 16H20" strokeOpacity="0.6" strokeLinecap="round" />
+                      <path d="M13.5 13H18.5" strokeOpacity="0.6" strokeLinecap="round" />
+                      <path d="M13.5 19H18.5" strokeOpacity="0.6" strokeLinecap="round" />
+                    </svg>
+                  )}
+                  {explanationStep === 1 && (
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#BF5AF2" strokeWidth="1.5">
+                      <title>Reliable Blend</title>
+                      {/* Interlocking/Stacked Geometry for Stability */}
+                      <circle cx="12" cy="12" r="7" strokeOpacity="0.6" />
+                      <circle cx="20" cy="20" r="7" strokeOpacity="0.6" />
+                      <path d="M12 12L20 20" strokeOpacity="0.8" />
+                    </svg>
+                  )}
+                  {explanationStep === 2 && (
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#BF5AF2" strokeWidth="1.5">
+                      <title>User Input</title>
+                      {/* Speech/Waveform Metaphor */}
+                      <path d="M4 24V16C4 10 9 6 16 6C23 6 28 10 28 16" strokeOpacity="0.6" />
+                      <path d="M8 16V18" strokeLinecap="round" />
+                      <path d="M12 14V20" strokeLinecap="round" strokeWidth="2" />
+                      <path d="M16 12V22" strokeLinecap="round" strokeWidth="2" />
+                      <path d="M20 14V20" strokeLinecap="round" strokeWidth="2" />
+                      <path d="M24 16V18" strokeLinecap="round" />
+                    </svg>
+                  )}
                 </div>
 
                 {explanationStep === 0 && (

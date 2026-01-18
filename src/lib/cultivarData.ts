@@ -23,6 +23,7 @@ export const CULTIVAR_MAP: Record<string, CultivarVisualConfig> = {
     "Jack Herer": { color: "#00FF9D", terpenes: ["Terpinolene", "Ocimene", "Pinene"] },
     "Durban Poison": { color: "#FFFF00", terpenes: ["Terpinolene", "Myrcene", "Ocimene"] },
     "Super Lemon Haze": { color: "#FAFF00", terpenes: ["Terpinolene", "Limonene", "Caryophyllene"] },
+    "Lemon Haze": { color: "#FAFF00", terpenes: ["Limonene", "Terpinolene", "Caryophyllene"] }, // Alias/Similar profile
     "Sour Diesel": { color: "#32CD32", terpenes: ["Caryophyllene", "Limonene", "Myrcene"] },
     "Green Crack": { color: "#76FF03", terpenes: ["Myrcene", "Caryophyllene", "Pinene"] },
     "Tangie": { color: "#FF5E00", terpenes: ["Limonene", "Myrcene", "Pinene"] },
