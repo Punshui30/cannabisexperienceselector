@@ -780,23 +780,61 @@
             "source_note": "synthetic reference chemotype (non-COA)"
         },
         {
-            "id": "strain_042",
-            "name": "Animal Cookies",
-            "type": "hybrid",
-            "thc_percent": 24.0,
+            "id": "strain_043",
+            "name": "9 Pound Hammer",
+            "type": "indica",
+            "thc_percent": 18.0,
             "cbd_percent": 0.1,
             "terpenes": {
-                "myrcene": 0.65,
-                "limonene": 0.42,
-                "caryophyllene": 0.72,
-                "pinene": 0.18,
-                "linalool": 0.38,
-                "terpinolene": 0.08,
-                "humulene": 0.35,
-                "ocimene": 0.08
+                "myrcene": 0.85,
+                "pinene": 0.45,
+                "caryophyllene": 0.35,
+                "limonene": 0.1,
+                "linalool": 0.15,
+                "humulene": 0.1,
+                "ocimene": 0.05,
+                "terpinolene": 0.0
             },
-            "total_terpenes_percent": 2.86,
-            "source_note": "synthetic reference chemotype (non-COA)"
+            "total_terpenes_percent": 2.05,
+            "source_note": "synthetic reference (9lb Hammer)"
+        },
+        {
+            "id": "strain_044",
+            "name": "ACDC",
+            "type": "hybrid",
+            "thc_percent": 1.0,
+            "cbd_percent": 14.0,
+            "terpenes": {
+                "myrcene": 0.5,
+                "pinene": 0.35,
+                "caryophyllene": 0.25,
+                "limonene": 0.15,
+                "linalool": 0.1,
+                "humulene": 0.1,
+                "ocimene": 0.05,
+                "terpinolene": 0.0
+            },
+            "total_terpenes_percent": 1.5,
+            "source_note": "synthetic reference (ACDC)"
+        },
+        {
+            "id": "strain_045",
+            "name": "Afghan Kush",
+            "type": "indica",
+            "thc_percent": 17.0,
+            "cbd_percent": 0.5,
+            "terpenes": {
+                "myrcene": 0.9,
+                "caryophyllene": 0.4,
+                "pinene": 0.2,
+                "limonene": 0.1,
+                "linalool": 0.1,
+                "humulene": 0.15,
+                "ocimene": 0.05,
+                "terpinolene": 0.0
+            },
+            "total_terpenes_percent": 1.9,
+            "source_note": "synthetic reference (Afghan Kush)"
         },
         {
             "id": "strain_043",

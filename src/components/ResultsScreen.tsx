@@ -84,27 +84,13 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
           </div>
         </div>
 
-        {/* MIDDLE: SWIPE DECK */}
-        <div className="flex-1 w-full relative z-10 min-h-0">
-          <SwipeDeck
-            items={recommendations}
-            renderItem={(rec, isActive) => (
-              <div className="w-full h-full flex items-center justify-center p-4 sm:p-6" style={{ minHeight: '400px' }}>
-                <div className="w-full max-w-xl h-full max-h-[600px]">
-                  <BlendCard recommendation={rec as any} onCalculate={() => onCalculate(rec)} />
-                </div>
-              </div>
-            )}
-            onSwipe={(index) => setActiveIndex(index)}
-            className="w-full h-full"
-          />
-        </div>
+      </div>
 
-        {/* FOOTER DISCLAIMER */}
-        <div className="flex-shrink-0 py-4 text-center opacity-20 z-0">
-          <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath Intellectual Property</p>
-        </div>
+      {/* FOOTER DISCLAIMER */}
+      <div className="flex-shrink-0 py-4 text-center opacity-20 z-0">
+        <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath Intellectual Property</p>
       </div>
     </div>
+    </div >
   );
 }
