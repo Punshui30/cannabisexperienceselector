@@ -4,7 +4,7 @@ import { Mic, Camera, Search } from 'lucide-react';
 import { IntentSeed as UserInput } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { SwipeDeck } from './SwipeDeck';
-import type { OutcomeExemplar } from '../types/domain'; // Import OutcomeExemplar
+import logoImg from '../assets/logo.png';
 
 // --- DESIGN TOKENS ---
 const GLASS_INPUT = "w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:border-[#00FFD1]/50 transition-colors text-sm";
@@ -151,7 +151,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
         <div className="flex justify-between items-start mb-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl font-bold text-white tracking-tighter">GO</span>
+              <img src={logoImg} alt="GO Logo" className="w-16 h-auto object-contain" />
               <h1 className="text-3xl font-light text-white serif">Build your blend</h1>
             </div>
             <p className="text-white/30 text-sm pl-9">Choose how you want to start</p>

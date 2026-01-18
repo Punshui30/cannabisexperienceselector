@@ -209,7 +209,7 @@ export function SplashScreen({ onComplete }: Props) {
           style={{ willChange: 'opacity, transform' }}
           initial={{ opacity: 0, y: 10 }}
           animate={{
-            opacity: (phase === 'title' || phase === 'powered') && phase !== 'exit' ? 1 : 0,
+            opacity: (phase === 'title' || phase === 'powered') ? 1 : 0,
             y: (phase === 'title' || phase === 'powered') ? 0 : 10,
           }}
           transition={{
@@ -233,8 +233,8 @@ export function SplashScreen({ onComplete }: Props) {
             }}
             initial={{ width: 0, opacity: 0 }}
             animate={{
-              width: (phase === 'title' || phase === 'powered') && phase !== 'exit' ? '200px' : 0,
-              opacity: (phase === 'title' || phase === 'powered') && phase !== 'exit' ? 1 : 0,
+              width: (phase === 'title' || phase === 'powered') ? '200px' : 0,
+              opacity: (phase === 'title' || phase === 'powered') ? 1 : 0,
             }}
             transition={{
               duration: 1,
