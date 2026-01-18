@@ -15,18 +15,44 @@ export function StaticBlendScreen({ scenario, onBack, onUse }: StaticBlendScreen
     // Note: BlendCard expects specific structure. We need to map visualProfile to semantic colors/charts.
     // Since we don't have engine results, we construct a "Visual Only" representation.
 
-    // We mock the "match percentage" and "cultivars" purely for visual demonstration based on profile.
-    const mockProps: BlendCardProps = {
-        score: 95, // High score for preset
-        title: scenario.title,
-        effects: scenario.visualProfile.dominantEffect === 'social' ? ['Social', 'Uplifted'] :
-            scenario.visualProfile.dominantEffect === 'focus' ? ['Focus', 'Clarity'] : ['Relaxed', 'Creativity'],
-        cultivars: [
-            { name: 'Primary Strain', hex: scenario.visualProfile.color, value: 70 },
-            { name: 'Secondary Strain', hex: '#ffffff', value: 30 } // Placeholder secondary
-        ],
-        terpenes: [], // Can populate if visualProfile has hints, else empty or generic
-        visualProfile: scenario.visualProfile // Pass explicitly if BlendCard supports it
+    // We approximate the "match percentage" and "cultivars" purely for visual demonstration based on profile.
+    // We approximate the "match percentage" and "cultivars" purely for visual demonstration based on profile.
+    const previewProps: BlendCardProps = {
+        recommendation: {
+            kind: 'blend',
+            id: 'preview_1',
+            name: scenario.title,
+            matchScore: 95,
+            confidence: 0.9,
+            reasoning: 'Visual Preview based on selected mood.',
+            description: 'Preview of potential blend outcome.',
+            cultivars: [
+                {
+                    name: 'Primary Strain',
+                    ratio: 0.7,
+                    profile: 'Dominant',
+                    characteristics: [scenario.visualProfile.dominantEffect],
+                    prominentTerpenes: [],
+                    color: scenario.visualProfile.color
+                },
+                {
+                    name: 'Secondary Strain',
+                    ratio: 0.3,
+                    profile: 'Support',
+                    characteristics: ['Balanced'],
+                    prominentTerpenes: [],
+                    color: '#ffffff'
+                }
+            ],
+            effects: {
+                onset: '5-10m',
+                peak: '30-45m',
+                duration: '2-3h'
+            },
+            timeline: [],
+            terpeneProfile: {}
+        },
+        onCalculate: () => onUse(scenario.inputText)
     };
 
     return (
@@ -41,7 +67,7 @@ export function StaticBlendScreen({ scenario, onBack, onUse }: StaticBlendScreen
             </div>
 
             <div className="flex-1 flex items-center justify-center">
-                <BlendCard {...mockProps} />
+                <BlendCard {...previewProps} />
             </div>
 
             <div className="mt-8 flex flex-col gap-4">

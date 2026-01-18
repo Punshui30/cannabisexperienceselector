@@ -1,3 +1,8 @@
+/**
+ * PRESET DATA ONLY
+ * Used for UI previews, onboarding, and demo states.
+ * Must never be imported by engineAdapter or core engine logic.
+ */
 import { StackOutcomeExemplar } from '../types/domain';
 
 export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
@@ -68,10 +73,12 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 ]
             },
             {
+                type: 'cultivar',
                 layerName: 'Landing',
                 timing: '3:30',
                 phaseIntent: 'Reset, Relax',
                 whyThisPhase: 'A CBD-rich finish clears the head and transitions out of hyper-focus.',
+                onsetEstimate: '5-10m',
                 durationEstimate: '1h',
                 consumptionGuidance: 'Tea/Beverage',
                 purpose: 'Wind Down',
@@ -111,6 +118,7 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
         totalDuration: '8 hours',
         layers: [
             {
+                type: 'cultivar',
                 layerName: 'Sunset',
                 timing: '0:00',
                 phaseIntent: 'Relax Body, Quiet Mind',
@@ -129,6 +137,7 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 ]
             },
             {
+                type: 'cultivar',
                 layerName: 'Deep Sleep',
                 timing: '0:30',
                 phaseIntent: 'Stay Asleep',
@@ -147,6 +156,7 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 ]
             },
             {
+                type: 'cultivar',
                 layerName: 'Restoration',
                 timing: '6:00',
                 phaseIntent: 'Wake Refreshed',
@@ -191,6 +201,7 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
         totalDuration: '3 hours',
         layers: [
             {
+                type: 'cultivar',
                 layerName: 'Ice Breaker',
                 timing: '0:00',
                 phaseIntent: 'Uplift, Talkative',
@@ -209,6 +220,7 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 ]
             },
             {
+                type: 'cultivar',
                 layerName: 'Vibe Check',
                 timing: '0:45',
                 phaseIntent: 'Relaxed, Happy',
@@ -227,6 +239,7 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 ]
             },
             {
+                type: 'cultivar',
                 layerName: 'Afterglow',
                 timing: '2:30',
                 phaseIntent: 'Calm Release',
@@ -271,6 +284,7 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
         totalDuration: '3-4 hours',
         layers: [
             {
+                type: 'cultivar',
                 layerName: 'Spark',
                 timing: '0:00',
                 phaseIntent: 'Divergent Thought',
@@ -289,6 +303,24 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 ]
             },
             {
+                type: 'cultivar',
+                layerName: 'Elevation Layer',
+                cultivars: [{
+                    name: 'Jack Herer',
+                    ratio: 1.0,
+                    profile: 'Clear Sativa',
+                    characteristics: ['Focus', 'Energy']
+                }],
+                phaseIntent: 'Mental Clarity',
+                whyThisPhase: 'Jack Herer adds clear-headed focus without sedation.',
+                onsetEstimate: '15 min',
+                durationEstimate: '2 hrs',
+                consumptionGuidance: 'Small inhalation',
+                purpose: 'Cognitive activation',
+                timing: '10-30 mins'
+            },
+            {
+                type: 'cultivar',
                 layerName: 'Build',
                 timing: '0:45',
                 phaseIntent: 'Focus, Execution',
@@ -307,6 +339,7 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 ]
             },
             {
+                type: 'cultivar',
                 layerName: 'Reflect',
                 timing: '3:00',
                 phaseIntent: 'Appreciation',

@@ -18,7 +18,7 @@ type Props = {
   onAddInventory: () => void;
 };
 
-const mockInventory: InventoryItem[] = [
+const demoInventory: InventoryItem[] = [
   {
     id: '1',
     productName: 'Durban Poison',
@@ -112,7 +112,7 @@ const mockInventory: InventoryItem[] = [
 export function InventoryDashboard({ onAddInventory }: Props) {
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive' | 'needs-coa'>('all');
 
-  const filteredInventory = mockInventory.filter(item => 
+  const filteredInventory = demoInventory.filter(item =>
     filterStatus === 'all' ? true : item.status === filterStatus
   );
 
@@ -162,7 +162,7 @@ export function InventoryDashboard({ onAddInventory }: Props) {
               {filteredInventory.length} products
             </p>
           </div>
-          
+
           {/* Mobile: Icon button, Desktop: Full button */}
           <button
             onClick={onAddInventory}
@@ -235,7 +235,7 @@ export function InventoryDashboard({ onAddInventory }: Props) {
                       {item.brand}
                     </p>
                   </div>
-                  <div 
+                  <div
                     className="flex-shrink-0 ml-2 px-2.5 py-1 rounded-lg text-xs font-medium border"
                     style={{
                       backgroundColor: statusConfig.bgColor,
@@ -264,7 +264,7 @@ export function InventoryDashboard({ onAddInventory }: Props) {
                 {/* Status Indicators - ONE-THUMB REACHABLE */}
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5">
-                    <div 
+                    <div
                       className="w-5 h-5 rounded-md flex items-center justify-center"
                       style={{
                         backgroundColor: item.hasCOA ? 'rgba(0, 255, 163, 0.2)' : 'rgba(255, 255, 255, 0.05)',
@@ -286,7 +286,7 @@ export function InventoryDashboard({ onAddInventory }: Props) {
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <div 
+                    <div
                       className="w-5 h-5 rounded-md flex items-center justify-center"
                       style={{
                         backgroundColor: item.readyForBlending ? 'rgba(0, 255, 163, 0.2)' : 'rgba(255, 255, 255, 0.05)',
@@ -309,7 +309,7 @@ export function InventoryDashboard({ onAddInventory }: Props) {
 
                   {item.needsScan && (
                     <div className="flex items-center gap-1.5 ml-auto">
-                      <div 
+                      <div
                         className="w-5 h-5 rounded-md flex items-center justify-center"
                         style={{
                           backgroundColor: 'rgba(255, 170, 0, 0.2)',
@@ -333,7 +333,7 @@ export function InventoryDashboard({ onAddInventory }: Props) {
         {/* Empty State */}
         {filteredInventory.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16">
-            <div 
+            <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
               style={{ backgroundColor: COLORS.neutral.surface }}
             >

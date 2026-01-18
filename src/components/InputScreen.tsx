@@ -220,131 +220,132 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
             </button>
           </div>
         </div>
+      </div>
 
-        {/* --- BODY (Scrollable/Flexible) --- */}
-        <div className="flex-1 overflow-y-auto px-6 pb-4 min-h-0 flex flex-col gap-4"> {/* Gap for spacing */}
-          <AnimatePresence mode="wait">
-            {mode === 'describe' && (
-              <motion.div
-                key="describe"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex-shrink-0" // Allow it to perform layout but not force grow excessively
-              >
-                <div className="relative">
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder={placeholderText}
-                    className={`${GLASS_INPUT} h-32 resize-none transition-all placeholder:text-white/30`}
-                  />
-                  {/* NO CHIPS HERE */}
-                  <button
-                    onClick={toggleListening}
-                    className={`absolute bottom-4 right-4 p-3 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-white'}`}
-                  >
-                    <Mic size={18} />
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Other modes simplified for similar anchoring */}
-            {mode === 'product' && (
-              // ... (Keeping logic, just ensuring layout fits)
-              <motion.div key="product" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-shrink-0">
-                <div
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  className={`relative w-full h-64 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive ? "border-[#00FFD1] bg-[#00FFD1]/5" : uploadedImage ? "border-emerald-400/50 bg-emerald-400/5" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
+      {/* --- BODY (Scrollable/Flexible) --- */}
+      <div className="flex-1 overflow-y-auto px-6 pb-4 min-h-0 flex flex-col gap-4"> {/* Gap for spacing */}
+        <AnimatePresence mode="wait">
+          {mode === 'describe' && (
+            <motion.div
+              key="describe"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex-shrink-0" // Allow it to perform layout but not force grow excessively
+            >
+              <div className="relative">
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder={placeholderText}
+                  className={`${GLASS_INPUT} h-32 resize-none transition-all placeholder:text-white/30`}
+                />
+                {/* NO CHIPS HERE */}
+                <button
+                  onClick={toggleListening}
+                  className={`absolute bottom-4 right-4 p-3 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-white'}`}
                 >
-                  {/* Upload Content */}
-                  <input type="file" id="file-upload" className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])} />
-                  {uploadedImage ? (
-                    <div className="text-center"><p className="text-emerald-400 font-medium text-sm mb-1">{uploadedImage.name}</p></div>
-                  ) : (
-                    <label htmlFor="file-upload" className="flex flex-col items-center cursor-pointer w-full h-full justify-center p-8"><Camera className="text-white/20 mb-4" size={20} /><p className="text-white font-medium mb-1">Upload Label</p></label>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {mode === 'strain' && (
-              <motion.div key="strain" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-shrink-0">
-                <input type="text" value={strainName} onChange={(e) => setStrainName(e.target.value)} placeholder={placeholderText} className={`${GLASS_INPUT} mb-4 placeholder:text-white/30`} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* --- SCENARIOS (Flexible height) --- */}
-          <div className="flex-1 min-h-[200px] relative flex flex-col">
-            <div className="flex justify-between items-end mb-2 flex-shrink-0">
-              <div>
-                <h3 className="text-white text-lg font-light serif">Start with a Scenario</h3>
-                <p className="text-white/40 text-xs">Tap to populate</p>
+                  <Mic size={18} />
+                </button>
               </div>
-            </div>
+            </motion.div>
+          )}
 
-            <div className="flex-1 relative min-h-0">
-              <SwipeDeck
-                items={BLEND_SCENARIOS}
-                enableGuidance={true}
-                renderItem={(scenario, isActive) => (
-                  <div className="w-full h-full pr-4 pb-4">
-                    <button
-                      onClick={() => {
-                        // PHASE 1: POPULATE ONLY
-                        setMode('describe');
-                        setDescription(scenario.inputText);
-                      }}
-                      className="w-full h-full text-left p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all flex flex-col justify-between group relative overflow-hidden"
-                    >
-                      <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: scenario.visualProfile.color }} />
-
-                      <div>
-                        <h4 className="text-xl font-light text-white mb-1 serif">{scenario.title}</h4>
-                        <p className="text-xs uppercase tracking-widest text-white/40 mb-4">{scenario.subtitle}</p>
-                        <p className="text-sm text-white/80 leading-relaxed font-light italic">
-                          "{scenario.inputText}"
-                        </p>
-                      </div>
-
-                      <div className="flex justify-between items-center mt-4">
-                        <span className="text-[10px] uppercase tracking-widest text-[#00FFD1] opacity-0 group-hover:opacity-100 transition-opacity">Set Intent</span>
-                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:text-white group-hover:bg-[#00FFD1] group-hover:text-black transition-all">
-                          <Search size={14} />
-                        </div>
-                      </div>
-                    </button>
-                  </div>
+          {/* Other modes simplified for similar anchoring */}
+          {mode === 'product' && (
+            // ... (Keeping logic, just ensuring layout fits)
+            <motion.div key="product" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-shrink-0">
+              <div
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                className={`relative w-full h-64 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive ? "border-[#00FFD1] bg-[#00FFD1]/5" : uploadedImage ? "border-emerald-400/50 bg-emerald-400/5" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
+              >
+                {/* Upload Content */}
+                <input type="file" id="file-upload" className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])} />
+                {uploadedImage ? (
+                  <div className="text-center"><p className="text-emerald-400 font-medium text-sm mb-1">{uploadedImage.name}</p></div>
+                ) : (
+                  <label htmlFor="file-upload" className="flex flex-col items-center cursor-pointer w-full h-full justify-center p-8"><Camera className="text-white/20 mb-4" size={20} /><p className="text-white font-medium mb-1">Upload Label</p></label>
                 )}
-              />
+              </div>
+            </motion.div>
+          )}
+
+          {mode === 'strain' && (
+            <motion.div key="strain" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-shrink-0">
+              <input type="text" value={strainName} onChange={(e) => setStrainName(e.target.value)} placeholder={placeholderText} className={`${GLASS_INPUT} mb-4 placeholder:text-white/30`} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* --- SCENARIOS (Flexible height) --- */}
+        <div className="flex-1 min-h-[200px] relative flex flex-col">
+          <div className="flex justify-between items-end mb-2 flex-shrink-0">
+            <div>
+              <h3 className="text-white text-lg font-light serif">Start with a Scenario</h3>
+              <p className="text-white/40 text-xs">Tap to populate</p>
             </div>
           </div>
 
-        </div>
+          <div className="flex-1 relative min-h-0">
+            <SwipeDeck
+              items={BLEND_SCENARIOS}
+              enableGuidance={true}
+              renderItem={(scenario, isActive) => (
+                <div className="w-full h-full pr-4 pb-4">
+                  <button
+                    onClick={() => {
+                      // PHASE 1: POPULATE ONLY
+                      setMode('describe');
+                      setDescription(scenario.inputText);
+                    }}
+                    className="w-full h-full text-left p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all flex flex-col justify-between group relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: scenario.visualProfile.color }} />
 
-        {/* --- FOOTER (Fixed) --- */}
-        <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3">
-          <button
-            onClick={handleSubmit}
-            disabled={!canSubmit()}
-            className={`w-full btn-neon-green ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
-          >
-            Generate Recommendations
-          </button>
+                    <div>
+                      <h4 className="text-xl font-light text-white mb-1 serif">{scenario.title}</h4>
+                      <p className="text-xs uppercase tracking-widest text-white/40 mb-4">{scenario.subtitle}</p>
+                      <p className="text-sm text-white/80 leading-relaxed font-light italic">
+                        "{scenario.inputText}"
+                      </p>
+                    </div>
 
-          <button
-            onClick={onBrowsePresets}
-            className="w-full py-4 rounded-xl border border-white/10 bg-white/[0.02] text-white/40 text-[10px] font-semibold uppercase tracking-widest hover:bg-white/5 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 transition-all"
-          >
-            Explore Preset Stacks
-          </button>
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-[10px] uppercase tracking-widest text-[#00FFD1] opacity-0 group-hover:opacity-100 transition-opacity">Set Intent</span>
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:text-white group-hover:bg-[#00FFD1] group-hover:text-black transition-all">
+                        <Search size={14} />
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            />
+          </div>
         </div>
 
       </div>
-      );
+
+      {/* --- FOOTER (Fixed) --- */}
+      <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3">
+        <button
+          onClick={handleSubmit}
+          disabled={!canSubmit()}
+          className={`w-full btn-neon-green ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+        >
+          Generate Recommendations
+        </button>
+
+        <button
+          onClick={onBrowsePresets}
+          className="w-full py-4 rounded-xl border border-white/10 bg-white/[0.02] text-white/40 text-[10px] font-semibold uppercase tracking-widest hover:bg-white/5 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 transition-all"
+        >
+          Explore Preset Stacks
+        </button>
+      </div>
+
+    </div>
+  );
 }

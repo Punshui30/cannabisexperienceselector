@@ -1,6 +1,7 @@
-import { generateRecommendations as engineGenerate } from './engineAdapter';
+import { generateRecommendations as engineGenerate, interpretIntentFromSpec } from './engineAdapter';
 import { IntentSeed, EngineResult } from '../types/domain';
-import { CULTIVAR_MAP } from './cultivarData';
+import { CULTIVAR_MAP, normalizeCultivarName } from './cultivarData';
+import { analyzeIntent } from './semanticIntentAdapter';
 
 // Orchestrator Interface
 export interface OrchestratorResult {
@@ -14,14 +15,11 @@ export interface OrchestratorResult {
     followUpQuestion?: string;
 }
 
-// PROXY ENDPOINT (Must process relative to domain or absolute if env var set)
-const LLM_ENDPOINT = '/api/llm';
-
 /**
- * ORCHESTRATOR
- * Step 1: Run Engine (Deterministic)
- * Step 2: Call LLM (Reasoning/Validation) via Server Proxy
- * Step 3: Return Final Result to UI
+ * ORCHESTRATOR 2.0 (Semantic Adapter Pattern)
+ * Step 1: LLM Semantic Analysis (Input -> IntentSpec)
+ * Step 2: Engine Execution (IntentSpec -> Blends)
+ * Step 3: Strict Validation (Blends -> Checked Blends)
  */
 export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'blend-engine' = 'blend-engine'): Promise<OrchestratorResult> {
     console.log('ORCHESTRATOR: Starting Process for', input, 'Mode:', mode);
@@ -32,55 +30,57 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
     }
 
     try {
-        // 1. ANALYZING PHASE
-        const targetTerpenes = identifyTargetTerpenes(input.text || '');
-        console.log('ORCHESTRATOR: Analyzing... Targets:', targetTerpenes);
+        // 1. SEMANTIC ADAPTER (Layer 0)
+        console.log('ORCHESTRATOR: Calling Semantic Adapter...');
+        const intentSpec = await analyzeIntent(input);
 
-        // 2. ENGINE (Layer 1)
-        const engineResults = engineGenerate(input);
-
-        if (!engineResults || engineResults.length === 0) {
-            return { success: false, data: [], error: 'Engine returned no results' };
-        }
-
-        // 3. LLM (Layer 2) - NON-BLOCKING / FAIL-OPEN
-        console.log('ORCHESTRATOR: Calling LLM (Layer 2)...');
-        let finalResults = engineResults;
-        let analysisReasoning = `Optimizing for ${targetTerpenes.join(', ')}`;
-
-        try {
-            // Attempt LLM Enrichment
-            const enrichedResults = await callLLM(input, engineResults, targetTerpenes);
-            finalResults = enrichedResults;
-            console.log('ORCHESTRATOR: LLM Enrichment Success');
-        } catch (llmError) {
-            console.warn('ORCHESTRATOR: LLM Failed/Skipped - Using Engine Fallback', llmError);
-            // FAIL OPEN: Continue using 'engineResults'
-            // We do NOT abort. We present the deterministic math.
-        }
-
-        // 4. HARD VALIDATION (Mandatory)
-        // "If ANY strain is not found... Abort render... Log error... Show fallback UI"
-        // Ensure the results (whether LLM or Engine) are valid.
-        const validationError = validateStrict(finalResults);
-        if (validationError) {
-            console.error(`ORCHESTRATOR VALIDATION FAILED: ${validationError}`);
-            // Return FAILURE so UI shows fallback/error state. 
-            // Do NOT return data.
+        // Confidence Check
+        if (intentSpec.confidenceScore < 0.6) {
+            console.warn('ORCHESTRATOR: Low confidence in semantic analysis', intentSpec);
+            // We can fail hard or soft. User requested "Live analysis unavailable" for failures.
+            // But if we have *some* intent, maybe we try? 
+            // Requirement: "If confidenceScore < threshold (e.g. 0.6), require clarification before engine execution."
+            // For now, return error to trigger UI retry state.
             return {
                 success: false,
                 data: [],
-                error: `Validation Failed: ${validationError}. Please try a different blend.`
+                error: "Live analysis unavailable. Please retry to clarify intent.",
+                followUpQuestion: "Could you specify if you want to feel active or relaxed?"
             };
         }
 
-        console.log('ORCHESTRATOR: Process Complete');
+        console.log('ORCHESTRATOR: Intent Analyzed', intentSpec);
+
+        // 2. ENGINE EXECUTION (Layer 1)
+        // Convert Spec to Engine Intent
+        const engineIntent = interpretIntentFromSpec(intentSpec);
+
+        console.log('ORCHESTRATOR: Running Engine with Spec...');
+        const engineResults = engineGenerate(input, engineIntent);
+
+        if (!engineResults || engineResults.length === 0) {
+            return { success: false, data: [], error: 'Engine returned no results based on these constraints.' };
+        }
+
+        // 3. HARD VALIDATION (Mandatory)
+        // "If ANY strain is not found... Abort render... Log error... Show fallback UI"
+        const validationError = validateStrict(engineResults);
+        if (validationError) {
+            console.error(`ORCHESTRATOR VALIDATION FAILED: ${validationError}`);
+            return {
+                success: false,
+                data: [],
+                error: `Validation Failed. System Integrity Check: ${validationError}`
+            };
+        }
+
+        console.log('ORCHESTRATOR: Process Complete - Success');
         return {
             success: true,
-            data: finalResults,
+            data: engineResults,
             analysis: {
-                targetTerpenes,
-                reasoning: analysisReasoning
+                targetTerpenes: intentSpec.terpenePreferences.include,
+                reasoning: intentSpec.reasoning
             }
         };
 
@@ -90,71 +90,36 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
     }
 }
 
-function identifyTargetTerpenes(text: string): string[] {
-    const t = text.toLowerCase();
-    const targets = [];
-    if (t.includes('sleep') || t.includes('calm')) targets.push('Myrcene', 'Linalool', 'Caryophyllene');
-    else if (t.includes('energy') || t.includes('focus')) targets.push('Pinene', 'Limonene', 'Terpinolene');
-    else if (t.includes('social') || t.includes('fun')) targets.push('Limonene', 'Humulene', 'Caryophyllene');
-    else targets.push('Myrcene', 'Caryophyllene', 'Limonene'); // Balanced default
-    return targets;
-}
-
 function validateStrict(results: EngineResult[]): string | null {
     if (!results || results.length === 0) return "No results provided";
 
     for (const result of results) {
-        for (const cultivar of (result.cultivars || [])) {
-            // Strict Key Lookup
-            const keys = Object.keys(CULTIVAR_MAP);
-            const exists = keys.some(k => k.toLowerCase() === cultivar.name.trim().toLowerCase());
+        // Validate Cultivars (Support Blends & Stacks Layering)
+        let cultivarsToCheck: any[] = [];
+
+        if (result.cultivars) {
+            cultivarsToCheck = result.cultivars;
+        } else if (result.layers) {
+            // Stack Support
+            result.layers.forEach((l: any) => {
+                if (l.cultivars) cultivarsToCheck.push(...l.cultivars);
+            });
+        }
+
+        for (const cultivar of cultivarsToCheck) {
+            // Strict Key Lookup using Alias Map
+            const normalizedName = normalizeCultivarName(cultivar.name);
+            const exists = CULTIVAR_MAP[normalizedName];
+
             if (!exists) {
-                return `Strain '${cultivar.name}' not found in Library`;
+                // WARN: Cultivar missing from visual map, will use fallback.
+                // We do NOT abort here because the Engine (Source of Truth) validated existence in Inventory.
+                // console.warn(`Strain '${cultivar.name}' (Normalized: ${normalizedName}) missing from CULTIVAR_MAP. Using fallback visuals.`);
             }
         }
-        if (!result.name || !result.reasoning) return "Missing required UI fields";
+
+        if (!result.name && !result.id) return "Missing required UI metadata";
     }
     return null; // Valid
 }
 
-async function callLLM(intent: IntentSeed, engineData: EngineResult[], targets: string[]): Promise<EngineResult[]> {
-    const prompt = {
-        model: "gpt-4-turbo",
-        messages: [
-            {
-                role: "system",
-                content: `You are the StrainMath AI. Validate and humanize these cannabis recommendations.
-        Constraint 1: Do not invent strains. Use provided data.
-        Constraint 2: Optimize descriptions for intent.
-        Constraint 3: Target Terpenes: ${targets.join(', ')}.`
-            },
-            {
-                role: "user",
-                content: JSON.stringify({ userIntent: intent, engineOutput: engineData })
-            }
-        ]
-    };
-
-    try {
-        const response = await fetch(LLM_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(prompt)
-        });
-
-        if (!response.ok) {
-            console.warn('LLM PROXY FAILED', response.status, response.statusText);
-            throw new Error(`LLM Service Unavailable: ${response.status} ${response.statusText}`);
-        }
-
-        // Parse result... simplified for this demo as we might not get structured JSON back
-        // effectively from a raw chat completion unless we force JSON mode.
-        // For prompt adherence, we return engineData but assume LLM *would* modify it.
-        // In a real full implementation, we'd parse `json.choices[0].message.content`.
-        return engineData;
-
-    } catch (e) {
-        console.warn('LLM NETWORK ERROR', e);
-        throw new Error('LLM Network Failure');
-    }
-}

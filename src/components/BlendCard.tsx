@@ -5,7 +5,7 @@ import { VoiceFeedback } from './VoiceFeedback';
 import { SpatialStack } from './SpatialStack';
 import { CardShell } from './CardShell';
 
-interface BlendCardProps {
+export interface BlendCardProps {
   recommendation: UIBlendRecommendation;
   onCalculate: () => void;
 }
@@ -61,8 +61,37 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               </div>
             </div>
 
-            {/* SINGLE SOURCE VISUALIZATION: SpatialStack */}
-            <SpatialStack data={recommendation} compact={true} />
+            {/* SINGLE SOURCE VISUALIZATION: SpatialStack - Adapted from Blend */}
+            <SpatialStack
+              data={{
+                kind: 'stack',
+                stackId: recommendation.id,
+                id: recommendation.id,
+                name: recommendation.name,
+                description: recommendation.description || 'Custom Blend',
+                matchScore: recommendation.matchScore,
+                reasoning: recommendation.reasoning,
+                totalDuration: recommendation.effects.duration,
+                layers: [{
+                  type: 'blend',
+                  layerName: 'Blend Composition',
+                  cultivars: recommendation.cultivars.map(c => ({
+                    name: c.name,
+                    ratio: c.ratio,
+                    profile: c.profile || 'Hybrid',
+                    characteristics: c.characteristics || []
+                  })),
+                  phaseIntent: 'Complete Experience',
+                  whyThisPhase: 'A synergistic combination of selected cultivars.',
+                  onsetEstimate: recommendation.effects.onset,
+                  durationEstimate: recommendation.effects.duration,
+                  consumptionGuidance: 'Vaporize / Smoke',
+                  purpose: 'Main Experience',
+                  timing: 'Single Phase'
+                }]
+              }}
+              compact={true}
+            />
 
             {/* Principal Actions */}
             <div className="grid grid-cols-2 gap-3 mb-4 mt-6">

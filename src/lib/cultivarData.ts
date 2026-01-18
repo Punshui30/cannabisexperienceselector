@@ -97,11 +97,47 @@ export const CULTIVAR_MAP: Record<string, CultivarVisualConfig> = {
     "Unknown": { color: "#94A3B8", terpenes: ["Myrcene", "Limonene", "Caryophyllene"] }
 };
 
+// ALIAS MAP: Normalized -> Canonical
+// Deterministic resolution for common names
+export const ALIAS_MAP: Record<string, string> = {
+    "lemon haze": "Super Lemon Haze",
+    "slh": "Super Lemon Haze",
+    "gelato 33": "Gelato",
+    "gelato 41": "Gelato",
+    "cookies": "GSC",
+    "girl scout cookies": "GSC",
+    "blue dream": "Blue Dream", // Self-map for safety
+    "gorilla glue": "GG4",
+    "gg4": "GG4", // Assuming GG4 is canonical if we add it, otherwise... well, we don't have GG4 in map, wait.
+    // Based on CURRENT CULTIVAR_MAP keys:
+    "grand daddy purp": "Granddaddy Purple",
+    "gdp": "Granddaddy Purple",
+    "sour d": "Sour Diesel",
+};
+
+export function normalizeCultivarName(rawName: string): string {
+    const cleaned = rawName.trim().toLowerCase();
+
+    // 1. Direct Alias Lookup
+    if (ALIAS_MAP[cleaned]) {
+        return ALIAS_MAP[cleaned];
+    }
+
+    // 2. Case-insensitive Canonical Lookup
+    const keys = Object.keys(CULTIVAR_MAP);
+    const exactMatch = keys.find(k => k.toLowerCase() === cleaned);
+    if (exactMatch) return exactMatch;
+
+    // 3. Fuzzy/Partial Logic (Safe Only)
+    // Avoid "Lemon" matching "Super Lemon Haze" automatically unless strict alias exists?
+    // For now, return Original if no match, letting validation fail safely.
+    return rawName; // Return as-is if no map found
+}
+
 export function getCultivarVisuals(name: string): CultivarVisualConfig {
     // Normalize checking
-    const keys = Object.keys(CULTIVAR_MAP);
-    const normalizedKey = keys.find(k => k.toLowerCase() === name.trim().toLowerCase());
-    return normalizedKey ? CULTIVAR_MAP[normalizedKey] : CULTIVAR_MAP["Unknown"];
+    const normalizedName = normalizeCultivarName(name);
+    return CULTIVAR_MAP[normalizedName] || CULTIVAR_MAP["Unknown"];
 }
 
 export function getTerpeneColor(terpeneName: string): string {

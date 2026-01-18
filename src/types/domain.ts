@@ -17,6 +17,27 @@ export interface IntentSeed {
 }
 
 /**
+ * 1.5 IntentSpec (Semantic Adapter Output)
+ * - Strict schema from LLM normalization
+ */
+export interface IntentSpec {
+    originalInput: string;
+    targetEffects: string[]; // Normalized: "focus", "calm", etc.
+    avoidEffects: string[];
+    terpenePreferences: {
+        include: string[]; // e.g., ["Limonene"]
+        exclude: string[];
+    };
+    constraints: {
+        timeOfDay?: "morning" | "afternoon" | "evening" | "night";
+        experienceLevel?: "new" | "regular" | "experienced";
+        sensitivity?: "low" | "medium" | "high";
+    };
+    confidenceScore: number;
+    reasoning: string;
+}
+
+/**
  * Preset Kinds
  */
 export type PresetKind = 'intent' | 'blend' | 'stack';
