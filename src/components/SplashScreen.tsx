@@ -77,7 +77,7 @@ export function SplashScreen({ onComplete }: Props) {
           }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{
-            opacity: phase === 'exit' ? 0.4 : 0.15,
+            opacity: phase === 'exit' ? 0.6 : 0.4,
             scale: phase === 'exit' ? 2 : 1,
           }}
           transition={{
@@ -141,7 +141,7 @@ export function SplashScreen({ onComplete }: Props) {
       </div>
 
       {/* Overlay to dampen background and ensure text pop */}
-      <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+      <div className="absolute inset-0 bg-black/30 pointer-events-none" />
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center">
