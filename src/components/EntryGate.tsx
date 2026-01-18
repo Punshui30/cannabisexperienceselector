@@ -117,7 +117,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
               exit={{ opacity: 0, x: -10 }}
               className="w-full max-w-md flex flex-col items-center"
             >
-              <h2 className="text-3xl font-light text-white mb-4 serif text-center">Have you used<br />Guided Outcomes before?</h2>
+              <h2 className="text-3xl font-light text-white mb-4 serif text-center">Have you used<br />Guided Outcomes™ before?</h2>
               <p className="text-white/40 mb-8 text-sm">This helps us show the right amount of explanation for this session.</p>
 
               <div className="flex flex-col gap-4 w-full px-4">
@@ -201,25 +201,28 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
 
                 {explanationStep === 0 && (
                   <>
-                    <h3 className="text-2xl font-light text-white mb-4 serif">Visualizing Chemistry</h3>
+                    <h3 className="text-2xl font-light text-white mb-4 serif">From Guessing to Precision</h3>
                     <p className="text-white/50 leading-relaxed text-sm">
-                      Cannabis effects aren't just Sativa or Indica. Steps 1-3 help you define the exact chemical outcome you want.
+                      Most cannabis recommendations are guesses based on names or categories. <br /><br />
+                      StrainMath<span className="text-[8px] align-top opacity-60">™</span> uses measured chemistry — cannabinoids and terpenes — to calculate exact outcomes instead of relying on strain labels.
                     </p>
                   </>
                 )}
                 {explanationStep === 1 && (
                   <>
-                    <h3 className="text-2xl font-light text-white mb-4 serif">Blends Create<br />Reliable Outcomes</h3>
+                    <h3 className="text-2xl font-light text-white mb-4 serif">Blends Are Repeatable.<br />Strains Are Not.</h3>
                     <p className="text-white/50 leading-relaxed text-sm">
-                      By combining multiple cultivars in precise ratios, StrainMath™ creates blends that behave more consistently than any single strain.
+                      Individual strains change by grower, batch, and harvest. <br /><br />
+                      StrainMath<span className="text-[8px] align-top opacity-60">™</span> creates custom blends with precise ratios, so the effect you choose can be reproduced — every time.
                     </p>
                   </>
                 )}
                 {explanationStep === 2 && (
                   <>
-                    <h3 className="text-2xl font-light text-white mb-4 serif">You Describe the Goal.<br />We Build the Recipe.</h3>
+                    <h3 className="text-2xl font-light text-white mb-4 serif">Built From Real Inventory,<br />Not Theory</h3>
                     <p className="text-white/50 leading-relaxed text-sm mb-4">
-                      Instead of guessing from menus, you describe how you want to feel. StrainMath™ calculates a custom blend or stack designed to deliver that outcome.
+                      Every recommendation is calculated using lab-verified COAs from the products available in the store you’re shopping. <br /><br />
+                      That means the results apply to you, here, now — not a generic database.
                     </p>
                   </>
                 )}

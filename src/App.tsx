@@ -313,6 +313,14 @@ export default function App() {
         </button>
       )}
 
+      {/* GLOBAL FOOTER (TM) - Discreet */}
+      <div className="absolute bottom-1 right-2 z-50 pointer-events-none mix-blend-plus-lighter opacity-30">
+        <p className="text-[8px] text-white font-light tracking-wide text-right leading-none">
+          © 2026 Guided Outcomes<span className="text-[6px] align-top">™</span> · StrainMath<span className="text-[6px] align-top">™</span><br />
+          All proprietary protocols & calculations.
+        </p>
+      </div>
+
     </div>
   );
 }

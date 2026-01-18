@@ -16,23 +16,25 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     if (!stack) return null;
 
     return (
-        <div className="w-full h-full bg-black text-white overflow-y-auto overflow-x-hidden font-sans relative">
-            {/* Background - Minimal */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-black pointer-events-none" />
+        <div className="w-full h-full flex flex-col bg-black text-white relative overflow-hidden">
 
-            {/* Header - Compact */}
-            <div className="flex items-center justify-between sticky top-0 z-50 py-2 -mx-4 px-4 bg-black/80 backdrop-blur-md border-b border-white/5">
+            {/* HEADER */}
+            <div className="w-full p-6 flex justify-between items-center z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-[#00FFD1] hover:bg-[#00FFD1]/10 transition-colors"
+                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:bg-white/10 hover:text-white transition-colors backdrop-blur-md"
                 >
-                    <ArrowLeft size={16} />
+                    <ArrowLeft size={20} />
                 </button>
-                <div className="flex items-center gap-2">
-                    <span className="text-[9px] uppercase tracking-widest text-white/40">Details</span>
-                    <Share2 size={14} className="text-white/40" />
+                <div className="text-center">
+                    <h2 className="text-xs uppercase tracking-[0.2em] text-[#00FFD1] mb-1">Guided Outcomes<span className="text-[9px] align-top opacity-60">™</span> Stack</h2>
+                    <div className="h-0.5 w-8 bg-[#00FFD1]/30 mx-auto rounded-full" />
                 </div>
+                <div className="w-10" /> {/* Spacer */}
             </div>
+
+            {/* Background - Minimal */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-black pointer-events-none" />
 
             <div className="flex flex-col gap-6 h-full relative z-10 pb-32 px-4">
 
