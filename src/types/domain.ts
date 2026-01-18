@@ -1,16 +1,20 @@
 import { BlendEvaluation } from "../lib/calculationEngine";
 
 /**
+/**
  * 1. IntentSeed (Input & Presets)
  * - Required for all flows
  * - Must be strictly typed
  */
-export type IntentSeed = {
+export interface IntentSeed {
+    text: string;
     kind: 'stack' | 'blend';
     mode: 'preset' | 'engine';
-    text: string;
     image?: string;
-};
+    // Legacy optional fields if cleaning up elsewhere
+    strainName?: string;
+    grower?: string;
+}
 
 /**
  * Preset Kinds
