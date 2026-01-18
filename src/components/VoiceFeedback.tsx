@@ -1,61 +1,124 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../lib/colors';
+import { analyzeFeedback, FeedbackAnalysis } from '../lib/feedbackLogic';
+import { UIBlendRecommendation } from '../types/domain';
 
 type Props = {
   recommendationName: string;
+  currentRecommendation?: any; // Passed for context
   onClose: () => void;
   onRecalculate?: (constraints: string) => void;
 };
 
-type FeedbackState = 'listening' | 'processing' | 'explaining' | 'choice';
+type FeedbackState = 'idle' | 'listening' | 'processing' | 'speaking' | 'choice';
 
-export function VoiceFeedback({ recommendationName, onClose, onRecalculate }: Props) {
+export function VoiceFeedback({ recommendationName, currentRecommendation, onClose, onRecalculate }: Props) {
   const [state, setState] = useState<FeedbackState>('listening');
-  const [userFeedback, setUserFeedback] = useState('');
-  const [systemResponse, setSystemResponse] = useState('');
+  const [transcript, setTranscript] = useState('');
+  const [analysis, setAnalysis] = useState<FeedbackAnalysis | null>(null);
+  const [isSynthesizing, setIsSynthesizing] = useState(false);
 
-  // Simulated voice feedback examples
-  const handleVoiceInput = () => {
-    // Simulate voice capture
-    const exampleFeedbacks = [
-      { 
-        user: "I usually don't like Harlequin",
-        system: "That makes sense.\n\nHarlequin is included here to balance anxiety and smooth the overall experience. In this blend, its effects are moderated by the other components, which often makes it feel different than when used alone.\n\nYou could try this blend as-is, or I can recalculate while avoiding Harlequin."
-      },
-      { 
-        user: "This feels too energizing",
-        system: "I understand that concern.\n\nThe current blend is designed with an energetic profile to match your request for focus and alertness. However, the Harlequin component (20%) helps moderate this energy to prevent overstimulation.\n\nWe could adjust by increasing the calming components or reducing the sativa dominance."
-      },
-      { 
-        user: "Can you make this more relaxing?",
-        system: "Absolutely.\n\nThe current recommendation balances focus with a moderate energy level. If we shift toward relaxation, we'll adjust the terpene profile to favor myrcene and linalool, which create a more calming effect.\n\nThis may reduce the alertness you originally requested. Would you like to proceed with that change?"
-      }
-    ];
+  const recognitionRef = useRef<any>(null);
 
-    const selected = exampleFeedbacks[Math.floor(Math.random() * exampleFeedbacks.length)];
-    
-    setState('processing');
-    setUserFeedback(selected.user);
-    
-    setTimeout(() => {
-      setState('explaining');
-      setSystemResponse(selected.system);
-      setTimeout(() => {
-        setState('choice');
-      }, 1500);
-    }, 1000);
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event: any) => {
+        const text = event.results[0][0].transcript;
+        setTranscript(text);
+        processInput(text);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Speech Error", event.error);
+        if (event.error === 'not-allowed') {
+          setTranscript("Microphone access denied.");
+          setState('idle');
+        } else {
+          setTranscript("Listening failed. Please try again.");
+          setState('idle');
+        }
+      };
+
+      // Auto-start
+      startListening();
+    } else {
+      setTranscript("Voice not supported in this browser.");
+      setState('idle');
+    }
+
+    return () => {
+      if (recognitionRef.current) recognitionRef.current.stop();
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
+  const startListening = () => {
+    try {
+      setState('listening');
+      setTranscript('');
+      recognitionRef.current?.start();
+    } catch (e) {
+      // Already started
+    }
   };
 
-  const handleKeepBlend = () => {
-    onClose();
+  const processInput = (text: string) => {
+    setState('processing');
+
+    // Simulate thinking delay for realism
+    setTimeout(() => {
+      const result = analyzeFeedback(text, currentRecommendation || { name: recommendationName });
+      setAnalysis(result);
+      speakResponse(result.systemResponse);
+    }, 1200);
+  };
+
+  const speakResponse = (text: string) => {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    // Try to find a good voice
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
+    if (preferredVoice) utterance.voice = preferredVoice;
+
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    utterance.onstart = () => {
+      setState('speaking');
+      setIsSynthesizing(true);
+    };
+
+    utterance.onend = () => {
+      setIsSynthesizing(false);
+      setState('choice');
+    };
+
+    window.speechSynthesis.speak(utterance);
+    setState('speaking'); // Immediate state update
   };
 
   const handleRecalculate = () => {
-    if (onRecalculate) {
-      onRecalculate(userFeedback);
+    window.speechSynthesis.cancel();
+    if (onRecalculate && analysis) {
+      onRecalculate(analysis.newConstraints?.join(' ') || analysis.userIntent);
     }
     onClose();
+  };
+
+  const handleStopSpeaking = () => {
+    window.speechSynthesis.cancel();
+    setIsSynthesizing(false);
+    setState('choice');
   };
 
   return (
@@ -64,8 +127,8 @@ export function VoiceFeedback({ recommendationName, onClose, onRecalculate }: Pr
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-end backdrop-blur-xl"
-        style={{ backgroundColor: 'rgba(0,0,0,0.9)' }}
+        className="fixed inset-0 z-[100] flex items-end backdrop-blur-xl"
+        style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
         onClick={onClose}
       >
         <motion.div
@@ -73,242 +136,126 @@ export function VoiceFeedback({ recommendationName, onClose, onRecalculate }: Pr
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className="w-full max-h-[90vh] flex flex-col bg-white/5 backdrop-blur-2xl rounded-t-3xl border-t border-white/10 overflow-hidden shadow-2xl"
+          className="w-full max-h-[90vh] flex flex-col bg-[#111] backdrop-blur-2xl rounded-t-[3rem] border-t border-white/10 overflow-hidden shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex-shrink-0 p-6 border-b border-white/10">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="text-xs uppercase tracking-widest text-white/40 mb-2">
-                  Voice Feedback
-                </div>
-                <h2 className="text-2xl font-light mb-1 text-white">
-                  Adjust Recommendation
-                </h2>
-                <p className="text-sm text-white/50 font-light">
-                  Describe your preferences or concerns
-                </p>
-              </div>
-              
-              <button
-                onClick={onClose}
-                className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path
-                    d="M15 5L5 15M5 5L15 15"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
+          <div className="flex-shrink-0 p-8 border-b border-white/5 flex justify-between items-start">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[#00FFD1] mb-2">StrainMath AI</h3>
+              <h2 className="text-2xl font-serif text-white">Live Consultation</h2>
             </div>
+            <button onClick={() => { window.speechSynthesis.cancel(); onClose(); }} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </button>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 p-6 overflow-y-auto min-h-0">
+          {/* Dynamic Content Area */}
+          <div className="flex-1 flex flex-col items-center justify-center p-8 relative min-h-[400px]">
+
             <AnimatePresence mode="wait">
-              {/* Listening State */}
+              {/* LISTENING STATE */}
               {state === 'listening' && (
                 <motion.div
                   key="listening"
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex flex-col items-center justify-center py-12"
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex flex-col items-center"
                 >
-                  <motion.div
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="w-24 h-24 rounded-full mb-6 flex items-center justify-center"
-                    style={{
-                      background: `radial-gradient(circle, ${COLORS.blend.primary}40, ${COLORS.blend.primary}10)`,
-                      border: `2px solid ${COLORS.blend.primary}`,
-                      boxShadow: `0 0 40px ${COLORS.blend.primary}40`,
-                    }}
-                  >
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                      <rect x="15" y="8" width="10" height="18" rx="5" stroke={COLORS.blend.primary} strokeWidth="3" />
-                      <path d="M8 20C8 26.63 13.37 32 20 32C26.63 32 32 26.63 32 20" stroke={COLORS.blend.primary} strokeWidth="3" strokeLinecap="round" />
-                      <path d="M20 32V38M13 38H27" stroke={COLORS.blend.primary} strokeWidth="3" strokeLinecap="round" />
-                    </svg>
-                  </motion.div>
-
-                  <h3 className="text-xl font-light text-white mb-3">Tap to speak</h3>
-                  <p className="text-sm text-white/50 font-light text-center max-w-sm mb-8">
-                    Describe what you'd like to adjust or any concerns you have about this recommendation.
-                  </p>
-
-                  <motion.button
-                    onClick={handleVoiceInput}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-8 py-4 rounded-2xl font-medium text-lg"
-                    style={{
-                      background: COLORS.blend.gradient,
-                      color: COLORS.background,
-                      boxShadow: `0 0 30px ${COLORS.blend.primary}40`,
-                    }}
-                  >
-                    Start Recording
-                  </motion.button>
-
-                  <p className="text-xs text-white/40 mt-6 text-center font-light">
-                    Example: "I usually don't like Harlequin" or "This feels too energizing"
-                  </p>
-                </motion.div>
-              )}
-
-              {/* Processing State */}
-              {state === 'processing' && (
-                <motion.div
-                  key="processing"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col items-center justify-center py-12"
-                >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                    className="w-16 h-16 rounded-full mb-6"
-                    style={{
-                      border: `3px solid ${COLORS.blend.primary}30`,
-                      borderTopColor: COLORS.blend.primary,
-                    }}
-                  />
-                  <p className="text-white/80 font-light">Processing your feedback...</p>
-                  
-                  {userFeedback && (
+                  {/* Microphone Visualizer */}
+                  <div className="relative w-32 h-32 mb-8 flex items-center justify-center">
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-6 px-6 py-4 rounded-2xl border max-w-md"
-                      style={{
-                        backgroundColor: `${COLORS.blend.primary}10`,
-                        borderColor: `${COLORS.blend.primary}30`,
-                      }}
-                    >
-                      <p className="text-sm font-light italic" style={{ color: COLORS.blend.primary }}>
-                        "{userFeedback}"
-                      </p>
-                    </motion.div>
-                  )}
+                      className="absolute inset-0 rounded-full bg-[#00FFD1]/20"
+                      animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    />
+                    <motion.div
+                      className="absolute inset-0 rounded-full bg-[#00FFD1]/20"
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.2, 0.5] }}
+                      transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+                    />
+                    <div className="relative w-24 h-24 rounded-full bg-[#00FFD1] flex items-center justify-center shadow-[0_0_40px_rgba(0,255,209,0.5)]">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="23" />
+                        <line x1="8" y1="23" x2="16" y2="23" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h3 className="text-xl text-white font-light mb-2">Listening...</h3>
+                  <p className="text-white/40 text-sm">Speak naturally. Try "It's too sleepy" or "I want more focus".</p>
                 </motion.div>
               )}
 
-              {/* Explaining State */}
-              {(state === 'explaining' || state === 'choice') && (
+              {/* PROCESSING STATE */}
+              {state === 'processing' && (
+                <motion.div key="processing" className="flex flex-col items-center">
+                  <motion.div
+                    className="w-16 h-16 border-t-2 border-[#00FFD1] rounded-full mb-6"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                  <p className="text-white/60 mb-2 italic">"{transcript}"</p>
+                  <p className="text-[#00FFD1] text-sm uppercase tracking-widest animate-pulse">Analyzing Intent...</p>
+                </motion.div>
+              )}
+
+              {/* SPEAKING / CHOICE STATE */}
+              {(state === 'speaking' || state === 'choice') && analysis && (
                 <motion.div
-                  key="explaining"
+                  key="result"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="space-y-6"
+                  className="w-full max-w-lg flex flex-col gap-6"
                 >
-                  {/* User feedback echo */}
-                  <div 
-                    className="px-6 py-4 rounded-2xl border"
-                    style={{
-                      backgroundColor: `${COLORS.blend.primary}10`,
-                      borderColor: `${COLORS.blend.primary}30`,
-                    }}
-                  >
-                    <div className="text-xs uppercase tracking-wide text-white/40 mb-2">You said:</div>
-                    <p className="text-base font-light italic" style={{ color: COLORS.blend.primary }}>
-                      "{userFeedback}"
-                    </p>
+                  {/* User Transcript Bubble */}
+                  <div className="self-end bg-[#222] px-6 py-4 rounded-2xl rounded-tr-sm border border-white/10 max-w-[80%]">
+                    <p className="text-white/60 text-sm italic">You said:</p>
+                    <p className="text-white text-lg">"{transcript}"</p>
                   </div>
 
-                  {/* System explanation */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="px-6 py-5 rounded-2xl border"
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    }}
-                  >
-                    <div className="text-xs uppercase tracking-wide text-white/40 mb-3">System response:</div>
-                    <div className="space-y-3 text-white/90 font-light leading-relaxed whitespace-pre-line">
-                      {systemResponse}
+                  {/* AI Response Bubble */}
+                  <div className="self-start bg-[#00FFD1]/10 px-6 py-6 rounded-2xl rounded-tl-sm border border-[#00FFD1]/20 max-w-[90%] relative">
+                    <div className="absolute -top-3 left-4 bg-[#00FFD1] text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      StrainMath AI
                     </div>
-                  </motion.div>
+                    <p className="text-[#00FFD1] text-lg leading-relaxed font-serif">
+                      {analysis.systemResponse}
+                    </p>
+                    {state === 'speaking' && (
+                      <button onClick={handleStopSpeaking} className="mt-4 text-xs text-[#00FFD1]/60 hover:text-[#00FFD1] flex items-center gap-2">
+                        <span className="w-2 h-2 bg-[#00FFD1] rounded-full animate-ping" /> Speaking... Tap to skip
+                      </button>
+                    )}
+                  </div>
 
-                  {/* Choice buttons */}
+                  {/* Actions */}
                   {state === 'choice' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="space-y-3 pt-4"
-                    >
-                      <div className="text-sm text-white/60 font-light mb-4">What would you like to do?</div>
-                      
-                      {/* Keep blend */}
-                      <motion.button
-                        onClick={handleKeepBlend}
-                        whileHover={{ scale: 1.01, y: -2 }}
-                        whileTap={{ scale: 0.99 }}
-                        className="w-full px-6 py-4 rounded-2xl border text-left"
-                        style={{
-                          backgroundColor: `${COLORS.blend.primary}15`,
-                          borderColor: COLORS.blend.primary,
-                        }}
+                    <div className="flex gap-4 mt-8">
+                      <button
+                        onClick={onClose}
+                        className="flex-1 py-4 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all font-medium"
                       >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-base font-medium mb-1" style={{ color: COLORS.blend.primary }}>
-                              Try this blend as-is
-                            </div>
-                            <div className="text-sm text-white/50 font-light">
-                              Trust the recommendation
-                            </div>
-                          </div>
-                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M7 10L9 12L13 8" stroke={COLORS.blend.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <circle cx="10" cy="10" r="8" stroke={COLORS.blend.primary} strokeWidth="2" />
-                          </svg>
-                        </div>
-                      </motion.button>
-
-                      {/* Recalculate */}
-                      <motion.button
+                        Keep Current
+                      </button>
+                      <button
                         onClick={handleRecalculate}
-                        whileHover={{ scale: 1.01, y: -2 }}
-                        whileTap={{ scale: 0.99 }}
-                        className="w-full px-6 py-4 rounded-2xl border text-left"
-                        style={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        }}
+                        className="flex-1 py-4 rounded-xl bg-[#00FFD1] text-black font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(0,255,209,0.2)] hover:shadow-[0_0_30px_rgba(0,255,209,0.4)] transition-all"
                       >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-base font-medium text-white mb-1">
-                              Recalculate with constraints
-                            </div>
-                            <div className="text-sm text-white/50 font-light">
-                              Adjust based on your feedback
-                            </div>
-                          </div>
-                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M4 10C4 6.69 6.69 4 10 4C13.31 4 16 6.69 16 10C16 13.31 13.31 16 10 16" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M10 4V1M10 1L7 4M10 1L13 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                      </motion.button>
-                    </motion.div>
+                        Recalculate Idea
+                      </button>
+                    </div>
                   )}
                 </motion.div>
               )}
             </AnimatePresence>
+
           </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
   );
 }
+

@@ -29,6 +29,7 @@ export function engineResultToUIBlend(result: EngineResult | null | undefined): 
         kind: 'blend',
         id: result.id || 'generated-blend-' + Date.now(),
         name: result.name || 'Custom Blend',
+        matchScore: result.matchScore || 95,
         description: result.reasoning || 'No description available',
         confidence: confidence, // Mandatory
         reasoning: result.reasoning || 'Based on your intent match.',

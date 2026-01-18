@@ -1,7 +1,11 @@
+
 import { useState } from 'react';
-import { EngineResult, assertBlend } from '../types/domain';
+import { EngineResult, UIBlendRecommendation } from '../types/domain';
+import { adaptEngineResult } from '../lib/adaptEngineResult';
 import { SwipeDeck } from './SwipeDeck';
 import { BlendCard } from './BlendCard';
+import { Layers, Share2, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
@@ -85,8 +89,8 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
           {recommendations.length > 0 ? recommendations.map((rec) => (
             <div key={rec.id} className="min-w-[320px] h-[500px] snap-center shrink-0 flex items-center justify-center">
               <BlendCard
-                recommendation={rec}
-                onCalculate={() => onCalculate(rec)}
+                recommendation={adaptEngineResult(rec)}
+                onCalculate={() => onCalculate(adaptEngineResult(rec))}
               />
             </div>
           )) : (

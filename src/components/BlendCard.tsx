@@ -221,6 +221,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
       {showVoiceFeedback && (
         <VoiceFeedback
           recommendationName={recommendation.name}
+          currentRecommendation={recommendation}
           onClose={() => setShowVoiceFeedback(false)}
           onRecalculate={() => { }}
         />

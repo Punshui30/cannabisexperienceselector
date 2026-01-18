@@ -16,7 +16,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     if (!stack) return null;
 
     return (
-        <div className="w-full h-full flex flex-col bg-black text-white relative overflow-hidden">
+        <div className="w-full h-full flex flex-col bg-black text-white relative overflow-y-auto overflow-x-hidden animate-in fade-in duration-300">
 
             {/* HEADER */}
             <div className="w-full p-6 flex justify-between items-center z-20">

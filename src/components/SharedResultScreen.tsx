@@ -69,10 +69,11 @@ export function SharedResultScreen({ recommendation }: Props) {
                                 stackId: recommendation.id,
                                 id: recommendation.id,
                                 name: recommendation.name,
-                                description: recommendation.description,
+                                description: recommendation.description || 'Custom Stack',
                                 matchScore: recommendation.matchScore,
                                 reasoning: recommendation.reasoning,
-                                totalDuration: recommendation.effects.duration,
+                                totalDuration: recommendation.effects?.duration || 'Unknown',
+
                                 layers: [{
                                     type: 'blend',
                                     layerName: 'Blend Composition',

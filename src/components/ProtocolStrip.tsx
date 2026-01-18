@@ -16,7 +16,7 @@ export function ProtocolStrip({ data }: ProtocolStripProps) {
         ? stack!.layers
         : [{
             layerName: "Composite Blend",
-            cultivars: blend!.components,
+            cultivars: blend!.cultivars,
             description: "A harmonized combination of selected chemotypes.",
             phaseIntent: "Targeted Effect",
             timing: "0:00"
@@ -27,7 +27,7 @@ export function ProtocolStrip({ data }: ProtocolStripProps) {
             {/* --- STRIP VISUAL --- */}
             <div className="relative w-16 h-64 my-6 rounded-full overflow-hidden bg-white/5 border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] flex flex-col-reverse">
                 {phases.map((phase, phaseIdx) => {
-                    const phaseGenerics = isStack ? phase : { cultivars: blend!.components };
+                    const phaseGenerics = isStack ? phase : { cultivars: blend!.cultivars };
 
                     return (
                         <div key={phaseIdx} className="flex-1 w-full relative group">
@@ -75,7 +75,7 @@ export function ProtocolStrip({ data }: ProtocolStripProps) {
                         </div>
 
                         <p className="text-xs text-white/60 leading-relaxed italic mb-2">
-                            "{phase.phaseIntent || phase.description}"
+                            "{phase.phaseIntent || (phase as any).description}"
                         </p>
 
                         {/* Explicit Blending Text */}
