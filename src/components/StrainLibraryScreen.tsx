@@ -1,8 +1,20 @@
+import { useState } from 'react';
 import { CULTIVAR_MAP, getTerpeneColor } from '../lib/cultivarData';
-import { motion } from 'motion/react';
+import { INVENTORY } from '../lib/inventory';
+import { motion, AnimatePresence } from 'motion/react';
+import { Activity, Droplet, X } from 'lucide-react';
 
 export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
     const strains = Object.entries(CULTIVAR_MAP).sort((a, b) => a[0].localeCompare(b[0]));
+    const [selectedName, setSelectedName] = useState<string | null>(null);
+
+    // Helper to find chemotype data
+    const getChemotype = (name: string) => {
+        return INVENTORY.cultivars.find(c => c.name.toLowerCase() === name.toLowerCase());
+    };
+
+    const selectedChemotype = selectedName ? getChemotype(selectedName) : null;
+    const selectedVisuals = selectedName ? CULTIVAR_MAP[selectedName] : null;
 
     return (
         <div className="fixed inset-0 flex flex-col bg-black text-white font-sans overflow-hidden">
@@ -17,7 +29,10 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                     </svg>
                     <span className="text-[10px] uppercase tracking-widest text-white/40">Back</span>
                 </button>
-                <span className="text-sm font-medium serif">Strain Library</span>
+                <div className="flex flex-col items-end">
+                    <span className="text-sm font-medium serif">Strain Library</span>
+                    <span className="text-[10px] text-white/40">Chemotype Database v2.1</span>
+                </div>
             </div>
 
             {/* Grid Content */}
@@ -26,10 +41,11 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                     {strains.map(([name, data], idx) => (
                         <motion.div
                             key={name}
+                            onClick={() => setSelectedName(name)}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="relative p-6 rounded-2xl bg-white/5 border border-white/5 overflow-hidden group hover:border-white/20 transition-all"
+                            className="relative p-6 rounded-2xl bg-white/5 border border-white/5 overflow-hidden group hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
                         >
                             {/* Color Block Indicator */}
                             <div
@@ -43,7 +59,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                         className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]"
                                         style={{ backgroundColor: data.color, color: data.color }}
                                     />
-                                    <h3 className="text-xl font-light serif text-white">{name}</h3>
+                                    <h3 className="text-xl font-light serif text-white group-hover:text-[#00FFD1] transition-colors">{name}</h3>
                                 </div>
 
                                 <div className="space-y-3">
@@ -65,6 +81,106 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                     ))}
                 </div>
             </div>
+
+            {/* Detail Modal */}
+            <AnimatePresence>
+                {selectedName && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedName(null)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            layoutId={selectedName}
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-lg bg-[#111] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-50"
+                        >
+                            {/* Modal Header */}
+                            <div className="relative h-32 bg-gradient-to-b from-white/10 to-transparent p-6 flex flex-col justify-end">
+                                <div
+                                    className="absolute inset-0 opacity-30 blur-[80px]"
+                                    style={{ backgroundColor: selectedVisuals?.color }}
+                                />
+                                <button
+                                    onClick={() => setSelectedName(null)}
+                                    className="absolute top-4 right-4 p-2 bg-black/20 rounded-full text-white/50 hover:text-white"
+                                >
+                                    <X size={20} />
+                                </button>
+                                <h2 className="text-3xl font-serif text-white relative z-10">{selectedName}</h2>
+                            </div>
+
+                            {/* Modal Content */}
+                            <div className="p-6 space-y-6">
+                                {selectedChemotype ? (
+                                    <>
+                                        {/* Stats Row */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-white/5 rounded-xl p-4 border border-white/5 flex items-center gap-4">
+                                                <div className="p-2 bg-[#00FFD1]/10 rounded-lg text-[#00FFD1]">
+                                                    <Activity size={20} />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[10px] uppercase text-white/40">THC Content</div>
+                                                    <div className="text-xl font-bold text-white">{selectedChemotype.thcPercent}%</div>
+                                                </div>
+                                            </div>
+                                            <div className="bg-white/5 rounded-xl p-4 border border-white/5 flex items-center gap-4">
+                                                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                                                    <Activity size={20} />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[10px] uppercase text-white/40">CBD Content</div>
+                                                    <div className="text-xl font-bold text-white">{selectedChemotype.cbdPercent}%</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Terpene Breakdown */}
+                                        <div className="bg-white/5 rounded-2xl p-5 border border-white/5">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <Droplet size={16} className="text-[#FFD700]" />
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-[#FFD700]">Detailed Terpene Analysis</h4>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                {selectedChemotype.terpenes && Object.entries(selectedChemotype.terpenes)
+                                                    .sort(([, a], [, b]) => (b as number) - (a as number))
+                                                    .map(([name, val]) => (
+                                                        <div key={name} className="space-y-1">
+                                                            <div className="flex justify-between text-xs">
+                                                                <span className="capitalize text-white/80">{name}</span>
+                                                                <span className="font-mono text-white/50">{val}%</span>
+                                                            </div>
+                                                            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                                                <motion.div
+                                                                    initial={{ width: 0 }}
+                                                                    animate={{ width: `${(val as number) * 50}%` }}
+                                                                    className="h-full rounded-full"
+                                                                    style={{ backgroundColor: getTerpeneColor(name) }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                }
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="py-10 text-center text-white/30 italic">
+                                        Quantitative data record not linked.
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
