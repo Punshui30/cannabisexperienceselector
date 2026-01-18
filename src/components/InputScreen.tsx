@@ -25,6 +25,11 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   const [mode, setMode] = useState<'describe' | 'product' | 'strain'>('describe');
   const [description, setDescription] = useState('');
 
+  // DEBUG: Verify version
+  useEffect(() => {
+    console.log("InputScreen Loaded: v2 - 7 Scenarios Active");
+  }, []);
+
   // Effect to populate text from Static View return
   useEffect(() => {
     if (initialText) {
