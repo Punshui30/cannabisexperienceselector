@@ -42,9 +42,9 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
 
             <div className="flex gap-4">
               <div className="text-right">
-                <div className="inline-block px-3 py-1 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 backdrop-blur-md">
-                  <span className="text-[10px] font-bold text-[#00FFD1] tracking-widest uppercase">
-                    StrainMath<span className="text-[8px] align-top opacity-60">™</span> Output
+                <div className="inline-block px-3 py-1 rounded-full bg-[#ffd700]/10 border border-[#ffd700]/20 backdrop-blur-md">
+                  <span className="text-[10px] font-bold text-[#ffd700] tracking-widest uppercase">
+                    <span className="serif">StrainMath</span><span className="text-[8px] align-top opacity-60">™</span> Output
                   </span>
                 </div>
                 <p className="text-[10px] text-white/40 mt-1 uppercase tracking-wider">Confidence: 94%</p>

@@ -185,8 +185,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
               <p className="text-[10px] text-white/30 uppercase tracking-widest font-medium mt-1">
                 Start with a scenario or describe usage
               </p>
-              <p className="text-[9px] text-[#00FFD1]/50 uppercase tracking-wider font-light mt-0.5">
-                Powered by StrainMath<span className="text-[7px] align-top">™</span>
+              <p className="text-[9px] text-[#ffd700] uppercase tracking-wider font-light mt-0.5">
+                Powered by <span className="serif">StrainMath</span><span className="text-[7px] align-top">™</span>
               </p>
             </div>
             <button

@@ -137,7 +137,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               className="w-full max-w-md glass-card p-8 border-[#00FFD1]/20 max-h-[80vh] overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-light text-white serif">StrainMath™ Chemistry</h3>
+                <h3 className="text-2xl font-light text-[#ffd700] serif">StrainMath™ Chemistry</h3>
                 <button onClick={() => setShowDetails(false)} className="text-white/20 hover:text-white">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M18 6L6 18M6 6l12 12" />
