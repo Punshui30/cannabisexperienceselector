@@ -88,7 +88,10 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }:
         <div className="flex-1 w-full relative min-h-0 z-10 overflow-x-auto overflow-y-hidden snap-x snap-mandatory flex items-center px-6 gap-4">
           {recommendations.length > 0 ? recommendations.map((rec) => (
             <div key={rec.id} className="min-w-[320px] h-[500px] snap-center shrink-0 flex items-center justify-center">
-              <BlendCard recommendation={rec} />
+              <BlendCard
+                recommendation={rec}
+                onCalculate={() => onCalculate(rec)}
+              />
             </div>
           )) : (
             <div className="text-white text-center w-full">Loading recommendations...</div>
