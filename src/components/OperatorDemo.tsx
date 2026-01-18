@@ -12,225 +12,86 @@ type DemoScene = {
 
 const DEMO_SCENES: DemoScene[] = [
   {
-    title: 'Demo Intro',
+    title: 'The Problem',
     narration: [
-      'What you\'re about to see is not a strain recommender.',
-      'This is a new category: outcome-based cannabis design.',
-      'Guided Outcomes gives dispensaries a way to deliver consistent experiences, increase cart size, and differentiate — even when inventory changes.'
+      'A customer buys "Bubba Kush" from your store.',
+      'They like how it feels.',
+      'They come back expecting the same result.',
+      'But the next batch feels different.',
+      'The strain name stayed the same, but the experience didn\'t.'
     ],
-    caption: 'Outcome-based cannabis design',
-    visual: 'intro',
-    duration: 12
-  },
-  {
-    title: 'Problem Statement',
-    narration: [
-      'Every dispensary faces the same problem.',
-      'Strain names stay the same, but batches change.',
-      'Growers vary. Terpene profiles drift. Customer expectations don\'t.',
-      'Guided Outcomes solves this by shifting the value from single strains… to intentional blends.'
-    ],
-    caption: 'Batches change. Expectations don\'t.',
-    visual: 'problem',
+    caption: 'Strain names are labels, not guarantees.',
+    visual: 'problem', // Using existing visual for inconsistency
     duration: 14
   },
   {
-    title: 'Core Positioning',
+    title: 'The Business Cost',
     narration: [
-      'Instead of selling products, you sell results.',
-      'Instead of hoping a cultivar delivers, you design the experience.'
+      'The customer is confused.',
+      'They lose confidence in your recommendations.',
+      'They might leave without buying, or stop trusting that name entirely.',
+      'Inconsistency breaks loyalty faster than price.'
     ],
-    caption: 'Sell results, not products',
-    visual: 'positioning',
-    duration: 8
-  },
-  {
-    title: 'Entry Gate',
-    narration: [
-      'The app begins with a required session gate for compliance.',
-      'From there, operators can enter Consumer Mode or Admin Mode — clearly separated, with no accidental crossover.'
-    ],
-    caption: 'Compliance-first with clear mode separation',
-    visual: 'gate',
-    duration: 10
-  },
-  {
-    title: 'Admin Mode',
-    narration: [
-      'Admin Mode is where the system becomes operational.',
-      'This is where inventory is scanned, analyzed, and converted into usable components for blending.'
-    ],
-    caption: 'Inventory becomes blendable components',
-    visual: 'admin',
-    duration: 9
-  },
-  {
-    title: 'Inventory Ingestion',
-    narration: [
-      'Products are added by scanning COAs.',
-      'The system reads terpene profiles, cannabinoid ratios, and lab data — and normalizes everything into a consistent internal model.',
-      'This means you are no longer dependent on strain names or grower descriptions to sell an experience.'
-    ],
-    caption: 'COA scan → normalized components',
-    visual: 'scan',
-    duration: 13
-  },
-  {
-    title: 'Business Value',
-    narration: [
-      'When inventory changes, Guided Outcomes adapts automatically.',
-      'You always have something to recommend — even when your shelves turn over.',
-      'This reduces reliance on any single grower and stabilizes your customer experience.'
-    ],
-    caption: 'Inventory changes. Experience stays consistent.',
+    caption: 'Inconsistency breaks loyalty.',
     visual: 'business',
     duration: 12
   },
   {
-    title: 'Demo Mode',
+    title: 'Why It Happens',
     narration: [
-      'For owners and staff, Demo Mode allows you to preview the full experience using representative data.',
-      'This is ideal for training, pitches, and in-store demonstrations — without touching live inventory.'
+      'Cannabis chemistry changes by batch, grower, and environment.',
+      'Budtenders can\'t control that variability.',
+      'Strain lore doesn\'t account for it.',
+      'This isn\'t a staff problem. It\'s a system problem.'
     ],
-    caption: 'Safe preview mode for training & pitches',
-    visual: 'demo-mode',
-    duration: 10
+    caption: 'It\'s a system problem.',
+    visual: 'scan', // Visual implies looking simpler at data
+    duration: 12
   },
   {
-    title: 'Consumer Experience',
+    title: 'The Solution',
     narration: [
-      'From the customer\'s perspective, the experience is simple.',
-      'They don\'t browse strains. They describe intent.',
-      'Focus. Calm. Energy. Social. Sleep.',
-      'The system translates that intent into a designed outcome.'
+      'StrainMath™ focuses on outcomes, not strain names.',
+      'We use lab-verified COAs from your actual inventory.',
+      'We build blends with precise ratios to target specific feelings.',
+      'Blends are repeatable even when individual strains vary.'
     ],
-    caption: 'Intent → designed outcome',
-    visual: 'consumer',
-    duration: 11
+    caption: 'Blends create consistency.',
+    visual: 'recommendation', // Shows the solution structure
+    duration: 14
   },
   {
-    title: 'Recommendation Output',
+    title: 'Business Upside',
     narration: [
-      'Each recommendation is a designed blend — not a guess.',
-      'Every component plays a role:',
-      'A foundation to set the baseline.',
-      'A balance layer to smooth or stabilize.',
-      'And an accent layer to fine-tune the experience.'
+      'One recommendation uses 2–3 cultivars.',
+      'Average cart size increases naturally.',
+      'Decision time at the counter decreases.',
+      'Budtenders spend less time guessing and more time helping.'
     ],
-    caption: 'Foundation → Balance → Accent',
-    visual: 'recommendation',
-    duration: 13
-  },
-  {
-    title: 'Why This Is Different',
-    narration: [
-      'This is not "strain matching."',
-      'This is formulation logic applied at the retail level.',
-      'The system explains why each component was chosen — without exposing proprietary formulas.'
-    ],
-    caption: 'Formulation logic, not strain matching',
-    visual: 'different',
-    duration: 11
-  },
-  {
-    title: 'Built-In Explanation',
-    narration: [
-      'Every recommendation includes a plain-language explanation.',
-      'This builds trust with customers and gives staff a confident story to tell — without needing deep product knowledge.'
-    ],
-    caption: 'Trust through transparent reasoning',
-    visual: 'explanation',
-    duration: 10
-  },
-  {
-    title: 'Pre-Roll Calculation',
-    narration: [
-      'Once a blend is selected, the system calculates exact amounts based on pre-roll size.',
-      'This enables custom blends, in-house pre-rolls, and premium offerings.',
-      'No guessing. No math at the counter.'
-    ],
-    caption: 'Exact amounts. No guessing.',
-    visual: 'preroll',
-    duration: 11
-  },
-  {
-    title: 'Revenue Multiplier',
-    narration: [
-      'Customers aren\'t choosing one item.',
-      'They\'re choosing a designed experience — which naturally supports multi-product baskets.',
-      'Blends increase average order value without upselling pressure.'
-    ],
-    caption: 'Multi-product baskets by design',
+    caption: 'Faster decisions, bigger baskets.',
     visual: 'cart',
-    duration: 11
-  },
-  {
-    title: 'Feedback Loop',
-    narration: [
-      'Customers can optionally provide feedback by voice.',
-      'If they don\'t like a component, the system explains the trade-offs before recalculating.',
-      'This keeps customers engaged while protecting the integrity of the experience.'
-    ],
-    caption: 'Intelligent adjustment with trade-offs',
-    visual: 'feedback',
     duration: 12
   },
   {
-    title: 'Share & Return',
+    title: 'Differentiation',
     narration: [
-      'Every blend can be shared via QR code.',
-      'In-store customers can scan it to revisit the same outcome later — or bring it back on their next visit.',
-      'This turns a single purchase into a repeat pathway.',
-      'Customers don\'t remember strain names. They remember how they felt.',
-      'Guided Outcomes gives them a reason to come back asking for the same experience — even if the inventory has changed.'
+      'You aren\'t removing strain culture.',
+      'You are upgrading it.',
+      'Your store becomes the authority on consistent outcomes.',
+      'This is a new category, not a gimmick.'
     ],
-    caption: 'Remember the feeling, not the strain',
-    visual: 'share',
-    duration: 16
-  },
-  {
-    title: 'Unique Position',
-    narration: [
-      'There is no other system like this in cannabis retail.',
-      'Blending as a first-class recommendation engine is unique to Guided Outcomes.',
-      'This is a new product category — not a feature.'
-    ],
-    caption: 'New category, not a feature',
+    caption: 'Upgrade your strain culture.',
     visual: 'unique',
-    duration: 10
-  },
-  {
-    title: 'Monetization Expansion',
-    narration: [
-      'Guided Outcomes also opens new monetization paths:',
-      'Sponsored outcome placements.',
-      'Premium in-house blends.',
-      'White-labeled experiences.',
-      'Educational events built around designed outcomes.',
-      'You control how far you take it.'
-    ],
-    caption: 'Multiple revenue streams',
-    visual: 'monetization',
     duration: 12
-  },
-  {
-    title: 'The Big Picture',
-    narration: [
-      'Guided Outcomes doesn\'t just help you sell cannabis.',
-      'It helps you design consistency, confidence, and loyalty — in a market that desperately needs all three.',
-      'This is how dispensaries move from selling products… to delivering experiences.'
-    ],
-    caption: 'Consistency. Confidence. Loyalty.',
-    visual: 'big-picture',
-    duration: 13
   },
   {
     title: 'Final',
     narration: [
-      'Guided Outcomes is not the future of cannabis retail.',
-      'It\'s the beginning of it.'
+      'Consistent availability.',
+      'Reliable experiences.',
+      'Loyal customers.'
     ],
-    caption: 'The beginning of a new category',
+    caption: 'Consistency. Confidence. Loyalty.',
     visual: 'final',
     duration: 8
   }
@@ -324,8 +185,8 @@ export function OperatorDemo({ onComplete, onExit }: Props) {
           borderColor: `${COLORS.blend.primary}40`,
         }}
       >
-        <div 
-          className="text-xs font-light tracking-wide" 
+        <div
+          className="text-xs font-light tracking-wide"
           style={{ color: COLORS.neutral.text.tertiary, opacity: 0.7 }}
         >
           Demo content — proprietary system preview
@@ -339,7 +200,7 @@ export function OperatorDemo({ onComplete, onExit }: Props) {
           <div className="flex items-center gap-3">
             {/* Logo/Branding */}
             <div className="flex items-center gap-2">
-              <div 
+              <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
                 style={{
                   background: COLORS.blend.gradient,
@@ -547,135 +408,175 @@ export function OperatorDemo({ onComplete, onExit }: Props) {
 function SceneVisual({ visual }: { visual: DemoScene['visual'] }) {
   const renderVisual = () => {
     switch (visual) {
-      case 'intro':
-        return (
-          <div className="relative">
-            <motion.div
-              animate={{
-                rotate: [0, 360],
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: 'linear',
-              }}
-              className="w-32 h-32 rounded-2xl"
-              style={{
-                background: COLORS.blend.gradient,
-                boxShadow: `0 0 60px ${COLORS.blend.primary}60`,
-              }}
-            />
-          </div>
-        );
-
       case 'problem':
+        // VISUAL: Inconsistency / Confusion
+        // Three bars that change height/color randomly
         return (
-          <div className="flex gap-4">
-            {[0.3, 0.6, 0.9].map((opacity, idx) => (
+          <div className="flex gap-4 items-end h-32">
+            {[0, 1, 2].map((i) => (
               <motion.div
-                key={idx}
+                key={i}
                 animate={{
-                  opacity: [opacity, opacity * 0.5, opacity],
-                  scale: [1, 0.95, 1],
+                  height: ['40%', '80%', '30%', '90%'],
+                  backgroundColor: [COLORS.blend.primary, COLORS.warning, COLORS.blend.primary, COLORS.warning],
+                  opacity: [1, 0.5, 1, 0.6]
                 }}
                 transition={{
-                  duration: 2,
+                  duration: 4,
                   repeat: Infinity,
-                  delay: idx * 0.3,
+                  delay: i * 0.5,
+                  ease: "easeInOut"
                 }}
-                className="w-20 h-24 rounded-xl"
+                className="w-12 rounded-t-xl"
                 style={{
-                  backgroundColor: COLORS.blend.primary,
-                  opacity,
+                  border: `1px solid ${COLORS.foreground}20`
                 }}
               />
             ))}
           </div>
         );
 
-      case 'positioning':
+      case 'business':
+        // VISUAL: Broken Loyalty / Drop
+        // A line chart dipping down
         return (
-          <div className="flex items-center gap-6">
-            <motion.div
-              animate={{ x: [-10, 10, -10] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="w-16 h-16 rounded-full"
-              style={{ backgroundColor: `${COLORS.blend.primary}40` }}
-            />
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path
-                d="M8 16H24M24 16L18 10M24 16L18 22"
-                stroke={COLORS.blend.primary}
-                strokeWidth="2"
+          <div className="relative w-40 h-32 border-l border-b border-white/20">
+            <motion.svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" className="overflow-visible">
+              <motion.path
+                d="M0 20 Q 30 20, 40 50 T 100 90"
+                stroke={COLORS.warning}
+                strokeWidth="4"
                 strokeLinecap="round"
-                strokeLinejoin="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 2, ease: "easeOut" }}
               />
-            </svg>
+              <motion.circle
+                cx="100" cy="90" r="4" fill={COLORS.warning}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2 }}
+              />
+            </motion.svg>
+          </div>
+        );
+
+      case 'scan':
+        // VISUAL: System / COA Data
+        // Scanning effect over a grid
+        return (
+          <div className="relative w-32 h-40 border border-white/20 rounded-xl overflow-hidden bg-white/5">
+            <div className="absolute inset-0 grid grid-cols-4 grid-rows-5 gap-1 p-2 opacity-30">
+              {Array.from({ length: 20 }).map((_, i) => (
+                <div key={i} className="bg-white/40 rounded-sm" />
+              ))}
+            </div>
             <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-16 h-16 rounded-full"
-              style={{
-                backgroundColor: COLORS.blend.primary,
-                boxShadow: `0 0 30px ${COLORS.blend.primary}60`,
-              }}
+              className="absolute left-0 right-0 h-1 bg-[#00FFD1] blur-[2px]"
+              animate={{ top: ['0%', '100%', '0%'] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              style={{ boxShadow: '0 0 10px #00FFD1' }}
             />
           </div>
         );
 
       case 'recommendation':
+        // VISUAL: The Solution / Stack
         return (
-          <div className="space-y-2 w-64">
-            {[
-              { label: 'Foundation', opacity: 0.35 },
-              { label: 'Balance', opacity: 0.55 },
-              { label: 'Accent', opacity: 1.0 },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ scaleY: 0 }}
-                animate={{ scaleY: 1 }}
-                transition={{
-                  delay: idx * 0.2,
-                  duration: 0.5,
-                  ease: [0.4, 0, 0.2, 1],
-                }}
-                className="px-4 py-3 rounded-xl"
-                style={{
-                  backgroundColor: COLORS.blend.primary,
-                  opacity: item.opacity,
-                  transformOrigin: 'top',
-                }}
-              >
-                <div
-                  className="text-xs uppercase tracking-wider"
-                  style={{ color: COLORS.foreground }}
-                >
-                  {item.label}
-                </div>
-              </motion.div>
-            ))}
+          <div className="space-y-1 w-48">
+            <motion.div
+              initial={{ width: '0%', opacity: 0 }}
+              animate={{ width: '100%', opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="h-8 rounded-lg bg-emerald-500/30 border border-emerald-500/50 flex items-center justify-center text-[10px] text-emerald-200 uppercase tracking-widest"
+            >
+              Accent
+            </motion.div>
+            <motion.div
+              initial={{ width: '0%', opacity: 0 }}
+              animate={{ width: '100%', opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-[10px] text-emerald-200 uppercase tracking-widest"
+            >
+              Balance
+            </motion.div>
+            <motion.div
+              initial={{ width: '0%', opacity: 0 }}
+              animate={{ width: '100%', opacity: 1 }}
+              transition={{ delay: 1.0 }}
+              className="h-12 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[10px] text-emerald-200 uppercase tracking-widest"
+            >
+              Foundation
+            </motion.div>
           </div>
         );
 
-      case 'preroll':
+      case 'cart':
+        // VISUAL: Basket Size
+        // Items animating into a container
         return (
-          <div className="relative">
-            <motion.div
-              animate={{ rotate: [0, 5, 0, -5, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="w-8 h-32 rounded-full relative"
-              style={{
-                background: `linear-gradient(180deg, ${COLORS.blend.primary}20, ${COLORS.blend.primary}80)`,
-              }}
-            >
-              <div
-                className="absolute top-2 left-1/2 -translate-x-1/2 w-6 h-2 rounded-full"
-                style={{ backgroundColor: COLORS.blend.primary }}
+          <div className="relative w-32 h-32 flex items-center justify-center">
+            <div className="absolute bottom-0 w-24 h-24 border-2 border-white/20 rounded-b-xl border-t-0" />
+            {[0, 1, 2].map(i => (
+              <motion.div
+                key={i}
+                className="absolute w-8 h-8 rounded-full border border-white/40 bg-white/10"
+                initial={{ y: -50, opacity: 0 }}
+                animate={{ y: 0 + (i * 10), x: (i - 1) * 10, opacity: 1 }}
+                transition={{ delay: i * 0.5, duration: 0.5, type: 'spring' }}
               />
+            ))}
+            <motion.div
+              className="absolute -top-4 right-0 bg-[#00FFD1] text-black text-xs font-bold px-2 py-1 rounded-full"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 1.5, type: 'spring' }}
+            >
+              +35%
             </motion.div>
           </div>
+        );
+
+      case 'unique':
+        // VISUAL: Star / Badge / Premium
+        return (
+          <div className="relative">
+            <motion.svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke={COLORS.blend.primary} strokeWidth="1">
+              <motion.path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                initial={{ pathLength: 0, fill: "transparent" }}
+                animate={{ pathLength: 1, fill: `${COLORS.blend.primary}20` }}
+                transition={{ duration: 2 }}
+              />
+            </motion.svg>
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{ boxShadow: `0 0 40px ${COLORS.blend.primary}40` }}
+              animate={{ opacity: [0.5, 0.8, 0.5] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+          </div>
+        );
+
+      case 'final':
+        // VISUAL: Checkmark / Success
+        return (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-32 h-32 rounded-full border-2 border-[#00FFD1] flex items-center justify-center bg-[#00FFD1]/10"
+          >
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00FFD1" strokeWidth="2">
+              <motion.path
+                d="M20 6L9 17L4 12"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ delay: 0.5, duration: 1 }}
+              />
+            </svg>
+          </motion.div>
         );
 
       default:
@@ -705,5 +606,5 @@ function SceneVisual({ visual }: { visual: DemoScene['visual'] }) {
     }
   };
 
-  return <div className="flex items-center justify-center">{renderVisual()}</div>;
+  return <div className="flex items-center justify-center p-8">{renderVisual()}</div>;
 }
