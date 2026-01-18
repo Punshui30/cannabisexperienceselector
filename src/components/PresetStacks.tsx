@@ -8,7 +8,7 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
   // No Engine Logic Here - Strictly UI/Static Data
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-black overflow-hidden font-sans">
+    <div className="fixed inset-0 flex flex-col bg-transparent overflow-hidden font-sans">
       {/* Header */}
       <div className="flex-shrink-0 px-8 pt-8 pb-4 flex items-center justify-between relative z-10">
         <button
