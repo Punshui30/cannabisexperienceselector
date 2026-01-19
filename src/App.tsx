@@ -8,6 +8,7 @@ import { ResultsScreen } from './components/ResultsScreen';
 import { SharedResultScreen } from './components/SharedResultScreen';
 import { PresetStacks } from './components/PresetStacks';
 import { StackDetailScreen } from './components/StackDetailScreen';
+import { BlendDetailScreen } from './components/BlendDetailScreen';
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
 import { RemoteAccessPreview } from './components/RemoteAccessPreview';
@@ -20,7 +21,7 @@ import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
 import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar, EngineResult } from './types/domain';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library' | 'error' | 'shared' | 'remote-access';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access';
 
 export default function App() {
   // ROUTING / INITIALIZATION
@@ -56,6 +57,7 @@ export default function App() {
   // SPLIT STATE (Strict Firewall)
   const [stackRec, setStackRec] = useState<UIStackRecommendation | null>(null);
   const [blendRecs, setBlendRecs] = useState<(UIBlendRecommendation | UIStackRecommendation)[]>([]); // Array logic
+  const [selectedBlend, setSelectedBlend] = useState<UIBlendRecommendation | null>(null);
 
   // Shared UI State
   const [calculatorOpen, setCalculatorOpen] = useState(false);
@@ -319,6 +321,10 @@ export default function App() {
                 onCalculate={handleCalculate}
                 onBack={handleBack}
                 onShare={(rec) => setQRShareOpen(true)}
+                onViewDetail={(blend) => {
+                  setSelectedBlend(blend);
+                  setView('blend-detail');
+                }}
               />
             )}
 
@@ -342,6 +348,14 @@ export default function App() {
                   if (view === 'results') setView('input');
                   else setView('presets');
                 }}
+              />
+            )}
+
+            {/* BLEND DETAIL (Blends Only) */}
+            {view === 'blend-detail' && selectedBlend && (
+              <BlendDetailScreen
+                blend={selectedBlend}
+                onBack={() => setView('results')}
               />
             )}
 // ...

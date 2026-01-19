@@ -1,14 +1,3 @@
-
-import { useState } from 'react';
-import { EngineResult, UIBlendRecommendation, assertBlend } from '../types/domain';
-import { adaptEngineResult } from '../lib/adaptEngineResult';
-import { SwipeDeck } from './SwipeDeck';
-import { BlendCard } from './BlendCard';
-import { Layers, Share2, ArrowRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft } from 'lucide-react';
-import logoImg from '../assets/logo.png';
-
 import { useState } from 'react';
 import { EngineResult, UIBlendRecommendation, assertBlend } from '../types/domain';
 import { adaptEngineResult } from '../lib/adaptEngineResult';
@@ -24,9 +13,10 @@ interface ResultsProps {
   onCalculate: (rec: any) => void;
   onBack: () => void;
   onShare?: (rec: any) => void;
+  onViewDetail?: (blend: UIBlendRecommendation) => void;
 }
 
-export function ResultsScreen({ recommendations, onCalculate, onBack, onShare }: ResultsProps) {
+export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, onViewDetail }: ResultsProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeRec = recommendations[activeIndex];
 
