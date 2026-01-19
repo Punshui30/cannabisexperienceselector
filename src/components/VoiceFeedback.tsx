@@ -36,29 +36,37 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
     // The user said: "Instead of analyzing... chat starts talking: I am comparing..."
 
     // We can use a prop `mode` like 'analysis' | 'feedback'. 
-    // Defaulting to 'analysis' logic if no recommendation is actively being discussed (or if purely resolving).
+    // Defaulting to 'analysis' logic if no recommendation actively being discussed (or if purely resolving).
     // For now, let's auto-detect: if (isActiveAnalysis) -> speak.
 
-    // Hardcoded "Analysis Narration" for this specific iteration based on user request.
+    // Hardcoded "Analysis Narration"
     const runAnalysisNarration = async () => {
       // Wait for voices
       await new Promise(resolve => setTimeout(resolve, 500));
 
+      // Ensure Mic is OFF
+      if (recognitionRef.current) recognitionRef.current.stop();
       setState('speaking');
-      setTranscript("Analyzing intent signals... Scanning inventory...");
 
-      speakResponse("I am analyzing your preferences. Comparing sixty-four cultivars. Calculating synergy.");
+      const script = "I am analyzing your preferences. Comparing sixty-four cultivars. Calculating synergy.";
 
-      // After speaking, what?
-      // If the parent component passes `recommendation`, we switch to "Result Presentation"?
-      // Or we just finish and call onClose?
-      // Ideally, we keep speaking until data arrives.
+      // Typewriter Effect Logic
+      let i = 0;
+      const typeWriterInterval = setInterval(() => {
+        setTranscript(script.substring(0, i));
+        i++;
+        if (i > script.length) clearInterval(typeWriterInterval);
+      }, 50); // Speed of typing
+
+      speakResponse(script);
+
+      // After speaking? We stay in 'speaking' or 'processing' state until parent dismisses or data arrives.
+      // We do NOT turn the mic back on until the user explicitly requests it or we enter a transaction phase.
     };
 
     if (recommendationName === "Finding your match...") {
-      runAnalysisNarration(); // Start narration
+      runAnalysisNarration();
     } else {
-      // Standard feedback mode (User is looking at a result)
       startListening();
     }
 
@@ -69,12 +77,16 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
   }, [recommendationName]);
 
   const startListening = () => {
+    // If we are merely analyzing/narrating, DO NOT LISTEN.
+    if (recommendationName === "Finding your match...") return;
+
     try {
-      setState('listening');
-      setTranscript('');
-      recognitionRef.current?.start();
+      if (recognitionRef.current) {
+        recognitionRef.current.start();
+        setState('listening');
+      }
     } catch (e) {
-      // Already started
+      // Ignore start errors (already started)
     }
   };
 
