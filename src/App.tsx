@@ -366,7 +366,6 @@ export default function App() {
                 onBack={() => setView('results')}
               />
             )}
-// ...
             {/* Components */}
             {(calculatorOpen && (stackRec || (blendRecs.length > 0 ? blendRecs[0] : null))) && (
               <CalculatorModal
