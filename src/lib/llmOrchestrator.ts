@@ -45,12 +45,27 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             r1.id = `blend-primary-${Date.now()}`;
             r1.name = r1.name || "Primary Blend";
 
-            // Dynamic Reasoning for Primary
-            const topic = seed.text ? seed.text.substring(0, 20) + (seed.text.length > 20 ? "..." : "") : "your request";
-            const focus = intentSpec.targetEffects[0] || "balance";
-            const avoid = intentSpec.avoidEffects.length > 0 ? ` while avoiding ${intentSpec.avoidEffects[0]}` : "";
-            r1.reasoning = `Based on "${topic}", this blend prioritizes ${focus}${avoid}. It selects cultivars that directly map to your stated goals.`;
+            // Parse user input for specific references
+            const userText = seed.text || "";
+            const cultivarMatch = userText.match(/(sour diesel|og kush|blue dream|harlequin|purple haze|jack herer|granddaddy purple|girl scout cookies|northern lights|white widow)/i);
+            const concernMatch = userText.match(/(edgy|anxious|paranoid|jittery|racy|nervous|tense|wired)/i);
+            const likeMatch = userText.match(/(?:like|love|enjoy|prefer)\s+([^,\.]+)/i);
 
+            // Build user-specific reasoning
+            let reasoning = "";
+            if (cultivarMatch) {
+                const refCultivar = cultivarMatch[0];
+                const concern = concernMatch ? concernMatch[0] : "intensity";
+                reasoning = `You mentioned liking ${refCultivar} but finding it ${concern}. This blend preserves the uplifting qualities while moderating stimulation through balanced cultivar selection.`;
+            } else if (intentSpec.targetEffects.length > 0) {
+                const primary = intentSpec.targetEffects[0];
+                const avoid = intentSpec.avoidEffects[0] || "unwanted side effects";
+                reasoning = `Based on your request for ${primary}, this blend selects cultivars that deliver that effect while avoiding ${avoid}.`;
+            } else {
+                reasoning = `This blend is optimized for your stated goals with balanced constraint enforcement.`;
+            }
+
+            r1.reasoning = reasoning;
             engineResults.push(r1);
             console.log('Primary Blend Cultivars:', r1.cultivars?.map(c => c.name).join(', '));
         }
@@ -86,8 +101,16 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             r2.id = `blend-secondary-${Date.now()}`;
             r2.name = "Alternative: " + (r2.name || "Blend");
 
-            // Dynamic Reasoning for Secondary
-            r2.reasoning = `Alternative interpretation: We explored a variation by ${shiftDesc} and increasing body grounding. This offers a different path to the same goal.`;
+            // Dynamic Reasoning for Secondary - reference user input
+            const userText2 = seed.text || "";
+            const cultivarMatch2 = userText2.match(/(sour diesel|og kush|blue dream|harlequin|purple haze|jack herer|granddaddy purple|girl scout cookies|northern lights|white widow)/i);
+            let reasoning2 = "";
+            if (cultivarMatch2) {
+                reasoning2 = `Alternative approach: Instead of directly replicating ${cultivarMatch2[0]}'s profile, this blend ${shiftDesc} to create a smoother experience with similar benefits.`;
+            } else {
+                reasoning2 = `Alternative interpretation: We explored a variation by ${shiftDesc} and increasing body grounding. This offers a different path to the same goal.`;
+            }
+            r2.reasoning = reasoning2;
 
             engineResults.push(r2);
             console.log('Secondary Blend Cultivars:', r2.cultivars?.map(c => c.name).join(', '));
@@ -134,8 +157,16 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             r3.id = `blend-contextual-${Date.now()}`;
             r3.name = "Experimental: " + (r3.name || "Blend");
 
-            // Dynamic Reasoning for Contextual
-            r3.reasoning = `Contextual shift: This blend adapts for a ${intent3.context.timeOfDay} setting${terpeneChange}. It relaxes strict anxiety constraints to allow for a broader range of cultivars.`;
+            // Dynamic Reasoning for Contextual - reference user input
+            const userText3 = seed.text || "";
+            const concernMatch3 = userText3.match(/(edgy|anxious|paranoid|jittery|racy|nervous|tense|wired)/i);
+            let reasoning3 = "";
+            if (concernMatch3) {
+                reasoning3 = `Experimental variant: This blend addresses your concern about feeling ${concernMatch3[0]} by relaxing anxiety constraints and shifting to a ${intent3.context.timeOfDay} profile${terpeneChange}.`;
+            } else {
+                reasoning3 = `Contextual shift: This blend adapts for a ${intent3.context.timeOfDay} setting${terpeneChange}. It relaxes strict anxiety constraints to allow for a broader range of cultivars.`;
+            }
+            r3.reasoning = reasoning3;
 
             engineResults.push(r3);
             console.log('Contextual Blend Cultivars:', r3.cultivars?.map(c => c.name).join(', '));
