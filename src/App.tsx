@@ -61,6 +61,7 @@ export default function App() {
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [qrShareOpen, setQRShareOpen] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [consultantText, setConsultantText] = useState<string | undefined>(undefined);
 
   // Navigation Handlers
   const handleEnterUser = () => {
