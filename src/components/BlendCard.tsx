@@ -156,7 +156,7 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="pt-4 border-t border-white/5 space-y-4 mt-4">
+                <div className="pt-4 border-t border-white/5 space-y-4 mt-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
 
                   {/* Expanded Stack */}
                   <div className="bg-white/5 rounded-xl p-4 border border-white/10">
