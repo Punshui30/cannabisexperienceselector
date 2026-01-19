@@ -43,7 +43,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
     };
 
     return (
-        <div className="w-full min-h-screen flex flex-col bg-black text-white relative overflow-y-auto overflow-x-hidden animate-in fade-in duration-300">
+        <div className="absolute inset-0 w-full h-full flex flex-col bg-black text-white overflow-y-auto overflow-x-hidden animate-in fade-in duration-300">
 
             {/* HEADER */}
             <div className="w-full p-6 flex justify-between items-center z-20 flex-shrink-0">
