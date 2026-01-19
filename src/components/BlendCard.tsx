@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UIBlendRecommendation } from '../types/domain';
+import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
 import { SpatialStack } from './SpatialStack';
 import { VoiceFeedback } from './VoiceFeedback';
-import { QRCodeSVG } from 'qrcode.react';
 
 interface BlendCardProps {
   recommendation: UIBlendRecommendation;
@@ -17,10 +16,34 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
   const [showDetails, setShowDetails] = useState(false);
   const [showVoiceFeedback, setShowVoiceFeedback] = useState(false);
 
-  // Auto-close consultant after analysis
   const handleVoiceComplete = () => {
     setShowVoiceFeedback(false);
-    // Optionally trigger something else, but for now just close
+  };
+
+  // ADAPTER: Convert Blend to Stack Shape for Visualization
+  const stackData: UIStackRecommendation = {
+    kind: 'stack',
+    stackId: recommendation.id,
+    id: recommendation.id,
+    name: recommendation.name,
+    description: recommendation.description || '',
+    matchScore: recommendation.matchScore,
+    reasoning: recommendation.reasoning,
+    totalDuration: recommendation.effects.duration,
+    layers: [{
+      type: 'blend',
+      layerName: 'Blend Composition',
+      cultivars: recommendation.cultivars.map(c => ({
+        name: c.name,
+        ratio: c.ratio,
+        profile: c.profile || 'Hybrid',
+        characteristics: c.characteristics || []
+      })),
+      phaseIntent: 'Complete Experience',
+      whyThisPhase: 'Synergistic combination',
+    }],
+    effects: recommendation.effects,
+    confidence: recommendation.confidence
   };
 
   return (
@@ -65,43 +88,20 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
             </button>
           </div>
 
-          {/* MAIN VISUAL: SPATIAL STACK (Collapsed State) */}
+          {/* VISUALIZATION */}
           <div
             className="relative h-48 w-full bg-black/20 rounded-xl border border-white/5 mb-6 overflow-hidden cursor-pointer"
             onClick={() => setShowDetails(!showDetails)}
           >
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-60 mix-blend-screen">
-              {/* Subtle hinting at content */}
-              <div className="w-full px-8">
+            <div className="absolute inset-0 flex items-center justify-center opacity-80">
+              <div className="w-full px-4">
                 <SpatialStack
-                  items={recommendation.cultivars.map(c => ({
-                    name: c.name,
-                    ratio: c.ratio,
-                    color: c.color,
-                    terpenes: c.prominentTerpenes
-                  }))}
-                  height={160}
-                  compact={true}
+                  data={stackData}
+                  compact={!showDetails}
                 />
               </div>
             </div>
-
-            {/* Readout Overlay */}
-            <div className="absolute bottom-3 left-4 right-4 flex justify-between items-end">
-              <div className="flex flex-col">
-                <span className="text-[9px] uppercase tracking-widest text-white/40 mb-0.5">Primary Effect</span>
-                <span className="text-sm text-white font-medium">
-                  {recommendation.reasoning.split('.')[0]}
-                </span>
-              </div>
-              <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-white/40 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}>
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </div>
-            </div>
           </div>
-
 
           {/* ACTIONS */}
           <div className="space-y-3 relative z-10">
@@ -119,7 +119,7 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
               <button
                 onClick={() => setShowVoiceFeedback(true)}
                 className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
-                disabled={showVoiceFeedback} // Disable re-click if active
+                disabled={showVoiceFeedback}
               >
                 Consultant
               </button>
@@ -133,7 +133,7 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
             </div>
           </div>
 
-          {/* EXPANDED DETAILS (Spatial Stack + Flavor) */}
+          {/* EXPANDED DETAILS */}
           <AnimatePresence>
             {showDetails && (
               <motion.div
@@ -144,32 +144,15 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
               >
                 <div className="pt-4 border-t border-white/5 space-y-4 mt-4">
 
-                  {/* Spatial Stack Visualization (Full) */}
+                  {/* Expanded Stack */}
                   <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="text-xs font-bold text-white/70 uppercase tracking-widest">Molecular Composition</h4>
-                      <div className="flex gap-2 text-[10px] text-white/40">
-                        {recommendation.blendEvaluation?.cannabinoids?.cbd && (
-                          <span>CBD {recommendation.blendEvaluation.cannabinoids.cbd.toFixed(1)}%</span>
-                        )}
-                        {recommendation.blendEvaluation?.cannabinoids?.thc && (
-                          <span>THC {recommendation.blendEvaluation.cannabinoids.thc.toFixed(1)}%</span>
-                        )}
-                      </div>
-                    </div>
-
                     <SpatialStack
-                      items={recommendation.cultivars.map(c => ({
-                        name: c.name,
-                        ratio: c.ratio,
-                        color: c.color,
-                        terpenes: c.prominentTerpenes
-                      }))}
-                      height={200}
+                      data={stackData}
+                      compact={false}
                     />
                   </div>
 
-                  {/* Flavor Notes / Terpenes */}
+                  {/* Flavor Notes */}
                   <div className="grid grid-cols-2 gap-2">
                     {recommendation.cultivars.map((cultivar, i) => (
                       <div key={i} className="bg-white/5 rounded-lg p-3 border border-white/5">
@@ -186,7 +169,7 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
                     ))}
                   </div>
 
-                  {/* Chemistry Analysis (Text) */}
+                  {/* Analysis */}
                   <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                     <h4 className="text-[10px] font-bold text-white/70 uppercase tracking-widest mb-2">System Analysis</h4>
                     <p className="text-xs text-white/60 leading-relaxed">
@@ -202,14 +185,14 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
         </CardShell>
       </motion.div>
 
-      {/* Voice Consultant (Overlay) */}
+      {/* Voice Consultant */}
       <AnimatePresence>
         {showVoiceFeedback && (
           <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto w-full max-w-sm px-4">
               <VoiceFeedback
-                text={recommendation.reasoning}
                 recommendationName={recommendation.name}
+                currentRecommendation={recommendation}
                 mode="consultation"
                 onClose={handleVoiceComplete}
               />
