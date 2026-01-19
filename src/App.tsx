@@ -279,6 +279,21 @@ export default function App() {
               />
             )}
 
+            {/* PRESET STACKS BROWSER */}
+            {view === 'presets' && (
+              <PresetStacks
+                onBack={() => setView('input')}
+                onSelect={(exemplar) => {
+                  if (exemplar.kind === 'stack') {
+                    setStackRec(exemplar.data as UIStackRecommendation);
+                    setView('stack-detail');
+                  } else {
+                    console.log('Blend preset selected:', exemplar);
+                  }
+                }}
+              />
+            )}
+
             {/* RESOLVING SCREEN - Waits for Data */}
             {view === 'resolving' && userInput && (
               <ResolvingScreen
