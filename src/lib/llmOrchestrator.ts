@@ -115,9 +115,9 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             intent3.constraints.maxAnxiety = Math.min(0.5, intent3.constraints.maxAnxiety + 0.15);
         }
 
-        console.log(`  Context: ${engineIntent.context.timeOfDay} → ${intent3.context.timeOfDay}`);
-        console.log(`  Tolerance: ${engineIntent.context.tolerance} → ${intent3.context.tolerance}`);
-        console.log(`  Max Anxiety: ${engineIntent.constraints.maxAnxiety} → ${intent3.constraints.maxAnxiety}`);
+        console.log(`  Context: ${engineIntent.context?.timeOfDay || 'afternoon'} → ${intent3.context.timeOfDay}`);
+        console.log(`  Tolerance: ${engineIntent.context?.tolerance || 'medium'} → ${intent3.context.tolerance}`);
+        console.log(`  Max Anxiety: ${engineIntent.constraints?.maxAnxiety || 0.3} → ${intent3.constraints.maxAnxiety}`);
 
         const results3 = engineGenerate(seed, intent3);
         if (results3 && results3.length > 0) {
