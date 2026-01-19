@@ -134,10 +134,40 @@ export function normalizeCultivarName(rawName: string): string {
     return rawName; // Return as-is if no map found
 }
 
-export function getCultivarVisuals(name: string): CultivarVisualConfig {
-    // Normalize checking
+// Fallback Colors for Types (Data Layer)
+const TYPE_COLORS: Record<string, string> = {
+    'sativa': '#FACC15', // Bright Yellow/Gold
+    'indica': '#8B5CF6', // Violet
+    'hybrid': '#10B981', // Emerald
+    'cbd': '#D946EF',    // Pink
+};
+
+export function getCultivarVisuals(name: string, type?: string): CultivarVisualConfig {
+    // 1. Normalize Name
     const normalizedName = normalizeCultivarName(name);
-    return CULTIVAR_MAP[normalizedName] || CULTIVAR_MAP["Unknown"];
+
+    // 2. Direct Map Lookup (Best Quality)
+    if (CULTIVAR_MAP[normalizedName]) {
+        return CULTIVAR_MAP[normalizedName];
+    }
+
+    // 3. Type-Based Fallback (Medium Quality)
+    if (type) {
+        const normalizedType = type.toLowerCase();
+        // Handle "sativa dominant" etc by checking semantic includes
+        if (normalizedType.includes('sativa')) {
+            return { color: TYPE_COLORS['sativa'], terpenes: ['Terpinolene', 'Limonene'] };
+        }
+        if (normalizedType.includes('indica')) {
+            return { color: TYPE_COLORS['indica'], terpenes: ['Myrcene', 'Caryophyllene'] };
+        }
+        if (normalizedType.includes('hybrid')) {
+            return { color: TYPE_COLORS['hybrid'], terpenes: ['Caryophyllene', 'Limonene'] };
+        }
+    }
+
+    // 4. Unknown Fallback (Low Quality)
+    return CULTIVAR_MAP["Unknown"];
 }
 
 export function getTerpeneColor(terpeneName: string): string {

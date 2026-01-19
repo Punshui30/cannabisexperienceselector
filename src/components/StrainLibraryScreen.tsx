@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CULTIVAR_MAP, getTerpeneColor } from '../lib/cultivarData';
+import { resolveCultivarVisuals, resolveTerpeneVisuals } from '../lib/visuals';
 import { INVENTORY } from '../lib/inventory';
 import { motion, AnimatePresence } from 'motion/react';
 import { Activity, Droplet, X } from 'lucide-react';
@@ -16,21 +16,10 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
         return INVENTORY.cultivars.find(c => c.name.toLowerCase() === name.toLowerCase());
     };
 
-    const getVisuals = (name: string, type: string) => {
-        // Try lookup
-        if (CULTIVAR_MAP[name]) return CULTIVAR_MAP[name];
-
-        // Fallback Logic
-        const isSativa = type?.toLowerCase() === 'sativa';
-        const isIndica = type?.toLowerCase() === 'indica';
-        return {
-            color: isSativa ? '#F59E0B' : isIndica ? '#8B5CF6' : '#10B981',
-            terpenes: ['Myrcene', 'Limonene'] // Generic fallback if missing from map
-        };
-    };
-
     const selectedChemotype = selectedName ? getChemotype(selectedName) : null;
-    const selectedVisuals = selectedName && selectedChemotype ? getVisuals(selectedName, selectedChemotype.type || 'hybrid') : null;
+    const selectedVisuals = selectedName && selectedChemotype
+        ? resolveCultivarVisuals(selectedName, selectedChemotype.type || 'hybrid', { isActive: true })
+        : null;
 
     return (
         <div className="fixed inset-0 flex flex-col bg-black text-white font-sans overflow-hidden">
@@ -55,7 +44,12 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
             <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-32">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
                     {strains.map((strain, idx) => {
-                        const visuals = getVisuals(strain.name, strain.type || 'hybrid');
+                        const isSelected = selectedName === strain.name;
+                        const visuals = resolveCultivarVisuals(strain.name, strain.type || 'hybrid', {
+                            isActive: isSelected,
+                            isHovered: false // We rely on CSS hover state typically, but we can pass it if we track hover
+                        });
+
                         // Convert dict to array for terpenes if needed or use from record
                         const topTerpenes = strain.terpenes ? Object.entries(strain.terpenes)
                             .sort(([, a], [, b]) => (b as number) - (a as number))
@@ -69,19 +63,25 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05 }}
-                                className="relative p-6 rounded-2xl bg-white/5 border border-white/5 overflow-hidden group hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
+                                className={`
+                                    relative p-6 rounded-2xl bg-white/5 overflow-hidden group hover:bg-white/10 transition-all cursor-pointer
+                                `}
+                                style={{
+                                    border: visuals.borderStyle,
+                                    boxShadow: visuals.glowStyle
+                                }}
                             >
                                 {/* Color Block Indicator */}
                                 <div
                                     className="absolute top-0 right-0 w-24 h-24 blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity"
-                                    style={{ backgroundColor: visuals.color }}
+                                    style={{ backgroundColor: visuals.primaryColor }}
                                 />
 
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div
                                             className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]"
-                                            style={{ backgroundColor: visuals.color, color: visuals.color }}
+                                            style={{ backgroundColor: visuals.primaryColor, color: visuals.primaryColor }}
                                         />
                                         <h3 className="text-xl font-light serif text-white group-hover:text-[#00FFD1] transition-colors">{strain.name}</h3>
                                     </div>
@@ -89,15 +89,21 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                     <div className="space-y-3">
                                         <div className="text-[9px] uppercase tracking-widest text-white/30 font-bold">Terpene Profile</div>
                                         <div className="flex flex-wrap gap-2">
-                                            {topTerpenes.map(t => (
-                                                <div key={t} className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 border border-white/5">
-                                                    <span
-                                                        className="w-1.5 h-1.5 rounded-full"
-                                                        style={{ backgroundColor: getTerpeneColor(t) }}
-                                                    />
-                                                    <span className="text-[10px] text-white/70">{t}</span>
-                                                </div>
-                                            ))}
+                                            {topTerpenes.map(t => {
+                                                const terpInfo = resolveTerpeneVisuals(t);
+                                                return (
+                                                    <div
+                                                        key={t}
+                                                        className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 border border-white/5"
+                                                    >
+                                                        <span
+                                                            className="w-1.5 h-1.5 rounded-full"
+                                                            style={{ backgroundColor: terpInfo.color }}
+                                                        />
+                                                        <span className="text-[10px] text-white/70">{t}</span>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 </div>
@@ -124,12 +130,15 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
                             className="relative w-full max-w-lg bg-[#111] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-50"
+                            style={{
+                                borderColor: selectedVisuals?.primaryColor + '40'
+                            }}
                         >
                             {/* Modal Header */}
                             <div className="relative h-32 bg-gradient-to-b from-white/10 to-transparent p-6 flex flex-col justify-end">
                                 <div
                                     className="absolute inset-0 opacity-30 blur-[80px]"
-                                    style={{ backgroundColor: selectedVisuals?.color }}
+                                    style={{ backgroundColor: selectedVisuals?.primaryColor }}
                                 />
                                 <button
                                     onClick={() => setSelectedName(null)}
@@ -176,22 +185,25 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                             <div className="space-y-3">
                                                 {selectedChemotype.terpenes && Object.entries(selectedChemotype.terpenes)
                                                     .sort(([, a], [, b]) => (b as number) - (a as number))
-                                                    .map(([name, val]) => (
-                                                        <div key={name} className="space-y-1">
-                                                            <div className="flex justify-between text-xs">
-                                                                <span className="capitalize text-white/80">{name}</span>
-                                                                <span className="font-mono text-white/50">{val}%</span>
+                                                    .map(([name, val]) => {
+                                                        const tVis = resolveTerpeneVisuals(name);
+                                                        return (
+                                                            <div key={name} className="space-y-1">
+                                                                <div className="flex justify-between text-xs">
+                                                                    <span className="capitalize text-white/80">{name}</span>
+                                                                    <span className="font-mono text-white/50">{val}%</span>
+                                                                </div>
+                                                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                                                    <motion.div
+                                                                        initial={{ width: 0 }}
+                                                                        animate={{ width: `${(val as number) * 50}%` }}
+                                                                        className="h-full rounded-full"
+                                                                        style={{ backgroundColor: tVis.color }}
+                                                                    />
+                                                                </div>
                                                             </div>
-                                                            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                                                <motion.div
-                                                                    initial={{ width: 0 }}
-                                                                    animate={{ width: `${(val as number) * 50}%` }}
-                                                                    className="h-full rounded-full"
-                                                                    style={{ backgroundColor: getTerpeneColor(name) }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))
+                                                        );
+                                                    })
                                                 }
                                             </div>
                                         </div>

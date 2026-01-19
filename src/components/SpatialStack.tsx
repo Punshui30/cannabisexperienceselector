@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIStackRecommendation } from '../types/domain';
-import { getCultivarVisuals } from '../lib/cultivarData';
+import { resolveCultivarVisuals } from '../lib/visuals';
 import { ChevronDown, Layers, Wind } from 'lucide-react';
 
 interface SpatialStackProps {
@@ -67,26 +67,32 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
 
                             {/* Rich Visual Bars (The "Visual Reward") */}
                             <div className="space-y-2 mt-2">
-                                {layer.cultivars.map((cultivar, cIdx) => (
-                                    <div key={cIdx} className="relative">
-                                        {/* Label Row */}
-                                        <div className="flex justify-between text-[10px] uppercase tracking-wider text-white/70 mb-1">
-                                            <span>{cultivar.name}</span>
-                                            <span>{Math.round(cultivar.ratio * 100)}%</span>
+                                {layer.cultivars.map((cultivar, cIdx) => {
+                                    const visuals = resolveCultivarVisuals(cultivar.name, cultivar.profile);
+                                    return (
+                                        <div key={cIdx} className="relative">
+                                            {/* Label Row */}
+                                            <div className="flex justify-between text-[10px] uppercase tracking-wider text-white/70 mb-1">
+                                                <span>{cultivar.name}</span>
+                                                <span>{Math.round(cultivar.ratio * 100)}%</span>
+                                            </div>
+                                            {/* Bar Background */}
+                                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                                {/* Bar Fill */}
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${cultivar.ratio * 100}%` }}
+                                                    transition={{ duration: 1, delay: cIdx * 0.1 }}
+                                                    className="h-full rounded-full"
+                                                    style={{
+                                                        backgroundColor: visuals.primaryColor,
+                                                        boxShadow: visuals.glowStyle
+                                                    }}
+                                                />
+                                            </div>
                                         </div>
-                                        {/* Bar Background */}
-                                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                            {/* Bar Fill */}
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${cultivar.ratio * 100}%` }}
-                                                transition={{ duration: 1, delay: cIdx * 0.1 }}
-                                                className="h-full rounded-full shadow-[0_0_8px_currentColor]"
-                                                style={{ backgroundColor: getCultivarVisuals(cultivar.name).color }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             {/* Expanded Details */}

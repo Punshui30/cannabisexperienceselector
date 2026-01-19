@@ -1,4 +1,5 @@
 import { EngineResult, UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
+import { getCultivarVisuals } from './cultivarData';
 
 function adaptToStack(result: EngineResult): UIStackRecommendation {
     // Generate Layers if missing (fallback logic)
@@ -87,7 +88,7 @@ export function adaptEngineResult(
             profile: c.profile || 'Hybrid',
             characteristics: c.characteristics || [],
             prominentTerpenes: [],
-            color: '#FFD700'
+            color: getCultivarVisuals(c.name || 'Unknown', c.profile).color
         }))
     };
 }

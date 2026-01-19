@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
-import { getCultivarVisuals } from '../lib/cultivarData';
+import { resolveCultivarVisuals, resolveTerpeneVisuals } from '../lib/visuals';
 import { LiveConsultant } from './LiveConsultant';
 
 interface BlendDetailScreenProps {
@@ -104,38 +104,54 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                     <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3">
                         Cultivar Composition
                     </h3>
-                    {blend.cultivars.map((cultivar, i) => (
-                        <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10">
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cultivar.color }} />
-                                    <div>
-                                        <div className="text-sm font-medium text-white">{cultivar.name}</div>
-                                        <div className="text-[10px] text-white/40 uppercase tracking-widest">{cultivar.profile}</div>
+                    {blend.cultivars.map((cultivar, i) => {
+                        const visuals = resolveCultivarVisuals(cultivar.name, cultivar.profile);
+                        return (
+                            <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            className="w-2 h-2 rounded-full"
+                                            style={{
+                                                backgroundColor: visuals.primaryColor,
+                                                boxShadow: visuals.glowStyle
+                                            }}
+                                        />
+                                        <div>
+                                            <div className="text-sm font-medium text-white">{cultivar.name}</div>
+                                            <div className="text-[10px] text-white/40 uppercase tracking-widest">{cultivar.profile}</div>
+                                        </div>
                                     </div>
+                                    <div className="text-lg font-bold text-[#00FFD1]">{Math.round(cultivar.ratio * 100)}%</div>
                                 </div>
-                                <div className="text-lg font-bold text-[#00FFD1]">{Math.round(cultivar.ratio * 100)}%</div>
+
+                                {/* Terpenes */}
+                                {cultivar.prominentTerpenes && cultivar.prominentTerpenes.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                        {cultivar.prominentTerpenes.map(t => {
+                                            const tVis = resolveTerpeneVisuals(t);
+                                            return (
+                                                <span
+                                                    key={t}
+                                                    className="text-[9px] px-2 py-0.5 rounded-full"
+                                                    style={tVis.badgeStyle}
+                                                >
+                                                    {t}
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Characteristics */}
+                                {cultivar.characteristics && cultivar.characteristics.length > 0 && (
+                                    <div className="mt-2 text-[10px] text-white/50">
+                                        {cultivar.characteristics.join(' • ')}
+                                    </div>
+                                )}
                             </div>
-
-                            {/* Terpenes */}
-                            {cultivar.prominentTerpenes && cultivar.prominentTerpenes.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                    {cultivar.prominentTerpenes.map(t => (
-                                        <span key={t} className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white/60">
-                                            {t}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Characteristics */}
-                            {cultivar.characteristics && cultivar.characteristics.length > 0 && (
-                                <div className="mt-2 text-[10px] text-white/50">
-                                    {cultivar.characteristics.join(' • ')}
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Effects Timeline */}
