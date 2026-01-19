@@ -192,109 +192,108 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
             </button>
           </div>
 
-          {/* Dynamic Content Area */}
-          <div className="flex-1 flex flex-col items-center justify-center p-8 relative min-h-[400px]">
+          {/* Content Container */}
+          <div className="relative z-10 flex flex-col items-center justify-center p-8 text-center max-w-md w-full">
 
-            <AnimatePresence mode="wait">
-              {/* LISTENING STATE */}
+            {/* State Visuals */}
+            <div className="mb-8 relative">
               {state === 'listening' && (
                 <motion.div
-                  key="listening"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="flex flex-col items-center"
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="w-20 h-20 rounded-full bg-[#00FFD1]/20 flex items-center justify-center"
                 >
-                  {/* Microphone Visualizer */}
-                  <div className="relative w-32 h-32 mb-8 flex items-center justify-center">
-                    <motion.div
-                      className="absolute inset-0 rounded-full bg-[#00FFD1]/20"
-                      animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    />
-                    <motion.div
-                      className="absolute inset-0 rounded-full bg-[#00FFD1]/20"
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.2, 0.5] }}
-                      transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
-                    />
-                    <div className="relative w-24 h-24 rounded-full bg-[#00FFD1] flex items-center justify-center shadow-[0_0_40px_rgba(0,255,209,0.5)]">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2">
-                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                        <line x1="12" y1="19" x2="12" y2="23" />
-                        <line x1="8" y1="23" x2="16" y2="23" />
-                      </svg>
-                    </div>
-                  </div>
-                  <h3 className="text-xl text-white font-light mb-2">Listening...</h3>
-                  <p className="text-white/40 text-sm">Speak naturally. Try "It's too sleepy" or "I want more focus".</p>
+                  {/* Mic Icon specific to Listening */}
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00FFD1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
+                  </svg>
                 </motion.div>
               )}
 
-              {/* PROCESSING STATE */}
-              {state === 'processing' && (
-                <motion.div key="processing" className="flex flex-col items-center">
+              {(state === 'processing' || state === 'speaking') && (
+                <div className="relative">
+                  {/* Core Pulse for Processing/Speaking */}
                   <motion.div
-                    className="w-16 h-16 border-t-2 border-[#00FFD1] rounded-full mb-6"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  />
-                  <p className="text-white/60 mb-2 italic">"{transcript}"</p>
-                  <p className="text-[#00FFD1] text-sm uppercase tracking-widest animate-pulse">Analyzing Intent...</p>
-                </motion.div>
+                    animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                    className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20"
+                  >
+                    {/* Abstract "Brain" or "Speaker" Icon */}
+                    <div className="w-10 h-10 rounded-full bg-white/80 shadow-[0_0_20px_white]" />
+                  </motion.div>
+                </div>
               )}
+            </div>
 
-              {/* SPEAKING / CHOICE STATE */}
-              {(state === 'speaking' || state === 'choice') && analysis && (
-                <motion.div
-                  key="result"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="w-full max-w-lg flex flex-col gap-6"
-                >
-                  {/* User Transcript Bubble */}
-                  <div className="self-end bg-[#222] px-6 py-4 rounded-2xl rounded-tr-sm border border-white/10 max-w-[80%]">
-                    <p className="text-white/60 text-sm italic">You said:</p>
-                    <p className="text-white text-lg">"{transcript}"</p>
-                  </div>
+            {/* Text Area - ALWAYS Visible if there is content */}
+            <div className="min-h-[120px] flex items-center justify-center flex-col">
+              <AnimatePresence mode="wait">
+                {state === 'processing' && (
+                  <motion.div key="processing" className="flex flex-col items-center">
+                    <motion.div
+                      className="w-16 h-16 border-t-2 border-[#00FFD1] rounded-full mb-6"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                    <p className="text-white/60 mb-2 italic">"{transcript}"</p>
+                    <p className="text-[#00FFD1] text-sm uppercase tracking-widest animate-pulse">Analyzing Intent...</p>
+                  </motion.div>
+                )}
 
-                  {/* AI Response Bubble */}
-                  <div className="self-start bg-[#00FFD1]/10 px-6 py-6 rounded-2xl rounded-tl-sm border border-[#00FFD1]/20 max-w-[90%] relative">
-                    <div className="absolute -top-3 left-4 bg-[#00FFD1] text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                      StrainMath AI
+                {/* SPEAKING / CHOICE STATE */}
+                {(state === 'speaking' || state === 'choice') && analysis && (
+                  <motion.div
+                    key="result"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full max-w-lg flex flex-col gap-6"
+                  >
+                    {/* User Transcript Bubble */}
+                    <div className="self-end bg-[#222] px-6 py-4 rounded-2xl rounded-tr-sm border border-white/10 max-w-[80%]">
+                      <p className="text-white/60 text-sm italic">You said:</p>
+                      <p className="text-white text-lg">"{transcript}"</p>
                     </div>
-                    <p className="text-[#00FFD1] text-lg leading-relaxed font-serif">
-                      {analysis.systemResponse}
-                    </p>
-                    {state === 'speaking' && (
-                      <button onClick={handleStopSpeaking} className="mt-4 text-xs text-[#00FFD1]/60 hover:text-[#00FFD1] flex items-center gap-2">
-                        <span className="w-2 h-2 bg-[#00FFD1] rounded-full animate-ping" /> Speaking... Tap to skip
-                      </button>
+
+                    {/* AI Response Bubble */}
+                    <div className="self-start bg-[#00FFD1]/10 px-6 py-6 rounded-2xl rounded-tl-sm border border-[#00FFD1]/20 max-w-[90%] relative">
+                      <div className="absolute -top-3 left-4 bg-[#00FFD1] text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        StrainMath AI
+                      </div>
+                      <p className="text-[#00FFD1] text-lg leading-relaxed font-serif">
+                        {analysis.systemResponse}
+                      </p>
+                      {state === 'speaking' && (
+                        <button onClick={handleStopSpeaking} className="mt-4 text-xs text-[#00FFD1]/60 hover:text-[#00FFD1] flex items-center gap-2">
+                          <span className="w-2 h-2 bg-[#00FFD1] rounded-full animate-ping" /> Speaking... Tap to skip
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    {state === 'choice' && (
+                      <div className="flex gap-4 mt-8">
+                        <button
+                          onClick={onClose}
+                          className="flex-1 py-4 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all font-medium"
+                        >
+                          Keep Current
+                        </button>
+                        <button
+                          onClick={handleRecalculate}
+                          className="flex-1 py-4 rounded-xl bg-[#00FFD1] text-black font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(0,255,209,0.2)] hover:shadow-[0_0_30px_rgba(0,255,209,0.4)] transition-all"
+                        >
+                          Recalculate Idea
+                        </button>
+                      </div>
                     )}
-                  </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-                  {/* Actions */}
-                  {state === 'choice' && (
-                    <div className="flex gap-4 mt-8">
-                      <button
-                        onClick={onClose}
-                        className="flex-1 py-4 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all font-medium"
-                      >
-                        Keep Current
-                      </button>
-                      <button
-                        onClick={handleRecalculate}
-                        className="flex-1 py-4 rounded-xl bg-[#00FFD1] text-black font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(0,255,209,0.2)] hover:shadow-[0_0_30px_rgba(0,255,209,0.4)] transition-all"
-                      >
-                        Recalculate Idea
-                      </button>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-          </div>
+            </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
