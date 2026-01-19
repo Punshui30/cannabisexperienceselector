@@ -132,49 +132,6 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
               initial={{ scale: 0.95, y: 10 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 10 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md glass-card p-8 border-[#00FFD1]/20 max-h-[80vh] overflow-y-auto"
-            >
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-light text-[#ffd700] serif">StrainMath™ Chemistry</h3>
-                <button onClick={() => setShowDetails(false)} className="text-white/20 hover:text-white">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="space-y-8">
-                {/* 1. Dominant Terpenes */}
-                {recommendation.blendEvaluation?.explanationData?.dominantContributors && (
-                  <div>
-                    <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold">Dominant Terpenes</h4>
-                    <div className="space-y-3">
-                      {recommendation.blendEvaluation.explanationData.dominantContributors.filter(Boolean).map((t, idx) => (
-                        <div key={idx} className="flex justify-between items-center group">
-                          <div className="flex flex-col">
-                            <span className="text-sm text-white font-medium capitalize">{t.terpene}</span>
-                            <span className="text-[10px] text-white/40">{t.contribution}</span>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-[#00FFD1] font-mono text-xs">{t.percent}%</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 2. Detected Interactions */}
-                {recommendation.blendEvaluation?.explanationData?.interactions && recommendation.blendEvaluation.explanationData.interactions.length > 0 && (
-                  <div>
-                    <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Detected Interactions</h4>
-                    <div className="space-y-2">
-                      {recommendation.blendEvaluation.explanationData.interactions.filter(Boolean).map((int, idx) => (
-                        <div key={idx} className="p-3 rounded-lg bg-white/5 border border-white/5 flex gap-3">
-                          <div className={`mt-0.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${int.type === 'synergy' ? 'bg-[#00FFD1]' : int.type === 'antagonism' ? 'bg-red-400' : 'bg-yellow-400'}`} />
-                          <div className="flex-1">
-                            <div className="flex justify-between text-xs mb-0.5">
                               <span className={`uppercase font-bold tracking-wider ${int.type === 'synergy' ? 'text-[#00FFD1]' : int.type === 'antagonism' ? 'text-red-400' : 'text-yellow-400'}`}>{int.type}</span>
                               <span className="text-white/20 capitalize">{int.magnitude}</span>
                             </div>
@@ -185,52 +142,55 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                               {int.terpenes.join(' + ')}
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+    </div >
+                      ))
+}
+                    </div >
+                  </div >
                 )}
 
-                {/* 3. Risks & Tradeoffs */}
-                {recommendation.blendEvaluation?.explanationData && (recommendation.blendEvaluation.explanationData.risksIncurred.length > 0 || recommendation.blendEvaluation.explanationData.risksManaged.length > 0) && (
-                  <div>
-                    <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Risk Profile</h4>
-                    <div className="grid grid-cols-1 gap-2">
-                      {recommendation.blendEvaluation.explanationData.risksManaged.filter(Boolean).map((r, idx) => (
-                        <div key={idx} className="px-3 py-2 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs">
-                          <span className="font-bold">✓ MANAGED:</span> {r.mitigationStrategy} ({r.severity})
-                        </div>
-                      ))}
-                      {recommendation.blendEvaluation.explanationData.risksIncurred.filter(Boolean).map((r, idx) => (
-                        <div key={idx} className="px-3 py-2 rounded border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs">
-                          <span className="font-bold">! RISK:</span> {r.reason} ({r.severity})
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+{/* 3. Risks & Tradeoffs */ }
+{
+  recommendation.blendEvaluation?.explanationData && (recommendation.blendEvaluation.explanationData.risksIncurred.length > 0 || recommendation.blendEvaluation.explanationData.risksManaged.length > 0) && (
+    <div>
+      <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Risk Profile</h4>
+      <div className="grid grid-cols-1 gap-2">
+        {recommendation.blendEvaluation.explanationData.risksManaged.filter(Boolean).map((r, idx) => (
+          <div key={idx} className="px-3 py-2 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs">
+            <span className="font-bold">✓ MANAGED:</span> {r.mitigationStrategy} ({r.severity})
+          </div>
+        ))}
+        {recommendation.blendEvaluation.explanationData.risksIncurred.filter(Boolean).map((r, idx) => (
+          <div key={idx} className="px-3 py-2 rounded border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs">
+            <span className="font-bold">! RISK:</span> {r.reason} ({r.severity})
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+              </div >
 
-              <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-end">
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-white/20 uppercase tracking-widest mb-1">Score Confidence</span>
-                  <span className="text-lg text-[#00FFD1] font-medium">{Math.round(recommendation.confidence * 100)}%</span>
-                </div>
-                <button onClick={() => setShowDetails(false)} className="px-6 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold uppercase text-white/40 hover:text-white">Close</button>
-              </div>
-            </motion.div>
-          </motion.div>
+  <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-end">
+    <div className="flex flex-col">
+      <span className="text-[10px] text-white/20 uppercase tracking-widest mb-1">Score Confidence</span>
+      <span className="text-lg text-[#00FFD1] font-medium">{Math.round(recommendation.confidence * 100)}%</span>
+    </div>
+    <button onClick={() => setShowDetails(false)} className="px-6 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold uppercase text-white/40 hover:text-white">Close</button>
+  </div>
+            </motion.div >
+          </motion.div >
         )}
-      </AnimatePresence>
+      </AnimatePresence >
 
-      {showVoiceFeedback && (
-        <VoiceFeedback
-          recommendationName={recommendation.name}
-          currentRecommendation={recommendation}
-          onClose={() => setShowVoiceFeedback(false)}
-          onRecalculate={() => { }}
-        />
-      )}
+  { showVoiceFeedback && (
+    <VoiceFeedback
+      recommendationName={recommendation.name}
+      currentRecommendation={recommendation}
+      onClose={() => setShowVoiceFeedback(false)}
+      onRecalculate={() => { }}
+    />
+  )}
     </>
   );
 }

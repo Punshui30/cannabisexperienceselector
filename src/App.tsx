@@ -55,7 +55,7 @@ export default function App() {
 
   // SPLIT STATE (Strict Firewall)
   const [stackRec, setStackRec] = useState<UIStackRecommendation | null>(null);
-  const [blendRec, setBlendRec] = useState<UIBlendRecommendation | UIStackRecommendation | null>(null);
+  const [blendRecs, setBlendRecs] = useState<(UIBlendRecommendation | UIStackRecommendation)[]>([]); // Array logic
 
   // Shared UI State
   const [calculatorOpen, setCalculatorOpen] = useState(false);
@@ -78,7 +78,7 @@ export default function App() {
   const handleSubmit = (input: IntentSeed) => {
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
     setStackRec(null);
-    setBlendRec(null);
+    setBlendRecs([]); // Clear previous
     setUserInput(input);
     setIsAnalyzing(true);
     setView('resolving');
@@ -104,17 +104,30 @@ export default function App() {
     // 2. STACK PRESET (Direct Flow - No Engine)
     console.log(`TRANSITION: Stack Preset -> Detail`);
     setUserInput(null);
-    setBlendRec(null);
+    setBlendRecs([]);
 
     if (exemplar.kind === 'stack') {
       setStackRec(exemplar.data);
-      setIsAnalyzing(false);
+      setBlendRecs([]);
       setView('stack-detail');
     } else {
       // Fallback for static blends if exists
-      setBlendRec(exemplar.data);
+      setBlendRecs([exemplar.data]);
       setIsAnalyzing(false);
       setView('results');
+    }
+  };
+
+  const handleCloseDetail = () => {
+    if (view === 'stack-detail' && blendRecs.length > 0 && !stackRec) {
+      // If we were looking at a stack detail popped from results, go back to results
+      setView('results');
+    } else {
+      // Deep reset
+      setView('input');
+      setStackRec(null);
+      setBlendRecs([]);
+      setUserInput(null);
     }
   };
 
@@ -139,7 +152,7 @@ export default function App() {
         .then(record => {
           if (record) {
             console.log('[App] Resolved Share:', record);
-            setBlendRec(record.blend);
+            setBlendRecs([record.blend]); // Wrap in array
             setView('shared'); // New View State
           } else {
             console.error('[App] Share ID not found/expired');
@@ -175,7 +188,7 @@ export default function App() {
             const adapted = adaptEngineResult(result.data[0]);
 
             if (adapted) {
-              setBlendRec(adapted);
+              setBlendRecs(Array.isArray(adapted) ? adapted : [adapted]);
               // State update triggers ResolvingScreen transition logic via isAnalyzing -> false
               // but we need to wait for ResolvingScreen to finish its animation if we are managing it there.
               // Actually here we just stop analyzing, the ResolvingScreen listens to blendRec presence?
@@ -201,7 +214,7 @@ export default function App() {
 
   // ResolvingScreen onComplete trigger
   const handleResolvingComplete = () => {
-    if (blendRec) setView('results');
+    if (blendRecs.length > 0) setView('results');
     else if (stackRec) setView('stack-detail'); // Rare fallback
   };
 
@@ -212,7 +225,7 @@ export default function App() {
   const handleBack = () => {
     setView('input');
     setStackRec(null);
-    setBlendRec(null);
+    setBlendRecs([]); // Fixed
     setUserInput(null);
     setIsAnalyzing(false);
   };
@@ -272,16 +285,16 @@ export default function App() {
             {view === 'resolving' && userInput && (
               <ResolvingScreen
                 input={userInput}
-                recommendation={blendRec || stackRec as any}
+                recommendation={blendRecs[0] || stackRec as any}
                 onComplete={handleResolvingComplete}
                 onRecalculate={handleRecalculateWithFeedback}
               />
             )}
 
             {/* RESULTS SCREEN (Blends Only) */}
-            {view === 'results' && blendRec && blendRec.kind === 'blend' && (
+            {view === 'results' && blendRecs.length > 0 && (
               <ResultsScreen
-                recommendations={[blendRec as UIBlendRecommendation]} // Safe cast after check
+                recommendations={blendRecs as UIBlendRecommendation[]}
                 onCalculate={handleCalculate}
                 onBack={handleBack}
                 onShare={(rec) => setQRShareOpen(true)}
@@ -289,8 +302,8 @@ export default function App() {
             )}
 
             {/* SHARED READ-ONLY VIEW */}
-            {view === 'shared' && blendRec && blendRec.kind === 'blend' && (
-              <SharedResultScreen recommendation={blendRec as UIBlendRecommendation} />
+            {view === 'shared' && blendRecs.length > 0 && blendRecs[0].kind === 'blend' && (
+              <SharedResultScreen recommendation={blendRecs[0] as UIBlendRecommendation} />
             )}
 
             {/* REMOTE ACCESS PREVIEW (Customer Demo) */}
@@ -300,9 +313,9 @@ export default function App() {
 
             {/* STACK DETAIL (Stacks Only) - Prompt D */}
             {/* Logic: If explicitly in stack-detail view, OR if in results view but we have a stack result */}
-            {((view === 'stack-detail' && stackRec) || (view === 'results' && blendRec && blendRec.kind === 'stack')) && (
+            {((view === 'stack-detail' && stackRec) || (view === 'results' && blendRecs.length > 0 && blendRecs[0].kind === 'stack')) && (
               <StackDetailScreen
-                stack={(stackRec || blendRec) as UIStackRecommendation}
+                stack={(stackRec || blendRecs[0]) as UIStackRecommendation}
                 onBack={() => {
                   // Back logic
                   if (view === 'results') setView('input');
@@ -310,51 +323,19 @@ export default function App() {
                 }}
               />
             )}
-
-            {view === 'presets' && (
-              <PresetStacks
-                onBack={() => setView('input')}
-                onSelect={handleSelectPreset}
-              />
-            )}
-
-            {view === 'library' && (
-              <StrainLibraryScreen onBack={() => setView('input')} />
-            )}
-
-            {/* ERROR SCREEN */}
-            {view === 'error' && (
-              <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-8 bg-black/90 backdrop-blur-md">
-                <div className="text-[#FF0055] mb-4">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                </div>
-                <h2 className="text-2xl font-serif text-white mb-2">Analysis Interrupted</h2>
-                <p className="text-white/60 text-center max-w-sm mb-8">{errorMessage}</p>
-                <button
-                  onClick={() => setView('input')}
-                  className="px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all uppercase text-xs tracking-widest"
-                >
-                  Return to Input
-                </button>
-              </div>
-            )}
-
+// ...
             {/* Components */}
-            {(calculatorOpen && (stackRec || blendRec)) && (
+            {(calculatorOpen && (stackRec || (blendRecs.length > 0 ? blendRecs[0] : null))) && (
               <CalculatorModal
-                recommendation={(stackRec || blendRec)!}
+                recommendation={(stackRec || blendRecs[0])!}
                 onClose={() => setCalculatorOpen(false)}
               />
             )}
 
             {/* QR SHARE - Blend Only (Prompt E) */}
-            {qrShareOpen && blendRec && blendRec.kind === 'blend' && (
+            {qrShareOpen && blendRecs.length > 0 && blendRecs[0].kind === 'blend' && (
               <QRShareModal
-                recommendation={blendRec as UIBlendRecommendation}
+                recommendation={blendRecs[0] as UIBlendRecommendation}
                 onClose={() => setQRShareOpen(false)}
               />
             )}

@@ -33,7 +33,7 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
 
     // CONSULTATION MODE (Visual Only, No Mic)
     if (mode === 'consultation') {
-      const script = "I am analyzing your preferences. Comparing sixty-four cultivars. Calculating synergy.";
+      const script = "I am analyzing your preferences. Comparing sixty cultivars. Calculating synergy.";
       setState('speaking');
 
       let i = 0;
@@ -44,6 +44,10 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
         i++;
         if (i > script.length) {
           clearInterval(intervalRef.current);
+          // AUTO-CLOSE after a brief pause
+          setTimeout(() => {
+            onClose();
+          }, 1500);
         }
       }, 50);
 

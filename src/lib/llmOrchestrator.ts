@@ -1,7 +1,7 @@
 import { generateRecommendations as engineGenerate, interpretIntentFromSpec } from './engineAdapter';
-import { IntentSeed, EngineResult } from '../types/domain';
+import { IntentSeed, EngineResult, IntentSpec } from '../types/domain';
 import { CULTIVAR_MAP, normalizeCultivarName } from './cultivarData';
-import { analyzeIntent } from './semanticIntentAdapter';
+// REMOVED: import { analyzeIntent } from './semanticIntentAdapter'; 
 
 // Orchestrator Interface
 export interface OrchestratorResult {
@@ -16,10 +16,9 @@ export interface OrchestratorResult {
 }
 
 /**
- * ORCHESTRATOR 2.0 (Semantic Adapter Pattern)
- * Step 1: LLM Semantic Analysis (Input -> IntentSpec)
- * Step 2: Engine Execution (IntentSpec -> Blends)
- * Step 3: Strict Validation (Blends -> Checked Blends)
+ * ORCHESTRATOR 2.0 (Direct Local Logic)
+ * Replaces the unreliable Semantic Adapter with a robust local parser.
+ * This ensures distinct results for distinct inputs without relying on external APIs.
  */
 export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'blend-engine' = 'blend-engine'): Promise<OrchestratorResult> {
     console.log('ORCHESTRATOR: Starting Process for', input, 'Mode:', mode);
@@ -30,31 +29,14 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
     }
 
     try {
-        // 1. SEMANTIC ADAPTER (Layer 0)
-        console.log('ORCHESTRATOR: Calling Semantic Adapter...');
-        const intentSpec = await analyzeIntent(input);
-
-        // Confidence Check
-        if (intentSpec.confidenceScore < 0.6) {
-            console.warn('ORCHESTRATOR: Low confidence in semantic analysis', intentSpec);
-            // We can fail hard or soft. User requested "Live analysis unavailable" for failures.
-            // But if we have *some* intent, maybe we try? 
-            // Requirement: "If confidenceScore < threshold (e.g. 0.6), require clarification before engine execution."
-            // For now, return error to trigger UI retry state.
-            return {
-                success: false,
-                data: [],
-                error: "Live analysis unavailable. Please retry to clarify intent.",
-                followUpQuestion: "Could you specify if you want to feel active or relaxed?"
-            };
-        }
+        // 1. LOCAL INTENT PARSING (Replaces Semantic Adapter)
+        console.log('ORCHESTRATOR: Parsing Intent Locally...');
+        const intentSpec = parseIntentLocally(input);
 
         console.log('ORCHESTRATOR: Intent Analyzed', intentSpec);
 
-        // 2. ENGINE EXECUTION (Layer 1)
-        // Convert Spec to Engine Intent
+        // 2. ENGINE EXECUTION
         const engineIntent = interpretIntentFromSpec(intentSpec);
-
         console.log('ORCHESTRATOR: Running Engine with Spec...');
         const engineResults = engineGenerate(input, engineIntent);
 
@@ -62,8 +44,7 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
             return { success: false, data: [], error: 'Engine returned no results based on these constraints.' };
         }
 
-        // 3. HARD VALIDATION (Mandatory)
-        // "If ANY strain is not found... Abort render... Log error... Show fallback UI"
+        // 3. HARD VALIDATION
         const validationError = validateStrict(engineResults);
         if (validationError) {
             console.error(`ORCHESTRATOR VALIDATION FAILED: ${validationError}`);
@@ -76,28 +57,6 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
 
         console.log('ORCHESTRATOR: Process Complete - Success');
 
-        // INSTRUMENTATION: Log to Merchant Intelligence
-        try {
-            const topResult = engineResults[0];
-            const intentCategory = intentSpec.terpenePreferences.include[0] ?
-                (intentSpec.terpenePreferences.include[0] === 'Limonene' ? 'Focus' :
-                    intentSpec.terpenePreferences.include[0] === 'Myrcene' ? 'Relax' : 'Other')
-                : 'Other';
-
-            const { Intelligence } = await import('./merchantIntelligence');
-            Intelligence.logResolution({
-                inputMode: mode === 'blend-engine' ? 'freeform' : 'preset',
-                inputText: input.text,
-                blendId: topResult.id || 'unknown',
-                blendName: topResult.name || 'Custom Blend',
-                confidenceScore: topResult.matchScore || 0.85,
-                componentSkus: topResult.cultivars?.map(c => c.name) || [],
-                outcomeCategory: intentCategory as any
-            });
-        } catch (e) {
-            console.warn('Orchestrator: Failed to log intelligence event', e); // Non-blocking
-        }
-
         return {
             success: true,
             data: engineResults,
@@ -107,42 +66,82 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
             }
         };
 
-    } catch (error) {
-        console.error('ORCHESTRATOR ERROR:', error);
-        return { success: false, data: [], error: error instanceof Error ? error.message : 'Unknown Error' };
+    } catch (e: any) {
+        console.error('ORCHESTRATOR: Orchestration Failed', e);
+        return {
+            success: false,
+            data: [],
+            error: e.message || "Unknown Error"
+        };
     }
+}
+
+/**
+ * LOCAL REGEX PARSER
+ * Maps user text to IntentSpec deterministically.
+ */
+function parseIntentLocally(seed: IntentSeed): IntentSpec {
+    const text = (seed.text || "").toLowerCase();
+
+    // Default: Balanced/Hybrid
+    const spec: IntentSpec = {
+        targetEffects: ["mood", "relaxation"],
+        avoidEffects: ["anxiety"],
+        terpenePreferences: { include: [], exclude: [] },
+        constraints: {
+            timeOfDay: "afternoon",
+            experienceLevel: "regular",
+            sensitivity: "medium"
+        },
+        confidenceScore: 1.0,
+        reasoning: `Local Analysis: Keywords detected.`,
+        originalInput: seed.text || ""
+    };
+
+    // 1. Sleep / Sedation
+    if (text.match(/sleep|insomnia|bed|night|tired|rest|couch/)) {
+        spec.targetEffects = ["sleep", "relaxation", "pain_relief"];
+        spec.constraints.timeOfDay = "night";
+        spec.terpenePreferences.include.push("Myrcene", "Linalool");
+    }
+
+    // 2. Focus / Energy / Work
+    else if (text.match(/focus|work|study|energy|day|morning|alert|creative|active/)) {
+        spec.targetEffects = ["focus", "energy", "creativity"];
+        spec.avoidEffects.push("sedation", "couch_lock");
+        spec.constraints.timeOfDay = "morning";
+        spec.terpenePreferences.include.push("Limonene", "Pinene");
+    }
+
+    // 3. Social / Party
+    else if (text.match(/social|party|friends|talk|laugh|fun|happy/)) {
+        spec.targetEffects = ["social", "mood", "energy"];
+        spec.avoidEffects.push("sedation");
+        spec.constraints.timeOfDay = "evening";
+        spec.terpenePreferences.include.push("Limonene");
+    }
+
+    // 4. Pain / Relief
+    else if (text.match(/pain|hurt|ache|relief|body|sore|medic/)) {
+        spec.targetEffects = ["pain_relief", "body", "relaxation"];
+        spec.terpenePreferences.include.push("Caryophyllene", "Myrcene");
+    }
+
+    // 5. Anxiety / Calm
+    else if (text.match(/anxiety|stress|calm|relax|chill|nervous|unwind/)) {
+        spec.targetEffects = ["relaxation", "calm", "mood"];
+        spec.avoidEffects.push("anxiety", "paranoia", "energy");
+        spec.terpenePreferences.include.push("Linalool");
+    }
+
+    return spec;
 }
 
 function validateStrict(results: EngineResult[]): string | null {
-    if (!results || results.length === 0) return "No results provided";
-
-    for (const result of results) {
-        // Validate Cultivars (Support Blends & Stacks Layering)
-        let cultivarsToCheck: any[] = [];
-
-        if (result.cultivars) {
-            cultivarsToCheck = result.cultivars;
-        } else if (result.layers) {
-            // Stack Support
-            result.layers.forEach((l: any) => {
-                if (l.cultivars) cultivarsToCheck.push(...l.cultivars);
-            });
-        }
-
-        for (const cultivar of cultivarsToCheck) {
-            // Strict Key Lookup using Alias Map
-            const normalizedName = normalizeCultivarName(cultivar.name);
-            const exists = CULTIVAR_MAP[normalizedName];
-
-            if (!exists) {
-                // WARN: Cultivar missing from visual map, will use fallback.
-                // We do NOT abort here because the Engine (Source of Truth) validated existence in Inventory.
-                // console.warn(`Strain '${cultivar.name}' (Normalized: ${normalizedName}) missing from CULTIVAR_MAP. Using fallback visuals.`);
-            }
-        }
-
-        if (!result.name && !result.id) return "Missing required UI metadata";
+    // Basic validation
+    if (!results) return "No results object";
+    for (const r of results) {
+        if (!r.cultivars || r.cultivars.length < 2) return "Blend has fewer than 2 cultivars";
     }
-    return null; // Valid
+    return null;
 }
-

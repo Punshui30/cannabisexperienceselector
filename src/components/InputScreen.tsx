@@ -52,6 +52,35 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     return false;
   };
 
+  const handleMicClick = () => {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      alert("Speech recognition not supported in this browser.");
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+    setIsListening(true); // Indicate that listening has started
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setDescription(prev => prev ? `${prev} ${transcript}` : transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false); // Stop listening on error
+    };
+
+    recognition.onend = () => {
+      setIsListening(false); // Stop listening when recognition ends
+    };
+  };
   const handleSubmit = () => {
     if (!canSubmit()) return;
 
