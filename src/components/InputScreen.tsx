@@ -27,7 +27,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
   // DEBUG: Verify version
   useEffect(() => {
-    console.log("InputScreen Loaded: v2 - 7 Scenarios Active");
+
   }, []);
 
   // Effect to populate text from Static View return
