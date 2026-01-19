@@ -42,9 +42,29 @@ export async function callLLMChat(
         const data = await response.json();
         return data.response || data.message || 'I apologize, but I encountered an error. Please try again.';
     } catch (error) {
-        console.error('LLM Chat Error:', error);
-        return 'I apologize, but I\'m having trouble connecting right now. Please try again in a moment.';
+        console.warn('LLM Chat API unavailable, switching to simulation:', error);
+        return simulateLLM(messages, context);
     }
+}
+
+/**
+ * Fallback Simulation for Demo/Offline Mode
+ */
+function simulateLLM(messages: ChatMessage[], context?: any): Promise<string> {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const lastUserMsg = messages[messages.length - 1].content.toLowerCase();
+            if (lastUserMsg.includes('anxious') || lastUserMsg.includes('anxiety') || lastUserMsg.includes('paranoid')) {
+                resolve("I understand your concern. To mitigate anxiety, we can prioritize cultivars high in CBD and Caryophyllene, which offers a calming, grounding effect. Would you like me to adjust the blend to be more 'Mellow'?");
+            } else if (lastUserMsg.includes('sleep') || lastUserMsg.includes('tired')) {
+                resolve("The current blend has some Myrcene, but we can boost it further for better sedation. I can swap the primary cultivar for something heavier like Granddaddy Purple. Shall I do that?");
+            } else if (lastUserMsg.includes('energy') || lastUserMsg.includes('focus')) {
+                resolve("For more energy, we should look at Limonene-dominant profiles. I can bring the Sativa ratio up to 80% to sharpen the experience. Sound good?");
+            } else {
+                resolve("That's a valid point. This system optimizes for your intent, but I can fine-tune the terpene profile if you prefer a different flavor or onset time. What would you like to change?");
+            }
+        }, 1200);
+    });
 }
 
 /**

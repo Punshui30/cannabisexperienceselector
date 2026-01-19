@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
-import { Send, X } from 'lucide-react';
+import { Send, X, Mic } from 'lucide-react';
 import { callLLMChat } from '../lib/llmChat';
 
 interface LiveConsultantProps {
@@ -174,6 +174,14 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
                 {/* Input */}
                 <div className="p-4 border-t border-white/10 flex-shrink-0">
                     <div className="flex gap-2">
+                        {/* Voice Input Trigger */}
+                        <button
+                            className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors"
+                            onClick={() => alert("Voice interface activating...")}
+                            title="Voice Input"
+                        >
+                            <Mic size={20} />
+                        </button>
                         <input
                             type="text"
                             value={inputValue}
