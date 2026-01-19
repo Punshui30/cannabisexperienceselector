@@ -217,8 +217,19 @@ export default function App() {
     setIsAnalyzing(false);
   };
 
+  const handleRecalculateWithFeedback = (feedback: string) => {
+    // Re-run the engine with the feedback as the new intent
+    // We prepend "Refinement:" to help the LLM understand context if needed
+    setView('resolving');
+    setUserInput({ kind: 'blend', text: `Refinement: ${feedback}`, mode: 'engine' });
+    setIsAnalyzing(true);
+    // Note: In a real persistent app, we'd merge feedback with original intent.
+    // For this V2, treating feedback as a fresh refinement intent works well.
+  };
+
   return (
     <div className="dark min-h-[100dvh] bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col supports-[min-height:100dvh]:min-h-[100dvh]">
+
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/80 rounded-full blur-[120px] animate-pulse-slow" />
         <div className="absolute bottom-[-5%] right-[-10%] w-[60%] h-[60%] bg-[#059669]/80 rounded-full blur-[100px] animate-pulse-slow delay-700" />
@@ -263,6 +274,7 @@ export default function App() {
                 input={userInput}
                 recommendation={blendRec || stackRec as any}
                 onComplete={handleResolvingComplete}
+                onRecalculate={handleRecalculateWithFeedback}
               />
             )}
 

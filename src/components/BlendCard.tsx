@@ -53,36 +53,41 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
 
           <div className="flex-1 py-6 flex flex-col justify-center">
             {/* Visualization */}
-            <SpatialStack
-              data={{
-                kind: 'stack',
-                stackId: recommendation.id,
-                id: recommendation.id,
-                name: recommendation.name,
-                description: recommendation.description || 'Custom Blend',
-                matchScore: recommendation.matchScore,
-                reasoning: recommendation.reasoning,
-                totalDuration: recommendation.effects.duration,
-                layers: [{
-                  type: 'blend',
-                  layerName: 'Blend Composition',
-                  cultivars: recommendation.cultivars.map(c => ({
-                    name: c.name,
-                    ratio: c.ratio,
-                    profile: c.profile || 'Hybrid',
-                    characteristics: c.characteristics || []
-                  })),
-                  phaseIntent: 'Complete Experience',
-                  whyThisPhase: 'A synergistic combination of selected cultivars.',
-                  onsetEstimate: recommendation.effects.onset,
-                  durationEstimate: recommendation.effects.duration,
-                  consumptionGuidance: 'Vaporize / Smoke',
-                  purpose: 'Main Experience',
-                  timing: 'Single Phase'
-                }]
-              }}
-              compact={true}
-            />
+            <div
+              className={`transition-all duration-500 ${showDetails ? 'flex-grow' : 'h-[300px]'}`}
+              onClick={() => setShowDetails(!showDetails)}
+            >
+              <SpatialStack
+                data={{
+                  kind: 'stack',
+                  stackId: recommendation.id,
+                  id: recommendation.id,
+                  name: recommendation.name,
+                  description: recommendation.description || 'Custom Blend',
+                  matchScore: recommendation.matchScore,
+                  reasoning: recommendation.reasoning,
+                  totalDuration: recommendation.effects.duration,
+                  layers: [{
+                    type: 'blend',
+                    layerName: 'Blend Composition',
+                    cultivars: recommendation.cultivars.map(c => ({
+                      name: c.name,
+                      ratio: c.ratio,
+                      profile: c.profile || 'Hybrid',
+                      characteristics: c.characteristics || []
+                    })),
+                    phaseIntent: 'Complete Experience',
+                    whyThisPhase: 'A synergistic combination of selected cultivars.',
+                    onsetEstimate: recommendation.effects.onset,
+                    durationEstimate: recommendation.effects.duration,
+                    consumptionGuidance: 'Vaporize / Smoke',
+                    purpose: 'Main Experience',
+                    timing: 'Single Phase'
+                  }]
+                }}
+                compact={!showDetails}
+              />
+            </div>
           </div>
 
           {/* Actions */}

@@ -81,16 +81,38 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
     }, 1200);
   };
 
+  // Ensure voices are loaded (Chrome compatibility)
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        // console.log("Voices loaded:", voices.length);
+      }
+    };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    return () => { window.speechSynthesis.onvoiceschanged = null; };
+  }, []);
+
   const speakResponse = (text: string) => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
 
-    // Try to find a good voice
+    // VOICE SELECTION STRATEGY:
+    // Priority 1: "Samantha" (MacOS Premium)
+    // Priority 2: "Google US English" (Chrome Premium)
+    // Priority 3: First "en-US" or "en-GB" female/natural voice found
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
+    const preferredVoice = voices.find(v =>
+      v.name === 'Samantha' ||
+      v.name === 'Google US English' ||
+      (v.lang.startsWith('en') && v.name.includes('Female'))
+    );
+
     if (preferredVoice) utterance.voice = preferredVoice;
 
-    utterance.rate = 1.0;
+    // Tuning for more natural sound
+    utterance.rate = 1.05; // Slightly faster for conversational flow
     utterance.pitch = 1.0;
 
     utterance.onstart = () => {
