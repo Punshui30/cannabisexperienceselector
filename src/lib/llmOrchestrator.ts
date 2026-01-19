@@ -44,6 +44,7 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             const r1 = results1[0];
             r1.id = `blend-primary-${Date.now()}`;
             r1.name = r1.name || "Primary Blend";
+            r1.reasoning = `Primary interpretation: Optimized for your stated goals with balanced constraint enforcement.`;
             engineResults.push(r1);
             console.log('Primary Blend Cultivars:', r1.cultivars?.map(c => c.name).join(', '));
         }
