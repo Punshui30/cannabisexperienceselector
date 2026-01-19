@@ -91,7 +91,7 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
             data: engineResults,
             analysis: {
                 targetTerpenes: intentSpec.terpenePreferences.include,
-                reasoning: intentSpec.reasoning
+                reasoning: intentSpec.consultationScript || keyFacts // Use dynamic script as reasoning primarily
             }
         };
 
@@ -113,6 +113,18 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
     const text = (seed.text || "").toLowerCase();
 
     // Default: Balanced/Hybrid
+    let script = "Analyzing your request. Calibrating terpene ratios."; // Default script
+
+    if (text.includes('sour diesel')) {
+        script = "Detected preference for Sour Diesel profile. Adjusting for excessive Limonene to reduce anxiety.";
+    } else if (text.includes('sleep') || text.includes('insomnia')) {
+        script = "Analyzing sedating myrcene-heavy strains. Optimizing for deep sleep without grogginess.";
+    } else if (text.includes('pain') || text.includes('relief')) {
+        script = "Scanning high-potency anti-inflammatory profiles. Prioritizing Caryophyllene for physical relief.";
+    } else if (text.includes('focus') || text.includes('work')) {
+        script = "Filtering for clear-headed Pinene dominant cultivars. Reducing distracting heavy terpenes.";
+    }
+
     const spec: IntentSpec = {
         targetEffects: ["mood", "relaxation"],
         avoidEffects: ["anxiety"],
@@ -124,7 +136,8 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
         },
         confidenceScore: 1.0,
         reasoning: `Local Analysis: Keywords detected.`,
-        originalInput: seed.text || ""
+        originalInput: seed.text || "",
+        consultationScript: script,
     };
 
     // 1. Sleep / Sedation
