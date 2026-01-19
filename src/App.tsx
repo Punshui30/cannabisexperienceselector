@@ -186,7 +186,7 @@ export default function App() {
             console.log('DEBUG: Engine Results Raw', result.data);
 
             const allAdapted = result.data
-              .map(item => adaptEngineResult(item))
+              .map((item: EngineResult) => adaptEngineResult(item))
               .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
 
             if (allAdapted.length > 0) {

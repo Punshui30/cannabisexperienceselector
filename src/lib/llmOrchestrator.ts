@@ -1,6 +1,17 @@
+import { IntentSeed, IntentSpec, EngineResult } from '../types/domain';
+import { interpretIntentFromSpec, generateRecommendations as engineGenerate } from './engineAdapter';
 
-import { Intent, IntentSeed, IntentSpec, EngineResult, OrchestratorResult } from '../types/domain';
-import { interpretIntentFromSpec, engineGenerate } from './engineAdapter';
+// Define OrchestratorResult locally
+export interface OrchestratorResult {
+    success: boolean;
+    data: EngineResult[];
+    error?: string;
+    analysis?: {
+        targetTerpenes: string[];
+        reasoning: string;
+    };
+    followUpQuestion?: string;
+}
 
 /**
  * ORCHESTRATOR (CORE)
