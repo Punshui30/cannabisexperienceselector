@@ -73,6 +73,18 @@ const DEMO_SCENES: DemoScene[] = [
     duration: 14
   },
   {
+    title: 'Platform Intelligence',
+    narration: [
+      'Your in-store system generates aggregated, anonymized intelligence.',
+      'This can be surfaced publicly for brand awareness and education.',
+      'Public intelligence is read-only and non-executable.',
+      'It shapes demand without diluting your in-store exclusivity.'
+    ],
+    caption: 'Intelligence as a brand asset.',
+    visual: 'scan',
+    duration: 14
+  },
+  {
     title: 'Deployment Flexibility',
     narration: [
       'Single-dispensary mode: fully tied to your live menu and COAs.',
@@ -81,7 +93,7 @@ const DEMO_SCENES: DemoScene[] = [
       'The platform scales with your business model.'
     ],
     caption: 'One platform. Multiple deployment paths.',
-    visual: 'scan',
+    visual: 'recommendation',
     duration: 14
   },
   {
