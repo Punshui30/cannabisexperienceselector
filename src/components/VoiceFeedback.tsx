@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { COLORS } from '../lib/colors';
 import { analyzeFeedback, FeedbackAnalysis } from '../lib/feedbackLogic';
 import { UIBlendRecommendation } from '../types/domain';
 
@@ -30,15 +29,6 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
-    // DECISION: Are we analyzing (consultation mode) or listening (feedback mode)?
-    // If we have a recommendation (and no analysis result yet?), we might be in feedback mode.
-    // But if we are mounting as the "Resolving Screen" replacement (implied by specific props or context?), we should narrate.
-    // The user said: "Instead of analyzing... chat starts talking: I am comparing..."
-
-    // We can use a prop `mode` like 'analysis' | 'feedback'. 
-    // Defaulting to 'analysis' logic if no recommendation actively being discussed (or if purely resolving).
-    // For now, let's auto-detect: if (isActiveAnalysis) -> speak.
-
     // Hardcoded "Analysis Narration"
     const runAnalysisNarration = async () => {
       // Wait for voices
@@ -59,9 +49,6 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
       }, 50); // Speed of typing
 
       speakResponse(script);
-
-      // After speaking? We stay in 'speaking' or 'processing' state until parent dismisses or data arrives.
-      // We do NOT turn the mic back on until the user explicitly requests it or we enter a transaction phase.
     };
 
     if (recommendationName === "Finding your match...") {
@@ -73,6 +60,7 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
     return () => {
       if (recognitionRef.current) recognitionRef.current.stop();
       window.speechSynthesis.cancel();
+      // Clear interval if needed? (Ideally use ref for interval)
     };
   }, [recommendationName]);
 
@@ -86,7 +74,7 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
         setState('listening');
       }
     } catch (e) {
-      // Ignore start errors (already started)
+      // Ignore start errors
     }
   };
 
@@ -101,52 +89,66 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
     }, 1200);
   };
 
-  // Ensure voices are loaded (Chrome compatibility)
+  // Initialize Speech Recognition
   useEffect(() => {
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        // console.log("Voices loaded:", voices.length);
-      }
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event: any) => {
+        const text = event.results[0][0].transcript;
+        setTranscript(text);
+        processInput(text);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        if (event.error === 'not-allowed') {
+          setTranscript("Microphone access denied.");
+          setState('idle');
+        } else {
+          // Silently fail or reset
+          setState('listening');
+        }
+      };
+    }
+    return () => {
+      if (recognitionRef.current) recognitionRef.current.stop();
     };
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-    return () => { window.speechSynthesis.onvoiceschanged = null; };
   }, []);
 
   const speakResponse = (text: string) => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
 
-    // VOICE SELECTION STRATEGY:
-    // Priority 1: "Samantha" (MacOS Premium)
-    // Priority 2: "Google US English" (Chrome Premium)
-    // Priority 3: First "en-US" or "en-GB" female/natural voice found
+    // Voice Selection Priority
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v =>
-      v.name === 'Samantha' ||
-      v.name === 'Google US English' ||
-      (v.lang.startsWith('en') && v.name.includes('Female'))
-    );
+    const preferredVoice = voices.find(v => v.name === "Samantha")
+      || voices.find(v => v.name === "Google US English")
+      || voices.find(v => v.lang === "en-US");
 
     if (preferredVoice) utterance.voice = preferredVoice;
 
-    // Tuning for more natural sound
-    utterance.rate = 1.05; // Slightly faster for conversational flow
+    utterance.rate = 1.05; // Slightly faster/crisper
     utterance.pitch = 1.0;
 
-    utterance.onstart = () => {
-      setState('speaking');
-      setIsSynthesizing(true);
-    };
+    setIsSynthesizing(true);
 
     utterance.onend = () => {
       setIsSynthesizing(false);
-      setState('choice');
+      // If resolving, we might stay here or close?
+      if (recommendationName === "Finding your match...") {
+        // Wait a bit then close? Or wait for parent?
+        // Parent (ResolvingScreen) handles onComplete usually via recommendation check?
+        // Actually VoiceFeedback doesn't auto-close. The parent ResolvingScreen unmounts when 'results' view is set.
+      } else {
+        setState('choice'); // Show choices after speaking result
+      }
     };
 
     window.speechSynthesis.speak(utterance);
-    setState('speaking'); // Immediate state update
   };
 
   const handleRecalculate = () => {
@@ -178,11 +180,11 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className="w-full max-h-[90vh] flex flex-col bg-[#111] backdrop-blur-2xl rounded-t-[3rem] border-t border-white/10 overflow-hidden shadow-2xl"
+          className="w-full max-h-[90vh] flex flex-col bg-[#111] backdrop-blur-2xl rounded-t-[3rem] border-t border-white/10 overflow-hidden shadow-2xl items-center"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex-shrink-0 p-8 border-b border-white/5 flex justify-between items-start">
+          <div className="w-full flex-shrink-0 p-8 border-b border-white/5 flex justify-between items-start">
             <div>
               <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[#00FFD1] mb-2">StrainMath AI</h3>
               <h2 className="text-2xl font-serif text-white">Live Consultation</h2>
@@ -193,110 +195,97 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
           </div>
 
           {/* Content Container */}
-          <div className="relative z-10 flex flex-col items-center justify-center p-8 text-center max-w-md w-full">
+          <div className="relative z-10 flex flex-col items-center justify-center p-8 text-center max-w-md w-full flex-1">
 
             {/* State Visuals */}
-            <div className="mb-8 relative">
+            <div className="mb-8 relative h-24 w-24 flex items-center justify-center">
               {state === 'listening' && (
                 <motion.div
                   animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
                   transition={{ repeat: Infinity, duration: 2 }}
-                  className="w-20 h-20 rounded-full bg-[#00FFD1]/20 flex items-center justify-center"
+                  className="absolute inset-0 rounded-full bg-[#00FFD1]/20 flex items-center justify-center"
                 >
-                  {/* Mic Icon specific to Listening */}
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00FFD1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                    <line x1="12" y1="19" x2="12" y2="23" />
-                    <line x1="8" y1="23" x2="16" y2="23" />
-                  </svg>
+                  <div className="w-12 h-12 bg-[#00FFD1]/20 rounded-full flex items-center justify-center border border-[#00FFD1]">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00FFD1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="23" />
+                      <line x1="8" y1="23" x2="16" y2="23" />
+                    </svg>
+                  </div>
                 </motion.div>
               )}
 
               {(state === 'processing' || state === 'speaking') && (
-                <div className="relative">
-                  {/* Core Pulse for Processing/Speaking */}
-                  <motion.div
-                    animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20"
-                  >
-                    {/* Abstract "Brain" or "Speaker" Icon */}
-                    <div className="w-10 h-10 rounded-full bg-white/80 shadow-[0_0_20px_white]" />
-                  </motion.div>
-                </div>
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20"
+                >
+                  <div className="w-8 h-8 rounded-full bg-white shadow-[0_0_20px_white]" />
+                </motion.div>
               )}
             </div>
 
-            {/* Text Area - ALWAYS Visible if there is content */}
-            <div className="min-h-[120px] flex items-center justify-center flex-col">
+            {/* Transcription / Caption Area */}
+            <div className="min-h-[120px] flex items-center justify-center flex-col w-full">
               <AnimatePresence mode="wait">
-                {state === 'processing' && (
-                  <motion.div key="processing" className="flex flex-col items-center">
-                    <motion.div
-                      className="w-16 h-16 border-t-2 border-[#00FFD1] rounded-full mb-6"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                <motion.div
+                  key={transcript || "placeholder"}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-2xl font-light text-white leading-relaxed font-serif break-words w-full"
+                >
+                  {transcript}
+                  {(state === 'speaking' || state === 'listening') && (
+                    <motion.span
+                      animate={{ opacity: [0, 1, 0] }}
+                      transition={{ duration: 0.8, repeat: Infinity }}
+                      className="inline-block w-0.5 h-6 ml-1 align-middle bg-[#00FFD1]"
                     />
-                    <p className="text-white/60 mb-2 italic">"{transcript}"</p>
-                    <p className="text-[#00FFD1] text-sm uppercase tracking-widest animate-pulse">Analyzing Intent...</p>
-                  </motion.div>
-                )}
-
-                {/* SPEAKING / CHOICE STATE */}
-                {(state === 'speaking' || state === 'choice') && analysis && (
-                  <motion.div
-                    key="result"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full max-w-lg flex flex-col gap-6"
-                  >
-                    {/* User Transcript Bubble */}
-                    <div className="self-end bg-[#222] px-6 py-4 rounded-2xl rounded-tr-sm border border-white/10 max-w-[80%]">
-                      <p className="text-white/60 text-sm italic">You said:</p>
-                      <p className="text-white text-lg">"{transcript}"</p>
-                    </div>
-
-                    {/* AI Response Bubble */}
-                    <div className="self-start bg-[#00FFD1]/10 px-6 py-6 rounded-2xl rounded-tl-sm border border-[#00FFD1]/20 max-w-[90%] relative">
-                      <div className="absolute -top-3 left-4 bg-[#00FFD1] text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        StrainMath AI
-                      </div>
-                      <p className="text-[#00FFD1] text-lg leading-relaxed font-serif">
-                        {analysis.systemResponse}
-                      </p>
-                      {state === 'speaking' && (
-                        <button onClick={handleStopSpeaking} className="mt-4 text-xs text-[#00FFD1]/60 hover:text-[#00FFD1] flex items-center gap-2">
-                          <span className="w-2 h-2 bg-[#00FFD1] rounded-full animate-ping" /> Speaking... Tap to skip
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    {state === 'choice' && (
-                      <div className="flex gap-4 mt-8">
-                        <button
-                          onClick={onClose}
-                          className="flex-1 py-4 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all font-medium"
-                        >
-                          Keep Current
-                        </button>
-                        <button
-                          onClick={handleRecalculate}
-                          className="flex-1 py-4 rounded-xl bg-[#00FFD1] text-black font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(0,255,209,0.2)] hover:shadow-[0_0_30px_rgba(0,255,209,0.4)] transition-all"
-                        >
-                          Recalculate Idea
-                        </button>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
+                  )}
+                </motion.div>
               </AnimatePresence>
 
+              <p className="text-xs uppercase tracking-widest text-white/40 mt-6">
+                {state === 'listening' && "Listening..."}
+                {state === 'processing' && "Thinking..."}
+                {state === 'speaking' && "Consultant Analysis"}
+                {state === 'choice' && "Awaiting Decision"}
+              </p>
             </div>
+
+            {/* Actions for Choice State */}
+            {state === 'choice' && (
+              <div className="flex gap-4 mt-8 w-full">
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-4 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all font-medium"
+                >
+                  Keep Current
+                </button>
+                <button
+                  onClick={handleRecalculate}
+                  className="flex-1 py-4 rounded-xl bg-[#00FFD1] text-black font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(0,255,209,0.2)] hover:shadow-[0_0_30px_rgba(0,255,209,0.4)] transition-all"
+                >
+                  Recalculate
+                </button>
+              </div>
+            )}
+            {/* Skip Speaking */}
+            {state === 'speaking' && (
+              <button
+                onClick={handleStopSpeaking}
+                className="mt-8 px-6 py-2 rounded-full border border-white/10 text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+              >
+                Skip Narration
+              </button>
+            )}
+
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
   );
 }
-
