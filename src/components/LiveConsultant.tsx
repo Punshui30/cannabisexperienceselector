@@ -21,22 +21,17 @@ interface Message {
 
 function generateContextAwareIntro(context?: LiveConsultantProps['context']): string {
     if (!context?.recommendation) {
-        return "I'm here to help you understand your recommendations. What would you like to know?";
+        return "Hi — do you have questions about your recommendations?";
     }
 
     const rec = context.recommendation;
-    const cardTypeLabel = context.cardType === 'primary' ? 'primary recommendation' :
-        context.cardType === 'secondary' ? 'alternative approach' :
-            context.cardType === 'contextual' ? 'experimental variant' : 'recommendation';
 
     if (rec.kind === 'blend') {
         const blend = rec as UIBlendRecommendation;
-        const cultivarList = blend.cultivars.map(c => `${c.name} (${Math.round(c.ratio * 100)}%)`).join(', ');
-
-        return `You're viewing the ${cardTypeLabel}: "${blend.name}". This blend combines ${cultivarList}. ${blend.reasoning || ''} What would you like to know?`;
+        return `Hi — do you have questions about this ${blend.name}?`;
     } else {
         const stack = rec as UIStackRecommendation;
-        return `You're viewing the stack: "${stack.name}". ${stack.description} What questions do you have?`;
+        return `Hi — do you have questions about this ${stack.name}?`;
     }
 }
 

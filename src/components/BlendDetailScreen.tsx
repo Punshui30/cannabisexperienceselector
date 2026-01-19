@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { getCultivarVisuals } from '../lib/cultivarData';
+import { LiveConsultant } from './LiveConsultant';
 
 interface BlendDetailScreenProps {
     blend: UIBlendRecommendation;
@@ -9,6 +12,8 @@ interface BlendDetailScreenProps {
 }
 
 export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
+    const [showLiveAssistant, setShowLiveAssistant] = useState(false);
+
     if (!blend) return null;
 
     // Convert blend to stack format for visualization
@@ -52,7 +57,12 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                     <h2 className="text-xs uppercase tracking-[0.2em] text-[#00FFD1] mb-1">Blend Detail</h2>
                     <div className="h-0.5 w-8 bg-[#00FFD1]/30 mx-auto rounded-full" />
                 </div>
-                <div className="w-10" /> {/* Spacer */}
+                <button
+                    onClick={() => setShowLiveAssistant(true)}
+                    className="text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-colors px-3 py-2"
+                >
+                    Live Assistant
+                </button>
             </div>
 
             {/* Background */}
@@ -143,6 +153,19 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                 )}
 
             </div>
+
+            {/* Live Assistant */}
+            <AnimatePresence>
+                {showLiveAssistant && (
+                    <LiveConsultant
+                        context={{
+                            recommendation: blend,
+                            cardType: 'primary'
+                        }}
+                        onClose={() => setShowLiveAssistant(false)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Clock, Share2, Layers } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { UIStackRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { getCultivarVisuals } from '../lib/cultivarData';
+import { LiveConsultant } from './LiveConsultant';
 
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
@@ -12,6 +14,7 @@ interface StackDetailScreenProps {
 export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
     const [prerollSize, setPrerollSize] = useState<number>(1.0); // Grams
+    const [showLiveAssistant, setShowLiveAssistant] = useState(false);
 
     if (!stack) return null;
 
@@ -30,7 +33,12 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                     <h2 className="text-xs uppercase tracking-[0.2em] text-[#00FFD1] mb-1">Guided Outcomes<span className="text-[9px] align-top opacity-60">™</span> Stack</h2>
                     <div className="h-0.5 w-8 bg-[#00FFD1]/30 mx-auto rounded-full" />
                 </div>
-                <div className="w-10" /> {/* Spacer */}
+                <button
+                    onClick={() => setShowLiveAssistant(true)}
+                    className="text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-colors px-3 py-2"
+                >
+                    Live Assistant
+                </button>
             </div>
 
             {/* Background - Minimal */}
@@ -146,6 +154,19 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                     </div>
                 </div>
             )}
+
+            {/* Live Assistant */}
+            <AnimatePresence>
+                {showLiveAssistant && (
+                    <LiveConsultant
+                        context={{
+                            recommendation: stack,
+                            cardType: 'primary'
+                        }}
+                        onClose={() => setShowLiveAssistant(false)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
