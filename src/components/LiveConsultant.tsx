@@ -84,59 +84,58 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="max-w-2xl w-full mx-4 h-[80vh] flex flex-col bg-gradient-to-b from-[#1a1a1a] to-black rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="w-full max-w-lg h-[80vh] flex flex-col bg-[#0a0a0a]/95 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden relative"
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/10 flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-[#00FFD1] shadow-[0_0_12px_#00FFD1]" />
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-[#00FFD1]">
-                            Live Consultation
-                        </h3>
+                <div className="flex items-center justify-between p-5 border-b border-white/5 bg-white/5 relative overflow-hidden shrink-0">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#00FFD1]/5 to-transparent pointer-events-none" />
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FFD1] opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FFD1]"></span>
+                            </span>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-white shadow-[#00FFD1]/20 drop-shadow-sm">Live Consultant</h3>
+                        </div>
+                        <p className="text-[10px] text-white/40 uppercase tracking-wider pl-4">
+                            {context?.recommendation && 'recommendation' in context.recommendation ? 'Session Active' : 'AI Assistant'}
+                        </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white/60 hover:text-white backdrop-blur-md border border-white/5"
                     >
-                        <X size={16} className="text-white/60" />
+                        <X size={16} />
                     </button>
                 </div>
 
-                {/* Context Info */}
-                {context?.recommendation && (
-                    <div className="px-6 py-3 bg-white/5 border-b border-white/10 flex-shrink-0">
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">
-                            Discussing
-                        </p>
-                        <p className="text-sm text-white/80 font-medium">
-                            {context.recommendation.name}
-                        </p>
-                    </div>
-                )}
-
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                    <AnimatePresence mode="popLayout">
+                {/* Messages Area */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                    <AnimatePresence initial={false} mode="popLayout">
                         {messages.map((message, i) => (
                             <motion.div
                                 key={i}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3 }}
+                                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ duration: 0.2 }}
                                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
-                                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                                        ? 'bg-[#00FFD1] text-black'
-                                        : 'bg-white/10 text-white/90'
-                                        }`}
+                                    className={`
+                                        max-w-[85%] rounded-2xl px-5 py-3.5 text-sm leading-relaxed shadow-sm
+                                        ${message.role === 'user'
+                                            ? 'bg-[#00FFD1] text-black font-medium rounded-br-sm shadow-[0_0_15px_rgba(0,255,209,0.15)]'
+                                            : 'bg-white/5 border border-white/10 text-white/90 rounded-bl-sm backdrop-blur-md'
+                                        }
+                                    `}
                                 >
-                                    <p className="text-sm leading-relaxed">{message.content}</p>
+                                    {message.content}
                                 </div>
                             </motion.div>
                         ))}
@@ -148,56 +147,53 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
                             animate={{ opacity: 1 }}
                             className="flex justify-start"
                         >
-                            <div className="bg-white/10 rounded-2xl px-4 py-3">
-                                <div className="flex gap-1">
-                                    <motion.div
-                                        className="w-2 h-2 rounded-full bg-white/60"
-                                        animate={{ opacity: [0.3, 1, 0.3] }}
-                                        transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-                                    />
-                                    <motion.div
-                                        className="w-2 h-2 rounded-full bg-white/60"
-                                        animate={{ opacity: [0.3, 1, 0.3] }}
-                                        transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-                                    />
-                                    <motion.div
-                                        className="w-2 h-2 rounded-full bg-white/60"
-                                        animate={{ opacity: [0.3, 1, 0.3] }}
-                                        transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-                                    />
+                            <div className="bg-white/5 border border-white/10 rounded-2xl rounded-bl-sm px-5 py-4 backdrop-blur-md">
+                                <div className="flex gap-1.5">
+                                    {[0, 1, 2].map(j => (
+                                        <motion.div
+                                            key={j}
+                                            className="w-1.5 h-1.5 rounded-full bg-[#00FFD1]/80"
+                                            animate={{ y: [0, -3, 0] }}
+                                            transition={{ duration: 0.6, repeat: Infinity, delay: j * 0.1 }}
+                                        />
+                                    ))}
                                 </div>
                             </div>
                         </motion.div>
                     )}
                 </div>
 
-                {/* Input */}
-                <div className="p-4 border-t border-white/10 flex-shrink-0">
-                    <div className="flex gap-2">
+                {/* Input Area */}
+                <div className="p-5 bg-black/20 border-t border-white/10 backdrop-blur-md shrink-0">
+                    <div className="flex gap-3 items-center relative">
                         {/* Voice Input Trigger */}
                         <button
-                            className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors"
+                            className="flex-shrink-0 w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 hover:bg-[#00FFD1]/5 flex items-center justify-center transition-all duration-300 group"
                             onClick={() => alert("Voice interface activating...")}
                             title="Voice Input"
                         >
-                            <Mic size={20} />
+                            <Mic size={18} className="group-hover:scale-110 transition-transform" />
                         </button>
-                        <input
-                            type="text"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Ask about this blend or request changes…"
-                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[#00FFD1]/50 transition-colors"
-                            disabled={isLoading}
-                        />
-                        <button
-                            onClick={handleSendMessage}
-                            disabled={!inputValue.trim() || isLoading}
-                            className="w-12 h-12 rounded-xl bg-[#00FFD1] hover:bg-[#00FFD1]/90 disabled:bg-white/10 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-                        >
-                            <Send size={20} className={inputValue.trim() ? 'text-black' : 'text-white/40'} />
-                        </button>
+
+                        <div className="flex-1 relative group">
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder="Type your message..."
+                                className="w-full bg-black/40 border border-white/10 rounded-full pl-5 pr-12 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#00FFD1]/40 focus:bg-black/60 focus:shadow-[0_0_20px_rgba(0,255,209,0.05)] transition-all"
+                                disabled={isLoading}
+                                autoFocus
+                            />
+                            <button
+                                onClick={handleSendMessage}
+                                disabled={!inputValue.trim() || isLoading}
+                                className="absolute right-1.5 top-1.5 w-9 h-9 rounded-full bg-[#00FFD1] hover:bg-[#00FFD1]/90 disabled:bg-white/10 disabled:cursor-not-allowed flex items-center justify-center transition-all shadow-[0_0_10px_rgba(0,255,209,0.2)] hover:scale-105 active:scale-95"
+                            >
+                                <Send size={16} className={inputValue.trim() ? 'text-black' : 'text-white/40'} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </motion.div>
