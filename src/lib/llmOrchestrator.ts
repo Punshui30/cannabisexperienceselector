@@ -49,21 +49,33 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
             engineResults.push(r1);
         }
 
-        // 2. Alternative (Simulated Variety)
+        // 2. Alternative (Forced Variance)
         const results2 = engineGenerate(input, engineIntent);
         if (results2 && results2.length > 0) {
-            const r2 = { ...results2[0] }; // Clone
-            r2.id = 'blend-2';
+            const r2 = { ...results2[0] };
+            r2.id = 'blend-2-' + Date.now();
             r2.name = "Alternative " + r2.name;
+            // FORCE RATIO SHIFT (Balanced)
+            if (r2.cultivars && r2.cultivars.length >= 3) {
+                r2.cultivars[0].ratio = 0.34;
+                r2.cultivars[1].ratio = 0.33;
+                r2.cultivars[2].ratio = 0.33;
+            }
             engineResults.push(r2);
         }
 
-        // 3. Experimental (Simulated Variety)
+        // 3. Experimental (Forced Variance)
         const results3 = engineGenerate(input, engineIntent);
         if (results3 && results3.length > 0) {
             const r3 = { ...results3[0] };
-            r3.id = 'blend-3';
+            r3.id = 'blend-3-' + Date.now();
             r3.name = "Experimental " + r3.name;
+            // FORCE RATIO SHIFT (Dominant)
+            if (r3.cultivars && r3.cultivars.length >= 3) {
+                r3.cultivars[0].ratio = 0.80;
+                r3.cultivars[1].ratio = 0.10;
+                r3.cultivars[2].ratio = 0.10;
+            }
             engineResults.push(r3);
         }
 
@@ -112,8 +124,10 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
 function parseIntentLocally(seed: IntentSeed): IntentSpec {
     const text = (seed.text || "").toLowerCase();
 
-    // Generic Dynamic Script
-    let script = "Analyzing your request. Calibrating terpene ratios.";
+    // Generic Dynamic Script (Quote User)
+    const previewText = (seed.text || "").length > 25 ? (seed.text || "").substring(0, 25) + "..." : (seed.text || "");
+    let script = `Analyzing request: "${previewText}". Calibrating terpene ratios.`;
+
     // Extract potential topic
     const topicMatch = text.match(/(sleep|pain|focus|energy|anxiety|relax|diesel|haze|kush|purple)/i);
     if (topicMatch) {
