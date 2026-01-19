@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { Send, X } from 'lucide-react';
+import { callLLMChat } from '../lib/llmChat';
 
 interface LiveConsultantProps {
     consultantText?: string;
@@ -57,15 +58,27 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
         setInputValue('');
 
         // Add user message
-        setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+        const newUserMessage: Message = { role: 'user', content: userMessage };
+        setMessages(prev => [...prev, newUserMessage]);
         setIsLoading(true);
 
-        // Simulate LLM response (in production, this would call your LLM API)
-        setTimeout(() => {
-            const mockResponse = generateMockResponse(userMessage, context);
-            setMessages(prev => [...prev, { role: 'assistant', content: mockResponse }]);
+        try {
+            // Call real LLM API
+            const response = await callLLMChat(
+                [...messages, newUserMessage].map(m => ({ role: m.role, content: m.content })),
+                context
+            );
+
+            setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+        } catch (error) {
+            console.error('Chat error:', error);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'I apologize, but I encountered an error. Please try again.'
+            }]);
+        } finally {
             setIsLoading(false);
-        }, 1000);
+        }
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -124,8 +137,8 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
                             >
                                 <div
                                     className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                                            ? 'bg-[#00FFD1] text-black'
-                                            : 'bg-white/10 text-white/90'
+                                        ? 'bg-[#00FFD1] text-black'
+                                        : 'bg-white/10 text-white/90'
                                         }`}
                                 >
                                     <p className="text-sm leading-relaxed">{message.content}</p>
@@ -187,32 +200,4 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
             </motion.div>
         </div>
     );
-}
-
-// Mock response generator (replace with real LLM API call)
-function generateMockResponse(userMessage: string, context?: LiveConsultantProps['context']): string {
-    const lowerMessage = userMessage.toLowerCase();
-
-    if (lowerMessage.includes('why') || lowerMessage.includes('reason')) {
-        return context?.recommendation?.reasoning || "This recommendation was selected based on your preferences and the specific chemical profiles of the cultivars.";
-    }
-
-    if (lowerMessage.includes('ratio') || lowerMessage.includes('amount')) {
-        if (context?.recommendation?.kind === 'blend') {
-            const blend = context.recommendation as UIBlendRecommendation;
-            return `The ratios are: ${blend.cultivars.map(c => `${c.name} at ${Math.round(c.ratio * 100)}%`).join(', ')}. These proportions are designed to balance the effects while maintaining consistency.`;
-        }
-    }
-
-    if (lowerMessage.includes('change') || lowerMessage.includes('different') || lowerMessage.includes('adjust')) {
-        return "I can help you explore alternatives. What specific aspect would you like to adjust? The ratio, the cultivars used, or the overall effect profile?";
-    }
-
-    if (lowerMessage.includes('effect') || lowerMessage.includes('feel')) {
-        return context?.recommendation?.effects
-            ? `This blend has an onset of ${context.recommendation.effects.onset}, peaks at ${context.recommendation.effects.peak}, and lasts ${context.recommendation.effects.duration}.`
-            : "The effects are designed to match your stated preferences while maintaining a balanced experience.";
-    }
-
-    return "I'm here to help you understand this recommendation. Feel free to ask about the cultivars, ratios, effects, or request adjustments.";
 }
