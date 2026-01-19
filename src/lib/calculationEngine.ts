@@ -1063,36 +1063,9 @@ export function calculateBlends(inventory: Inventory, intent: Intent): EngineOut
     .slice(0, 12) // Top 12 strains
     .map(cS => cS.cultivar);
 
-  // 2. Generate 2-cultivar blends
-  for (let i = 0; i < topCandidates.length; i++) {
-    for (let j = i + 1; j < topCandidates.length; j++) {
-      for (const ratios of TWO_CULTIVAR_RATIOS) {
-        candidateCount++;
-        const c1 = topCandidates[i];
-        const c2 = topCandidates[j];
+  // 2. Generate 2-cultivar blends (DISABLED per constraint: Minimum 3)
+  // for (let i = 0; i < topCandidates.length; i++) { ... }
 
-        // Base match (avg of individual scores weighted by ratio)
-        // Note: This is a simplification; V2 logic calculates profile first
-        const blendEval = evaluateBlend([c1, c2], ratios, 0.75, validatedIntent); // 0.75 placeholder base
-
-        if (blendEval.blendScore > 40) { // Relaxed from 60
-          results.push({
-            cultivars: [
-              { id: c1.id, name: c1.name, ratio: ratios[0] },
-              { id: c2.id, name: c2.name, ratio: ratios[1] }
-            ],
-            predictedEffects: { energy: 0, focus: 0, mood: 0, body: 0, creativity: 0, anxiety: 0 }, // Filled by adapter if needed, V2 relies on profile
-            cannabinoids: { thc: blendEval.profile.thc, cbd: blendEval.profile.cbd },
-            score: blendEval.blendScore, // Normalize to old field for compat
-            confidence: 0.9,
-            blendScore: blendEval.blendScore,
-            blendEvaluation: blendEval,
-            metadata: { unknownTerpeneCount: 0, constraintsViolated: [] }
-          });
-        }
-      }
-    }
-  }
 
   // 3. Generate 3-cultivar blends
   for (let i = 0; i < topCandidates.length; i++) {
