@@ -1,196 +1,222 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
-import { VoiceFeedback } from './VoiceFeedback';
-import { SpatialStack } from './SpatialStack';
 import { CardShell } from './CardShell';
+import { SpatialStack } from './SpatialStack';
+import { VoiceFeedback } from './VoiceFeedback';
+import { QRCodeSVG } from 'qrcode.react';
 
-export interface BlendCardProps {
+interface BlendCardProps {
   recommendation: UIBlendRecommendation;
-  onCalculate: () => void;
+  onShare?: (rec: UIBlendRecommendation) => void;
+  onCalculate?: (rec: UIBlendRecommendation) => void;
+  index?: number;
 }
 
-export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
+export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: BlendCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [showVoiceFeedback, setShowVoiceFeedback] = useState(false);
+
+  // Auto-close consultant after analysis
+  const handleVoiceComplete = () => {
+    setShowVoiceFeedback(false);
+    // Optionally trigger something else, but for now just close
+  };
 
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative group h-full"
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1 }}
+        className="relative w-full max-w-sm mx-auto z-10"
       >
-        {/* Soft Ambient Glow */}
-        <div
-          className="absolute -inset-4 blur-3xl opacity-20 pointer-events-none transition-opacity duration-1000"
-          style={{
-            background: `radial-gradient(circle, ${(recommendation.cultivars[0]?.color || '#00FFD1')}30, transparent 70%)`
-          }}
-        />
+        <CardShell className="relative overflow-hidden group">
 
-        <CardShell
-          color={recommendation.cultivars[0]?.color}
-          secondaryColor={recommendation.cultivars[1]?.color}
-          className="h-full flex flex-col p-5"
-        >
-          {/* Header */}
-          <div className="flex flex-col items-center text-center pb-6 border-b border-white/5">
-            <div className="mb-4 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/50">
-                {recommendation.matchScore}% Match
-              </span>
+          {/* HEADER */}
+          <div className="flex justify-between items-start mb-6 relative z-10">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#00FFD1] bg-[#00FFD1]/10 px-2 py-0.5 rounded-full border border-[#00FFD1]/20 shadow-[0_0_10px_-2px_rgba(0,255,209,0.3)]">
+                  Match {recommendation.matchScore}%
+                </span>
+                {recommendation.kind === 'blend' && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                    Blend
+                  </span>
+                )}
+              </div>
+              <h2 className="text-3xl font-serif text-white leading-none tracking-tight">
+                {recommendation.name}
+              </h2>
             </div>
 
-            <h2 className="text-3xl font-light text-white mb-2 serif tracking-tight leading-tight">
-              {recommendation.name}
-            </h2>
-
-            <p className="text-xs text-white/40 font-medium tracking-wide">
-              {recommendation.effects?.onset || 'Fast'} Onset • {recommendation.effects?.duration || '2-4h'} Duration
-            </p>
-          </div>
-
-          <div className="flex-1 py-6 flex flex-col justify-center">
-            {/* Visualization */}
-            <div
-              className={`transition-all duration-500 ${showDetails ? 'flex-grow' : 'h-[300px]'}`}
-              onClick={() => setShowDetails(!showDetails)}
-            >
-              <SpatialStack
-                data={{
-                  kind: 'stack',
-                  stackId: recommendation.id,
-                  id: recommendation.id,
-                  name: recommendation.name,
-                  description: recommendation.description || 'Custom Blend',
-                  matchScore: recommendation.matchScore,
-                  reasoning: recommendation.reasoning,
-                  totalDuration: recommendation.effects.duration,
-                  layers: [{
-                    type: 'blend',
-                    layerName: 'Blend Composition',
-                    cultivars: recommendation.cultivars.map(c => ({
-                      name: c.name,
-                      ratio: c.ratio,
-                      profile: c.profile || 'Hybrid',
-                      characteristics: c.characteristics || []
-                    })),
-                    phaseIntent: 'Complete Experience',
-                    whyThisPhase: 'A synergistic combination of selected cultivars.',
-                    onsetEstimate: recommendation.effects.onset,
-                    durationEstimate: recommendation.effects.duration,
-                    consumptionGuidance: 'Vaporize / Smoke',
-                    purpose: 'Main Experience',
-                    timing: 'Single Phase'
-                  }]
-                }}
-                compact={!showDetails}
-              />
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="space-y-4">
             <button
-              onClick={onCalculate}
-              className="w-full py-4 rounded-xl bg-[#00FFD1] text-black font-bold text-sm uppercase tracking-widest hover:bg-[#00FFD1]/90 transition-colors shadow-[0_0_20px_rgba(0,255,209,0.3)] hover:shadow-[0_0_30px_rgba(0,255,209,0.5)]"
+              onClick={() => onShare?.(recommendation)}
+              className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-colors"
+              aria-label="Share Blend"
             >
-              Calculate Recipe
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/60">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+              </svg>
+            </button>
+          </div>
+
+          {/* MAIN VISUAL: SPATIAL STACK (Collapsed State) */}
+          <div
+            className="relative h-48 w-full bg-black/20 rounded-xl border border-white/5 mb-6 overflow-hidden cursor-pointer"
+            onClick={() => setShowDetails(!showDetails)}
+          >
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-60 mix-blend-screen">
+              {/* Subtle hinting at content */}
+              <div className="w-full px-8">
+                <SpatialStack
+                  items={recommendation.cultivars.map(c => ({
+                    name: c.name,
+                    ratio: c.ratio,
+                    color: c.color,
+                    terpenes: c.prominentTerpenes
+                  }))}
+                  height={160}
+                  compact={true}
+                />
+              </div>
+            </div>
+
+            {/* Readout Overlay */}
+            <div className="absolute bottom-3 left-4 right-4 flex justify-between items-end">
+              <div className="flex flex-col">
+                <span className="text-[9px] uppercase tracking-widest text-white/40 mb-0.5">Primary Effect</span>
+                <span className="text-sm text-white font-medium">
+                  {recommendation.reasoning.split('.')[0]}
+                </span>
+              </div>
+              <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-white/40 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+
+          {/* ACTIONS */}
+          <div className="space-y-3 relative z-10">
+            <button
+              onClick={() => onCalculate?.(recommendation)}
+              className="w-full py-4 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+            >
+              <span>Calculate Dose</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M5 12h14M12 5v14" />
+              </svg>
             </button>
 
             <div className="flex justify-center gap-6">
               <button
                 onClick={() => setShowVoiceFeedback(true)}
                 className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
+                disabled={showVoiceFeedback} // Disable re-click if active
               >
                 Consultant
               </button>
               <div className="w-px h-3 bg-white/10 self-center" />
               <button
-                onClick={() => setShowDetails(true)}
+                onClick={() => setShowDetails(!showDetails)}
                 className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
               >
-                Chemistry
+                Detail View
               </button>
             </div>
           </div>
+
+          {/* EXPANDED DETAILS (Spatial Stack + Flavor) */}
+          <AnimatePresence>
+            {showDetails && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-4 border-t border-white/5 space-y-4 mt-4">
+
+                  {/* Spatial Stack Visualization (Full) */}
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-xs font-bold text-white/70 uppercase tracking-widest">Molecular Composition</h4>
+                      <div className="flex gap-2 text-[10px] text-white/40">
+                        {recommendation.blendEvaluation?.cannabinoids?.cbd && (
+                          <span>CBD {recommendation.blendEvaluation.cannabinoids.cbd.toFixed(1)}%</span>
+                        )}
+                        {recommendation.blendEvaluation?.cannabinoids?.thc && (
+                          <span>THC {recommendation.blendEvaluation.cannabinoids.thc.toFixed(1)}%</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <SpatialStack
+                      items={recommendation.cultivars.map(c => ({
+                        name: c.name,
+                        ratio: c.ratio,
+                        color: c.color,
+                        terpenes: c.prominentTerpenes
+                      }))}
+                      height={200}
+                    />
+                  </div>
+
+                  {/* Flavor Notes / Terpenes */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {recommendation.cultivars.map((cultivar, i) => (
+                      <div key={i} className="bg-white/5 rounded-lg p-3 border border-white/5">
+                        <div className="text-[10px] text-white/40 mb-1">CULTIVAR 0{i + 1}</div>
+                        <div className="text-sm font-medium text-white mb-1 truncate">{cultivar.name}</div>
+                        <div className="flex flex-wrap gap-1">
+                          {cultivar.prominentTerpenes.slice(0, 2).map(t => (
+                            <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/60">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Chemistry Analysis (Text) */}
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <h4 className="text-[10px] font-bold text-white/70 uppercase tracking-widest mb-2">System Analysis</h4>
+                    <p className="text-xs text-white/60 leading-relaxed">
+                      {recommendation.reasoning}
+                    </p>
+                  </div>
+
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
         </CardShell>
       </motion.div>
 
-      {/* Details Modal */}
+      {/* Voice Consultant (Overlay) */}
       <AnimatePresence>
-        {showDetails && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowDetails(false)}
-            className="fixed inset-0 backdrop-blur-2xl z-[100] flex items-center justify-center p-6 bg-[#0a0a0a]/98"
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 10 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 10 }}
-                              <span className={`uppercase font-bold tracking-wider ${int.type === 'synergy' ? 'text-[#00FFD1]' : int.type === 'antagonism' ? 'text-red-400' : 'text-yellow-400'}`}>{int.type}</span>
-                              <span className="text-white/20 capitalize">{int.magnitude}</span>
-                            </div>
-                            <p className="text-sm text-white/80 font-light leading-snug">
-                              {int.effect}
-                            </p>
-                            <div className="text-[9px] text-white/30 mt-1 capitalize">
-                              {int.terpenes.join(' + ')}
-                            </div>
-                          </div>
-    </div >
-                      ))
-}
-                    </div >
-                  </div >
-                )}
-
-{/* 3. Risks & Tradeoffs */ }
-{
-  recommendation.blendEvaluation?.explanationData && (recommendation.blendEvaluation.explanationData.risksIncurred.length > 0 || recommendation.blendEvaluation.explanationData.risksManaged.length > 0) && (
-    <div>
-      <h4 className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold border-t border-white/5 pt-4">Risk Profile</h4>
-      <div className="grid grid-cols-1 gap-2">
-        {recommendation.blendEvaluation.explanationData.risksManaged.filter(Boolean).map((r, idx) => (
-          <div key={idx} className="px-3 py-2 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs">
-            <span className="font-bold">✓ MANAGED:</span> {r.mitigationStrategy} ({r.severity})
+        {showVoiceFeedback && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto w-full max-w-sm px-4">
+              <VoiceFeedback
+                text={recommendation.reasoning}
+                recommendationName={recommendation.name}
+                mode="consultation"
+                onClose={handleVoiceComplete}
+              />
+            </div>
           </div>
-        ))}
-        {recommendation.blendEvaluation.explanationData.risksIncurred.filter(Boolean).map((r, idx) => (
-          <div key={idx} className="px-3 py-2 rounded border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs">
-            <span className="font-bold">! RISK:</span> {r.reason} ({r.severity})
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-              </div >
-
-  <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-end">
-    <div className="flex flex-col">
-      <span className="text-[10px] text-white/20 uppercase tracking-widest mb-1">Score Confidence</span>
-      <span className="text-lg text-[#00FFD1] font-medium">{Math.round(recommendation.confidence * 100)}%</span>
-    </div>
-    <button onClick={() => setShowDetails(false)} className="px-6 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold uppercase text-white/40 hover:text-white">Close</button>
-  </div>
-            </motion.div >
-          </motion.div >
         )}
-      </AnimatePresence >
-
-  { showVoiceFeedback && (
-    <VoiceFeedback
-      recommendationName={recommendation.name}
-      currentRecommendation={recommendation}
-      onClose={() => setShowVoiceFeedback(false)}
-      onRecalculate={() => { }}
-    />
-  )}
+      </AnimatePresence>
     </>
   );
 }
