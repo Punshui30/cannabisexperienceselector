@@ -91,7 +91,7 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
             data: engineResults,
             analysis: {
                 targetTerpenes: intentSpec.terpenePreferences.include,
-                reasoning: intentSpec.consultationScript || keyFacts // Use dynamic script as reasoning primarily
+                reasoning: intentSpec.consultationScript || intentSpec.reasoning
             }
         };
 
