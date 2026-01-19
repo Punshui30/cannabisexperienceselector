@@ -48,7 +48,8 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
         if (i > script.length) clearInterval(typeWriterInterval);
       }, 50); // Speed of typing
 
-      speakResponse(script);
+      // SILENT MODE: We do NOT call speakResponse(script) here anymore.
+      // The visual text is enough.
     };
 
     if (recommendationName === "Finding your match...") {

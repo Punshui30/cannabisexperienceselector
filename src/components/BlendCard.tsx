@@ -104,7 +104,7 @@ export function BlendCard({ recommendation, onCalculate }: BlendCardProps) {
                 onClick={() => setShowVoiceFeedback(true)}
                 className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
               >
-                Feedback
+                Consultant
               </button>
               <div className="w-px h-3 bg-white/10 self-center" />
               <button
