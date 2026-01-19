@@ -38,7 +38,7 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
         // ---------------------------------------------------------
         // BLEND 1: CLASSIC (Optimal)
         // ---------------------------------------------------------
-        const results1 = engineGenerate(seed.text || "", engineIntent);
+        const results1 = engineGenerate(seed, engineIntent);
         if (results1 && results1.length > 0) {
             const r1 = results1[0];
             r1.id = `blend-primary-${Date.now()}`;
@@ -49,7 +49,7 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
         // ---------------------------------------------------------
         // BLEND 2: ALTERNATIVE (Forced Variety - Balanced)
         // ---------------------------------------------------------
-        const results2 = engineGenerate(seed.text || "", engineIntent);
+        const results2 = engineGenerate(seed, engineIntent);
         if (results2 && results2.length > 0) {
             const r2 = { ...results2[0] }; // Clone
             r2.id = `blend-alt-${Date.now()}`;
@@ -61,11 +61,11 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
                 // Normalize to equal parts
                 const count = r2.cultivars.length;
                 const equalShare = Number((1.0 / count).toFixed(2));
-                r2.cultivars.forEach(c => c.ratio = equalShare);
+                r2.cultivars.forEach((c: any) => c.ratio = equalShare);
 
                 // Fix rounding error on last one
                 if (count > 0) {
-                    const sum = r2.cultivars.reduce((acc, c) => acc + c.ratio, 0);
+                    const sum = r2.cultivars.reduce((acc: number, c: any) => acc + c.ratio, 0);
                     const diff = 1.0 - sum;
                     r2.cultivars[count - 1].ratio += diff;
                 }
@@ -76,7 +76,7 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
         // ---------------------------------------------------------
         // BLEND 3: EXPERIMENTAL (Forced Variety - Dominant)
         // ---------------------------------------------------------
-        const results3 = engineGenerate(seed.text || "", engineIntent);
+        const results3 = engineGenerate(seed, engineIntent);
         if (results3 && results3.length > 0) {
             const r3 = { ...results3[0] };
             r3.id = `blend-exp-${Date.now()}`;
