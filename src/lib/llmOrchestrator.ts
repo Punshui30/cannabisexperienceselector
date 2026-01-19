@@ -112,20 +112,19 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
 function parseIntentLocally(seed: IntentSeed): IntentSpec {
     const text = (seed.text || "").toLowerCase();
 
-    // Default: Balanced/Hybrid
-    let script = "Analyzing your request. Calibrating terpene ratios."; // Default script
-
-    if (text.includes('sour diesel')) {
-        script = "Detected preference for Sour Diesel profile. Adjusting for excessive Limonene to reduce anxiety.";
-    } else if (text.includes('sleep') || text.includes('insomnia')) {
-        script = "Analyzing sedating myrcene-heavy strains. Optimizing for deep sleep without grogginess.";
-    } else if (text.includes('pain') || text.includes('relief')) {
-        script = "Scanning high-potency anti-inflammatory profiles. Prioritizing Caryophyllene for physical relief.";
-    } else if (text.includes('focus') || text.includes('work')) {
-        script = "Filtering for clear-headed Pinene dominant cultivars. Reducing distracting heavy terpenes.";
+    // Generic Dynamic Script
+    let script = "Analyzing your request. Calibrating terpene ratios.";
+    // Extract potential topic
+    const topicMatch = text.match(/(sleep|pain|focus|energy|anxiety|relax|diesel|haze|kush|purple)/i);
+    if (topicMatch) {
+        script = `Detected focus on ${topicMatch[0].toLowerCase()}. Calibrating chemotypes to match ${topicMatch[0].toLowerCase()} profile.`;
+    } else if (text.length > 10) {
+        script = `Analyzing query: "${text.substring(0, 20)}...". Optimizing blend synergy.`;
     }
 
+    // ... (IntentSpec construction) ...
     const spec: IntentSpec = {
+        // ... (standard fields) ...
         targetEffects: ["mood", "relaxation"],
         avoidEffects: ["anxiety"],
         terpenePreferences: { include: [], exclude: [] },
@@ -140,43 +139,48 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
         consultationScript: script,
     };
 
-    // 1. Sleep / Sedation
-    if (text.match(/sleep|insomnia|bed|night|tired|rest|couch/)) {
-        spec.targetEffects = ["sleep", "relaxation", "pain_relief"];
-        spec.constraints.timeOfDay = "night";
-        spec.terpenePreferences.include.push("Myrcene", "Linalool");
-    }
-
-    // 2. Focus / Energy / Work
-    else if (text.match(/focus|work|study|energy|day|morning|alert|creative|active/)) {
-        spec.targetEffects = ["focus", "energy", "creativity"];
-        spec.avoidEffects.push("sedation", "couch_lock");
-        spec.constraints.timeOfDay = "morning";
-        spec.terpenePreferences.include.push("Limonene", "Pinene");
-    }
-
-    // 3. Social / Party
-    else if (text.match(/social|party|friends|talk|laugh|fun|happy/)) {
-        spec.targetEffects = ["social", "mood", "energy"];
-        spec.avoidEffects.push("sedation");
-        spec.constraints.timeOfDay = "evening";
-        spec.terpenePreferences.include.push("Limonene");
-    }
-
-    // 4. Pain / Relief
-    else if (text.match(/pain|hurt|ache|relief|body|sore|medic/)) {
-        spec.targetEffects = ["pain_relief", "body", "relaxation"];
-        spec.terpenePreferences.include.push("Caryophyllene", "Myrcene");
-    }
-
-    // 5. Anxiety / Calm
-    else if (text.match(/anxiety|stress|calm|relax|chill|nervous|unwind/)) {
-        spec.targetEffects = ["relaxation", "calm", "mood"];
-        spec.avoidEffects.push("anxiety", "paranoia", "energy");
-        spec.terpenePreferences.include.push("Linalool");
-    }
-
+    // VARIANCE LOGIC will handle the "Same Blend" issue in processIntent
+    // We add variance triggers to the spec if needed, but easier to do in processIntent loop.
     return spec;
+}
+
+// 1. Sleep / Sedation
+if (text.match(/sleep|insomnia|bed|night|tired|rest|couch/)) {
+    spec.targetEffects = ["sleep", "relaxation", "pain_relief"];
+    spec.constraints.timeOfDay = "night";
+    spec.terpenePreferences.include.push("Myrcene", "Linalool");
+}
+
+// 2. Focus / Energy / Work
+else if (text.match(/focus|work|study|energy|day|morning|alert|creative|active/)) {
+    spec.targetEffects = ["focus", "energy", "creativity"];
+    spec.avoidEffects.push("sedation", "couch_lock");
+    spec.constraints.timeOfDay = "morning";
+    spec.terpenePreferences.include.push("Limonene", "Pinene");
+}
+
+// 3. Social / Party
+else if (text.match(/social|party|friends|talk|laugh|fun|happy/)) {
+    spec.targetEffects = ["social", "mood", "energy"];
+    spec.avoidEffects.push("sedation");
+    spec.constraints.timeOfDay = "evening";
+    spec.terpenePreferences.include.push("Limonene");
+}
+
+// 4. Pain / Relief
+else if (text.match(/pain|hurt|ache|relief|body|sore|medic/)) {
+    spec.targetEffects = ["pain_relief", "body", "relaxation"];
+    spec.terpenePreferences.include.push("Caryophyllene", "Myrcene");
+}
+
+// 5. Anxiety / Calm
+else if (text.match(/anxiety|stress|calm|relax|chill|nervous|unwind/)) {
+    spec.targetEffects = ["relaxation", "calm", "mood"];
+    spec.avoidEffects.push("anxiety", "paranoia", "energy");
+    spec.terpenePreferences.include.push("Linalool");
+}
+
+return spec;
 }
 
 function validateStrict(results: EngineResult[]): string | null {
