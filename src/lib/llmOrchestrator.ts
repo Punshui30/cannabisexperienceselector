@@ -17,7 +17,7 @@ export interface OrchestratorResult {
  * ORCHESTRATOR (CORE)
  * 1. Takes Raw User Input (IntentSeed)
  * 2. Parses it locally (Regex/Keyword) -> IntentSpec
- * 3. Runs Engine 3 times with variation -> EngineResult[]
+ * 3. Runs Engine 3 times with STRONG variation -> EngineResult[]
  * 4. Returns OrchestratorResult
  */
 export async function processIntent(seed: IntentSeed, mode: string = 'blend-engine'): Promise<OrchestratorResult> {
@@ -50,81 +50,77 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
         }
 
         // ---------------------------------------------------------
-        // BLEND 2: SECONDARY EMPHASIS (Shift Effect Priorities)
+        // BLEND 2: SECONDARY EMPHASIS (STRONG Effect Priority Shift)
         // ---------------------------------------------------------
-        console.log('ORCHESTRATOR: Generating Secondary Blend (shifted priorities)');
+        console.log('ORCHESTRATOR: Generating Secondary Blend (STRONG priority shift)');
         const intent2 = { ...engineIntent };
 
-        // Shift priorities among expressed goals
-        if (intent2.targetEffects.energy > 0.5 && intent2.targetEffects.focus > 0.3) {
-            // If both energy and focus, make this focus-forward
-            const temp = intent2.targetEffects.energy;
-            intent2.targetEffects.energy = intent2.targetEffects.focus;
-            intent2.targetEffects.focus = temp;
-            console.log('  Shifted: Energy ↔ Focus');
-        } else if (intent2.targetEffects.mood > 0.5 && intent2.targetEffects.body > 0.3) {
-            // If both mood and body, swap them
-            const temp = intent2.targetEffects.mood;
-            intent2.targetEffects.mood = intent2.targetEffects.body;
-            intent2.targetEffects.body = temp;
-            console.log('  Shifted: Mood ↔ Body');
-        } else {
-            // Boost secondary effect
-            const effects = Object.entries(intent2.targetEffects)
-                .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a));
-            if (effects.length >= 2) {
-                const [primary, secondary] = effects;
-                intent2.targetEffects[secondary[0] as keyof typeof intent2.targetEffects] += 0.3;
-                console.log(`  Boosted: ${secondary[0]} (+0.3)`);
-            }
+        // STRONG SHIFT: Completely invert top 2 effects + boost body
+        const effects2 = Object.entries(intent2.targetEffects)
+            .sort(([, a], [, b]) => Math.abs((b as number)) - Math.abs((a as number)));
+
+        if (effects2.length >= 2) {
+            const [primary, secondary] = effects2;
+            const temp = intent2.targetEffects[primary[0] as keyof typeof intent2.targetEffects];
+            intent2.targetEffects[primary[0] as keyof typeof intent2.targetEffects] =
+                intent2.targetEffects[secondary[0] as keyof typeof intent2.targetEffects];
+            intent2.targetEffects[secondary[0] as keyof typeof intent2.targetEffects] = temp;
+            console.log(`  STRONG SHIFT: Swapped ${primary[0]} ↔ ${secondary[0]}`);
         }
+
+        // Boost body/relaxation to shift cultivar class
+        intent2.targetEffects.body = Math.min(0.8, (intent2.targetEffects.body || 0) + 0.4);
+        console.log(`  Boosted body to ${intent2.targetEffects.body}`);
 
         const results2 = engineGenerate(seed, intent2);
         if (results2 && results2.length > 0) {
             const r2 = results2[0];
             r2.id = `blend-secondary-${Date.now()}`;
             r2.name = "Alternative: " + (r2.name || "Blend");
+            r2.reasoning = `Secondary emphasis: Prioritized ${effects2[1]?.[0] || 'balance'} over ${effects2[0]?.[0] || 'primary'}, increased body effect for grounding.`;
             engineResults.push(r2);
             console.log('Secondary Blend Cultivars:', r2.cultivars?.map(c => c.name).join(', '));
         }
 
         // ---------------------------------------------------------
-        // BLEND 3: CONTEXTUAL VARIANT (Adjust Context/Constraints)
+        // BLEND 3: CONTEXTUAL VARIANT (STRONG Constraint Changes)
         // ---------------------------------------------------------
-        console.log('ORCHESTRATOR: Generating Contextual Blend (adjusted context)');
+        console.log('ORCHESTRATOR: Generating Contextual Blend (STRONG context shift)');
         const intent3 = { ...engineIntent };
 
-        // Adjust context
-        const timeShift: Record<string, string> = {
-            'morning': 'afternoon',
-            'afternoon': 'evening',
-            'evening': 'night',
-            'night': 'morning'
-        };
-        intent3.context.timeOfDay = timeShift[intent3.context.timeOfDay] || 'evening';
-
-        // Adjust tolerance
-        const toleranceShift: Record<string, string> = {
-            'low': 'medium',
-            'medium': 'high',
-            'high': 'medium'
-        };
-        intent3.context.tolerance = toleranceShift[intent3.context.tolerance] || 'high';
-
-        // Relax anxiety constraint slightly
-        if (intent3.constraints.maxAnxiety) {
-            intent3.constraints.maxAnxiety = Math.min(0.5, intent3.constraints.maxAnxiety + 0.15);
+        // Ensure context and constraints exist
+        if (!intent3.context) {
+            intent3.context = { timeOfDay: 'afternoon', tolerance: 'medium', experience: 'intermediate' };
+        }
+        if (!intent3.constraints) {
+            intent3.constraints = { maxAnxiety: 0.3 };
         }
 
-        console.log(`  Context: ${engineIntent.context?.timeOfDay || 'afternoon'} → ${intent3.context.timeOfDay}`);
-        console.log(`  Tolerance: ${engineIntent.context?.tolerance || 'medium'} → ${intent3.context.tolerance}`);
-        console.log(`  Max Anxiety: ${engineIntent.constraints?.maxAnxiety || 0.3} → ${intent3.constraints.maxAnxiety}`);
+        // STRONG SHIFT 1: Dramatically relax anxiety constraint
+        const originalAnxiety = intent3.constraints.maxAnxiety || 0.3;
+        intent3.constraints.maxAnxiety = Math.min(0.7, originalAnxiety + 0.35);
+        console.log(`  STRONG SHIFT: Anxiety ${originalAnxiety.toFixed(2)} → ${intent3.constraints.maxAnxiety.toFixed(2)}`);
+
+        // STRONG SHIFT 2: Major time shift
+        const originalTime = intent3.context.timeOfDay || 'afternoon';
+        intent3.context.timeOfDay = originalTime === 'morning' ? 'night' :
+            originalTime === 'afternoon' ? 'evening' :
+                originalTime === 'evening' ? 'morning' : 'afternoon';
+        console.log(`  Time shift: ${originalTime} → ${intent3.context.timeOfDay}`);
+
+        // STRONG SHIFT 3: Reduce energy, boost creativity (terpene bias)
+        if (intent3.targetEffects.energy && intent3.targetEffects.energy > 0.3) {
+            intent3.targetEffects.energy = Math.max(0, intent3.targetEffects.energy - 0.4);
+            intent3.targetEffects.creativity = Math.min(0.9, (intent3.targetEffects.creativity || 0) + 0.5);
+            console.log(`  Terpene bias: Reduced energy, boosted creativity`);
+        }
 
         const results3 = engineGenerate(seed, intent3);
         if (results3 && results3.length > 0) {
             const r3 = results3[0];
             r3.id = `blend-contextual-${Date.now()}`;
             r3.name = "Experimental: " + (r3.name || "Blend");
+            r3.reasoning = `Contextual variant: Relaxed anxiety constraint (${originalAnxiety.toFixed(2)} → ${intent3.constraints.maxAnxiety.toFixed(2)}), shifted to ${intent3.context.timeOfDay} profile, emphasized creativity over raw energy.`;
             engineResults.push(r3);
             console.log('Contextual Blend Cultivars:', r3.cultivars?.map(c => c.name).join(', '));
         }
@@ -174,7 +170,6 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
     const text = (seed.text || "").toLowerCase();
 
     // 1. Generic Dynamic Script (Quote User)
-    // Truncate safely
     const rawText = seed.text || "";
     const previewText = rawText.length > 30 ? rawText.substring(0, 30) + "..." : rawText;
 
@@ -187,7 +182,6 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
 
     if (topicMatch) {
         const topic = topicMatch[0].toLowerCase();
-        // Enhance script
         script = `Detected focus on ${topic} in "${previewText}". Adjusting chemotypes for optimal synergy.`;
         console.log('PARSE_INTENT: Enhanced script with topic:', script);
     }
