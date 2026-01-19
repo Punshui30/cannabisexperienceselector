@@ -4,17 +4,16 @@ import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
 import { SpatialStack } from './SpatialStack';
 import { VoiceFeedback } from './VoiceFeedback';
-import { BlendDetailDrawer } from './BlendDetailDrawer';
 
 interface BlendCardProps {
   recommendation: UIBlendRecommendation;
   onShare?: (rec: UIBlendRecommendation) => void;
   onCalculate?: (rec: UIBlendRecommendation) => void;
+  onViewDetail?: (blend: UIBlendRecommendation) => void;
   index?: number;
 }
 
-export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: BlendCardProps) {
-  const [showDetails, setShowDetails] = useState(false);
+export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, index = 0 }: BlendCardProps) {
   const [showVoiceFeedback, setShowVoiceFeedback] = useState(false);
 
   const handleVoiceComplete = () => {
@@ -140,62 +139,13 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
               </button>
               <div className="w-px h-3 bg-white/10 self-center" />
               <button
-                onClick={() => setShowDetails(!showDetails)}
+                onClick={() => onViewDetail?.(recommendation)}
                 className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
               >
                 Detail View
               </button>
             </div>
           </div>
-
-          {/* EXPANDED DETAILS */}
-          <AnimatePresence>
-            {showDetails && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="pt-4 border-t border-white/5 space-y-4 mt-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
-
-                  {/* Expanded Stack */}
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <SpatialStack
-                      data={stackData}
-                      compact={false}
-                    />
-                  </div>
-
-                  {/* Flavor Notes */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {recommendation.cultivars.map((cultivar, i) => (
-                      <div key={i} className="bg-white/5 rounded-lg p-3 border border-white/5">
-                        <div className="text-[10px] text-white/40 mb-1">CULTIVAR 0{i + 1}</div>
-                        <div className="text-sm font-medium text-white mb-1 truncate">{cultivar.name}</div>
-                        <div className="flex flex-wrap gap-1">
-                          {cultivar.prominentTerpenes.slice(0, 2).map(t => (
-                            <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/60">
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Analysis */}
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <h4 className="text-[10px] font-bold text-white/70 uppercase tracking-widest mb-2">System Analysis</h4>
-                    <p className="text-xs text-white/60 leading-relaxed">
-                      {recommendation.reasoning}
-                    </p>
-                  </div>
-
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
         </CardShell>
       </motion.div>
