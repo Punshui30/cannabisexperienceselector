@@ -103,6 +103,20 @@ export function BlendCard({ recommendation, onShare, onCalculate, index = 0 }: B
             </div>
           </div>
 
+          {/* WHY THIS BLEND - Reasoning Section */}
+          {recommendation.reasoning && (
+            <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#00FFD1] mb-2">
+                Why This Blend
+              </h3>
+              <p className="text-sm text-white/70 leading-relaxed">
+                {recommendation.reasoning}
+              </p>
+            </div>
+          )}
+
+          {/* EFFECTS TIMELINE - Removed, using Actions instead */}
+
           {/* ACTIONS */}
           <div className="space-y-3 relative z-10">
             <button
