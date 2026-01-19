@@ -4,6 +4,7 @@ import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
 import { SpatialStack } from './SpatialStack';
 import { VoiceFeedback } from './VoiceFeedback';
+import { BlendDetailDrawer } from './BlendDetailDrawer';
 
 interface BlendCardProps {
   recommendation: UIBlendRecommendation;
