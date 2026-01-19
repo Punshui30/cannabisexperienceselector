@@ -15,6 +15,7 @@ import { RemoteAccessPreview } from './components/RemoteAccessPreview';
 import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { LiveConsultant } from './components/LiveConsultant';
 import { AdminPanel } from './components/admin/AdminPanel';
+import { LiveExperienceFeed } from './components/LiveExperienceFeed';
 import { Brain, Sparkles } from 'lucide-react';
 import { processIntent } from './lib/llmOrchestrator';
 import { adaptEngineResult } from './lib/adaptEngineResult';
@@ -23,7 +24,7 @@ import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
 import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar, EngineResult } from './types/domain';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed';
 
 export default function App() {
   // ROUTING / INITIALIZATION
@@ -268,6 +269,10 @@ export default function App() {
           <EntryGate
             onEnterUser={handleEnterUser}
             onEnterAdmin={handleEnterAdmin}
+            onEnterFeed={() => {
+              setShowEntryGate(false);
+              setView('live-feed');
+            }}
           />
         ) : mode === 'admin' ? (
           <>
@@ -369,6 +374,17 @@ export default function App() {
                 onOpenConsultant={() => setShowConsultant(true)}
               />
             )}
+
+            {/* LIVE EXPERIENCE FEED */}
+            {view === 'live-feed' && (
+              <LiveExperienceFeed
+                onBack={() => {
+                  setShowEntryGate(true); // Return to gate
+                  setView('splash'); // or just gate logic, but keeping state clean
+                }}
+              />
+            )}
+
             {/* Components */}
             {(calculatorOpen && (stackRec || (blendRecs.length > 0 ? blendRecs[0] : null))) && (
               <CalculatorModal

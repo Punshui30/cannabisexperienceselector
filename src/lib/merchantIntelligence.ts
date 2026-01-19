@@ -58,6 +58,8 @@ class MerchantIntelligenceService {
         }
     }
 
+    private listeners: (() => void)[] = [];
+
     /**
      * Core Emitter: Call this from Engine when a blend is resolved.
      */
@@ -71,7 +73,19 @@ class MerchantIntelligenceService {
 
         this.events.push(fullEvent);
         this.save();
+        this.notifyListeners();
         console.log('[Merchant Intelligence] Event Logged', fullEvent);
+    }
+
+    public subscribe(listener: () => void) {
+        this.listeners.push(listener);
+        return () => {
+            this.listeners = this.listeners.filter(l => l !== listener);
+        };
+    }
+
+    private notifyListeners() {
+        this.listeners.forEach(l => l());
     }
 
     /**

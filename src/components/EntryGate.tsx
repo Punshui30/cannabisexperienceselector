@@ -6,9 +6,10 @@ import logoImg from '../assets/logo.png';
 interface EntryGateProps {
   onEnterUser: () => void;
   onEnterAdmin: () => void;
+  onEnterFeed: () => void;
 }
 
-export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
+export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateProps) {
   const [step, setStep] = useState<'splash' | 'age' | 'familiarity' | 'explanation' | 'mode'>('age');
   const [explanationStep, setExplanationStep] = useState(0);
   const [isAgeConfirmed, setIsAgeConfirmed] = useState(false);
@@ -290,6 +291,24 @@ export function EntryGate({ onEnterUser, onEnterAdmin }: EntryGateProps) {
                     </div>
                     <ChevronRight size={20} className="text-white/10 group-hover:text-orange-500" />
                   </div>
+                </button>
+
+                <div className="w-full h-px bg-white/5 my-2" />
+
+                <button
+                  onClick={onEnterFeed}
+                  className="group relative p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#00FFD1]/10 flex items-center justify-center border border-[#00FFD1]/20">
+                      <div className="w-2 h-2 rounded-full bg-[#00FFD1] animate-pulse" />
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-sm font-medium text-white/80 group-hover:text-white transition-colors">Live Experience Feed</span>
+                      <span className="text-[10px] text-white/30">Public display mode</span>
+                    </div>
+                  </div>
+                  <ArrowRight size={14} className="text-white/20 group-hover:text-white transition-colors" />
                 </button>
 
                 <p className="text-center text-white/20 text-[10px] mt-6">
