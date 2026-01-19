@@ -17,7 +17,7 @@ import { processIntent } from './lib/llmOrchestrator';
 import { adaptEngineResult } from './lib/adaptEngineResult';
 import { SharedBlendService } from './services/SharedBlendService';
 import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
-import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar } from './types/domain';
+import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar, EngineResult } from './types/domain';
 import './index.css';
 
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'library' | 'error' | 'shared' | 'remote-access';
