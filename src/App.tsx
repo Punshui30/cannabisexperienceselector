@@ -13,7 +13,9 @@ import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
 import { RemoteAccessPreview } from './components/RemoteAccessPreview';
 import { StrainLibraryScreen } from './components/StrainLibraryScreen';
+import { LiveConsultant } from './components/LiveConsultant';
 import { AdminPanel } from './components/admin/AdminPanel';
+import { Brain, Sparkles } from 'lucide-react';
 import { processIntent } from './lib/llmOrchestrator';
 import { adaptEngineResult } from './lib/adaptEngineResult';
 import { SharedBlendService } from './services/SharedBlendService';
@@ -49,6 +51,7 @@ export default function App() {
     return 'splash';
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showConsultant, setShowConsultant] = useState(false);
 
   // Input State
   const [userInput, setUserInput] = useState<IntentSeed | null>(null);
@@ -390,19 +393,49 @@ export default function App() {
             )}
           </>
         )}
+
+        {/* LIVE CONSULTANT OVERLAY */}
+        <AnimatePresence>
+          {showConsultant && (
+            <LiveConsultant
+              consultantText={consultantText}
+              context={{
+                recommendation: blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined),
+                userInput: userInput?.text
+              }}
+              onClose={() => setShowConsultant(false)}
+            />
+          )}
+        </AnimatePresence>
       </main>
 
       {!showSplash && !showEntryGate && mode !== 'admin' && (
-        <button
-          onClick={() => setMode('admin')}
-          className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all opacity-0 hover:opacity-100"
-          title="Admin Panel"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-        </button>
+        <>
+          {/* Admin Toggle (Hidden Corner) */}
+          <button
+            onClick={() => setMode('admin')}
+            className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all opacity-0 hover:opacity-100"
+            title="Admin Panel"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </button>
+
+          {/* LIVE CONSULTANT TRIGGER FAB */}
+          <button
+            onClick={() => setShowConsultant(true)}
+            className="fixed bottom-6 right-6 z-50 group flex items-center justify-center w-12 h-12 rounded-full bg-[#00FFD1] text-black shadow-[0_0_20px_rgba(0,255,209,0.3)] hover:scale-110 hover:shadow-[0_0_30px_rgba(0,255,209,0.5)] transition-all duration-300"
+            title="Ask AI Consultant"
+          >
+            <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/80 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+            </span>
+          </button>
+        </>
       )}
 
       {/* GLOBAL FOOTER (TM) - Discreet */}
