@@ -1,20 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIStackRecommendation } from '../types/domain';
-import { resolveCultivarVisuals } from '../lib/visuals';
+import { resolveCultivarVisuals, resolvePhaseVisuals } from '../lib/visuals';
 import { ChevronDown, Layers, Wind } from 'lucide-react';
 
 interface SpatialStackProps {
     data: UIStackRecommendation;
     compact?: boolean;
 }
-
-// Phase-Specific Identity Colors (Only used when expanded)
-const PHASE_THEMES = [
-    { name: "Ignition", color: "#bef264", gradient: "from-lime-400/20 to-yellow-400/5" }, // Lime/Yellow
-    { name: "Cruise", color: "#22d3ee", gradient: "from-cyan-400/20 to-blue-500/5" },   // Cyan/Blue
-    { name: "Landing", color: "#a78bfa", gradient: "from-violet-400/20 to-slate-400/5" }  // Violet
-];
 
 export function SpatialStack({ data, compact = false }: SpatialStackProps) {
     if (!data) return null; // CRASH FIX: Return nothing if data is missing
@@ -34,8 +27,8 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                     const isExpanded = expandedIndex === index;
 
                     // Determine Theme
-                    const theme = PHASE_THEMES[index % PHASE_THEMES.length];
-                    const activeColor = isExpanded ? theme.color : '#ffffff';
+                    const phaseVisuals = resolvePhaseVisuals(index);
+                    const activeColor = isExpanded ? phaseVisuals.color : '#ffffff';
 
                     return (
                         <motion.div

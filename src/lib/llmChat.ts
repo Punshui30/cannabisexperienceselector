@@ -33,16 +33,22 @@ function simulateLLM(messages: ChatMessage[], context?: any): Promise<string> {
     return new Promise(resolve => {
         setTimeout(() => {
             const lastUserMsg = messages[messages.length - 1].content.toLowerCase();
-            if (lastUserMsg.includes('anxious') || lastUserMsg.includes('anxiety') || lastUserMsg.includes('paranoid')) {
-                resolve("I understand your concern. To mitigate anxiety, we can prioritize cultivars high in CBD and Caryophyllene, which offers a calming, grounding effect. Would you like me to adjust the blend to be more 'Mellow'?");
+            const blendName = context?.recommendation?.name || 'this blend';
+            const reasoning = context?.recommendation?.reasoning || 'your preferences';
+
+            // DYNAMIC RESPONSE GENERATION
+            if (lastUserMsg.includes('anxious') || lastUserMsg.includes('anxiety')) {
+                resolve(`I adjusted specifically for that. We balanced the euphoric profile of ${blendName} with calming terpenes like Caryophyllene to prevent any edge. This ensures you get the lift without the racey feeling.`);
             } else if (lastUserMsg.includes('sleep') || lastUserMsg.includes('tired')) {
-                resolve("The current blend has some Myrcene, but we can boost it further for better sedation. I can swap the primary cultivar for something heavier like Granddaddy Purple. Shall I do that?");
+                resolve(`Good catch. While ${blendName} is designed to be functional (${reasoning}), I can increase the Myrcene levels to make it a dedicated sleep stack. Would you like a "Deep Sleep" variation?`);
             } else if (lastUserMsg.includes('energy') || lastUserMsg.includes('focus')) {
-                resolve("For more energy, we should look at Limonene-dominant profiles. I can bring the Sativa ratio up to 80% to sharpen the experience. Sound good?");
+                resolve(`I focused on clarity here. By limiting Myrcene and boosting Limonene, I prioritized the "Clear-headed" aspect you asked for. This should keep you sharp for your ${context?.userInput || 'activity'}.`);
+            } else if (lastUserMsg.includes("why") || lastUserMsg.includes("how")) {
+                resolve(`I designed this based on your request for "${context?.userInput || 'your specific intent'}". I balanced the potent cannabinoids with a grounding terpene profile to satisfy that goal while maintaining control.`);
             } else {
-                resolve("That's a valid point. This system optimizes for your intent, but I can fine-tune the terpene profile if you prefer a different flavor or onset time. What would you like to change?");
+                resolve(`That's a great question. For ${blendName}, I specifically looked for a profile that matched "${context?.userInput || 'your intent'}". I avoided anything too heavy to keep it consistent with your goal.`);
             }
-        }, 1200);
+        }, 1500);
     });
 }
 

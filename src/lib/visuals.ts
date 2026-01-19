@@ -105,6 +105,23 @@ export function resolveTerpeneVisuals(name: string, state: VisualState = {}): Te
     };
 }
 
+/**
+ * Resolves visual semantics for Stack Phases (Ignition, Cruise, Landing).
+ */
+export interface PhaseVisuals {
+    color: string;
+    gradient: string;
+}
+
+export function resolvePhaseVisuals(index: number): PhaseVisuals {
+    const THEMES = [
+        { color: "#bef264", gradient: "from-lime-400/20 to-yellow-400/5" }, // Lime/Yellow (Ignition)
+        { color: "#22d3ee", gradient: "from-cyan-400/20 to-blue-500/5" },   // Cyan/Blue (Cruise)
+        { color: "#a78bfa", gradient: "from-violet-400/20 to-slate-400/5" }  // Violet (Landing)
+    ];
+    return THEMES[index % THEMES.length];
+}
+
 // --- Helpers ---
 
 // "Swiss Watch" Iridescent Border Utility (Exported Class Name Helper)
