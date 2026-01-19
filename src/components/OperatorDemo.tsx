@@ -61,6 +61,30 @@ const DEMO_SCENES: DemoScene[] = [
     duration: 14
   },
   {
+    title: 'Budtender Support',
+    narration: [
+      'This platform supports budtenders during peak traffic.',
+      'Customers can explore guided recommendations while waiting.',
+      'Staff spend less time guessing and more time helping.',
+      'Consistent intelligence, even on your busiest days.'
+    ],
+    caption: 'Supports your team, doesn\'t replace them.',
+    visual: 'unique',
+    duration: 14
+  },
+  {
+    title: 'Deployment Flexibility',
+    narration: [
+      'Single-dispensary mode: fully tied to your live menu and COAs.',
+      'Multi-partner mode: consistent intelligence across locations.',
+      'Each deployment uses real COA data, not generic profiles.',
+      'The platform scales with your business model.'
+    ],
+    caption: 'One platform. Multiple deployment paths.',
+    visual: 'scan',
+    duration: 14
+  },
+  {
     title: 'Business Upside',
     narration: [
       'One recommendation uses 2–3 cultivars.',
