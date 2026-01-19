@@ -91,13 +91,13 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
           {/* VISUALIZATION */}
           <div
             className="relative h-48 w-full bg-black/20 rounded-xl border border-white/5 mb-6 overflow-hidden cursor-pointer"
-            onClick={() => setShowDetails(!showDetails)}
+            onClick={() => onViewDetail?.(recommendation)}
           >
             <div className="absolute inset-0 flex items-center justify-center opacity-80">
               <div className="w-full px-4">
                 <SpatialStack
                   data={stackData}
-                  compact={!showDetails}
+                  compact={true}
                 />
               </div>
             </div>
