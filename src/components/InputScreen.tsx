@@ -210,7 +210,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           {/* --- DYNAMIC HEADER --- */}
           <div className="w-full flex-shrink-0 pt-4 pb-2 px-6 flex justify-between items-end">
             <div>
-              <h2 className="text-3xl text-white font-light serif tracking-tight">Your Goal</h2>
+              <h2 className="text-3xl text-white font-light serif tracking-tight">Describe Your Goal</h2>
               <p className="text-[10px] text-white/30 uppercase tracking-widest font-medium mt-1">
                 Start with a scenario or describe usage
               </p>
@@ -271,7 +271,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 />
                 {/* NO CHIPS HERE */}
                 <button
-                  onClick={toggleListening}
+                  onClick={handleMicClick}
                   className={`absolute bottom-4 right-4 p-3 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-white'}`}
                 >
                   <Mic size={18} />
