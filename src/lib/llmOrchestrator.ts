@@ -179,6 +179,7 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
 
     // Default Script
     let script = `Analyzing request: "${previewText}". Calibrating terpene ratios...`;
+    console.log('PARSE_INTENT: Generated script:', script);
 
     // 2. Keyword Topic Detection
     const topicMatch = text.match(/(sleep|pain|focus|energy|anxiety|relax|diesel|haze|kush|purple|creative|social)/i);
@@ -187,6 +188,7 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
         const topic = topicMatch[0].toLowerCase();
         // Enhance script
         script = `Detected focus on ${topic} in "${previewText}". Adjusting chemotypes for optimal synergy.`;
+        console.log('PARSE_INTENT: Enhanced script with topic:', script);
     }
 
     // 3. Construct Spec
@@ -204,6 +206,7 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
         originalInput: rawText,
         consultationScript: script,
     };
+    console.log('PARSE_INTENT: Final spec with consultationScript:', spec.consultationScript);
 
     // 4. Apply Keyword Logic (Simple Rules)
     if (text.includes('sleep') || text.includes('insomnia')) {
