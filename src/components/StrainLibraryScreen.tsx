@@ -90,7 +90,9 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                         <div className="text-[9px] uppercase tracking-widest text-white/30 font-bold">Terpene Profile</div>
                                         <div className="flex flex-wrap gap-2">
                                             {topTerpenes.map(t => {
-                                                const terpInfo = resolveTerpeneVisuals(t);
+                                                // Normalize: Capitalize first letter to match TERPENE_COLORS keys
+                                                const normalizedName = t.charAt(0).toUpperCase() + t.slice(1);
+                                                const terpInfo = resolveTerpeneVisuals(normalizedName);
                                                 return (
                                                     <div
                                                         key={t}
@@ -186,7 +188,8 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                                 {selectedChemotype.terpenes && Object.entries(selectedChemotype.terpenes)
                                                     .sort(([, a], [, b]) => (b as number) - (a as number))
                                                     .map(([name, val]) => {
-                                                        const tVis = resolveTerpeneVisuals(name);
+                                                        const normalizedName = name.charAt(0).toUpperCase() + name.slice(1);
+                                                        const tVis = resolveTerpeneVisuals(normalizedName);
                                                         return (
                                                             <div key={name} className="space-y-1">
                                                                 <div className="flex justify-between text-xs">
