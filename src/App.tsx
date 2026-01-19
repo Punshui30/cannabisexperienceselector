@@ -185,6 +185,12 @@ export default function App() {
             // Adapter Strategy: Adapt ALL results
             console.log('DEBUG: Engine Results Raw', result.data);
 
+            // Capture consultant text from orchestrator
+            if (result.analysis?.reasoning) {
+              setConsultantText(result.analysis.reasoning);
+              console.log('DEBUG: Consultant Text:', result.analysis.reasoning);
+            }
+
             const allAdapted = result.data
               .map((item: EngineResult) => adaptEngineResult(item))
               .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
@@ -299,6 +305,7 @@ export default function App() {
               <ResolvingScreen
                 input={userInput}
                 recommendation={blendRecs[0] || stackRec as any}
+                consultantText={consultantText}
                 onComplete={handleResolvingComplete}
                 onRecalculate={handleRecalculateWithFeedback}
               />
