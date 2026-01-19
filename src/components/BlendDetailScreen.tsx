@@ -38,10 +38,10 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-black text-white relative overflow-y-auto overflow-x-hidden animate-in fade-in duration-300">
+        <div className="w-full min-h-screen flex flex-col bg-black text-white relative overflow-y-auto overflow-x-hidden animate-in fade-in duration-300">
 
             {/* HEADER */}
-            <div className="w-full p-6 flex justify-between items-center z-20">
+            <div className="w-full p-6 flex justify-between items-center z-20 flex-shrink-0">
                 <button
                     onClick={onBack}
                     className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:bg-white/10 hover:text-white transition-colors backdrop-blur-md"
@@ -58,7 +58,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
             {/* Background */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-black pointer-events-none" />
 
-            <div className="flex flex-col gap-6 h-full relative z-10 pb-32 px-4">
+            <div className="flex flex-col gap-6 relative z-10 pb-32 px-4">
 
                 {/* Blend Header */}
                 <div className="shrink-0 pt-4 text-center">
@@ -85,7 +85,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                 )}
 
                 {/* Visualization */}
-                <div className="flex-1 flex items-center justify-center w-full max-w-md mx-auto py-8">
+                <div className="flex items-center justify-center w-full max-w-md mx-auto py-8">
                     <SpatialStack data={stackData} />
                 </div>
 
