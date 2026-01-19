@@ -16,6 +16,7 @@ export function ResolvingScreen({ input, recommendation, onComplete, onRecalcula
     return (
         <div className="relative w-full h-full bg-black z-50">
             <VoiceFeedback
+                mode="consultation"
                 recommendationName={recommendation ? recommendation.name : "Finding your match..."}
                 currentRecommendation={recommendation}
                 onClose={onComplete}

@@ -5,78 +5,96 @@ import { UIBlendRecommendation } from '../types/domain';
 
 type Props = {
   recommendationName: string;
-  currentRecommendation?: any; // Passed for context
+  currentRecommendation?: any;
   onClose: () => void;
   onRecalculate?: (constraints: string) => void;
+  mode?: 'consultation' | 'feedback'; // New prop
 };
 
 type FeedbackState = 'idle' | 'listening' | 'processing' | 'speaking' | 'choice';
 
-export function VoiceFeedback({ recommendationName, currentRecommendation, onClose, onRecalculate }: Props) {
-  const [state, setState] = useState<FeedbackState>('listening');
+export function VoiceFeedback({ recommendationName, currentRecommendation, onClose, onRecalculate, mode = 'feedback' }: Props) {
+  const [state, setState] = useState<FeedbackState>(mode === 'consultation' ? 'speaking' : 'listening');
   const [transcript, setTranscript] = useState('');
   const [analysis, setAnalysis] = useState<FeedbackAnalysis | null>(null);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
 
   const recognitionRef = useRef<any>(null);
+  const intervalRef = useRef<any>(null); // Track interval to clear it
 
-  // Initialize Speech Logic
+  // Initialize Logic
   useEffect(() => {
-    // Chrome voice loading workaround
-    const loadVoices = () => {
-      window.speechSynthesis.getVoices();
+    // Cleanup helper
+    const cleanup = () => {
+      if (recognitionRef.current) recognitionRef.current.stop();
+      window.speechSynthesis.cancel();
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
+
+    // CONSULTATION MODE (Visual Only, No Mic)
+    if (mode === 'consultation') {
+      const script = "I am analyzing your preferences. Comparing sixty-four cultivars. Calculating synergy.";
+      setState('speaking');
+
+      let i = 0;
+      setTranscript(""); // Reset
+
+      intervalRef.current = setInterval(() => {
+        setTranscript(script.substring(0, i));
+        i++;
+        if (i > script.length) {
+          clearInterval(intervalRef.current);
+        }
+      }, 50);
+
+      return cleanup;
+    }
+
+    // FEEDBACK MODE (Mic Active)
+    // Only load voices/mic if in feedback mode
+    const loadVoices = () => { window.speechSynthesis.getVoices(); };
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
-    // Hardcoded "Analysis Narration"
-    const runAnalysisNarration = async () => {
-      // Wait for voices
-      await new Promise(resolve => setTimeout(resolve, 500));
+    startListening();
 
-      // Ensure Mic is OFF
-      if (recognitionRef.current) recognitionRef.current.stop();
-      setState('speaking');
-
-      const script = "I am analyzing your preferences. Comparing sixty-four cultivars. Calculating synergy.";
-
-      // Typewriter Effect Logic
-      let i = 0;
-      const typeWriterInterval = setInterval(() => {
-        setTranscript(script.substring(0, i));
-        i++;
-        if (i > script.length) clearInterval(typeWriterInterval);
-      }, 50); // Speed of typing
-
-      // SILENT MODE: We do NOT call speakResponse(script) here anymore.
-      // The visual text is enough.
-    };
-
-    if (recommendationName === "Finding your match...") {
-      runAnalysisNarration();
-    } else {
-      startListening();
-    }
-
-    return () => {
-      if (recognitionRef.current) recognitionRef.current.stop();
-      window.speechSynthesis.cancel();
-      // Clear interval if needed? (Ideally use ref for interval)
-    };
-  }, [recommendationName]);
+    return cleanup;
+  }, [mode, recommendationName]); // Re-run if mode changes
 
   const startListening = () => {
-    // If we are merely analyzing/narrating, DO NOT LISTEN.
-    if (recommendationName === "Finding your match...") return;
+    if (mode === 'consultation') return; // Double protection
 
     try {
+      if (!recognitionRef.current) {
+        // Init mic if needed
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+          const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+          recognitionRef.current = new SpeechRecognition();
+          recognitionRef.current.continuous = false;
+          recognitionRef.current.interimResults = false;
+          recognitionRef.current.lang = 'en-US';
+          recognitionRef.current.onresult = (e: any) => {
+            const text = e.results[0][0].transcript;
+            setTranscript(text);
+            processInput(text);
+          };
+          recognitionRef.current.onerror = (e: any) => {
+            if (e.error === 'not-allowed') {
+              setTranscript("Microphone access denied.");
+              setState('idle');
+            } else {
+              // Silently fail or reset
+              setState('listening');
+            }
+          };
+        }
+      }
+
       if (recognitionRef.current) {
         recognitionRef.current.start();
         setState('listening');
       }
-    } catch (e) {
-      // Ignore start errors
-    }
+    } catch (e) { }
   };
 
   const processInput = (text: string) => {
