@@ -21,44 +21,52 @@ export function VoiceFeedback({ recommendationName, currentRecommendation, onClo
 
   const recognitionRef = useRef<any>(null);
 
-  // Initialize Speech Recognition
+  // Initialize Speech Logic
   useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US';
+    // Chrome voice loading workaround
+    const loadVoices = () => {
+      window.speechSynthesis.getVoices();
+    };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
 
-      recognitionRef.current.onresult = (event: any) => {
-        const text = event.results[0][0].transcript;
-        setTranscript(text);
-        processInput(text);
-      };
+    // DECISION: Are we analyzing (consultation mode) or listening (feedback mode)?
+    // If we have a recommendation (and no analysis result yet?), we might be in feedback mode.
+    // But if we are mounting as the "Resolving Screen" replacement (implied by specific props or context?), we should narrate.
+    // The user said: "Instead of analyzing... chat starts talking: I am comparing..."
 
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech Error", event.error);
-        if (event.error === 'not-allowed') {
-          setTranscript("Microphone access denied.");
-          setState('idle');
-        } else {
-          setTranscript("Listening failed. Please try again.");
-          setState('idle');
-        }
-      };
+    // We can use a prop `mode` like 'analysis' | 'feedback'. 
+    // Defaulting to 'analysis' logic if no recommendation is actively being discussed (or if purely resolving).
+    // For now, let's auto-detect: if (isActiveAnalysis) -> speak.
 
-      // Auto-start
-      startListening();
+    // Hardcoded "Analysis Narration" for this specific iteration based on user request.
+    const runAnalysisNarration = async () => {
+      // Wait for voices
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setState('speaking');
+      setTranscript("Analyzing intent signals... Scanning inventory...");
+
+      speakResponse("I am analyzing your preferences. Comparing sixty-four cultivars. Calculating synergy.");
+
+      // After speaking, what?
+      // If the parent component passes `recommendation`, we switch to "Result Presentation"?
+      // Or we just finish and call onClose?
+      // Ideally, we keep speaking until data arrives.
+    };
+
+    if (recommendationName === "Finding your match...") {
+      runAnalysisNarration(); // Start narration
     } else {
-      setTranscript("Voice not supported in this browser.");
-      setState('idle');
+      // Standard feedback mode (User is looking at a result)
+      startListening();
     }
 
     return () => {
       if (recognitionRef.current) recognitionRef.current.stop();
       window.speechSynthesis.cancel();
     };
-  }, []);
+  }, [recommendationName]);
 
   const startListening = () => {
     try {
