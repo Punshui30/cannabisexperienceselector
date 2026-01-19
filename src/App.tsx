@@ -182,20 +182,18 @@ export default function App() {
           const result = await processIntent(userInput, 'blend-engine');
 
           if (result.success && result.data.length > 0) {
-            // Adapter Strategy (Prompt B)
-            // Always adapt first result for Blend Flow
-            console.log('DEBUG: Engine Result Raw', result.data[0]);
-            const adapted = adaptEngineResult(result.data[0]);
+            // Adapter Strategy: Adapt ALL results
+            console.log('DEBUG: Engine Results Raw', result.data);
 
-            if (adapted) {
-              setBlendRecs(Array.isArray(adapted) ? adapted : [adapted]);
-              // State update triggers ResolvingScreen transition logic via isAnalyzing -> false
-              // but we need to wait for ResolvingScreen to finish its animation if we are managing it there.
-              // Actually here we just stop analyzing, the ResolvingScreen listens to blendRec presence?
-              // Let's check handleResolvingComplete.
+            const allAdapted = result.data
+              .map(item => adaptEngineResult(item))
+              .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
+
+            if (allAdapted.length > 0) {
+              setBlendRecs(allAdapted);
               setIsAnalyzing(false);
             } else {
-              throw new Error("Adapter returned null result");
+              throw new Error("Adapter returned null result for all items");
             }
           } else {
             throw new Error(result.error || 'Orchestrator returned failure');
