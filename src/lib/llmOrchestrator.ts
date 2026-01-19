@@ -139,48 +139,8 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
         consultationScript: script,
     };
 
-    // VARIANCE LOGIC will handle the "Same Blend" issue in processIntent
-    // We add variance triggers to the spec if needed, but easier to do in processIntent loop.
+    // Variance Logic Handled above
     return spec;
-}
-
-// 1. Sleep / Sedation
-if (text.match(/sleep|insomnia|bed|night|tired|rest|couch/)) {
-    spec.targetEffects = ["sleep", "relaxation", "pain_relief"];
-    spec.constraints.timeOfDay = "night";
-    spec.terpenePreferences.include.push("Myrcene", "Linalool");
-}
-
-// 2. Focus / Energy / Work
-else if (text.match(/focus|work|study|energy|day|morning|alert|creative|active/)) {
-    spec.targetEffects = ["focus", "energy", "creativity"];
-    spec.avoidEffects.push("sedation", "couch_lock");
-    spec.constraints.timeOfDay = "morning";
-    spec.terpenePreferences.include.push("Limonene", "Pinene");
-}
-
-// 3. Social / Party
-else if (text.match(/social|party|friends|talk|laugh|fun|happy/)) {
-    spec.targetEffects = ["social", "mood", "energy"];
-    spec.avoidEffects.push("sedation");
-    spec.constraints.timeOfDay = "evening";
-    spec.terpenePreferences.include.push("Limonene");
-}
-
-// 4. Pain / Relief
-else if (text.match(/pain|hurt|ache|relief|body|sore|medic/)) {
-    spec.targetEffects = ["pain_relief", "body", "relaxation"];
-    spec.terpenePreferences.include.push("Caryophyllene", "Myrcene");
-}
-
-// 5. Anxiety / Calm
-else if (text.match(/anxiety|stress|calm|relax|chill|nervous|unwind/)) {
-    spec.targetEffects = ["relaxation", "calm", "mood"];
-    spec.avoidEffects.push("anxiety", "paranoia", "energy");
-    spec.terpenePreferences.include.push("Linalool");
-}
-
-return spec;
 }
 
 function validateStrict(results: EngineResult[]): string | null {
