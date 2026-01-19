@@ -17,6 +17,7 @@ const PHASE_THEMES = [
 ];
 
 export function SpatialStack({ data, compact = false }: SpatialStackProps) {
+    if (!data) return null; // CRASH FIX: Return nothing if data is missing
     const layers = data.layers || [];
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
