@@ -1,26 +1,20 @@
 import { IntentSeed, UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
-import { VoiceFeedback } from './VoiceFeedback';
+import { LiveConsultant } from './LiveConsultant';
 
 interface ResolvingScreenProps {
     input: IntentSeed;
     recommendation?: UIBlendRecommendation | UIStackRecommendation;
+    consultantText?: string;
     onComplete: () => void;
     onRecalculate?: (feedback: string) => void;
 }
 
-export function ResolvingScreen({ input, recommendation, onComplete, onRecalculate }: ResolvingScreenProps) {
-    // Directly render the VoiceFeedback component as the "Resolving" interface.
-    // This replaces the previous animation with the Active Consultation mode.
-    // When recommendation arrives (is non-null), VoiceFeedback uses it.
-
+export function ResolvingScreen({ input, recommendation, consultantText, onComplete, onRecalculate }: ResolvingScreenProps) {
     return (
         <div className="relative w-full h-full bg-black z-50">
-            <VoiceFeedback
-                mode="consultation"
-                recommendationName={recommendation ? recommendation.name : "Finding your match..."}
-                currentRecommendation={recommendation}
+            <LiveConsultant
+                consultantText={consultantText}
                 onClose={onComplete}
-                onRecalculate={onRecalculate}
             />
         </div>
     );
