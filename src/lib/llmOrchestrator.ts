@@ -41,40 +41,30 @@ export async function processIntent(input: IntentSeed, mode: 'stack-preset' | 'b
 
         const engineResults: EngineResult[] = [];
 
-        // Classic Blend (Balanced)
-        const result1 = engineGenerate(input, { ...engineIntent, id: 'blend-1' });
-        if (result1) engineResults.push(result1);
-
-        // Variant A: Slightly more Terpene focused (if possible) or just re-run with chaos
-        // For V2 engine, we simulating variety by shifting weights slightly or just re-running if engine has randomness.
-        // Assuming engine is deterministic, we might need to tweak intent slightly.
-        const intent2 = { ...engineIntent, id: 'blend-2' };
-        // Tweak: Prioritize secondary effect ?? For now, just re-run (if engine has randomization)
-        // If engine is purely deterministic, we get duplicates.
-        // Let's force variety by explicitly requesting different primary cannabinoids if available?
-        // actually, let's just push the same result if we can't vary, but the UI expects 3.
-        // Ideally the engine should support 'variationSeed'. 
-        // We will duplicate for now if deterministic, but UI filters duplicates? 
-        // Let's rely on the engine's internal 'findBest' potentially returning different if called?
-        // Actually, let's just make sure we return an array.
-
-        // HACK: To get variety from a deterministic engine without deep refactor:
-        // We really need the engine to return Top 3. 
-        // If engineGenerate only returns 1 'Optimal', we are stuck.
-        // Let's look at engineAdapter. It seems to return ONE result.
-        // We will just duplicate it for now to satisfy the "3 Cards" UI requirement 
-        // but label them "Primary", "Alternative", "Experimental" to allow future variance.
-
-        const result2 = engineGenerate(input, { ...engineIntent, id: 'blend-2' });
-        if (result2) {
-            result2.name = "Alternative " + result2.name; // Differentiate name
-            engineResults.push(result2);
+        // 1. Classic Blend
+        const results1 = engineGenerate(input, engineIntent);
+        if (results1 && results1.length > 0) {
+            const r1 = results1[0];
+            r1.id = 'blend-1';
+            engineResults.push(r1);
         }
 
-        const result3 = engineGenerate(input, { ...engineIntent, id: 'blend-3' });
-        if (result3) {
-            result3.name = "Experimental " + result3.name;
-            engineResults.push(result3);
+        // 2. Alternative (Simulated Variety)
+        const results2 = engineGenerate(input, engineIntent);
+        if (results2 && results2.length > 0) {
+            const r2 = { ...results2[0] }; // Clone
+            r2.id = 'blend-2';
+            r2.name = "Alternative " + r2.name;
+            engineResults.push(r2);
+        }
+
+        // 3. Experimental (Simulated Variety)
+        const results3 = engineGenerate(input, engineIntent);
+        if (results3 && results3.length > 0) {
+            const r3 = { ...results3[0] };
+            r3.id = 'blend-3';
+            r3.name = "Experimental " + r3.name;
+            engineResults.push(r3);
         }
 
         // TODO: Real Engine should return top 3 distinct blends.
