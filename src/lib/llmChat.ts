@@ -16,35 +16,14 @@ export async function callLLMChat(
         cardType?: 'primary' | 'secondary' | 'contextual';
     }
 ): Promise<string> {
+    // FORCE SIMULATION (API Bypass)
+    return simulateLLM(messages, context);
+
+    /* API LOGIC DISABLED FOR STATIC DEPLOYMENT
     try {
-        // Build system message with context
-        const systemMessage = buildSystemMessage(context);
-
-        const response = await fetch('/api/llm', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                messages: [
-                    { role: 'system', content: systemMessage },
-                    ...messages
-                ],
-                temperature: 0.7,
-                max_tokens: 500
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`LLM API error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        return data.response || data.message || 'I apologize, but I encountered an error. Please try again.';
-    } catch (error) {
-        console.warn('LLM Chat API unavailable, switching to simulation:', error);
-        return simulateLLM(messages, context);
-    }
+        // ... (existing code)
+    } catch (error) { ... }
+    */
 }
 
 /**
