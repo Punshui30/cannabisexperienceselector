@@ -1,18 +1,48 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 
 interface LiveConsultantProps {
-    consultantText: string;
+    consultantText?: string;
+    context?: {
+        recommendation?: UIBlendRecommendation | UIStackRecommendation;
+        userInput?: string;
+        cardType?: 'primary' | 'secondary' | 'contextual';
+    };
     onClose: () => void;
 }
 
-export function LiveConsultant({ consultantText, onClose }: LiveConsultantProps) {
+function generateContextAwareText(context?: LiveConsultantProps['context']): string {
+    if (!context?.recommendation) {
+        return "I'm analyzing your preferences. Let me know if you have any questions about the recommendations.";
+    }
+
+    const rec = context.recommendation;
+    const cardTypeLabel = context.cardType === 'primary' ? 'primary recommendation' :
+        context.cardType === 'secondary' ? 'alternative approach' :
+            context.cardType === 'contextual' ? 'experimental variant' : 'recommendation';
+
+    if (rec.kind === 'blend') {
+        const blend = rec as UIBlendRecommendation;
+        const cultivarList = blend.cultivars.map(c => `${c.name} (${Math.round(c.ratio * 100)}%)`).join(', ');
+
+        return `You're viewing the ${cardTypeLabel}: "${blend.name}". This blend combines ${cultivarList}. ${blend.reasoning || ''} What would you like to know about this recommendation?`;
+    } else {
+        const stack = rec as UIStackRecommendation;
+        return `You're viewing the stack: "${stack.name}". ${stack.description} What questions do you have about this protocol?`;
+    }
+}
+
+export function LiveConsultant({ consultantText, context, onClose }: LiveConsultantProps) {
     const [displayedSentences, setDisplayedSentences] = useState<string[]>([]);
     const [isComplete, setIsComplete] = useState(false);
 
     useEffect(() => {
+        // Use context-aware text if available, otherwise use provided text
+        const text = consultantText || generateContextAwareText(context);
+
         // Split text into sentences
-        const sentences = consultantText
+        const sentences = text
             .split(/(?<=[.!?])\s+/)
             .filter(s => s.trim().length > 0);
 
@@ -27,12 +57,12 @@ export function LiveConsultant({ consultantText, onClose }: LiveConsultantProps)
                 // Auto-close after showing complete text
                 setTimeout(() => {
                     onClose();
-                }, 2500);
+                }, 3000);
             }
         }, 1200); // 1.2 seconds between sentences - deliberate pacing
 
         return () => clearInterval(sentenceInterval);
-    }, [consultantText, onClose]);
+    }, [consultantText, context, onClose]);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
@@ -55,7 +85,7 @@ export function LiveConsultant({ consultantText, onClose }: LiveConsultantProps)
                         )}
                     </div>
                     <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#00FFD1]">
-                        {isComplete ? 'Analysis Complete' : 'Analyzing'}
+                        {isComplete ? 'Ready for Questions' : 'Loading Context'}
                     </h3>
                 </div>
 
@@ -76,6 +106,15 @@ export function LiveConsultant({ consultantText, onClose }: LiveConsultantProps)
                         ))}
                     </AnimatePresence>
                 </div>
+
+                {/* Context Info */}
+                {context?.recommendation && (
+                    <div className="mt-6 pt-4 border-t border-white/10">
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">
+                            Context: {context.recommendation.name}
+                        </p>
+                    </div>
+                )}
             </motion.div>
         </div>
     );
