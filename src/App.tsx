@@ -303,6 +303,11 @@ export default function App() {
               />
             )}
 
+            {/* STRAIN LIBRARY */}
+            {view === 'library' && (
+              <StrainLibraryScreen onBack={() => setView('input')} />
+            )}
+
             {/* RESOLVING SCREEN - Waits for Data */}
             {view === 'resolving' && userInput && (
               <ResolvingScreen
