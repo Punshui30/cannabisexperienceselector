@@ -36,64 +36,96 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
         const engineResults: EngineResult[] = [];
 
         // ---------------------------------------------------------
-        // BLEND 1: CLASSIC (Optimal)
+        // BLEND 1: PRIMARY INTERPRETATION (Original Intent)
         // ---------------------------------------------------------
+        console.log('ORCHESTRATOR: Generating Primary Blend (original intent)');
         const results1 = engineGenerate(seed, engineIntent);
         if (results1 && results1.length > 0) {
             const r1 = results1[0];
             r1.id = `blend-primary-${Date.now()}`;
-            // Use optimal engine output
+            r1.name = r1.name || "Primary Blend";
             engineResults.push(r1);
+            console.log('Primary Blend Cultivars:', r1.cultivars?.map(c => c.name).join(', '));
         }
 
         // ---------------------------------------------------------
-        // BLEND 2: ALTERNATIVE (Forced Variety - Balanced)
+        // BLEND 2: SECONDARY EMPHASIS (Shift Effect Priorities)
         // ---------------------------------------------------------
-        const results2 = engineGenerate(seed, engineIntent);
+        console.log('ORCHESTRATOR: Generating Secondary Blend (shifted priorities)');
+        const intent2 = { ...engineIntent };
+
+        // Shift priorities among expressed goals
+        if (intent2.targetEffects.energy > 0.5 && intent2.targetEffects.focus > 0.3) {
+            // If both energy and focus, make this focus-forward
+            const temp = intent2.targetEffects.energy;
+            intent2.targetEffects.energy = intent2.targetEffects.focus;
+            intent2.targetEffects.focus = temp;
+            console.log('  Shifted: Energy ↔ Focus');
+        } else if (intent2.targetEffects.mood > 0.5 && intent2.targetEffects.body > 0.3) {
+            // If both mood and body, swap them
+            const temp = intent2.targetEffects.mood;
+            intent2.targetEffects.mood = intent2.targetEffects.body;
+            intent2.targetEffects.body = temp;
+            console.log('  Shifted: Mood ↔ Body');
+        } else {
+            // Boost secondary effect
+            const effects = Object.entries(intent2.targetEffects)
+                .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a));
+            if (effects.length >= 2) {
+                const [primary, secondary] = effects;
+                intent2.targetEffects[secondary[0] as keyof typeof intent2.targetEffects] += 0.3;
+                console.log(`  Boosted: ${secondary[0]} (+0.3)`);
+            }
+        }
+
+        const results2 = engineGenerate(seed, intent2);
         if (results2 && results2.length > 0) {
-            const r2 = { ...results2[0] }; // Clone
-            r2.id = `blend-alt-${Date.now()}`;
-            r2.name = "Alternative: " + r2.name;
-
-            // Force Ratio Shift to Ensure Visual Difference
-            // Target: 33/33/33 Split
-            if (r2.cultivars && r2.cultivars.length >= 2) {
-                // Normalize to equal parts
-                const count = r2.cultivars.length;
-                const equalShare = Number((1.0 / count).toFixed(2));
-                r2.cultivars.forEach((c: any) => c.ratio = equalShare);
-
-                // Fix rounding error on last one
-                if (count > 0) {
-                    const sum = r2.cultivars.reduce((acc: number, c: any) => acc + c.ratio, 0);
-                    const diff = 1.0 - sum;
-                    r2.cultivars[count - 1].ratio += diff;
-                }
-            }
+            const r2 = results2[0];
+            r2.id = `blend-secondary-${Date.now()}`;
+            r2.name = "Alternative: " + (r2.name || "Blend");
             engineResults.push(r2);
+            console.log('Secondary Blend Cultivars:', r2.cultivars?.map(c => c.name).join(', '));
         }
 
         // ---------------------------------------------------------
-        // BLEND 3: EXPERIMENTAL (Forced Variety - Dominant)
+        // BLEND 3: CONTEXTUAL VARIANT (Adjust Context/Constraints)
         // ---------------------------------------------------------
-        const results3 = engineGenerate(seed, engineIntent);
-        if (results3 && results3.length > 0) {
-            const r3 = { ...results3[0] };
-            r3.id = `blend-exp-${Date.now()}`;
-            r3.name = "Experimental: " + r3.name;
+        console.log('ORCHESTRATOR: Generating Contextual Blend (adjusted context)');
+        const intent3 = { ...engineIntent };
 
-            // Force Ratio Shift to Ensure Visual Difference
-            // Target: 80% Dominant
-            if (r3.cultivars && r3.cultivars.length >= 2) {
-                // First strain gets 80%, rest share 20%
-                const count = r3.cultivars.length;
-                r3.cultivars[0].ratio = 0.80;
-                const remainder = 0.20 / (count - 1);
-                for (let i = 1; i < count; i++) {
-                    r3.cultivars[i].ratio = remainder;
-                }
-            }
+        // Adjust context
+        const timeShift: Record<string, string> = {
+            'morning': 'afternoon',
+            'afternoon': 'evening',
+            'evening': 'night',
+            'night': 'morning'
+        };
+        intent3.context.timeOfDay = timeShift[intent3.context.timeOfDay] || 'evening';
+
+        // Adjust tolerance
+        const toleranceShift: Record<string, string> = {
+            'low': 'medium',
+            'medium': 'high',
+            'high': 'medium'
+        };
+        intent3.context.tolerance = toleranceShift[intent3.context.tolerance] || 'high';
+
+        // Relax anxiety constraint slightly
+        if (intent3.constraints.maxAnxiety) {
+            intent3.constraints.maxAnxiety = Math.min(0.5, intent3.constraints.maxAnxiety + 0.15);
+        }
+
+        console.log(`  Context: ${engineIntent.context.timeOfDay} → ${intent3.context.timeOfDay}`);
+        console.log(`  Tolerance: ${engineIntent.context.tolerance} → ${intent3.context.tolerance}`);
+        console.log(`  Max Anxiety: ${engineIntent.constraints.maxAnxiety} → ${intent3.constraints.maxAnxiety}`);
+
+        const results3 = engineGenerate(seed, intent3);
+        if (results3 && results3.length > 0) {
+            const r3 = results3[0];
+            r3.id = `blend-contextual-${Date.now()}`;
+            r3.name = "Experimental: " + (r3.name || "Blend");
             engineResults.push(r3);
+            console.log('Contextual Blend Cultivars:', r3.cultivars?.map(c => c.name).join(', '));
         }
 
         // FALLBACK: If engine returns nothing
