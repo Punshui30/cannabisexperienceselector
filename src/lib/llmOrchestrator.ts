@@ -44,7 +44,13 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             const r1 = results1[0];
             r1.id = `blend-primary-${Date.now()}`;
             r1.name = r1.name || "Primary Blend";
-            r1.reasoning = `Primary interpretation: Optimized for your stated goals with balanced constraint enforcement.`;
+
+            // Dynamic Reasoning for Primary
+            const topic = seed.text ? seed.text.substring(0, 20) + (seed.text.length > 20 ? "..." : "") : "your request";
+            const focus = intentSpec.targetEffects[0] || "balance";
+            const avoid = intentSpec.avoidEffects.length > 0 ? ` while avoiding ${intentSpec.avoidEffects[0]}` : "";
+            r1.reasoning = `Based on "${topic}", this blend prioritizes ${focus}${avoid}. It selects cultivars that directly map to your stated goals.`;
+
             engineResults.push(r1);
             console.log('Primary Blend Cultivars:', r1.cultivars?.map(c => c.name).join(', '));
         }
@@ -59,12 +65,14 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
         const effects2 = Object.entries(intent2.targetEffects)
             .sort(([, a], [, b]) => Math.abs((b as number)) - Math.abs((a as number)));
 
+        let shiftDesc = "balanced profile";
         if (effects2.length >= 2) {
             const [primary, secondary] = effects2;
             const temp = intent2.targetEffects[primary[0] as keyof typeof intent2.targetEffects];
             intent2.targetEffects[primary[0] as keyof typeof intent2.targetEffects] =
                 intent2.targetEffects[secondary[0] as keyof typeof intent2.targetEffects];
             intent2.targetEffects[secondary[0] as keyof typeof intent2.targetEffects] = temp;
+            shiftDesc = `swapping ${primary[0]} for ${secondary[0]}`;
             console.log(`  STRONG SHIFT: Swapped ${primary[0]} ↔ ${secondary[0]}`);
         }
 
@@ -77,7 +85,10 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             const r2 = results2[0];
             r2.id = `blend-secondary-${Date.now()}`;
             r2.name = "Alternative: " + (r2.name || "Blend");
-            r2.reasoning = `Secondary emphasis: Prioritized ${effects2[1]?.[0] || 'balance'} over ${effects2[0]?.[0] || 'primary'}, increased body effect for grounding.`;
+
+            // Dynamic Reasoning for Secondary
+            r2.reasoning = `Alternative interpretation: We explored a variation by ${shiftDesc} and increasing body grounding. This offers a different path to the same goal.`;
+
             engineResults.push(r2);
             console.log('Secondary Blend Cultivars:', r2.cultivars?.map(c => c.name).join(', '));
         }
@@ -109,9 +120,11 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
         console.log(`  Time shift: ${originalTime} → ${intent3.context.timeOfDay}`);
 
         // STRONG SHIFT 3: Reduce energy, boost creativity (terpene bias)
+        let terpeneChange = "";
         if (intent3.targetEffects.energy && intent3.targetEffects.energy > 0.3) {
             intent3.targetEffects.energy = Math.max(0, intent3.targetEffects.energy - 0.4);
             intent3.targetEffects.creativity = Math.min(0.9, (intent3.targetEffects.creativity || 0) + 0.5);
+            terpeneChange = ", and emphasizing creativity over raw energy";
             console.log(`  Terpene bias: Reduced energy, boosted creativity`);
         }
 
@@ -120,7 +133,10 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             const r3 = results3[0];
             r3.id = `blend-contextual-${Date.now()}`;
             r3.name = "Experimental: " + (r3.name || "Blend");
-            r3.reasoning = `Contextual variant: Relaxed anxiety constraint (${originalAnxiety.toFixed(2)} → ${intent3.constraints.maxAnxiety.toFixed(2)}), shifted to ${intent3.context.timeOfDay} profile, emphasized creativity over raw energy.`;
+
+            // Dynamic Reasoning for Contextual
+            r3.reasoning = `Contextual shift: This blend adapts for a ${intent3.context.timeOfDay} setting${terpeneChange}. It relaxes strict anxiety constraints to allow for a broader range of cultivars.`;
+
             engineResults.push(r3);
             console.log('Contextual Blend Cultivars:', r3.cultivars?.map(c => c.name).join(', '));
         }
