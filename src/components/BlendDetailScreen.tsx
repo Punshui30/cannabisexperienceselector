@@ -4,15 +4,15 @@ import { AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { resolveCultivarVisuals, resolveTerpeneVisuals } from '../lib/visuals';
-import { LiveConsultant } from './LiveConsultant';
 
 interface BlendDetailScreenProps {
     blend: UIBlendRecommendation;
     onBack: () => void;
+    onOpenConsultant: () => void;
 }
 
-export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
-    const [showLiveAssistant, setShowLiveAssistant] = useState(false);
+export function BlendDetailScreen({ blend, onBack, onOpenConsultant }: BlendDetailScreenProps) {
+    // Removed local state
 
     if (!blend) return null;
 
@@ -58,7 +58,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                     <div className="h-0.5 w-8 bg-[#00FFD1]/30 mx-auto rounded-full" />
                 </div>
                 <button
-                    onClick={() => setShowLiveAssistant(true)}
+                    onClick={onOpenConsultant}
                     className="text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-colors px-3 py-2"
                 >
                     Live Assistant
@@ -170,18 +170,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
 
             </div>
 
-            {/* Live Assistant */}
-            <AnimatePresence>
-                {showLiveAssistant && (
-                    <LiveConsultant
-                        context={{
-                            recommendation: blend,
-                            cardType: 'primary'
-                        }}
-                        onClose={() => setShowLiveAssistant(false)}
-                    />
-                )}
-            </AnimatePresence>
+            {/* Live Assistant Triggered Globally */}
         </div>
     );
 }

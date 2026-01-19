@@ -14,9 +14,10 @@ interface ResultsProps {
   onBack: () => void;
   onShare?: (rec: any) => void;
   onViewDetail?: (blend: UIBlendRecommendation) => void;
+  onOpenConsultant: () => void;
 }
 
-export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, onViewDetail }: ResultsProps) {
+export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, onViewDetail, onOpenConsultant }: ResultsProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeRec = recommendations[activeIndex];
 
@@ -93,6 +94,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
                 onShare={onShare}
                 onCalculate={onCalculate}
                 onViewDetail={onViewDetail}
+                onOpenConsultant={onOpenConsultant}
                 index={i}
               />
             </div>

@@ -3,18 +3,17 @@ import { ArrowLeft, Clock, Share2, Layers } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 import { UIStackRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
-import { getCultivarVisuals } from '../lib/cultivarData';
-import { LiveConsultant } from './LiveConsultant';
+import { resolveCultivarVisuals } from '../lib/visuals';
 
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
     onBack: () => void;
+    onOpenConsultant: () => void;
 }
 
-export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
+export function StackDetailScreen({ stack, onBack, onOpenConsultant }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
     const [prerollSize, setPrerollSize] = useState<number>(1.0); // Grams
-    const [showLiveAssistant, setShowLiveAssistant] = useState(false);
 
     if (!stack) return null;
 
@@ -34,7 +33,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                     <div className="h-0.5 w-8 bg-[#00FFD1]/30 mx-auto rounded-full" />
                 </div>
                 <button
-                    onClick={() => setShowLiveAssistant(true)}
+                    onClick={onOpenConsultant}
                     className="text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-colors px-3 py-2"
                 >
                     Live Assistant
@@ -133,7 +132,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                                             return (
                                                 <div key={cIdx} className="flex justify-between items-center p-3 rounded bg-white/5 border border-white/5 ml-2">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: getCultivarVisuals(cultivar.name).color }} />
+                                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: resolveCultivarVisuals(cultivar.name).primaryColor }} />
                                                         <span className="text-sm text-white font-medium">{cultivar.name}</span>
                                                     </div>
                                                     <div className="flex items-baseline gap-1">
@@ -155,18 +154,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 </div>
             )}
 
-            {/* Live Assistant */}
-            <AnimatePresence>
-                {showLiveAssistant && (
-                    <LiveConsultant
-                        context={{
-                            recommendation: stack,
-                            cardType: 'primary'
-                        }}
-                        onClose={() => setShowLiveAssistant(false)}
-                    />
-                )}
-            </AnimatePresence>
+            {/* Live Assistant Triggered Globally */}
         </div>
     );
 }

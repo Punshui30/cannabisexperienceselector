@@ -28,6 +28,16 @@ module.exports = {
     "ring-teal-400/30",
     "ring-violet-400/30",
     "ring-cyan-400/30",
+
+    // Live Consultant Safelist (Force Emission)
+    "bg-[#0a0a0a]/90",
+    "backdrop-blur-2xl",
+    "shadow-[0_0_10px_#00FFD1]",
+    "bg-gradient-to-br",
+    "from-white/10",
+    "to-white/5",
+    "shadow-[0_4px_20px_rgba(0,255,209,0.2)]",
+    "bg-[#00FFD1]",
   ],
   theme: {
     extend: {},

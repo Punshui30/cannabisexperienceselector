@@ -3,22 +3,19 @@ import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
 import { SpatialStack } from './SpatialStack';
-import { LiveConsultant } from './LiveConsultant';
 
 interface BlendCardProps {
   recommendation: UIBlendRecommendation;
   onShare?: (rec: UIBlendRecommendation) => void;
   onCalculate?: (rec: UIBlendRecommendation) => void;
   onViewDetail?: (blend: UIBlendRecommendation) => void;
+  onOpenConsultant?: () => void; // Optional because SwipeDeck/Results logic
   index?: number;
 }
 
-export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, index = 0 }: BlendCardProps) {
-  const [showFeedback, setShowFeedback] = useState(false);
+export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, onOpenConsultant, index = 0 }: BlendCardProps) {
+  // Removed local Feedback state
 
-  const handleFeedbackClose = () => {
-    setShowFeedback(false);
-  };
 
   // ADAPTER: Convert Blend to Stack Shape for Visualization
   const stackData: UIStackRecommendation = {
@@ -131,9 +128,8 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
 
             <div className="flex justify-center gap-6">
               <button
-                onClick={() => setShowFeedback(true)}
+                onClick={onOpenConsultant}
                 className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
-                disabled={showFeedback}
               >
                 Feedback
               </button>
@@ -150,18 +146,6 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
         </CardShell>
       </motion.div>
 
-      {/* Context-Aware Feedback */}
-      <AnimatePresence>
-        {showFeedback && (
-          <LiveConsultant
-            context={{
-              recommendation,
-              cardType: 'primary' // TODO: Pass actual card type from parent
-            }}
-            onClose={handleFeedbackClose}
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 }

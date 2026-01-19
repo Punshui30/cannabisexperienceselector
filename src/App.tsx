@@ -333,6 +333,7 @@ export default function App() {
                   setSelectedBlend(blend);
                   setView('blend-detail');
                 }}
+                onOpenConsultant={() => setShowConsultant(true)}
               />
             )}
 
@@ -356,6 +357,7 @@ export default function App() {
                   if (view === 'results') setView('input');
                   else setView('presets');
                 }}
+                onOpenConsultant={() => setShowConsultant(true)}
               />
             )}
 
@@ -364,6 +366,7 @@ export default function App() {
               <BlendDetailScreen
                 blend={selectedBlend}
                 onBack={() => setView('results')}
+                onOpenConsultant={() => setShowConsultant(true)}
               />
             )}
             {/* Components */}
