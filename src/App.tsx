@@ -456,7 +456,7 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {!showSplash && !showEntryGate && mode !== 'admin' && (
+        {!showSplash && !showEntryGate && mode !== 'admin' && view !== 'live-feed' && (
           <>
             {/* Admin Toggle (Hidden Corner) */}
             <button
