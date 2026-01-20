@@ -50,7 +50,7 @@ export async function triggerRefactor(
 
     // Call the engine
     return processIntent(
-        { text: query, mode: 'engine' },
+        { text: query, mode: 'engine', kind: 'blend' }, // Added kind: 'blend' for type safety
         context || {},
         'blend-engine'
     );
