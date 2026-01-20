@@ -381,17 +381,16 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
       </div>
 
-      {/* --- SCENARIOS (Flexible height) --- */}
-      {/* --- SCENARIOS (Fixed Height Block) --- */}
+      {/* --- SCENARIOS (Density Adjustment: Reduced height and padding) --- */}
       <div className="w-full relative flex flex-col gap-2 shrink-0 px-6">
-        <div className="flex justify-between items-end mb-2 flex-shrink-0">
+        <div className="flex justify-between items-end mb-1 flex-shrink-0">
           <div>
-            <h3 className="text-white text-lg font-light serif">Start with a Scenario</h3>
-            <p className="text-white/40 text-xs">Tap to populate</p>
+            <h3 className="text-white text-base font-light serif">Start with a Scenario</h3>
+            <p className="text-white/40 text-[10px]">Tap to populate</p>
           </div>
         </div>
 
-        <div className="w-full relative h-72"> {/* Fixed Height for Absolute Cards */}
+        <div className="w-full relative h-56"> {/* Density adjustment: h-72 → h-56 (22% reduction) */}
           <SwipeDeck
             items={BLEND_SCENARIOS}
             enableGuidance={true}
@@ -403,7 +402,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                     setMode('describe');
                     setDescription(scenario.inputText);
                   }}
-                  className="w-full h-full text-left p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all flex flex-col justify-between group relative overflow-hidden"
+                  className="w-full h-full text-left p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all flex flex-col justify-between group relative overflow-hidden" /* Density adjustment: p-6 → p-4 */
                   style={{
                     // Layer 2: Hairline perimeter (entire card)
                     border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -425,14 +424,14 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                   />
 
                   <div>
-                    <h4 className="text-xl font-light text-white mb-1 serif">{scenario.title}</h4>
-                    <p className="text-xs uppercase tracking-widest text-white/40 mb-4">{scenario.subtitle}</p>
-                    <p className="text-sm text-white/80 leading-relaxed font-light italic">
+                    <h4 className="text-lg font-light text-white mb-0.5 serif">{scenario.title}</h4> {/* Density adjustment: text-xl → text-lg, mb-1 → mb-0.5 */}
+                    <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2">{scenario.subtitle}</p> {/* Density adjustment: text-xs → text-[10px], mb-4 → mb-2 */}
+                    <p className="text-xs text-white/80 leading-snug font-light italic"> {/* Density adjustment: text-sm → text-xs, leading-relaxed → leading-snug */}
                       "{scenario.inputText}"
                     </p>
                   </div>
 
-                  <div className="flex justify-between items-center mt-4">
+                  <div className="flex justify-between items-center mt-2"> {/* Density adjustment: mt-4 → mt-2 */}
                     <span className="text-[10px] uppercase tracking-widest text-[#00FFD1] opacity-0 group-hover:opacity-100 transition-opacity">Set Intent</span>
                     <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:text-white group-hover:bg-[#00FFD1] group-hover:text-black transition-all">
                       <Search size={14} />
