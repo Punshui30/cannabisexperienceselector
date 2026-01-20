@@ -372,6 +372,7 @@ export default function App() {
               {/* RESULTS SCREEN (Blends Only) */}
               {view === 'results' && blendRecs.length > 0 && (
                 <ResultsScreen
+                  key={blendRecs[0]?.id} // FORCE REMOUNT on new results to trigger entry animation
                   recommendations={blendRecs as UIBlendRecommendation[]}
                   onCalculate={handleCalculate}
                   onBack={handleBack}

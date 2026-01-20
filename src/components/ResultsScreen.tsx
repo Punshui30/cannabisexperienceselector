@@ -34,7 +34,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-10 opacity-50" />
       </div>
 
-      <div className="relative z-20 flex flex-col h-full">
+      <div className="relative z-20 flex flex-col h-full animate-in fade-in zoom-in-95 duration-500"> {/* Added subtle entry animation for Refactor Transitions */}
         {/* DEBUG OVERLAY (Bottom) */}
         <div className="absolute bottom-[-200px] left-0 w-full z-50 pointer-events-none p-4 opacity-50 hover:opacity-100 transition-opacity">
           <h3 className="text-red-500 font-bold text-xs">DEBUG</h3>

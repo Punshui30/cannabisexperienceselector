@@ -180,6 +180,111 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         }
     };
 
+    // REFACTOR COMPLETION STATE
+    const [isRefactorComplete, setIsRefactorComplete] = useState(false);
+
+    useEffect(() => {
+        if (isRefactorComplete) {
+            // Auto-Close / Minimize after delay to show results
+            const timer = setTimeout(() => {
+                onClose();
+            }, 2500); // 2.5s read time for the success message
+            return () => clearTimeout(timer);
+        }
+    }, [isRefactorComplete, onClose]);
+
+    const handleSendMessage = async () => {
+        // PROMPT 4: Stability Guardrail (Prevent race conditions during generation)
+        if (isGenerating || isRefactorComplete) {
+            return;
+        }
+
+        if (!inputValue.trim() || isLoading) return;
+
+        const userMessage = inputValue.trim();
+        setInputValue('');
+
+        // Add user message
+        const newUserMessage: Message = { role: 'user', content: userMessage };
+        setMessages(prev => [...prev, newUserMessage]);
+        setIsLoading(true);
+
+        try {
+            // Import trigger function dynamically (or from module)
+            const { callLLMChat, triggerRefactor } = await import('../lib/llmChat');
+
+            // Call conversation facade (read-only first)
+            const response = await callLLMChat(
+                [...messages, newUserMessage].map(m => ({ role: m.role, content: m.content })),
+                context
+            );
+
+            // CHECK FOR REFACTOR TAG
+            const refactorMatch = response.text.match(/\[\[REFACTOR:\s*(.*?)\]\]/);
+
+            if (refactorMatch) {
+                // 1. Extract the Clean Text (Hide the tag)
+                const cleanText = response.text.replace(/\[\[REFACTOR:.*?\]\]/, '').trim();
+                const query = refactorMatch[1];
+
+                // 2. Show the confirmation text immediately
+                setMessages(prev => [...prev, { role: 'assistant', content: cleanText }]);
+
+                // 3. Trigger the Refactor (Authoritative)
+                console.log(`[LiveConsultant] Detected ACTION INTENT: ${query}`);
+
+                // Show a "Thinking/Processing" indicator message
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `🔄 **Updating Blends...**\nRunning engine with query: "${query}"`
+                }]);
+
+                const result = await triggerRefactor(query, {
+                    mode: 'blend-engine'
+                });
+
+                // 4. Validate and Apply
+                if (result.success && result.data.length > 0) {
+                    // Success!
+
+                    // Clear busy message
+                    setMessages(prev => prev.filter(m => !m.content.includes('Updating Blends')));
+
+                    // Final Success Message
+                    setMessages(prev => [...prev, {
+                        role: 'assistant',
+                        content: "✅ **Update Complete.**\n\nI've updated your blends to include your new preference. You'll see the new recommendations below."
+                    }]);
+
+                    // Disable Input & Trigger Completion State
+                    setIsRefactorComplete(true);
+
+                    // Apply to App State (triggers UI update)
+                    if (onApplyResult) {
+                        onApplyResult(result.data);
+                    }
+
+                } else {
+                    throw new Error("Engine returned no results"); // Will be caught below
+                }
+
+            } else {
+                // Standard Chat Response (No Action)
+                setMessages(prev => [...prev, { role: 'assistant', content: response.text }]);
+            }
+
+        } catch (error) {
+            console.error("Live Consultant Error:", error);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: "I encountered an error processing that request. Please try again."
+            }]);
+        } finally {
+            setIsLoading(false);
+            setInputValue(''); // Clear input
+        }
+    };
+
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -360,13 +465,13 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                                 onKeyPress={handleKeyPress}
                                 placeholder="Type your message..."
                                 className="flex-1 bg-transparent border-none text-white placeholder-white/30 text-sm px-4 focus:outline-none h-10 tracking-wide"
-                                disabled={isLoading}
+                                disabled={isLoading || isRefactorComplete}
                                 autoFocus
                             />
 
                             <button
                                 onClick={handleSendMessage}
-                                disabled={!inputValue.trim() || isLoading}
+                                disabled={!inputValue.trim() || isLoading || isRefactorComplete}
                                 className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] hover:from-[#00E0B8] hover:to-[#00FFD1] disabled:from-white/10 disabled:to-white/5 disabled:cursor-not-allowed flex items-center justify-center text-black shadow-lg shadow-[#00FFD1]/20 transition-all hover:scale-105 active:scale-95 disabled:shadow-none"
                             >
                                 <Send size={16} className={inputValue.trim() ? 'text-black' : 'text-white/40'} />
