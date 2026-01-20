@@ -32,6 +32,12 @@ import './index.css';
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed';
 
 export default function App() {
+  // Mobile layout contract:
+  // 360px width is the minimum supported device (Moto G).
+  // All UI must collapse, scroll, or sequence to fit.
+  // No component may assume available vertical height.
+  // Bottom UI must reserved space (pb-safe-footer).
+
   // ROUTING / INITIALIZATION
   const [showSplash, setShowSplash] = useState(() => {
     if (window.location.pathname.includes('/preview') || window.location.search.includes('view=remote-access')) {
@@ -302,7 +308,7 @@ export default function App() {
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
         </div>
 
-        <main className="relative z-10 w-full flex-grow flex flex-col justify-center pb-24">
+        <main className="relative z-10 w-full flex-grow flex flex-col justify-center pb-safe-footer">
           {showSplash && (
             <SplashScreen onComplete={() => setShowSplash(false)} />
           )}
@@ -510,13 +516,16 @@ export default function App() {
             </button>
 
             {/* LIVE CONSULTANT TRIGGER FAB */}
-            {/* LIVE CONSULTANT TRIGGER FAB */}
             <button
               onClick={() => {
                 if (!isAnalyzing) setShowConsultant(true);
               }}
               disabled={isAnalyzing}
-              className={`fixed bottom-6 right-6 z-40 group flex items-center justify-center w-12 h-12 rounded-full bg-[#00FFD1] text-black shadow-[0_0_20px_rgba(0,255,209,0.3)] transition-all duration-300 ${isAnalyzing ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110 hover:shadow-[0_0_30px_rgba(0,255,209,0.5)]'}`}
+              className={`fixed bottom-6 right-6 z-40 group flex items-center justify-center w-12 h-12 rounded-full bg-[#00FFD1] text-black shadow-[0_0_20px_rgba(0,255,209,0.3)] transition-all duration-300 
+                  ${isAnalyzing ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110 hover:shadow-[0_0_30px_rgba(0,255,209,0.5)]'}
+                  /* Mobile Safety Rule: Hide FAB on tight screens when busy/keyboard likely active to prevent overlap */
+                  max-[360px]:bottom-20 max-[360px]:right-4
+              `}
               title={isAnalyzing ? "System Processing..." : "Ask AI Consultant"}
             >
               <Sparkles size={20} className={`transition-transform ${!isAnalyzing && 'group-hover:rotate-12'}`} />

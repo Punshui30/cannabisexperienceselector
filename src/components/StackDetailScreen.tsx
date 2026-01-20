@@ -20,7 +20,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
         <div className="w-full h-full flex flex-col bg-black text-white relative overflow-y-auto overflow-x-hidden animate-in fade-in duration-300">
 
             {/* HEADER */}
-            <div className="w-full p-6 flex justify-between items-center z-20">
+            <div className="w-full p-6 max-[360px]:p-4 flex justify-between items-center z-20">
                 <button
                     onClick={onBack}
                     className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:bg-white/10 hover:text-white transition-colors backdrop-blur-md"
@@ -45,10 +45,10 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                         <Layers size={14} className="text-[#00FFD1]" />
                         <span className="text-[#00FFD1] text-[10px] uppercase tracking-widest font-bold">Protocol</span>
                     </div>
-                    <h1 className="text-3xl font-serif text-white mb-2 leading-tight">
+                    <h1 className="text-3xl max-[360px]:text-2xl font-serif text-white mb-2 leading-tight">
                         {stack.name}
                     </h1>
-                    <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto">
+                    <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto text-clamp-2-mobile">
                         {stack.description}
                     </p>
                     <div className="flex items-center justify-center gap-1.5 text-[10px] text-white/40 mt-3">
@@ -65,7 +65,8 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
             </div>
 
             {/* CALCULATOR BUTTON - Floating Action Style */}
-            <div className="flex-shrink-0 pt-4 pb-8 flex justify-center sticky bottom-0 z-40 bg-gradient-to-t from-black via-black to-transparent pointer-events-none">
+            {/* Mobile Rule: Sticky footer must respect safe area */}
+            <div className="flex-shrink-0 pt-4 pb-8 flex justify-center sticky bottom-safe z-40 bg-gradient-to-t from-black via-black to-transparent pointer-events-none">
                 <button
                     onClick={() => setIsCalculating(true)}
                     className="pointer-events-auto shadow-[0_0_20px_rgba(0,255,209,0.3)] bg-[#00FFD1] text-black font-bold uppercase tracking-widest text-xs px-8 py-4 rounded-full hover:scale-105 active:scale-95 transition-transform flex items-center gap-2"

@@ -23,7 +23,7 @@ export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
   const [showResults, setShowResults] = useState(false);
 
   const calculateBlend = (): CalculationResult[] => {
-    return recommendation.cultivars?.map((c, idx) => {
+    return (recommendation.cultivars || []).map((c, idx) => {
       const isFoundation = idx === 0;
       const isBalance = idx === 1;
       const role = isFoundation ? 'Foundation' : isBalance ? 'Balance' : 'Accent';
@@ -53,11 +53,11 @@ export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className="w-full max-w-xl max-h-[90vh] flex flex-col glass-card border-white/10 bg-black/60 rounded-t-[2.5rem] overflow-hidden shadow-2xl"
+          className="w-full max-w-[90vw] mx-auto max-h-[90vh] flex flex-col glass-card border-white/10 bg-black/60 rounded-t-[2.5rem] overflow-hidden shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="p-8 border-b border-white/5 bg-black/40">
+          <div className="p-8 max-[360px]:p-4 border-b border-white/5 bg-black/40">
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -84,7 +84,7 @@ export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
           </div>
 
           {/* Body */}
-          <div className="flex-1 p-8 overflow-y-auto bg-black/20">
+          <div className="flex-1 p-8 max-[360px]:p-4 overflow-y-auto bg-black/20">
 
             {/* Preroll Size Selector */}
             <div className="mb-10">
@@ -105,7 +105,7 @@ export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
                   />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {[0.5, 0.75, 1.0, 1.5, 2.0].map(size => (
                     <button
                       key={size}
