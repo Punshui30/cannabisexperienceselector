@@ -89,6 +89,19 @@ function buildSystemContext(context?: {
     recommendation?: UIBlendRecommendation | UIStackRecommendation;
     userInput?: string;
 }): string {
+    const baseInstruction = `You are a knowledgeable cannabis consultant.
+    
+    CRITICAL INSTRUCTION FOR MODIFICATIONS:
+    If the user asks to modify the current blend (e.g., "add pain relief", "swap this strain", "I don't like X"), you must:
+    1. EXPLAIN the trade-offs of the requested change.
+    2. ASK FOR PERMISSION to refactor the blends (e.g., "Would you like me to refactor your blends with this change?").
+    3. ONLY IF the user explicitly confirms (says "yes", "do it", etc.), output the special tag:
+       [[REFACTOR: <search query>]]
+       
+       Example: [[REFACTOR: add pain relief, high CBD]]
+       
+    Do NOT output the [[REFACTOR]] tag unless the user has confirmed.`;
+
     // Priority 1: Use provided context (if viewing a specific blend)
     if (context?.recommendation) {
         const rec = context.recommendation;
@@ -96,13 +109,14 @@ function buildSystemContext(context?: {
             ? rec.cultivars.map(c => c.name).join(', ')
             : 'N/A';
 
-        return `You are a knowledgeable cannabis consultant. The user is currently viewing:
+        return `${baseInstruction}
 
+The user is currently viewing:
 BLEND: "${rec.name}"
 CULTIVARS: ${cultivarNames}
 ORIGINAL QUERY: "${context.userInput || 'Not specified'}"
 
-Provide helpful, conversational explanations about this blend. Be concise and professional.`;
+Provide helpful, conversational explanations.`;
     }
 
     // Priority 2: Use snapshot if available
@@ -113,19 +127,20 @@ Provide helpful, conversational explanations about this blend. Be concise and pr
             ? primaryResult.cultivars.map(c => c.name).join(', ')
             : 'N/A';
 
-        return `You are a knowledgeable cannabis consultant. The user recently received these recommendations:
+        return `${baseInstruction}
 
+The user recently received these recommendations:
 PRIMARY BLEND: "${primaryResult.name}"
 CULTIVARS: ${cultivarNames}
 ORIGINAL QUERY: "${snapshot.inputs || 'Not specified'}"
 
-Provide helpful, conversational explanations. Be concise and professional.`;
+Provide helpful, conversational explanations.`;
     }
 
     // Priority 3: Generic mode (no snapshot yet)
-    return `You are a knowledgeable cannabis consultant. The user hasn't generated any recommendations yet.
+    return `${baseInstruction}
 
-Provide general guidance about cannabis experiences, effects, and how the recommendation system works. Be helpful and professional.`;
+The user hasn't generated any recommendations yet. Provide general guidance.`;
 }
 
 /**

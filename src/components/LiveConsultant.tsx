@@ -107,22 +107,66 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         setMessages(prev => [...prev, newUserMessage]);
         setIsLoading(true);
 
-        // PROMPT 8: Final Sanity Rule Invariant
-        if (context?.recommendation && !context.recommendation.name) {
-            console.warn("⚠️ SANITY RULE VIOLATION: Assistant is speaking but doesn't know what the user is looking at (Missing Recommendation Context).");
-        } else if (context?.recommendation) {
-            console.log(`🧠 SANITY RULE: Assistant is aware of UI context [${context.recommendation.name}]`);
-        }
-
         try {
-            // Call conversation facade (read-only, lightweight)
+            // Import trigger function dynamically (or from module)
+            const { callLLMChat, triggerRefactor } = await import('../lib/llmChat');
+
+            // Call conversation facade (read-only first)
             const response = await callLLMChat(
                 [...messages, newUserMessage].map(m => ({ role: m.role, content: m.content })),
-                context // Explicitly pass context
+                context
             );
 
-            // Show text response (chat is read-only, no data mutations)
-            setMessages(prev => [...prev, { role: 'assistant', content: response.text }]);
+            // CHECK FOR REFACTOR TAG
+            const refactorMatch = response.text.match(/\[\[REFACTOR:\s*(.*?)\]\]/);
+
+            if (refactorMatch) {
+                // 1. Extract the Clean Text (Hide the tag)
+                const cleanText = response.text.replace(/\[\[REFACTOR:.*?\]\]/, '').trim();
+                const query = refactorMatch[1];
+
+                // 2. Show the confirmation text immediately
+                setMessages(prev => [...prev, { role: 'assistant', content: cleanText }]);
+
+                // 3. Trigger the Refactor (Authoritative)
+                console.log(`[LiveConsultant] Detected ACTION INTENT: ${query}`);
+
+                // Show a "Thinking/Processing" indicator message? 
+                // Alternatively, the UI is blocked by isLoading, generally. 
+                // But we want to show we are "Working on it".
+                const busyMessageId = Date.now();
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `🔄 **Updating Blends...**\nRunning engine with query: "${query}"`
+                }]);
+
+                const result = await triggerRefactor(query, {
+                    mode: 'blend-engine' // Force engine mode
+                });
+
+                // 4. Validate and Apply
+                if (result.success && result.data.length > 0) {
+                    // Success!
+                    // Remove busy message if possible, or just append success.
+                    setMessages(prev => prev.filter(m => !m.content.includes('Updating Blends')));
+
+                    setMessages(prev => [...prev, {
+                        role: 'assistant',
+                        content: "✅ **Update Complete.**\nI've refactored your recommendations based on your request."
+                    }]);
+
+                    // Apply to App State
+                    if (onApplyResult) {
+                        onApplyResult(result.data);
+                    }
+                } else {
+                    throw new Error("Engine returned no results");
+                }
+
+            } else {
+                // Standard Chat Response (No Action)
+                setMessages(prev => [...prev, { role: 'assistant', content: response.text }]);
+            }
 
         } catch (error) {
             console.error("Live Consultant Error:", error);

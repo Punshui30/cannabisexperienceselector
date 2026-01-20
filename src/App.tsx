@@ -476,6 +476,14 @@ export default function App() {
                   if (adaptedSet.length > 0) {
                     setBlendRecs(adaptedSet);
                     setView('results');
+
+                    // UPDATE SNAPSHOT so Facade knows about the new state
+                    updateEngineSnapshot({
+                      inputs: "Live Consultant Refactor", // Generic label since we don't have the exact query here easily
+                      results: adaptedSet,
+                      summary: "Refactored via Live Consultant"
+                    });
+
                     console.log(`APP: Successfully replaced ${adaptedSet.length} recommendations recursively.`);
                   }
                 }}

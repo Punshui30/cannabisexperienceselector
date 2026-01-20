@@ -35,3 +35,23 @@ export async function callLLMChat(
     // Route to conversation facade (read-only, lightweight)
     return conversationFacadeChat(messages, context);
 }
+
+/**
+ * Trigger the heavy orchestrator (ONLY called when explicitly requested via chat)
+ */
+export async function triggerRefactor(
+    query: string,
+    context?: any
+): Promise<any> {
+    console.log('[llmChat] Triggering AUTHORITATIVE REFACTOR with query:', query);
+
+    // Dynamic import to avoid circular dependency in standard chat path
+    const { processIntent } = await import('./llmOrchestrator');
+
+    // Call the engine
+    return processIntent(
+        { text: query, mode: 'engine' },
+        context || {},
+        'blend-engine'
+    );
+}
