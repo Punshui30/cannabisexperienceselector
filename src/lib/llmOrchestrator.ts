@@ -202,8 +202,15 @@ export async function processIntent(
         }
 
         // 3. UNIFIED NARRATIVE SYNERGY (Unified LLM Call)
+        // GUARD: Stacks must NEVER use the Narrative Adapter (Anti-Gravity Protocol)
+        const isStack = seed.kind === 'stack';
+
+        if (isStack) {
+            console.log('ORCHESTRATOR: Stack Mode detected. Bypassing Narrative Adapter & Blend-Specific Validation.');
+        }
+
         console.log('ORCHESTRATOR: New Narrative Generation (Authoritative)');
-        if (engineResults.length >= 2) { // At least Primary and Secondary
+        if (!isStack && engineResults.length >= 2) { // At least Primary and Secondary
             const variants = {
                 primary: engineResults[0],
                 secondary: engineResults[1],
@@ -233,15 +240,18 @@ export async function processIntent(
             }
         }
 
-        // 4. HARD VALIDATION
-        const validationError = validateStrict(engineResults);
-        if (validationError) {
-            console.error(`ORCHESTRATOR VALIDATION FAILED: ${validationError}`);
-            return {
-                success: false,
-                data: [],
-                error: `Validation Failed. System Integrity Check: ${validationError}`
-            };
+        // 4. HARD VALIDATION (BLENDS ONLY)
+        // GUARD: Stacks bypass strict blend validation (which requires >=2 cultivars)
+        if (!isStack) {
+            const validationError = validateStrict(engineResults);
+            if (validationError) {
+                console.error(`ORCHESTRATOR VALIDATION FAILED: ${validationError}`);
+                return {
+                    success: false,
+                    data: [],
+                    error: `Validation Failed. System Integrity Check: ${validationError}`
+                };
+            }
         }
 
         console.log('ORCHESTRATOR: Process Complete - Success');
