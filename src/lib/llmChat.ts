@@ -122,12 +122,14 @@ export async function callLLMChat(
         }
 
         // Unexpected error
-        console.error("💥 FATAL ORCHESTRATOR EXCEPTION");
+        console.error("❌ LLM CHAT ERROR:", error);
         console.error("ERROR:", error);
         console.groupEnd();
 
-        'Fatal orchestrator exception: ' + (error instanceof Error ? error.message : String(error)),
-            false // orchestrator may not have executed
-        );
+        // Return error response instead of throwing
+        return {
+            text: "I'm having trouble connecting to the engine right now. Please try again.",
+            data: undefined
+        };
     }
 }
