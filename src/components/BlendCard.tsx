@@ -1,5 +1,3 @@
-// Density adjustment applied
-import { motion, AnimatePresence } from 'motion/react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
