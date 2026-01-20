@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
-import { Send, X, Mic, Terminal, Check } from 'lucide-react';
+import { Send, X, Mic, Sparkles, Check, Brain } from 'lucide-react';
 
 interface LiveConsultantProps {
     consultantText?: string;
@@ -119,18 +119,18 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl font-mono">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
             <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
-                className="w-full max-w-lg h-[60vh] flex flex-col border border-white/20 bg-black shadow-2xl overflow-hidden"
+                className="w-full max-w-lg h-[60vh] flex flex-col glass-card-neon-green shadow-2xl overflow-hidden border-[#00FFD120]"
             >
                 {/* SYSTEM HEADER */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
                     <div className="flex items-center gap-2 text-[#00FFD1]">
-                        <Terminal size={14} />
-                        <span className="text-xs font-bold tracking-widest uppercase">System Overlay</span>
+                        <Sparkles size={14} />
+                        <span className="text-[10px] font-bold tracking-widest uppercase">Live Assistant</span>
                     </div>
                     <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
                         <X size={16} />
@@ -138,10 +138,15 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                 </div>
 
                 {/* TERMINAL LOG */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-xs">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {messages.map((m, i) => (
-                        <div key={i} className={`flex flex-col ${m.role === 'user' ? 'text-white/60' : 'text-[#00FFD1]'}`}>
-                            <span className="whitespace-pre-wrap leading-relaxed">{m.content}</span>
+                        <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                            <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${m.role === 'user'
+                                    ? 'bg-[#00FFD1] text-black font-semibold rounded-tr-none'
+                                    : 'bg-white/5 border border-white/10 text-white rounded-tl-none'
+                                }`}>
+                                {m.content.replace('> ', '')}
+                            </div>
                         </div>
                     ))}
 
@@ -154,15 +159,14 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                 </div>
 
                 {/* INPUT LINE */}
-                <div className="p-3 border-t border-white/10 bg-black">
+                <div className="p-3 border-t border-white/10 bg-white/5">
                     <div className="flex items-center gap-2">
-                        <span className="text-[#00FFD1] text-xs font-bold">{`>`}</span>
                         <input
                             type="text"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyPress={handleKeyPress}
-                            className="flex-1 bg-transparent border-none text-white text-xs focus:outline-none placeholder-white/20 font-mono"
+                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white text-xs focus:outline-none focus:border-[#00FFD1]/50 placeholder-white/20"
                             placeholder={isLoading ? "Processing..." : "Enter command..."}
                             disabled={isLoading || isRefactorComplete}
                             autoFocus

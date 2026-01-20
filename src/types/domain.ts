@@ -9,7 +9,7 @@ import { BlendEvaluation } from "../lib/calculationEngine";
 export interface IntentSeed {
     text: string;
     kind: 'stack' | 'blend';
-    mode: 'preset' | 'engine';
+    mode: 'preset' | 'engine' | 'strain';
     image?: string;
     // Legacy optional fields if cleaning up elsewhere
     strainName?: string;

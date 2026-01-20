@@ -204,12 +204,13 @@ export async function processIntent(
         // 3. UNIFIED NARRATIVE SYNERGY (Unified LLM Call)
         // GUARD: Stacks must NEVER use the Narrative Adapter (Anti-Gravity Protocol)
         const isStack = seed.kind === 'stack';
+        const isStrainMode = seed.mode === 'strain';
 
         if (isStack) {
             console.log('ORCHESTRATOR: Stack Mode detected. Bypassing Narrative Adapter & Blend-Specific Validation.');
         }
 
-        console.log('ORCHESTRATOR: New Narrative Generation (Authoritative)');
+        console.log('ORCHESTRATOR: Narrative Generation Phase');
         if (!isStack && engineResults.length >= 2) { // At least Primary and Secondary
             const variants = {
                 primary: engineResults[0],
@@ -217,6 +218,7 @@ export async function processIntent(
                 contextual: engineResults[2] || engineResults[0] // Fallback if no contextual
             };
 
+            // Attempt LLM-driven narratives with full intent context
             const narratives = await generateNarratives(seed.text || "", intentSpec, variants);
 
             if (narratives) {
@@ -232,11 +234,40 @@ export async function processIntent(
                     engineResults[2].reasoning = narratives.contextual.explanation;
                 }
             } else {
-                console.warn('ORCHESTRATOR: Narrative generation failed. Blends will have engine defaults.');
-                // Fallback to basic names if LLM fails (failsafe)
-                engineResults[0].name = "Formulation Alpha";
-                engineResults[1].name = "Formulation Beta";
-                if (engineResults[2]) engineResults[2].name = "Formulation Gamma";
+                console.warn('ORCHESTRATOR: Narrative generation failed. Blends will use intent-aware fallback.');
+
+                // MID-FIDELITY FALLBACK: Use intent reasoning to build a generic but relevant description
+                const intentSummary = intentSpec.reasoning.replace('Local Analysis: ', '');
+
+                engineResults[0].name = "Targeted Formulation";
+                engineResults[0].reasoning = `A precise blend designed to address your goal of ${intentSummary}. ${engineResults[0].reasoning}`;
+
+                engineResults[1].name = "Alternative Spectrum";
+                engineResults[1].reasoning = `An adjacent profile optimized for a slightly different emphasis on your ${intentSummary} goal. ${engineResults[1].reasoning}`;
+
+                if (engineResults[2]) {
+                    engineResults[2].name = "Contextual Variation";
+                    engineResults[2].reasoning = `A variant tuned for the specific environment or time context implied by your request. ${engineResults[2].reasoning}`;
+                }
+            }
+        }
+
+        // ISSUE 3: STRAIN MODE ACKNOWLEDGMENT
+        if (isStrainMode && !isStack && engineResults.length > 0) {
+            const requestedStrain = seed.text || "requested strain";
+            console.log(`ORCHESTRATOR: Applying strain-anchored acknowledgment for "${requestedStrain}"`);
+
+            // Check if primary result contains the actual strain
+            const primaryMatch = engineResults[0].cultivars?.some(c =>
+                c.name.toLowerCase().includes(requestedStrain.toLowerCase()) ||
+                requestedStrain.toLowerCase().includes(c.name.toLowerCase())
+            );
+
+            if (primaryMatch) {
+                engineResults[0].reasoning = `Centered on ${requestedStrain}. This formulation utilizes the specific profile of your requested cultivar as the anchor for the experience.`;
+            } else {
+                // Similarity fallback
+                engineResults[0].reasoning = `A functionally similar alternative to ${requestedStrain}. Using the specific terpene and cannabinoid ratios of ${requestedStrain} as a blueprint to recreate that experience with currently available cultivars.`;
             }
         }
 

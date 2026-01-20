@@ -90,12 +90,12 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
     const input: UserInput = {
       kind: 'blend',
-      mode: 'engine',
+      mode: mode === 'strain' ? 'strain' : 'engine',
       text: mode === 'describe'
         ? description
         : mode === 'strain'
           ? `${strainName}${growerName ? ' by ' + growerName : ''}`.trim()
-          : "Product Image Input", // Fallback text for image-only
+          : "Product Image Input",
       image: mode === 'product' && uploadedImage ? URL.createObjectURL(uploadedImage) : undefined,
       strainName: mode === 'strain' ? strainName : undefined,
       grower: mode === 'strain' ? growerName : undefined
