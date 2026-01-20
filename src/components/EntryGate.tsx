@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // FORCE_UPDATE: 2026-01-20-T14-41
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, ArrowRight, Info, User, Settings, Zap, Shield } from 'lucide-react';
 import logoImg from '../assets/logo.png';
