@@ -21,18 +21,18 @@ export function getGlassCardStyles(primaryColor: string = '#00FFD1', secondaryCo
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
 
         // Layer 2: Hairline perimeter with subtle iridescent hint
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
         boxShadow: `
-            inset 0 0 0 1px ${primaryColor}12,
+            inset 0 0 0 1px ${primaryColor}30,
             0 8px 32px rgba(0, 0, 0, 0.4),
             0 2px 8px rgba(0, 0, 0, 0.2)
         `,
 
-        // Gradient border effect (subtle)
+        // Gradient border effect (subtle -> distinct)
         borderImage: `linear-gradient(135deg, 
-            ${primaryColor}20, 
+            ${primaryColor}50, 
             transparent, 
-            ${gradientColor}20
+            ${gradientColor}50
         ) 1`,
     };
 }

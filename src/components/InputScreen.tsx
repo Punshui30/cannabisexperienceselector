@@ -5,6 +5,7 @@ import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { SwipeDeck } from './SwipeDeck';
 import { PublicFeed } from './PublicFeed';
+import { LiveNetworkDrawer } from './LiveNetworkDrawer';
 import logoImg from '../assets/logo.png';
 
 // --- DESIGN TOKENS ---
@@ -363,77 +364,75 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           )}
         </AnimatePresence>
 
-        {/* --- SCENARIOS (Flexible height) --- */}
-        {/* --- SCENARIOS (Fixed Height Block) --- */}
-        <div className="w-full relative flex flex-col gap-2 shrink-0">
-          <div className="flex justify-between items-end mb-2 flex-shrink-0">
-            <div>
-              <h3 className="text-white text-lg font-light serif">Start with a Scenario</h3>
-              <p className="text-white/40 text-xs">Tap to populate</p>
-            </div>
-          </div>
+      </div>
 
-          <div className="w-full relative h-72"> {/* Fixed Height for Absolute Cards */}
-            <SwipeDeck
-              items={BLEND_SCENARIOS}
-              enableGuidance={true}
-              renderItem={(scenario, isActive) => (
-                <div className="w-full h-full pr-4 pb-4">
-                  <button
-                    onClick={() => {
-                      // PHASE 1: POPULATE ONLY
-                      setMode('describe');
-                      setDescription(scenario.inputText);
-                    }}
-                    className="w-full h-full text-left p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all flex flex-col justify-between group relative overflow-hidden"
+      {/* --- SCENARIOS (Flexible height) --- */}
+      {/* --- SCENARIOS (Fixed Height Block) --- */}
+      <div className="w-full relative flex flex-col gap-2 shrink-0">
+        <div className="flex justify-between items-end mb-2 flex-shrink-0">
+          <div>
+            <h3 className="text-white text-lg font-light serif">Start with a Scenario</h3>
+            <p className="text-white/40 text-xs">Tap to populate</p>
+          </div>
+        </div>
+
+        <div className="w-full relative h-72"> {/* Fixed Height for Absolute Cards */}
+          <SwipeDeck
+            items={BLEND_SCENARIOS}
+            enableGuidance={true}
+            renderItem={(scenario, isActive) => (
+              <div className="w-full h-full pr-4 pb-4">
+                <button
+                  onClick={() => {
+                    // PHASE 1: POPULATE ONLY
+                    setMode('describe');
+                    setDescription(scenario.inputText);
+                  }}
+                  className="w-full h-full text-left p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all flex flex-col justify-between group relative overflow-hidden"
+                  style={{
+                    // Layer 2: Hairline perimeter (entire card)
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    boxShadow: `inset 0 0 0 1px ${scenario.visualProfile.color}30`
+                  }}
+                >
+                  {/* Layer 1: Top-weighted iridescent accent */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[3px] opacity-80 group-hover:opacity-100 transition-opacity"
                     style={{
-                      // Layer 2: Hairline perimeter (entire card)
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      boxShadow: `inset 0 0 0 1px ${scenario.visualProfile.color}15`
-                    }}
-                  >
-                    {/* Layer 1: Top-weighted iridescent accent */}
-                    <div
-                      className="absolute top-0 left-0 right-0 h-[2px] opacity-60 group-hover:opacity-90 transition-opacity"
-                      style={{
-                        background: `linear-gradient(90deg, 
+                      background: `linear-gradient(90deg, 
                           transparent 0%, 
-                          ${scenario.visualProfile.color}40 20%, 
-                          ${scenario.visualProfile.color}80 50%, 
-                          ${scenario.visualProfile.color}40 80%, 
+                          ${scenario.visualProfile.color}80 20%, 
+                          ${scenario.visualProfile.color} 50%, 
+                          ${scenario.visualProfile.color}80 80%, 
                           transparent 100%)`,
-                        filter: 'blur(0.5px)'
-                      }}
-                    />
+                      filter: 'blur(0.5px)'
+                    }}
+                  />
 
-                    <div>
-                      <h4 className="text-xl font-light text-white mb-1 serif">{scenario.title}</h4>
-                      <p className="text-xs uppercase tracking-widest text-white/40 mb-4">{scenario.subtitle}</p>
-                      <p className="text-sm text-white/80 leading-relaxed font-light italic">
-                        "{scenario.inputText}"
-                      </p>
+                  <div>
+                    <h4 className="text-xl font-light text-white mb-1 serif">{scenario.title}</h4>
+                    <p className="text-xs uppercase tracking-widest text-white/40 mb-4">{scenario.subtitle}</p>
+                    <p className="text-sm text-white/80 leading-relaxed font-light italic">
+                      "{scenario.inputText}"
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-[10px] uppercase tracking-widest text-[#00FFD1] opacity-0 group-hover:opacity-100 transition-opacity">Set Intent</span>
+                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:text-white group-hover:bg-[#00FFD1] group-hover:text-black transition-all">
+                      <Search size={14} />
                     </div>
-
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="text-[10px] uppercase tracking-widest text-[#00FFD1] opacity-0 group-hover:opacity-100 transition-opacity">Set Intent</span>
-                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:text-white group-hover:bg-[#00FFD1] group-hover:text-black transition-all">
-                        <Search size={14} />
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              )}
-            />
-          </div>
-
-          {/* --- PUBLIC FEED (Downstream Consumer) --- */}
-          <div className="w-full shrink-0 mt-4 mb-12">
-            <PublicFeed />
-          </div>
-
+                  </div>
+                </button>
+              </div>
+            )}
+          />
         </div>
 
       </div>
+
+      {/* --- LIVE NETWORK DRAWER (Fixed Overlay) --- */}
+      <LiveNetworkDrawer />
 
       {/* --- FOOTER (Fixed) --- */}
       <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3">

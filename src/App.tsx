@@ -16,6 +16,7 @@ import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { LiveConsultant } from './components/LiveConsultant';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { LiveExperienceFeed } from './components/LiveExperienceFeed';
+import { Intelligence } from './lib/merchantIntelligence';
 import { GlobalCultivarProvider } from './context/GlobalCultivarContext';
 import { Brain, Sparkles } from 'lucide-react';
 import { processIntent } from './lib/llmOrchestrator';
@@ -206,6 +207,21 @@ export default function App() {
             if (allAdapted.length > 0) {
               setBlendRecs(allAdapted);
               setIsAnalyzing(false);
+
+              // MERCHANT INTELLIGENCE: Log the resolution
+              // We log the Primary blend for analytics
+              const primary = allAdapted[0];
+              if (primary.kind === 'blend') {
+                Intelligence.logResolution({
+                  inputMode: userInput.mode as any,
+                  inputText: userInput.text,
+                  blendId: primary.id,
+                  blendName: primary.name,
+                  confidenceScore: primary.matchScore,
+                  componentSkus: primary.cultivars.map(c => c.name),
+                  outcomeCategory: 'Other' // Default for now, engine should return this
+                });
+              }
             } else {
               throw new Error("Adapter returned null result for all items");
             }
@@ -440,10 +456,10 @@ export default function App() {
                   // Wait, processIntent returns OrchestratorResult { data: EngineResult[] }
                   // callback receives response.data[0] which IS an EngineResult.
 
-                  const adapted = adaptEngineResult([newResult]); // Adapt single result
+                  const adapted = adaptEngineResult(newResult); // Adapt single result
 
-                  if (adapted.length > 0) {
-                    const rec = adapted[0];
+                  if (adapted) {
+                    const rec = adapted;
 
                     if (rec.kind === 'blend') {
                       // Update Blends
