@@ -14,8 +14,26 @@ interface BlendCardProps {
 }
 
 export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, onOpenConsultant, index = 0 }: BlendCardProps) {
-  // Removed local Feedback state
+  // Derive accent color from outcome category
+  const outcomeColors = {
+    'Focus': '#00FFD1',
+    'Relax': '#A855F7',
+    'Sleep': '#6366F1',
+    'Social': '#EAB308',
+    'Relief': '#34D399',
+    'Other': '#ffffff'
+  };
 
+  // Need to find outcome category - check reasoning or effect tags
+  let category: keyof typeof outcomeColors = 'Other';
+  const text = (recommendation.reasoning || '').toLowerCase();
+  if (text.includes('focus') || text.includes('energy')) category = 'Focus';
+  else if (text.includes('relax') || text.includes('calm')) category = 'Relax';
+  else if (text.includes('sleep') || text.includes('night')) category = 'Sleep';
+  else if (text.includes('social') || text.includes('fun')) category = 'Social';
+  else if (text.includes('pain') || text.includes('relief')) category = 'Relief';
+
+  const accentColor = outcomeColors[category];
 
   // ADAPTER: Convert Blend to Stack Shape for Visualization
   const stackData: UIStackRecommendation = {
@@ -52,7 +70,25 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
         transition={{ delay: index * 0.1 }}
         className="relative w-full max-w-sm mx-auto z-10"
       >
-        <CardShell className="relative overflow-hidden group">
+        <CardShell
+          className="relative overflow-hidden group border border-white/10"
+          style={{
+            boxShadow: `inset 0 0 0 1px ${accentColor}20`
+          }}
+        >
+          {/* Layer 1: Top-weighted iridescent accent */}
+          <div
+            className="absolute top-0 left-0 right-0 h-[4px] opacity-80 group-hover:opacity-100 transition-opacity"
+            style={{
+              background: `linear-gradient(90deg, 
+                  transparent 0%, 
+                  ${accentColor}80 20%, 
+                  ${accentColor} 50%, 
+                  ${accentColor}80 80%, 
+                  transparent 100%)`,
+              filter: 'blur(0.5px)'
+            }}
+          />
 
           {/* HEADER */}
           <div className="flex justify-between items-start mb-6 relative z-10">
@@ -111,8 +147,6 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
               </p>
             </div>
           )}
-
-          {/* EFFECTS TIMELINE - Removed, using Actions instead */}
 
           {/* ACTIONS */}
           <div className="space-y-3 relative z-10">

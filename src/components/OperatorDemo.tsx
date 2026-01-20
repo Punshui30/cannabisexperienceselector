@@ -12,124 +12,87 @@ type DemoScene = {
 
 const DEMO_SCENES: DemoScene[] = [
   {
-    title: 'The Problem',
+    title: 'The Challenge',
     narration: [
-      'A customer buys "Bubba Kush" from your store.',
-      'They like how it feels.',
-      'They come back expecting the same result.',
-      'But the next batch feels different.',
-      'The strain name stayed the same, but the experience didn\'t.'
+      'Customers expect consistency, but cannabis chemistry is naturally variable.',
+      '"Blue Dream" from Grower A isn\'t the same as "Blue Dream" from Grower B.',
+      'When the batch changes, the customer experience shifts.',
+      'This variability creates friction and loss of trust at the counter.'
     ],
-    caption: 'Strain names are labels, not guarantees.',
-    visual: 'problem', // Using existing visual for inconsistency
-    duration: 14
-  },
-  {
-    title: 'The Business Cost',
-    narration: [
-      'The customer is confused.',
-      'They lose confidence in your recommendations.',
-      'They might leave without buying, or stop trusting that name entirely.',
-      'Inconsistency breaks loyalty faster than price.'
-    ],
-    caption: 'Inconsistency breaks loyalty.',
-    visual: 'business',
+    caption: 'Chemistry varies. Outcomes shouldn\'t.',
+    visual: 'problem',
     duration: 12
   },
   {
-    title: 'Why It Happens',
+    title: 'The Data Gap',
     narration: [
-      'Cannabis chemistry changes by batch, grower, and environment.',
-      'Budtenders can\'t control that variability.',
-      'Strain lore doesn\'t account for it.',
-      'This isn\'t a staff problem. It\'s a system problem.'
+      'Budtenders are forced to guess based on strain names or "Indica/Sativa" labels.',
+      'These categories or labels are too broad to predict specific therapeutic effects.',
+      'Without lab-verified intelligence, every sale is a chemical variable.',
+      'StrainMath™ bridges the gap between lab data and human experience.'
     ],
-    caption: 'It\'s a system problem.',
-    visual: 'scan', // Visual implies looking simpler at data
-    duration: 12
-  },
-  {
-    title: 'The Solution',
-    narration: [
-      'StrainMath™ focuses on outcomes, not strain names.',
-      'We use lab-verified COAs from your actual inventory.',
-      'We build blends with precise ratios to target specific feelings.',
-      'Blends are repeatable even when individual strains vary.'
-    ],
-    caption: 'Blends create consistency.',
-    visual: 'recommendation', // Shows the solution structure
-    duration: 14
-  },
-  {
-    title: 'Budtender Support',
-    narration: [
-      'This platform supports budtenders during peak traffic.',
-      'Customers can explore guided recommendations while waiting.',
-      'Staff spend less time guessing and more time helping.',
-      'Consistent intelligence, even on your busiest days.'
-    ],
-    caption: 'Supports your team, doesn\'t replace them.',
-    visual: 'unique',
-    duration: 14
-  },
-  {
-    title: 'Platform Intelligence',
-    narration: [
-      'Your in-store system generates aggregated, anonymized intelligence.',
-      'This can be surfaced publicly for brand awareness and education.',
-      'Public intelligence is read-only and non-executable.',
-      'It shapes demand without diluting your in-store exclusivity.'
-    ],
-    caption: 'Intelligence as a brand asset.',
+    caption: 'Labels are not guarantees.',
     visual: 'scan',
-    duration: 14
+    duration: 12
   },
   {
-    title: 'Deployment Flexibility',
+    title: 'The Solution: Outcomes',
     narration: [
-      'Single-dispensary mode: fully tied to your live menu and COAs.',
-      'Multi-partner mode: consistent intelligence across locations.',
-      'Each deployment uses real COA data, not generic profiles.',
-      'The platform scales with your business model.'
+      'We focus on chemical outcomes, not historical strain lore.',
+      'Our engine analyzes your live inventory COAs in real-time.',
+      'We generate precise cultivar blends designed to hit target feelings.',
+      'Consistency is maintained even as individual strains rotate in and out.'
     ],
-    caption: 'One platform. Multiple deployment paths.',
+    caption: 'From Strain Names to Engineered Outcomes.',
     visual: 'recommendation',
     duration: 14
   },
   {
-    title: 'Business Upside',
+    title: 'Operational Efficiency',
     narration: [
-      'One recommendation uses 2–3 cultivars.',
-      'Average cart size increases naturally.',
-      'Decision time at the counter decreases.',
-      'Budtenders spend less time guessing and more time helping.'
+      'Budtenders can resolve complex customer queries in seconds.',
+      'Guided recommendations help manage peak traffic at the counter.',
+      'Staff confidence increases as they become experts in chemistry.',
+      'Faster decision-making means higher throughput and shorter waits.'
     ],
-    caption: 'Faster decisions, bigger baskets.',
-    visual: 'cart',
-    duration: 12
-  },
-  {
-    title: 'Differentiation',
-    narration: [
-      'You aren\'t removing strain culture.',
-      'You are upgrading it.',
-      'Your store becomes the authority on consistent outcomes.',
-      'This is a new category, not a gimmick.'
-    ],
-    caption: 'Upgrade your strain culture.',
+    caption: 'Empower your team with data.',
     visual: 'unique',
     duration: 12
   },
   {
-    title: 'Final',
+    title: 'Live Network Intelligence',
     narration: [
-      'Consistent availability.',
-      'Reliable experiences.',
-      'Loyal customers.'
+      'The platform generates an anonymized Live Network feed.',
+      'Surface your store\'s intelligence publicly to build authority.',
+      'Customers can explore successful outcomes from their community.',
+      'Building trust through transparency and data-backed success.'
     ],
-    caption: 'Consistency. Confidence. Loyalty.',
+    caption: 'A Network of Reliable Intelligence.',
+    visual: 'scan',
+    duration: 12
+  },
+  {
+    title: 'Revenue Impact',
+    narration: [
+      'One outcome recommendation typically includes 2 to 3 cultivars.',
+      'This naturally increases average cart size (AOV).',
+      'Repeat business grows as customers find reliable results.',
+      'Turning chemistry into a predictable business asset.'
+    ],
+    caption: 'Drive loyalty and growth through data.',
+    visual: 'cart',
+    duration: 12
+  },
+  {
+    title: 'The Result',
+    narration: [
+      'Predictable effects.',
+      'Confident budtenders.',
+      'Loyal, satisfied customers.'
+    ],
+    caption: 'Guidance. Consistency. Confidence.',
     visual: 'final',
-    duration: 8
+    duration: 10
   }
 ];
 

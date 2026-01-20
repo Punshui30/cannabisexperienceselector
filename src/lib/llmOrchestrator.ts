@@ -331,6 +331,10 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
         spec.avoidEffects.push("paranoia");
         spec.terpenePreferences.include.push("Linalool", "Caryophyllene");
     }
+    else if (text.includes('pain') || text.includes('relief') || text.includes('ache') || text.includes('sore')) {
+        spec.targetEffects = ["pain relief", "physical comfort"];
+        spec.terpenePreferences.include.push("Caryophyllene", "Myrcene", "Humulene");
+    }
 
     return spec;
 }

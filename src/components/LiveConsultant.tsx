@@ -112,13 +112,23 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
             setMessages(prev => [...prev, { role: 'assistant', content: response.text }]);
 
             // 2. Apply Data Result (if any)
-            if (response.data && response.data.length > 0 && onApplyResult) {
-                console.log("🚀 LIVE CONSULTANT: Applying new result...", response.data[0]);
+            if (response.data && response.data.length > 0) {
+                const resultToApply = response.data[0];
+                console.log("🚀 LIVE CONSULTANT: Result found, checking for onApplyResult prop...");
 
-                // Small delay to let the user read/see the "Adjusting..." message before the swap happens
-                setTimeout(() => {
-                    onApplyResult(response.data[0]);
-                }, 1500);
+                if (typeof onApplyResult === 'function') {
+                    console.log("🚀 LIVE CONSULTANT: Callback found. Applying in 1.5s...", resultToApply.name);
+                    setTimeout(() => {
+                        console.log("🚀 LIVE CONSULTANT: Executing callback...");
+                        try {
+                            onApplyResult(resultToApply);
+                        } catch (cbErr) {
+                            console.error("❌ LIVE CONSULTANT: Callback execution failed:", cbErr);
+                        }
+                    }, 1500);
+                } else {
+                    console.warn("⚠️ LIVE CONSULTANT: onApplyResult is not a function or is missing:", onApplyResult);
+                }
             }
 
         } catch (error) {

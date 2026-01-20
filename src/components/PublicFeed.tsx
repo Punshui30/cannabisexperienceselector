@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Intelligence, BlendResolutionEvent } from '../lib/merchantIntelligence';
 import { Layers, Activity, Lock, Globe } from 'lucide-react';
+import { NetworkDetailModal } from './NetworkDetailModal';
 
 export function PublicFeed() {
     const [events, setEvents] = useState<BlendResolutionEvent[]>([]);
+    const [selectedEvent, setSelectedEvent] = useState<BlendResolutionEvent | null>(null);
 
     useEffect(() => {
         // Poll for new events (Downstream Consumer Pattern)
@@ -52,8 +54,7 @@ export function PublicFeed() {
                             transition={{ duration: 0.4, type: "spring" }}
                             onClick={() => {
                                 console.log('🔍 Feed item clicked:', event.blendName);
-                                // TODO: Navigate to blend detail or show modal
-                                alert(`Blend: ${event.blendName}\nOutcome: ${event.outcomeCategory}\nComponents: ${event.componentSkus.join(', ')}`);
+                                setSelectedEvent(event);
                             }}
                             className="w-full bg-white/5 border border-white/5 rounded-xl p-3 backdrop-blur-md flex items-center gap-3 group hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all cursor-pointer"
                         >
@@ -94,6 +95,15 @@ export function PublicFeed() {
                     ))}
                 </AnimatePresence>
             </div>
+
+            <AnimatePresence>
+                {selectedEvent && (
+                    <NetworkDetailModal
+                        event={selectedEvent}
+                        onClose={() => setSelectedEvent(null)}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Disclaimer */}
             <div className="px-2 text-center">
