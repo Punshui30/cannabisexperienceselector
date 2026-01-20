@@ -364,7 +364,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
         </AnimatePresence>
 
         {/* --- SCENARIOS (Flexible height) --- */}
-        <div className="flex-1 min-h-[200px] relative flex flex-col">
+        {/* --- SCENARIOS (Fixed Height Block) --- */}
+        <div className="w-full relative flex flex-col gap-2 shrink-0">
           <div className="flex justify-between items-end mb-2 flex-shrink-0">
             <div>
               <h3 className="text-white text-lg font-light serif">Start with a Scenario</h3>
@@ -372,7 +373,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
             </div>
           </div>
 
-          <div className="flex-1 relative min-h-0">
+          <div className="w-full relative h-72"> {/* Fixed Height for Absolute Cards */}
             <SwipeDeck
               items={BLEND_SCENARIOS}
               enableGuidance={true}
@@ -409,7 +410,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           </div>
 
           {/* --- PUBLIC FEED (Downstream Consumer) --- */}
-          <div className="flex-shrink-0 mt-8 mb-4">
+          <div className="w-full shrink-0 mt-4 mb-12">
             <PublicFeed />
           </div>
 
