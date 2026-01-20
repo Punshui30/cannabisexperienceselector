@@ -269,10 +269,14 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
       </div>
 
       {/* --- BODY (Scrollable/Flexible) --- */}
-      <div className="flex-1 overflow-y-auto px-6 pb-4 min-h-0 flex flex-col gap-4"> {/* Gap for spacing */}
+      <div className="flex-1 overflow-y-auto px-6 pb-32 min-h-0 flex flex-col gap-4"> {/* Increased padding-bottom to pb-32 */}
         <AnimatePresence mode="wait">
           {mode === 'describe' && (
             <motion.div
+              // ... (omitted unchanging parts for brevity if tool supported it, but here full redraw of container structure isn't needed, just the top div class change)
+
+              // Actually, I must replace the exact lines. Let's target the BODY div opening and FOOTER area.
+
               key="describe"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -453,7 +457,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
         <button
           onClick={handleSubmit}
           disabled={!canSubmit()}
-          className={`w-full btn-neon-green max-[360px]:py-2.5 max-[360px]:text-xs ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+          className={`w-full btn-neon-green py-5 max-[360px]:py-3 max-[360px]:text-xs ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
         >
           Generate Recommendations
         </button>

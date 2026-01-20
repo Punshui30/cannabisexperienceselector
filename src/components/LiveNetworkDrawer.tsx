@@ -25,14 +25,14 @@ export function LiveNetworkDrawer() {
             {/* The Trigger / Collapsed State */}
             {!isOpen && (
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    className="fixed bottom-36 left-0 right-0 z-50 px-6 max-[420px]:px-4 pointer-events-none flex justify-center"
+                    exit={{ opacity: 0, y: -20 }}
+                    className="fixed top-4 left-4 z-50 pointer-events-none flex justify-start"
                 >
                     <button
                         onClick={() => setIsOpen(true)}
-                        className="flex items-center gap-3 px-4 py-2 bg-black/80 hover:bg-black/90 backdrop-blur-xl border border-white/20 rounded-full transition-all shadow-lg shadow-black/50 group pointer-events-auto"
+                        className="flex items-center gap-3 px-3 py-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/10 rounded-full transition-all shadow-lg shadow-black/50 group pointer-events-auto"
                     >
                         <div className="flex items-center gap-3">
                             <div className="relative flex h-2 w-2">
