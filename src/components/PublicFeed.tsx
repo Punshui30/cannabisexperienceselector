@@ -43,14 +43,19 @@ export function PublicFeed() {
 
                 <AnimatePresence mode="popLayout">
                     {events.map((event) => (
-                        <motion.div
+                        <motion.button
                             key={event.id}
                             layout
                             initial={{ opacity: 0, x: -20, scale: 0.95 }}
                             animate={{ opacity: 1, x: 0, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.4, type: "spring" }}
-                            className="bg-white/5 border border-white/5 rounded-xl p-3 backdrop-blur-md flex items-center gap-3 group hover:bg-white/10 transition-colors"
+                            onClick={() => {
+                                console.log('🔍 Feed item clicked:', event.blendName);
+                                // TODO: Navigate to blend detail or show modal
+                                alert(`Blend: ${event.blendName}\nOutcome: ${event.outcomeCategory}\nComponents: ${event.componentSkus.join(', ')}`);
+                            }}
+                            className="w-full bg-white/5 border border-white/5 rounded-xl p-3 backdrop-blur-md flex items-center gap-3 group hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all cursor-pointer"
                         >
                             {/* Outcome Icon */}
                             <div className={`
@@ -85,7 +90,7 @@ export function PublicFeed() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </motion.button>
                     ))}
                 </AnimatePresence>
             </div>
