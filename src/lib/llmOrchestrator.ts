@@ -202,7 +202,7 @@ export async function processIntent(
         }
 
         // 3. UNIFIED NARRATIVE SYNERGY (Unified LLM Call)
-        console.log('ORCHESTRATOR: Generating Unified Narratives...');
+        console.log('ORCHESTRATOR: New Narrative Generation (Authoritative)');
         if (engineResults.length >= 2) { // At least Primary and Secondary
             const variants = {
                 primary: engineResults[0],

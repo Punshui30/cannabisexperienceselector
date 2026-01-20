@@ -209,20 +209,31 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
       <div className="flex-shrink-0 pt-12 px-6 pb-4 bg-gradient-to-b from-black/90 via-black/50 to-transparent z-20">
         <div className="flex-1 w-full max-w-md flex flex-col items-center relative z-10">
 
-          {/* --- DYNAMIC HEADER --- */}
-          <div className="w-full flex-shrink-0 pt-4 pb-2 px-6 flex justify-between items-end">
-            <div>
+          {/* --- BRANDING HEADER --- */}
+          <div className="w-full flex-shrink-0 pt-0 pb-6 px-6 flex flex-col items-center">
+            {/* Logo */}
+            <div className="mb-4">
+              <img src={logoImg} alt="StrainMath Logo" className="w-10 h-10 object-contain brightness-0 invert opacity-80" />
+            </div>
+
+            <div className="text-center">
               <h2 className="text-3xl text-white font-light serif tracking-tight">Describe Your Goal</h2>
-              <p className="text-[10px] text-white/30 uppercase tracking-widest font-medium mt-1">
+              <p className="text-[10px] text-white/30 uppercase tracking-[0.4em] font-medium mt-2">
                 Start with a scenario or describe usage
               </p>
-              <p className="text-[9px] text-[#ffd700] uppercase tracking-wider font-light mt-0.5">
-                Powered by <span className="serif">StrainMath</span><span className="text-[7px] align-top">™</span>
-              </p>
+              <div className="flex items-center justify-center gap-1.5 mt-2">
+                <span className="h-[1px] w-4 bg-white/10" />
+                <p className="text-[9px] text-[#ffd700] uppercase tracking-widest font-light">
+                  Powered by <span className="serif font-normal">StrainMath</span><span className="text-[7px] align-top">™</span>
+                </p>
+                <span className="h-[1px] w-4 bg-white/10" />
+              </div>
             </div>
+
+            {/* Admin Toggle (Absolute top right) */}
             <button
               onClick={onAdminModeToggle}
-              className={`p-2 rounded-full transition-colors ${isAdminMode ? 'bg-[#00FFD1]/20 text-[#00FFD1]' : 'text-white/20 hover:text-white'}`}
+              className={`absolute top-0 right-0 p-2 rounded-full transition-colors ${isAdminMode ? 'bg-[#00FFD1]/20 text-[#00FFD1]' : 'text-white/20 hover:text-white'}`}
             >
               <span className="sr-only">Admin</span>
               <div className={`w-2 h-2 rounded-full ${isAdminMode ? 'bg-[#00FFD1]' : 'bg-current'}`} />

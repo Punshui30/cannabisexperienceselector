@@ -196,11 +196,13 @@ export default function App() {
             // Adapter Strategy: Adapt ALL results
             console.log('DEBUG: Engine Results Raw', result.data);
 
-            // Capture consultant text from orchestrator
+            // Capture consultant text from orchestrator (REMOVED: PROMPT 7)
+            /* 
             if (result.analysis?.reasoning) {
               setConsultantText(result.analysis.reasoning);
               console.log('DEBUG: Consultant Text:', result.analysis.reasoning);
             }
+            */
 
             const allAdapted = result.data
               .map((item: EngineResult) => adaptEngineResult(item))

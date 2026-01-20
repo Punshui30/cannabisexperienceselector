@@ -54,8 +54,17 @@ RULES:
 - infer 'timeOfDay' if implied ("wake and bake" -> morning, "unwind" -> night).
 `;
 
-export async function analyzeIntent(seed: IntentSeed): Promise<IntentSpec> {
+export async function analyzeIntent(seed: IntentSeed, context?: { blendName?: string, cultivars?: string[], originalQuery?: string, variantType?: string }): Promise<IntentSpec> {
     const inputText = seed.text || "";
+
+    // Construct Context Block for LLM
+    const contextBlock = context ? `
+CONTEXT:
+- Current Blend: "${context.blendName}"
+- Component Cultivars: ${context.cultivars?.join(', ')}
+- Original Goal: "${context.originalQuery}"
+- Variant Role: ${context.variantType || 'N/A'}
+` : '';
 
     // 0. SHORT CIRCUIT: Empty/Too Short
     if (!inputText || inputText.length < 3) {
@@ -70,7 +79,7 @@ export async function analyzeIntent(seed: IntentSeed): Promise<IntentSpec> {
                 model: 'gpt-4-turbo',
                 messages: [
                     { role: "system", content: SYSTEM_PROMPT },
-                    { role: "user", content: `Input: "${inputText}"\nContext: ${seed.mode} mode.` }
+                    { role: "user", content: `Input: "${inputText}"\n${contextBlock}\nMode: ${seed.mode}` }
                 ],
                 temperature: 0.2 // Low temp for extraction/analysis
             })

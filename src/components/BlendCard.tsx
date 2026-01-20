@@ -139,9 +139,9 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
 
           {/* WHY THIS BLEND - Reasoning Section (Collapsible) */}
           {recommendation.reasoning && (
-            <div className="mb-6">
+            <div className="mb-4">
               <div
-                className="p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer group/reasoning"
+                className="relative p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer group/reasoning overflow-hidden"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
                 <div className="flex justify-between items-center mb-2">
@@ -152,14 +152,21 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
                     {isExpanded ? 'Show Less ↑' : 'Why this blend ↓'}
                   </span>
                 </div>
+
                 <motion.div
                   initial={false}
-                  animate={{ height: isExpanded ? 'auto' : '4.5rem' }} // Approx 3 lines
-                  className="overflow-hidden"
+                  animate={{ height: isExpanded ? 'auto' : '3.6rem' }} // ~3 lines of text
+                  className="relative overflow-hidden"
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
                 >
-                  <p className="text-sm text-white/70 leading-relaxed">
+                  <p className="text-sm text-white/70 leading-normal font-light">
                     {recommendation.reasoning}
                   </p>
+
+                  {/* Fade-out Gradient (Visible only when collapsed) */}
+                  {!isExpanded && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                  )}
                 </motion.div>
               </div>
             </div>

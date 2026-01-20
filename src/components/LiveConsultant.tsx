@@ -22,18 +22,13 @@ interface Message {
 
 function generateContextAwareIntro(context?: LiveConsultantProps['context']): string {
     if (!context?.recommendation) {
-        return "Hi — do you have questions about your recommendations?";
+        return "Tell me what you’re trying to feel or do, and I’ll help refine your experience.";
     }
 
     const rec = context.recommendation;
+    const name = rec.name;
 
-    if (rec.kind === 'blend') {
-        const blend = rec as UIBlendRecommendation;
-        return `Hi — do you have questions about this ${blend.name}?`;
-    } else {
-        const stack = rec as UIStackRecommendation;
-        return `Hi — do you have questions about this ${stack.name}?`;
-    }
+    return `Have questions about ${name}? I can explain why this blend fits your goal, suggest adjustments, or help refine it.`;
 }
 
 export function LiveConsultant({ consultantText, context, onApplyResult, onClose }: LiveConsultantProps) {
@@ -85,10 +80,14 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     };
 
     useEffect(() => {
-        // Initialize with context-aware intro
+        // PROMPT 1 & 7: Fresh Start & Context-Aware Intro
+        // Clear previous messages and initialize with context-aware intro
         const intro = consultantText || generateContextAwareIntro(context);
         setMessages([{ role: 'assistant', content: intro }]);
-    }, [consultantText, context]);
+
+        // Ensure input is cleared
+        setInputValue('');
+    }, [context?.recommendation?.id, consultantText]); // Trigger on specific recommendation change or text override
 
     const handleSendMessage = async () => {
         if (!inputValue.trim() || isLoading) return;
@@ -100,6 +99,13 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         const newUserMessage: Message = { role: 'user', content: userMessage };
         setMessages(prev => [...prev, newUserMessage]);
         setIsLoading(true);
+
+        // PROMPT 8: Final Sanity Rule Invariant
+        if (context?.recommendation && !context.recommendation.name) {
+            console.warn("⚠️ SANITY RULE VIOLATION: Assistant is speaking but doesn't know what the user is looking at (Missing Recommendation Context).");
+        } else if (context?.recommendation) {
+            console.log(`🧠 SANITY RULE: Assistant is aware of UI context [${context.recommendation.name}]`);
+        }
 
         try {
             // Call real orchestrator (NO FALLBACK)

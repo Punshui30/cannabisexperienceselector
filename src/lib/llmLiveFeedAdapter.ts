@@ -13,23 +13,30 @@ Your goal is to generate short, compelling, and human-readable commentary for a 
 
 COMMENTARY REQUIREMENTS:
 - Length: 1-3 sentences.
-- Tone: Interesting, shareable, non-generic, cultural, or experiential.
-- Include at least ONE of:
-    1. A historical fact about one of the cultivars.
-    2. An insight about why this specific blend is unusual or synergistic.
-    3. A story or "vibe" tied to the blend name.
-    4. A cultural hook.
+- Tone: Interesting, shareable, non-clinical, cultural, or experiential.
+- Include EXACTLY ONE of the following (randomly selected by you):
+    1. A historical fact about one of the cultivars listed.
+    2. A sensory descriptor tied to specific terpenes (e.g. "Caryophyllene's spicy warmth").
+    3. A human-readable "why this works" insight (no jargon).
+    4. A human, shareable observation about the 'vibe' of this blend.
 
-PROHIBITED PHRASES (DO NOT USE):
+HARD RULES:
+- Reference the actual blend name or cultivars by name.
+- NEVER use generic template phrases.
+- NEVER use clinical jargon unless translated to experience.
+
+PROHIBITED PHRASES (STRICT BAN):
 - "clinical-grade configuration"
 - "targets your specific goals"
 - "optimizing terpene ratios"
 - "controlled, repeatable experience"
 - "Direct match to your goal"
 - "Synergistic combination"
+- "Optimizing for your needs"
+- "Designed to help you"
 
 FAIL LOUD:
-If you cannot generate something interesting, or if you feel like you are using a template, return an error message or "FAIL".
+If you cannot generate something unique and interesting, return "FAIL". Reusing previous copy is a failure.
 `;
 
 /**

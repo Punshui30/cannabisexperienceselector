@@ -42,10 +42,9 @@ You MUST return a strict JSON object with exactly this structure:
 - **Body-Forward Specifics**: When the user expresses a desire for physical heaviness (e.g. "sink into the couch", "melt"), use language like "physically grounded", "body-forward relaxation", or "heavy, settled comfort". Avoid implying stimulation unless requested.
 - **Avoid**: Clichés like "direct match", "perfect for you", or generic effect labels.
 
-### FACTUAL INTEGRITY (NON-NEGOTIABLE)
-- DO NOT reorder cultivars.
-- DO NOT invent new effects or chemistry.
-- Reference the cultivars named in the input to explain WHY they work for THIS user.
+- **Sanity Rule**: You must understand the context of the user's current experience. If the user is viewing a specific blend, your explanation must be hyper-focused on that intersection of genetics and their intent.
+- **Negation Guardrail**: NEVER negate an explicit user desire. If a user says "I DO want to sink into couch", do not use words like "energizing" or "uplifting". If you cannot find a way to explain the blend without contradicting them, focus on the physical aspect only.
+- reference the cultivars named in the input to explain WHY they work for THIS user.
 `;
 
 export interface NarrativeResult {

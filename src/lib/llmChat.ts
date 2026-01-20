@@ -49,6 +49,20 @@ export async function callLLMChat(
 
         // Extract usable context
         // Extract usable context
+        // PROMPT 3: Inject deep context into assistant session
+        const assistantContext = context?.recommendation ? `
+SYSTEM CONTEXT:
+- CURRENT BLEND: "${context.recommendation.name}"
+- CULTIVARS: ${context.recommendation.kind === 'blend' ? (context.recommendation as any).cultivars.map((c: any) => c.name).join(', ') : 'N/A'}
+- ORIGINAL QUERY: "${context.userInput || 'General exploration'}"
+- VARIANT TYPE: ${context.cardType || 'Primary'}
+
+INSTRUCTION: 
+Assume we are discussing THIS blend unless the user explicitly redirects. 
+Provide conversational explanation, clarification, or help with refinement.
+Do not ask them to restate context.
+` : "SYSTEM CONTEXT: Global Assistant Mode. No specific blend selected.";
+
         const orchestratorContext = context?.recommendation && context.recommendation.kind === 'blend' ? {
             screen: 'BlendDetail',
             blendName: context.recommendation.name,
@@ -62,7 +76,7 @@ export async function callLLMChat(
         } : undefined;
 
         const result = await processIntent({
-            text: userText,
+            text: `${assistantContext}\n\nUSER MESSAGE: ${userText}`,
             kind: 'blend',
             mode: 'engine'
         }, orchestratorContext);
@@ -81,18 +95,11 @@ export async function callLLMChat(
             );
         }
 
-        // 3. CONSTRUCT RESPONSE FROM REAL DATA
-        const script = result.analysis?.reasoning || "I've processed your request.";
-        const terpenes = result.analysis?.targetTerpenes || [];
+        // 3. CONSTRUCT ASSISTANT-MODE RESPONSE
+        // PROMPT 2: Strictly conversational, no internal logs
+        const responseText = result.analysis?.consultationScript || result.analysis?.reasoning || "I've updated the recommendations for you.";
 
-        let response = script;
-
-        // If specific terpenes were targeted by the engine, mention them
-        if (terpenes && terpenes.length > 0) {
-            response += `\n\nBased on your input, I'm prioritizing ${terpenes.slice(0, 2).join(' and ')} in the active logic layer.`;
-        }
-
-        console.log("📝 RESPONSE GENERATED:", response);
+        console.log("📝 RESPONSE GENERATED:", responseText);
 
         // 4. EVENT EMISSION (Downstream Intelligence)
         if (result.analysis?.outcomeCategory && result.data && result.data.length > 0) {
@@ -120,7 +127,6 @@ export async function callLLMChat(
         }
 
         console.groupEnd();
-        const responseText = result.analysis?.consultationScript || result.analysis?.reasoning || "I've updated the blend based on your request.";
 
         return {
             text: responseText,
