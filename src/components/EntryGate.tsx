@@ -75,38 +75,48 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="w-full max-w-sm max-[360px]:max-w-[90vw] p-8 max-[360px]:p-5 glass-card flex flex-col items-center text-center"
+              className="w-full max-w-sm max-[360px]:max-w-[90vw] p-8 max-[360px]:p-5 rounded-3xl relative overflow-hidden group flex flex-col items-center text-center"
             >
-              <h2 className="text-2xl font-light text-white mb-2 serif">Age Verification Required</h2>
-              <p className="text-white/50 text-sm mb-8">
-                You must be 21 years of age or older to access this application.
-              </p>
+              {/* IRIDESCENT GOLD BORDER & GLOW */}
+              <div className="absolute inset-0 p-[1px] rounded-3xl bg-gradient-to-br from-[#C9A24D]/60 via-[#FFE194]/40 to-[#C9A24D]/20 opacity-80 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="absolute inset-0 bg-black rounded-3xl" />
+              </div>
 
-              <button
-                onClick={() => setIsAgeConfirmed(!isAgeConfirmed)}
-                className="w-full flex items-center p-4 rounded-xl bg-white/5 border border-white/10 mb-6 group transition-colors hover:bg-white/10"
-              >
-                <div className={`w-6 h-6 rounded-full border mr-4 flex items-center justify-center transition-all ${isAgeConfirmed ? 'border-[#00FFD1] bg-[#00FFD1]' : 'border-white/30'
-                  }`}>
-                  {isAgeConfirmed && <div className="w-2 h-2 rounded-full bg-black" />}
-                </div>
-                <div className="flex flex-col items-start">
-                  <span className="text-sm text-white">I confirm that I am 21 years of age or older</span>
-                  <span className="text-[10px] text-white/30">This confirmation is required for each session</span>
-                </div>
-              </button>
+              {/* Ambient Gold Glow Underlay */}
+              <div className="absolute -inset-1 bg-[#C9A24D]/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-pulse-slow pointer-events-none" />
 
-              <button
-                onClick={() => isAgeConfirmed && setStep('familiarity')}
-                disabled={!isAgeConfirmed}
-                className={`w-full btn-neon-green ${!isAgeConfirmed && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
-              >
-                Continue
-              </button>
+              <div className="relative z-10 w-full flex flex-col items-center">
+                <h2 className="text-2xl font-light text-white mb-2 serif">Age Verification Required</h2>
+                <p className="text-white/50 text-sm mb-8">
+                  You must be 21 years of age or older to access this application.
+                </p>
 
-              <p className="mt-8 text-[9px] text-white/30 leading-tight">
-                By continuing, you acknowledge that cannabis products are for adults 21+ only. Use responsibly and in accordance with applicable laws.
-              </p>
+                <button
+                  onClick={() => setIsAgeConfirmed(!isAgeConfirmed)}
+                  className="w-full flex items-center p-4 rounded-xl bg-white/5 border border-white/10 mb-6 group transition-colors hover:bg-white/10"
+                >
+                  <div className={`w-6 h-6 rounded-full border mr-4 flex items-center justify-center transition-all ${isAgeConfirmed ? 'border-[#00FFD1] bg-[#00FFD1]' : 'border-white/30'
+                    }`}>
+                    {isAgeConfirmed && <div className="w-2 h-2 rounded-full bg-black" />}
+                  </div>
+                  <div className="flex flex-col items-start text-left">
+                    <span className="text-sm text-white">I confirm that I am 21 years of age or older</span>
+                    <span className="text-[10px] text-white/30">This confirmation is required for each session</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => isAgeConfirmed && setStep('familiarity')}
+                  disabled={!isAgeConfirmed}
+                  className={`w-full btn-neon-green ${!isAgeConfirmed && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+                >
+                  Continue
+                </button>
+
+                <p className="mt-8 text-[9px] text-white/30 leading-tight">
+                  By continuing, you acknowledge that cannabis products are for adults 21+ only. Use responsibly and in accordance with applicable laws.
+                </p>
+              </div>
             </motion.div>
           )}
 
