@@ -115,34 +115,14 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         }
 
         try {
-            // Call real orchestrator (NO FALLBACK)
+            // Call conversation facade (read-only, lightweight)
             const response = await callLLMChat(
                 [...messages, newUserMessage].map(m => ({ role: m.role, content: m.content })),
                 context // Explicitly pass context
             );
 
-            // 1. Show text response
+            // Show text response (chat is read-only, no data mutations)
             setMessages(prev => [...prev, { role: 'assistant', content: response.text }]);
-
-            // 2. Apply Data Result (if any)
-            if (response.data && response.data.length > 0) {
-                const resultsToApply = response.data;
-                console.log("🚀 LIVE CONSULTANT: Results found, checking for onApplyResult prop...");
-
-                if (typeof onApplyResult === 'function') {
-                    console.log(`🚀 LIVE CONSULTANT: Authoritative Pipeline: Applying ${resultsToApply.length} results...`);
-                    setTimeout(() => {
-                        console.log("🚀 LIVE CONSULTANT: Executing authoritative update...");
-                        try {
-                            onApplyResult(resultsToApply);
-                        } catch (cbErr) {
-                            console.error("❌ LIVE CONSULTANT: Authoritative update failed:", cbErr);
-                        }
-                    }, 1500);
-                } else {
-                    console.warn("⚠️ LIVE CONSULTANT: onApplyResult is not a function or is missing:", onApplyResult);
-                }
-            }
 
         } catch (error) {
             console.error("Live Consultant Error:", error);

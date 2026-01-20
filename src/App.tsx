@@ -26,6 +26,7 @@ import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
 import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar, EngineResult } from './types/domain';
 import logoImg from './assets/logo.png';
 import { generateLiveFeedCommentary } from './lib/llmLiveFeedAdapter';
+import { updateEngineSnapshot } from './lib/engineSnapshot';
 import './index.css';
 
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed';
@@ -211,6 +212,14 @@ export default function App() {
             if (allAdapted.length > 0) {
               setBlendRecs(allAdapted);
               setIsAnalyzing(false);
+
+              // UPDATE ENGINE SNAPSHOT for Live Assistant (read-only access)
+              updateEngineSnapshot({
+                inputs: userInput.text,
+                results: allAdapted,
+                summary: result.analysis?.reasoning || null
+              });
+              console.log('[App] Engine snapshot updated for Live Assistant');
 
               // MERCHANT INTELLIGENCE: Log the resolution
               // We log the Primary blend for analytics
