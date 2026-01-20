@@ -1,7 +1,8 @@
 import { IntentSeed, IntentSpec, EngineResult } from '../types/domain';
 import { interpretIntentFromSpec, generateRecommendations as engineGenerate } from './engineAdapter';
 import { getCultivarIdFromName, STRAIN_LIBRARY } from './strainLibrary';
-import { generateIntentBoundName, generateVariantNarrative } from './llmOrchestrator_helpers';
+import { analyzeIntent } from './semanticIntentAdapter';
+import { generateNarratives } from './llmNarrativeAdapter';
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -38,10 +39,10 @@ export async function processIntent(
         console.log(`  Input: "${seed.text}"`);
         console.log(`  Context:`, context?.blendName ? `${context.blendName} (${context.screen})` : "General");
 
-        // 1. LOCAL INTENT PARSING (Standardized)
-        console.log('ORCHESTRATOR: Parsing Intent Locally...');
-        const intentSpec = parseIntentLocally(seed);
-        console.log('ORCHESTRATOR: Intent Analyzed', intentSpec);
+        // 1. LLM-DRIVEN INTENT ANALYSIS
+        console.log('ORCHESTRATOR: Analyzing Intent via LLM...');
+        const intentSpec = await analyzeIntent(seed);
+        console.log('ORCHESTRATOR: Intent Analyzed (LLM)', intentSpec);
 
         // Derive Outcome Category for downstream consumers (REFINED)
         let outcomeCategory: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other' = 'Other';
@@ -68,20 +69,6 @@ export async function processIntent(
         if (results1 && results1.length > 0) {
             const r1 = results1[0];
             r1.id = `blend-primary-${Date.now()}`;
-
-            // INTENT-BOUND NAMING: Generate name from user's stated goal
-            r1.name = generateIntentBoundName(seed.text, intentSpec.targetEffects, 'primary');
-
-            // PER-VARIANT NARRATIVE: Build user-specific reasoning for PRIMARY
-            r1.reasoning = generateVariantNarrative({
-                userInput: seed.text,
-                variantType: 'primary',
-                targetEffects: intentSpec.targetEffects,
-                avoidEffects: intentSpec.avoidEffects,
-                context,
-                cultivars: r1.cultivars?.map(c => c.name) || []
-            });
-
             engineResults.push(r1);
             console.log('Primary Blend:', r1.name, '|', r1.cultivars?.map(c => c.name).join(', '));
 
@@ -127,20 +114,6 @@ export async function processIntent(
         if (results2 && results2.length > 0) {
             const r2 = results2[0];
             r2.id = `blend-secondary-${Date.now()}`;
-
-            // INTENT-BOUND NAMING: Generate name from SECONDARY variant's intent
-            r2.name = generateIntentBoundName(seed.text, intentSpec.targetEffects, 'secondary');
-
-            // PER-VARIANT NARRATIVE: Build reasoning specific to SECONDARY variant
-            r2.reasoning = generateVariantNarrative({
-                userInput: seed.text,
-                variantType: 'secondary',
-                targetEffects: intentSpec.targetEffects,
-                avoidEffects: intentSpec.avoidEffects,
-                variantShift: shiftDesc,
-                cultivars: r2.cultivars?.map(c => c.name) || []
-            });
-
             engineResults.push(r2);
             console.log('Secondary Blend:', r2.name, '|', r2.cultivars?.map(c => c.name).join(', '));
 
@@ -196,21 +169,6 @@ export async function processIntent(
         if (results3 && results3.length > 0) {
             const r3 = results3[0];
             r3.id = `blend-contextual-${Date.now()}`;
-
-            // INTENT-BOUND NAMING: Generate name from CONTEXTUAL variant's intent
-            r3.name = generateIntentBoundName(seed.text, intentSpec.targetEffects, 'contextual');
-
-            // PER-VARIANT NARRATIVE: Build reasoning specific to CONTEXTUAL variant
-            r3.reasoning = generateVariantNarrative({
-                userInput: seed.text,
-                variantType: 'contextual',
-                targetEffects: intentSpec.targetEffects,
-                avoidEffects: intentSpec.avoidEffects,
-                contextShift: { timeOfDay: intent3.context.timeOfDay, anxietyRelaxed: true },
-                terpeneChange,
-                cultivars: r3.cultivars?.map(c => c.name) || []
-            });
-
             engineResults.push(r3);
             console.log('Contextual Blend Cultivars:', r3.cultivars?.map(c => c.name).join(', '));
         }
@@ -239,7 +197,39 @@ export async function processIntent(
             console.log(`✓ DIVERSITY CHECK PASSED: ${uniqueBlendSignatures.size} unique blends generated`);
         }
 
-        // 3. HARD VALIDATION
+        // 3. UNIFIED NARRATIVE SYNERGY (Unified LLM Call)
+        console.log('ORCHESTRATOR: Generating Unified Narratives...');
+        if (engineResults.length >= 2) { // At least Primary and Secondary
+            const variants = {
+                primary: engineResults[0],
+                secondary: engineResults[1],
+                contextual: engineResults[2] || engineResults[0] // Fallback if no contextual
+            };
+
+            const narratives = await generateNarratives(seed.text || "", intentSpec, variants);
+
+            if (narratives) {
+                console.log('ORCHESTRATOR: Narratives successfully unified via LLM');
+                engineResults[0].name = narratives.primary.name;
+                engineResults[0].reasoning = narratives.primary.explanation;
+
+                engineResults[1].name = narratives.secondary.name;
+                engineResults[1].reasoning = narratives.secondary.explanation;
+
+                if (engineResults[2]) {
+                    engineResults[2].name = narratives.contextual.name;
+                    engineResults[2].reasoning = narratives.contextual.explanation;
+                }
+            } else {
+                console.warn('ORCHESTRATOR: Narrative generation failed. Blends will have engine defaults.');
+                // Fallback to basic names if LLM fails (failsafe)
+                engineResults[0].name = "Formulation Alpha";
+                engineResults[1].name = "Formulation Beta";
+                if (engineResults[2]) engineResults[2].name = "Formulation Gamma";
+            }
+        }
+
+        // 4. HARD VALIDATION
         const validationError = validateStrict(engineResults);
         if (validationError) {
             console.error(`ORCHESTRATOR VALIDATION FAILED: ${validationError}`);
