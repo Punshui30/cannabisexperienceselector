@@ -57,12 +57,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                     <h2 className="text-xs uppercase tracking-[0.2em] text-[#00FFD1] mb-1">Blend Detail</h2>
                     <div className="h-0.5 w-8 bg-[#00FFD1]/30 mx-auto rounded-full" />
                 </div>
-                <button
-                    onClick={onOpenConsultant}
-                    className="text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-colors px-3 py-2"
-                >
-                    Live Assistant
-                </button>
+                <div className="w-10 h-10" />
             </div>
 
             {/* Background */}
