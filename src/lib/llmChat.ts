@@ -30,7 +30,7 @@ export async function callLLMChat(
         userInput?: string;
         cardType?: 'primary' | 'secondary' | 'contextual';
     }
-): Promise<string> {
+): Promise<{ text: string, data?: any }> {
 
     // 1. INPUT LOGGING
     const lastMessage = messages[messages.length - 1];
@@ -108,7 +108,12 @@ export async function callLLMChat(
         }
 
         console.groupEnd();
-        return response;
+        const responseText = result.analysis?.consultationScript || result.analysis?.reasoning || "I've updated the blend based on your request.";
+
+        return {
+            text: responseText,
+            data: result.data // Pass back the actual EngineResult[]
+        };
 
     } catch (error) {
         if (error instanceof LiveAssistantError) {
@@ -121,8 +126,7 @@ export async function callLLMChat(
         console.error("ERROR:", error);
         console.groupEnd();
 
-        throw new LiveAssistantError(
-            'Fatal orchestrator exception: ' + (error instanceof Error ? error.message : String(error)),
+        'Fatal orchestrator exception: ' + (error instanceof Error ? error.message : String(error)),
             false // orchestrator may not have executed
         );
     }

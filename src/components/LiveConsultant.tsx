@@ -11,6 +11,7 @@ interface LiveConsultantProps {
         userInput?: string;
         cardType?: 'primary' | 'secondary' | 'contextual';
     };
+    onApplyResult?: (result: any) => void;
     onClose: () => void;
 }
 
@@ -107,21 +108,28 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
                 context // Explicitly pass context
             );
 
-            setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+            // 1. Show text response
+            setMessages(prev => [...prev, { role: 'assistant', content: response.text }]);
+
+            // 2. Apply Data Result (if any)
+            if (response.data && response.data.length > 0 && onApplyResult) {
+                console.log("🚀 LIVE CONSULTANT: Applying new result...", response.data[0]);
+
+                // Small delay to let the user read/see the "Adjusting..." message before the swap happens
+                setTimeout(() => {
+                    onApplyResult(response.data[0]);
+                }, 1500);
+            }
+
         } catch (error) {
-            // HARD FAIL - Show explicit unavailability
-            console.error('Live Assistant Error:', error);
-
-            const errorMessage = error instanceof Error && 'orchestratorExecuted' in error
-                ? `⚠️ **Live Assistant Unavailable**\n\nRunning in Engine-only mode.\n\n${error.message}\n\n*Check console for orchestration details.*`
-                : `⚠️ **Live Assistant Unavailable**\n\nThe orchestrator could not execute.\n\n*Check console for details.*`;
-
+            console.error("Live Consultant Error:", error);
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: errorMessage
+                content: "I encountered an error processing that request. Please try again."
             }]);
         } finally {
             setIsLoading(false);
+            setInputValue(''); // Clear input
         }
     };
 
