@@ -61,7 +61,7 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
             // Call real orchestrator (NO FALLBACK)
             const response = await callLLMChat(
                 [...messages, newUserMessage].map(m => ({ role: m.role, content: m.content })),
-                context
+                context // Explicitly pass context
             );
 
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);

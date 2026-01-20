@@ -21,9 +21,20 @@ export interface OrchestratorResult {
  * 3. Runs Engine 3 times with STRONG variation -> EngineResult[]
  * 4. Returns OrchestratorResult
  */
-export async function processIntent(seed: IntentSeed, mode: string = 'blend-engine'): Promise<OrchestratorResult> {
+export async function processIntent(
+    seed: IntentSeed,
+    context?: {
+        screen?: string;
+        blendName?: string;
+        blendConfig?: any;
+        cultivars?: string[];
+    },
+    mode: string = 'blend-engine'
+): Promise<OrchestratorResult> {
     try {
-        console.log(`ORCHESTRATOR: Starting Process for`, seed);
+        console.log(`ORCHESTRATOR: Starting Process`);
+        console.log(`  Input: "${seed.text}"`);
+        console.log(`  Context:`, context?.blendName ? `${context.blendName} (${context.screen})` : "General");
 
         // 1. LOCAL INTENT PARSING (Standardized)
         console.log('ORCHESTRATOR: Parsing Intent Locally...');
@@ -62,19 +73,32 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             const userText = seed.text || "";
             const cultivarMatch = userText.match(/(sour diesel|og kush|blue dream|harlequin|purple haze|jack herer|granddaddy purple|girl scout cookies|northern lights|white widow)/i);
             const concernMatch = userText.match(/(edgy|anxious|paranoid|jittery|racy|nervous|tense|wired)/i);
-            const likeMatch = userText.match(/(?:like|love|enjoy|prefer)\s+([^,\.]+)/i);
 
             // Build user-specific reasoning
             let reasoning = "";
-            if (cultivarMatch) {
+
+            // 1. CONTEXTUAL OVERRIDE (If refining an existing blend)
+            if (context?.blendName) {
+                reasoning = `Refining ${context.blendName}: You asked about "${userText}". I've adjusted the ${context.screen === 'BlendDetail' ? 'cultivar ratios' : 'stack layers'} to address this.`;
+
+                if (concernMatch) {
+                    reasoning += ` Specifically, I've modulated the terpene profile to reduce potential ${concernMatch[0]} feelings while keeping the core character of the blend.`;
+                }
+            }
+            // 2. DIRECT CULTIVAR REFERENCE
+            else if (cultivarMatch) {
                 const refCultivar = cultivarMatch[0];
                 const concern = concernMatch ? concernMatch[0] : "intensity";
                 reasoning = `You mentioned liking ${refCultivar} but finding it ${concern}. This blend preserves the uplifting qualities while moderating stimulation through balanced cultivar selection.`;
-            } else if (intentSpec.targetEffects.length > 0) {
+            }
+            // 3. EFFECT-BASED
+            else if (intentSpec.targetEffects.length > 0) {
                 const primary = intentSpec.targetEffects[0];
                 const avoid = intentSpec.avoidEffects[0] || "unwanted side effects";
                 reasoning = `Based on your request for ${primary}, this blend selects cultivars that deliver that effect while avoiding ${avoid}.`;
-            } else {
+            }
+            // 4. FALLBACK
+            else {
                 reasoning = `This blend is optimized for your stated goals with balanced constraint enforcement.`;
             }
 

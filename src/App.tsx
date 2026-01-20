@@ -187,7 +187,7 @@ export default function App() {
       const run = async () => {
         console.log('APP: Invoking Orchestrator...');
         try {
-          const result = await processIntent(userInput, 'blend-engine');
+          const result = await processIntent(userInput);
 
           if (result.success && result.data.length > 0) {
             // Adapter Strategy: Adapt ALL results

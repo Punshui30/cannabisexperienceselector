@@ -46,11 +46,25 @@ export async function callLLMChat(
         // 2. REAL EXECUTION VIA ORCHESTRATOR
         console.log("⚙️ EXECUTING LOCAL ORCHESTRATOR...");
 
+        // Extract usable context
+        // Extract usable context
+        const orchestratorContext = context?.recommendation && context.recommendation.kind === 'blend' ? {
+            screen: 'BlendDetail',
+            blendName: context.recommendation.name,
+            blendConfig: context.recommendation,
+            cultivars: context.recommendation.cultivars.map((c: any) => c.name)
+        } : context?.recommendation && context.recommendation.kind === 'stack' ? {
+            screen: 'StackDetail',
+            blendName: context.recommendation.name,
+            blendConfig: undefined, // Stacks don't have blend config
+            cultivars: []
+        } : undefined;
+
         const result = await processIntent({
             text: userText,
             kind: 'blend',
             mode: 'engine'
-        });
+        }, orchestratorContext);
 
         console.log("✅ ORCHESTRATOR EXECUTED SUCCESSFULLY");
         console.log("LOGIC RESULT:", result);
