@@ -1,6 +1,7 @@
 import { IntentSeed, IntentSpec, EngineResult } from '../types/domain';
 import { interpretIntentFromSpec, generateRecommendations as engineGenerate } from './engineAdapter';
 import { getCultivarIdFromName } from './strainLibrary';
+import { generateIntentBoundName, generateVariantNarrative } from './llmOrchestrator_helpers';
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -69,44 +70,22 @@ export async function processIntent(
         if (results1 && results1.length > 0) {
             const r1 = results1[0];
             r1.id = `blend-primary-${Date.now()}`;
-            r1.name = r1.name || "Primary Blend";
 
-            // Parse user input for specific references
-            const userText = seed.text || "";
-            const cultivarMatch = userText.match(/(sour diesel|og kush|blue dream|harlequin|purple haze|jack herer|granddaddy purple|girl scout cookies|northern lights|white widow)/i);
-            const concernMatch = userText.match(/(edgy|anxious|paranoid|jittery|racy|nervous|tense|wired)/i);
+            // INTENT-BOUND NAMING: Generate name from user's stated goal
+            r1.name = generateIntentBoundName(seed.text, intentSpec.targetEffects, 'primary');
 
-            // Build user-specific reasoning
-            let reasoning = "";
+            // PER-VARIANT NARRATIVE: Build user-specific reasoning for PRIMARY
+            r1.reasoning = generateVariantNarrative({
+                userInput: seed.text,
+                variantType: 'primary',
+                targetEffects: intentSpec.targetEffects,
+                avoidEffects: intentSpec.avoidEffects,
+                context,
+                cultivars: r1.cultivars?.map(c => c.name) || []
+            });
 
-            // 1. CONTEXTUAL OVERRIDE (If refining an existing blend)
-            if (context?.blendName) {
-                reasoning = `Refining ${context.blendName}: You asked about "${userText}". I've adjusted the ${context.screen === 'BlendDetail' ? 'cultivar ratios' : 'stack layers'} to address this.`;
-
-                if (concernMatch) {
-                    reasoning += ` Specifically, I've modulated the terpene profile to reduce potential ${concernMatch[0]} feelings while keeping the core character of the blend.`;
-                }
-            }
-            // 2. DIRECT CULTIVAR REFERENCE
-            else if (cultivarMatch) {
-                const refCultivar = cultivarMatch[0];
-                const concern = concernMatch ? concernMatch[0] : "intensity";
-                reasoning = `You mentioned liking ${refCultivar} but finding it ${concern}. This blend preserves the uplifting qualities while moderating stimulation through balanced cultivar selection.`;
-            }
-            // 3. EFFECT-BASED
-            else if (intentSpec.targetEffects.length > 0) {
-                const primary = intentSpec.targetEffects[0];
-                const avoid = intentSpec.avoidEffects[0] || "unwanted side effects";
-                reasoning = `Based on your request for ${primary}, this blend selects cultivars that deliver that effect while avoiding ${avoid}.`;
-            }
-            // 4. FALLBACK
-            else {
-                reasoning = `This blend is optimized for your stated goals with balanced constraint enforcement.`;
-            }
-
-            r1.reasoning = reasoning;
             engineResults.push(r1);
-            console.log('Primary Blend Cultivars:', r1.cultivars?.map(c => c.name).join(', '));
+            console.log('Primary Blend:', r1.name, '|', r1.cultivars?.map(c => c.name).join(', '));
 
             // Track used cultivar IDs for exclusion
             r1.cultivars?.forEach(c => {
@@ -150,21 +129,22 @@ export async function processIntent(
         if (results2 && results2.length > 0) {
             const r2 = results2[0];
             r2.id = `blend-secondary-${Date.now()}`;
-            r2.name = "Alternative: " + (r2.name || "Blend");
 
-            // Dynamic Reasoning for Secondary - reference user input
-            const userText2 = seed.text || "";
-            const cultivarMatch2 = userText2.match(/(sour diesel|og kush|blue dream|harlequin|purple haze|jack herer|granddaddy purple|girl scout cookies|northern lights|white widow)/i);
-            let reasoning2 = "";
-            if (cultivarMatch2) {
-                reasoning2 = `Alternative approach: Instead of directly replicating ${cultivarMatch2[0]}'s profile, this blend ${shiftDesc} to create a smoother experience with similar benefits.`;
-            } else {
-                reasoning2 = `Alternative interpretation: We explored a variation by ${shiftDesc} and increasing body grounding. This offers a different path to the same goal.`;
-            }
-            r2.reasoning = reasoning2;
+            // INTENT-BOUND NAMING: Generate name from SECONDARY variant's intent
+            r2.name = generateIntentBoundName(seed.text, intentSpec.targetEffects, 'secondary');
+
+            // PER-VARIANT NARRATIVE: Build reasoning specific to SECONDARY variant
+            r2.reasoning = generateVariantNarrative({
+                userInput: seed.text,
+                variantType: 'secondary',
+                targetEffects: intentSpec.targetEffects,
+                avoidEffects: intentSpec.avoidEffects,
+                variantShift: shiftDesc,
+                cultivars: r2.cultivars?.map(c => c.name) || []
+            });
 
             engineResults.push(r2);
-            console.log('Secondary Blend Cultivars:', r2.cultivars?.map(c => c.name).join(', '));
+            console.log('Secondary Blend:', r2.name, '|', r2.cultivars?.map(c => c.name).join(', '));
 
             // Track additional used cultivars
             r2.cultivars?.forEach(c => {
@@ -218,18 +198,20 @@ export async function processIntent(
         if (results3 && results3.length > 0) {
             const r3 = results3[0];
             r3.id = `blend-contextual-${Date.now()}`;
-            r3.name = "Experimental: " + (r3.name || "Blend");
 
-            // Dynamic Reasoning for Contextual - reference user input
-            const userText3 = seed.text || "";
-            const concernMatch3 = userText3.match(/(edgy|anxious|paranoid|jittery|racy|nervous|tense|wired)/i);
-            let reasoning3 = "";
-            if (concernMatch3) {
-                reasoning3 = `Experimental variant: This blend addresses your concern about feeling ${concernMatch3[0]} by relaxing anxiety constraints and shifting to a ${intent3.context.timeOfDay} profile${terpeneChange}.`;
-            } else {
-                reasoning3 = `Contextual shift: This blend adapts for a ${intent3.context.timeOfDay} setting${terpeneChange}. It relaxes strict anxiety constraints to allow for a broader range of cultivars.`;
-            }
-            r3.reasoning = reasoning3;
+            // INTENT-BOUND NAMING: Generate name from CONTEXTUAL variant's intent
+            r3.name = generateIntentBoundName(seed.text, intentSpec.targetEffects, 'contextual');
+
+            // PER-VARIANT NARRATIVE: Build reasoning specific to CONTEXTUAL variant
+            r3.reasoning = generateVariantNarrative({
+                userInput: seed.text,
+                variantType: 'contextual',
+                targetEffects: intentSpec.targetEffects,
+                avoidEffects: intentSpec.avoidEffects,
+                contextShift: { timeOfDay: intent3.context.timeOfDay, anxietyRelaxed: true },
+                terpeneChange,
+                cultivars: r3.cultivars?.map(c => c.name) || []
+            });
 
             engineResults.push(r3);
             console.log('Contextual Blend Cultivars:', r3.cultivars?.map(c => c.name).join(', '));
