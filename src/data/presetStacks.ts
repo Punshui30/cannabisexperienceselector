@@ -2,6 +2,8 @@
  * PRESET DATA ONLY
  * Used for UI previews, onboarding, and demo states.
  * Must never be imported by engineAdapter or core engine logic.
+ * 
+ * // Ingestion modeling not yet supported — do not reference form factor
  */
 import { StackOutcomeExemplar } from '../types/domain';
 
@@ -10,7 +12,7 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
     id: 'stack_focus_01',
     title: 'The Deep Work Stack',
     subtitle: 'Sustained Flow State',
-    description: 'A layered protocol for 4 hours of jitter-free focus.',
+    description: 'A layered protocol for extended, jitter-free focus.',
     source: 'preset',
     visualProfile: {
         dominantEffect: 'focus',
@@ -22,21 +24,21 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
         stackId: 'stack_focus_01',
         id: 'stack_focus_01',
         name: 'The Deep Work Stack',
-        description: 'A scientifically layered protocol for sustained cognitive output without jitters.',
+        description: 'A scientifically layered protocol for sustained cognitive output.',
 
         matchScore: 0.98,
         reasoning: 'Combines pinene-dominant startup with limonene-heavy maintenance.',
-        totalDuration: '4 hours',
+        totalDuration: 'Extended',
         layers: [
             {
                 type: 'cultivar',
                 layerName: 'Ignition',
                 timing: '0:00',
-                phaseIntent: 'Rapid Onset, Clear Head',
-                whyThisPhase: 'A high-pinene sativa provides immediate alertness without the heavy body load.',
-                onsetEstimate: '5-10m',
-                durationEstimate: '45-60m',
-                consumptionGuidance: 'Vaporize at 180°C',
+                phaseIntent: 'Rapid Awareness',
+                whyThisPhase: 'A high-pinene sativa provides immediate alertness and clarity.',
+                onsetEstimate: 'Immediate',
+                durationEstimate: 'Short Interval',
+                consumptionGuidance: 'Rapid Route',
                 purpose: 'Initial focus',
                 cultivars: [
                     {
@@ -52,10 +54,10 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 layerName: 'Cruise Control',
                 timing: '0:45',
                 phaseIntent: 'Sustain, Level, Create',
-                whyThisPhase: 'Introducing a balanced blend prevents the "crash" and adds a creative limonene layer.',
-                onsetEstimate: '5-10m',
-                durationEstimate: '2-3h',
-                consumptionGuidance: 'Small dose, Edible or Vape',
+                whyThisPhase: 'Introducing a balanced blend prevents fatigue and adds a creative limonene layer.',
+                onsetEstimate: 'Sequential',
+                durationEstimate: 'Sustained',
+                consumptionGuidance: 'Sustained Release',
                 purpose: 'Maintenance',
                 cultivars: [
                     {
@@ -78,9 +80,9 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 timing: '3:30',
                 phaseIntent: 'Reset, Relax',
                 whyThisPhase: 'A CBD-rich finish clears the head and transitions out of hyper-focus.',
-                onsetEstimate: '5-10m',
-                durationEstimate: '1h',
-                consumptionGuidance: 'Tea/Beverage',
+                onsetEstimate: 'Sequential',
+                durationEstimate: 'Final Phase',
+                consumptionGuidance: 'Gentle Finish',
                 purpose: 'Wind Down',
                 cultivars: [
                     {
@@ -100,7 +102,7 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
     id: 'stack_sleep_01',
     title: 'The Hibernation Stack',
     subtitle: 'Deep Restorative Sleep',
-    description: 'Drift off fast and stay asleep longer.',
+    description: 'Drift off fast and support sleep cycles.',
     source: 'preset',
     visualProfile: {
         dominantEffect: 'sleep',
@@ -115,7 +117,7 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
 
         matchScore: 0.95,
         reasoning: 'Linalool for onset, Myrcene/CBN for duration.',
-        totalDuration: '8 hours',
+        totalDuration: 'Full Night',
         layers: [
             {
                 type: 'cultivar',
@@ -123,9 +125,9 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 timing: '0:00',
                 phaseIntent: 'Relax Body, Quiet Mind',
                 whyThisPhase: 'Heavy Indica with Linalool starts the physical relaxation process.',
-                onsetEstimate: '10-15m',
-                durationEstimate: '1h',
-                consumptionGuidance: 'Inhale/Smoke',
+                onsetEstimate: 'Rapid',
+                durationEstimate: 'Initial Phase',
+                consumptionGuidance: 'Rapid Route',
                 purpose: 'Induction',
                 cultivars: [
                     {
@@ -141,10 +143,10 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 layerName: 'Deep Sleep',
                 timing: '0:30',
                 phaseIntent: 'Stay Asleep',
-                whyThisPhase: 'Edible form factor ensures effects last through the night.',
-                onsetEstimate: '45-90m',
-                durationEstimate: '6-8h',
-                consumptionGuidance: 'Edible (Low Dose)',
+                whyThisPhase: 'Extended release formulation ensures effects last through the sleep cycle.',
+                onsetEstimate: 'Delayed',
+                durationEstimate: 'Extended',
+                consumptionGuidance: 'Sustained Release',
                 purpose: 'Duration',
                 cultivars: [
                     {
@@ -160,10 +162,10 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 layerName: 'Restoration',
                 timing: '6:00',
                 phaseIntent: 'Wake Refreshed',
-                whyThisPhase: 'Prevents grogginess by tapering off heavy sedatives before waking.',
-                onsetEstimate: '0m',
-                durationEstimate: '2h',
-                consumptionGuidance: 'None (Metabolic)',
+                whyThisPhase: 'Prevents grogginess by tapering off heavy relaxation before waking.',
+                onsetEstimate: 'Sequential',
+                durationEstimate: 'Final Phase',
+                consumptionGuidance: 'Metabolic Taper',
                 purpose: 'Completion',
                 cultivars: [
                     {
@@ -198,7 +200,7 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
 
         matchScore: 0.92,
         reasoning: 'Limonene lifts mood, Caryophyllene reduces anxiety.',
-        totalDuration: '3 hours',
+        totalDuration: 'Medium Duration',
         layers: [
             {
                 type: 'cultivar',
@@ -206,9 +208,9 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 timing: '0:00',
                 phaseIntent: 'Uplift, Talkative',
                 whyThisPhase: 'High-Limonene strain to boost mood and energy immediately.',
-                onsetEstimate: '5m',
-                durationEstimate: '45m',
-                consumptionGuidance: 'Vape/Smoke',
+                onsetEstimate: 'Rapid',
+                durationEstimate: 'Initial Phase',
+                consumptionGuidance: 'Rapid Route',
                 purpose: 'Energy',
                 cultivars: [
                     {
@@ -225,9 +227,9 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 timing: '0:45',
                 phaseIntent: 'Relaxed, Happy',
                 whyThisPhase: 'Adding a balanced hybrid keeps the mood light but grounded.',
-                onsetEstimate: '5-10m',
-                durationEstimate: '2h',
-                consumptionGuidance: 'Vape/Smoke',
+                onsetEstimate: 'Sequential',
+                durationEstimate: 'Sustained',
+                consumptionGuidance: 'Rapid/Sustained',
                 purpose: 'Maintenance',
                 cultivars: [
                     {
@@ -244,9 +246,9 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 timing: '2:30',
                 phaseIntent: 'Calm Release',
                 whyThisPhase: 'Gentle descent to prevent crashing after high energy.',
-                onsetEstimate: '5m',
-                durationEstimate: '1h',
-                consumptionGuidance: 'Vape',
+                onsetEstimate: 'Sequential',
+                durationEstimate: 'Final Phase',
+                consumptionGuidance: 'Gentle Finish',
                 purpose: 'Wind Down',
                 cultivars: [
                     {
@@ -281,7 +283,7 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
 
         matchScore: 0.96,
         reasoning: 'Terpinolene promotes divergent thinking.',
-        totalDuration: '3-4 hours',
+        totalDuration: 'Variable',
         layers: [
             {
                 type: 'cultivar',
@@ -289,9 +291,9 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 timing: '0:00',
                 phaseIntent: 'Divergent Thought',
                 whyThisPhase: 'Terpinolene is known for "hazy" creative associations.',
-                onsetEstimate: '5m',
-                durationEstimate: '45m',
-                consumptionGuidance: 'Vape',
+                onsetEstimate: 'Rapid',
+                durationEstimate: 'Initial Phase',
+                consumptionGuidance: 'Rapid Route',
                 purpose: 'Idea Generation',
                 cultivars: [
                     {
@@ -313,9 +315,9 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 }],
                 phaseIntent: 'Mental Clarity',
                 whyThisPhase: 'Jack Herer adds clear-headed focus without sedation.',
-                onsetEstimate: '15 min',
-                durationEstimate: '2 hrs',
-                consumptionGuidance: 'Small inhalation',
+                onsetEstimate: 'Sequential',
+                durationEstimate: 'Sustained',
+                consumptionGuidance: 'Moderate',
                 purpose: 'Cognitive activation',
                 timing: '10-30 mins'
             },
@@ -325,9 +327,9 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 timing: '0:45',
                 phaseIntent: 'Focus, Execution',
                 whyThisPhase: 'Adding Pinene helps organize the ideas into output.',
-                onsetEstimate: '10m',
-                durationEstimate: '2h',
-                consumptionGuidance: 'Tea/Beverage',
+                onsetEstimate: 'Sequential',
+                durationEstimate: 'Sustained',
+                consumptionGuidance: 'Sustained Release',
                 purpose: 'Execution',
                 cultivars: [
                     {
@@ -344,9 +346,9 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
                 timing: '3:00',
                 phaseIntent: 'Appreciation',
                 whyThisPhase: 'A euphoric finish to review work with satisfaction.',
-                onsetEstimate: '5m',
-                durationEstimate: '1h',
-                consumptionGuidance: 'Vape',
+                onsetEstimate: 'Sequential',
+                durationEstimate: 'Final Phase',
+                consumptionGuidance: 'Gentle Finish',
                 purpose: 'Integration',
                 cultivars: [
                     {

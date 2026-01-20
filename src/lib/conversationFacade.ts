@@ -99,6 +99,11 @@ function buildSystemContext(context?: {
        - What Stayed Same: [Specifics]
        - What to Expect: [Outcome]
 
+    CRITICAL SAFETY RULES (INGESTION LOCK):
+    1. DO NOT reference ingestion methods (e.g., "smoke", "vape", "edible").
+    2. DO NOT make claims about onset time or duration based on metabolism.
+    3. Use NEUTRAL language focusing on the EXPERIENCE ARC (e.g., "immediate onset", "sustained release", "extended profile").
+    
     CRITICAL INSTRUCTION FOR MODIFICATIONS:
     If the user asks to modify the current blend (e.g., "add pain relief", "swap this strain", "I don't like X"), you must:
     1. EXPLAIN the trade-offs of the requested change using the format above.
