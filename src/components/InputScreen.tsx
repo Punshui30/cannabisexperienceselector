@@ -435,7 +435,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
       <LiveNetworkDrawer />
 
       {/* --- FOOTER (Fixed) --- */}
-      <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3">
+      <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3" style={{ marginBottom: '60px' }}>
         <button
           onClick={handleSubmit}
           disabled={!canSubmit()}
