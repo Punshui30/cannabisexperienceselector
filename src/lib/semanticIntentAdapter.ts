@@ -42,6 +42,8 @@ Output a strict JSON object matching this schema:
 
 RULES:
 - Map synonyms to standard effects (e.g., "racy" -> avoid: "anxiety", "uplifting" -> target: "mood").
+- Map "Affirmative Body Load" signals (e.g., "sink into the couch", "melt", "heavy", "physically relaxed") as targets for sedation/relaxation/body, NOT constraints.
+- Allow simultaneous cognitive targets (e.g., "clear mind", "focus") and physical sedation.
 - If input is vague, set confidenceScore low (< 0.6).
 - If specific terpenes are mentioned, map them to 'include'.
 - infer 'timeOfDay' if implied ("wake and bake" -> morning, "unwind" -> night).

@@ -14,6 +14,7 @@ interface BlendCardProps {
 }
 
 export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, onOpenConsultant, index = 0 }: BlendCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   // Derive accent color from outcome category
   const outcomeColors = {
     'Focus': '#00FFD1',
@@ -136,15 +137,31 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
             </div>
           </div>
 
-          {/* WHY THIS BLEND - Reasoning Section */}
+          {/* WHY THIS BLEND - Reasoning Section (Collapsible) */}
           {recommendation.reasoning && (
-            <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#00FFD1] mb-2">
-                Why This Blend
-              </h3>
-              <p className="text-sm text-white/70 leading-relaxed">
-                {recommendation.reasoning}
-              </p>
+            <div className="mb-6">
+              <div
+                className="p-4 rounded-xl bg-white/5 border border-white/10 cursor-pointer group/reasoning"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#00FFD1]">
+                    Why This Blend
+                  </h3>
+                  <span className="text-[10px] text-white/40 group-hover/reasoning:text-white/60 transition-colors">
+                    {isExpanded ? 'Show Less ↑' : 'Why this blend ↓'}
+                  </span>
+                </div>
+                <motion.div
+                  initial={false}
+                  animate={{ height: isExpanded ? 'auto' : '4.5rem' }} // Approx 3 lines
+                  className="overflow-hidden"
+                >
+                  <p className="text-sm text-white/70 leading-relaxed">
+                    {recommendation.reasoning}
+                  </p>
+                </motion.div>
+              </div>
             </div>
           )}
 
