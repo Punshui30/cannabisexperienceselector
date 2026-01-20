@@ -18,8 +18,8 @@ export function QRShareModal({ recommendation, onClose }: Props) {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: recommendation.name,
-        text: `Check out this stack: ${recommendation.name}`,
+        title: "Stop guessing at the dispensary.",
+        text: `Indica vs Sativa isn’t science. Powered by StrainMath™—real-time cannabis compounding with personalized blends generated uniquely for every user and every outcome.`,
         url: shareUrl,
       });
     }
