@@ -1,37 +1,39 @@
 import { CSSProperties } from 'react';
 
 /**
- * Generates the "Swiss Luxury" Glass Border Style.
- * Renders a 1px gradient border with inner glow and subtle bloom.
+ * Generates the "Swiss Luxury" Glass Border Style with premium iridescent treatment.
+ * Features two-layer border system: hairline perimeter + subtle iridescent hint.
  * 
  * Usage:
  * <div style={getGlassCardStyles(color1, color2)} className="rounded-2xl ..." />
  */
-export function getGlassCardStyles(primaryColor: string, secondaryColor: string = '#ffffff'): CSSProperties {
-    // Ensure valid colors (fallback to white if missing)
-    const c1 = primaryColor || '#ffffff';
-    const c2 = secondaryColor || primaryColor || '#ffffff';
+export function getGlassCardStyles(primaryColor: string = '#00FFD1', secondaryColor?: string): CSSProperties {
+    const gradientColor = secondaryColor || primaryColor;
 
     return {
-        // The Border Gradient (via border-box background)
-        // We use the standard "double background" trick for rounded gradient borders
-        // Layer 1: The Card Body (Black/Transparent) - Padding Box
-        // Layer 2: The Border Gradient - Border Box
         background: `
-            linear-gradient(rgba(10, 10, 10, 0.6), rgba(0, 0, 0, 0.9)) padding-box, 
-            linear-gradient(135deg, ${c1}40 0%, ${c2}20 45%, rgba(255,255,255,0.2) 50%, ${c1}30 100%) border-box
+            linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.03) 0%, 
+                rgba(0, 0, 0, 0.4) 100%
+            )
         `,
-        border: '1px solid transparent',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
 
-        // Soft Inner Glow (Inset Shadow)
+        // Layer 2: Hairline perimeter with subtle iridescent hint
+        border: '1px solid rgba(255, 255, 255, 0.08)',
         boxShadow: `
-            inset 0 1px 1px 0 rgba(255, 255, 255, 0.05), 
-            inset 0 0 20px -10px ${c1}20
+            inset 0 0 0 1px ${primaryColor}12,
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            0 2px 8px rgba(0, 0, 0, 0.2)
         `,
 
-        // Ensure backdrop filter works if used with transparency
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        // Gradient border effect (subtle)
+        borderImage: `linear-gradient(135deg, 
+            ${primaryColor}20, 
+            transparent, 
+            ${gradientColor}20
+        ) 1`,
     };
 }
 

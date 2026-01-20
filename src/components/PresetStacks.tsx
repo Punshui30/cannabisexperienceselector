@@ -56,13 +56,19 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                {/* Iridescent Strip */}
+                {/* Layer 1: Top-weighted iridescent accent */}
                 <div
-                  className="absolute top-0 left-0 w-full h-1.5 opacity-80 group-hover:opacity-100 transition-opacity z-20"
+                  className="absolute top-0 left-0 right-0 h-[2px] opacity-70 group-hover:opacity-95 transition-opacity z-20"
                   style={{
-                    background: `linear-gradient(90deg, ${exemplar.visualProfile.color}, #fff, ${exemplar.visualProfile.color})`,
-                    backgroundSize: '200% 100%',
-                    filter: 'blur(1px)'
+                    background: `linear-gradient(90deg, 
+                      transparent 0%, 
+                      ${exemplar.visualProfile.color}50 15%, 
+                      ${exemplar.visualProfile.color}90 40%, 
+                      #ffffff60 50%, 
+                      ${exemplar.visualProfile.color}90 60%, 
+                      ${exemplar.visualProfile.color}50 85%, 
+                      transparent 100%)`,
+                    filter: 'blur(0.5px)'
                   }}
                 />
 

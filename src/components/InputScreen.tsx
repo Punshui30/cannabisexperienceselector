@@ -385,9 +385,26 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       setMode('describe');
                       setDescription(scenario.inputText);
                     }}
-                    className="w-full h-full text-left p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#00FFD1]/30 transition-all flex flex-col justify-between group relative overflow-hidden"
+                    className="w-full h-full text-left p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all flex flex-col justify-between group relative overflow-hidden"
+                    style={{
+                      // Layer 2: Hairline perimeter (entire card)
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      boxShadow: `inset 0 0 0 1px ${scenario.visualProfile.color}15`
+                    }}
                   >
-                    <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: scenario.visualProfile.color }} />
+                    {/* Layer 1: Top-weighted iridescent accent */}
+                    <div
+                      className="absolute top-0 left-0 right-0 h-[2px] opacity-60 group-hover:opacity-90 transition-opacity"
+                      style={{
+                        background: `linear-gradient(90deg, 
+                          transparent 0%, 
+                          ${scenario.visualProfile.color}40 20%, 
+                          ${scenario.visualProfile.color}80 50%, 
+                          ${scenario.visualProfile.color}40 80%, 
+                          transparent 100%)`,
+                        filter: 'blur(0.5px)'
+                      }}
+                    />
 
                     <div>
                       <h4 className="text-xl font-light text-white mb-1 serif">{scenario.title}</h4>
