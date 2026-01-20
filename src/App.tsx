@@ -451,36 +451,6 @@ export default function App() {
                   }
                 }}
                 onClose={() => setShowConsultant(false)}
-                onApplyResult={(newResult) => {
-                  console.log("APP: Applying Live Assistant Update", newResult);
-
-                  // 1. Adapt the engine result to UI format
-                  // We need to know if it's a blend or stack. Typically engine returns blends by default unless specified.
-                  // For now, assuming Blend for the 'Make it X' flow.
-
-                  // Simple Adapter - assuming newResult matches internal EngineResult shape, we need to adapt it
-                  // NOTE: adaptEngineResult expects EngineResult[].
-                  // If newResult is already adapted (it's not, processIntent returns {data: EngineResult[]})
-                  // Wait, processIntent returns OrchestratorResult { data: EngineResult[] }
-                  // callback receives response.data[0] which IS an EngineResult.
-
-                  const adapted = adaptEngineResult(newResult); // Adapt single result
-
-                  if (adapted) {
-                    const rec = adapted;
-
-                    if (rec.kind === 'blend') {
-                      // Update Blends
-                      setBlendRecs([rec]);
-                      setSelectedBlend(rec);
-                      setView('blend-detail'); // Force view
-                    } else {
-                      // Update Stack
-                      setStackRec(rec);
-                      setView('stack-detail');
-                    }
-                  }
-                }}
               />
             )}
           </AnimatePresence>
