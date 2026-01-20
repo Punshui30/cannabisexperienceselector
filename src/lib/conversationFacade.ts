@@ -20,7 +20,7 @@ export interface ChatMessage {
 }
 
 const MAX_HISTORY_MESSAGES = 10; // Prevent token overflow
-const CHAT_TIMEOUT_MS = 10000; // 10 second timeout
+const CHAT_TIMEOUT_MS = 30000; // 30 second timeout (increased from 10s)
 
 /**
  * Main chat function - calls LLM directly with context from snapshot
