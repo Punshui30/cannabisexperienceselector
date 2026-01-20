@@ -1,12 +1,27 @@
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
+import { processIntent } from './llmOrchestrator';
+import { Intelligence } from './merchantIntelligence';
 
-interface ChatMessage {
+export interface ChatMessage {
     role: 'user' | 'assistant' | 'system';
     content: string;
 }
 
+export class LiveAssistantError extends Error {
+    constructor(message: string, public readonly orchestratorExecuted: boolean) {
+        super(message);
+        this.name = 'LiveAssistantError';
+    }
+}
+
 /**
- * Call the OpenAI API endpoint for chat completions
+ * Call the Orchestrator (Logic Layer) to handle the user's request.
+ * 
+ * FAILURE MODE:
+ * - If orchestrator fails, this throws LiveAssistantError
+ * - NO fallback responses
+ * - NO silent degradation
+ * - Console logs TRUTH about what executed
  */
 export async function callLLMChat(
     messages: ChatMessage[],
@@ -16,98 +31,85 @@ export async function callLLMChat(
         cardType?: 'primary' | 'secondary' | 'contextual';
     }
 ): Promise<string> {
-    // FORCE SIMULATION (API Bypass)
-    return simulateLLM(messages, context);
 
-    /* API LOGIC DISABLED FOR STATIC DEPLOYMENT
+    // 1. INPUT LOGGING
+    const lastMessage = messages[messages.length - 1];
+    const userText = lastMessage.content;
+    const contextName = context?.recommendation?.name || 'General';
+
+    console.group("🧠 LIVE ASSISTANT ORCHESTRATION");
+    console.log(`INPUT: "${userText}"`);
+    console.log(`CONTEXT: ${contextName}`);
+    console.log(`TIMESTAMP: ${new Date().toISOString()}`);
+
     try {
-        // ... (existing code)
-    } catch (error) { ... }
-    */
-}
+        // 2. REAL EXECUTION VIA ORCHESTRATOR
+        console.log("⚙️ EXECUTING LOCAL ORCHESTRATOR...");
 
-/**
- * Fallback Simulation for Demo/Offline Mode
- */
-function simulateLLM(messages: ChatMessage[], context?: any): Promise<string> {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            const lastUserMsg = messages[messages.length - 1].content.toLowerCase();
-            const blendName = context?.recommendation?.name || 'this blend';
-            const reasoning = context?.recommendation?.reasoning || 'your preferences';
+        const result = await processIntent({
+            text: userText,
+            kind: 'blend',
+            mode: 'engine'
+        });
 
-            // DYNAMIC RESPONSE GENERATION
-            if (lastUserMsg.includes('anxious') || lastUserMsg.includes('anxiety')) {
-                resolve(`I adjusted specifically for that. We balanced the euphoric profile of ${blendName} with calming terpenes like Caryophyllene to prevent any edge. This ensures you get the lift without the racey feeling.`);
-            } else if (lastUserMsg.includes('sleep') || lastUserMsg.includes('tired')) {
-                resolve(`Good catch. While ${blendName} is designed to be functional (${reasoning}), I can increase the Myrcene levels to make it a dedicated sleep stack. Would you like a "Deep Sleep" variation?`);
-            } else if (lastUserMsg.includes('energy') || lastUserMsg.includes('focus')) {
-                resolve(`I focused on clarity here. By limiting Myrcene and boosting Limonene, I prioritized the "Clear-headed" aspect you asked for. This should keep you sharp for your ${context?.userInput || 'activity'}.`);
-            } else if (lastUserMsg.includes("why") || lastUserMsg.includes("how")) {
-                resolve(`I designed this based on your request for "${context?.userInput || 'your specific intent'}". I balanced the potent cannabinoids with a grounding terpene profile to satisfy that goal while maintaining control.`);
-            } else {
-                resolve(`That's a great question. For ${blendName}, I specifically looked for a profile that matched "${context?.userInput || 'your intent'}". I avoided anything too heavy to keep it consistent with your goal.`);
-            }
-        }, 1500);
-    });
-}
+        console.log("✅ ORCHESTRATOR EXECUTED SUCCESSFULLY");
+        console.log("LOGIC RESULT:", result);
 
-/**
- * Build system message with blend context
- */
-function buildSystemMessage(context?: {
-    recommendation?: UIBlendRecommendation | UIStackRecommendation;
-    userInput?: string;
-    cardType?: 'primary' | 'secondary' | 'contextual';
-}): string {
-    if (!context?.recommendation) {
-        return 'You are a cannabis consultant helping users understand their recommendations. Be concise, helpful, and knowledgeable.';
-    }
+        if (!result.success) {
+            console.error("❌ ORCHESTRATOR RETURNED FAILURE");
+            console.error("ERROR:", result.error);
+            console.groupEnd();
 
-    const rec = context.recommendation;
-    const cardTypeLabel = context.cardType === 'primary' ? 'primary recommendation' :
-        context.cardType === 'secondary' ? 'alternative approach' :
-            context.cardType === 'contextual' ? 'experimental variant' : 'recommendation';
+            throw new LiveAssistantError(
+                result.error || 'Orchestrator returned failure',
+                true // orchestrator DID execute
+            );
+        }
 
-    if (rec.kind === 'blend') {
-        const blend = rec as UIBlendRecommendation;
-        const cultivarDetails = blend.cultivars
-            .map(c => `${c.name} (${Math.round(c.ratio * 100)}%, ${c.profile})`)
-            .join(', ');
+        // 3. CONSTRUCT RESPONSE FROM REAL DATA
+        const script = result.analysis?.reasoning || "I've processed your request.";
+        const terpenes = result.analysis?.targetTerpenes || [];
 
-        const terpenes = blend.cultivars
-            .flatMap(c => c.prominentTerpenes || [])
-            .filter((t, i, arr) => arr.indexOf(t) === i)
-            .join(', ');
+        let response = script;
 
-        return `You are a cannabis consultant helping a user understand their ${cardTypeLabel}.
+        // If specific terpenes were targeted by the engine, mention them
+        if (terpenes && terpenes.length > 0) {
+            response += `\n\nBased on your input, I'm prioritizing ${terpenes.slice(0, 2).join(' and ')} in the active logic layer.`;
+        }
 
-BLEND DETAILS:
-- Name: ${blend.name}
-- Cultivars: ${cultivarDetails}
-- Match Score: ${blend.matchScore}%
-- Reasoning: ${blend.reasoning || 'Balanced blend for desired effects'}
-- Prominent Terpenes: ${terpenes || 'Various'}
-- Effects: Onset ${blend.effects?.onset || 'N/A'}, Peak ${blend.effects?.peak || 'N/A'}, Duration ${blend.effects?.duration || 'N/A'}
+        console.log("📝 RESPONSE GENERATED:", response);
 
-${context.userInput ? `Original User Request: "${context.userInput}"` : ''}
+        // 4. EVENT EMISSION (Downstream Intelligence)
+        if (result.analysis?.outcomeCategory && result.data && result.data.length > 0) {
+            Intelligence.logResolution({
+                inputMode: 'assisted',
+                inputText: userText,
+                blendId: result.data[0].id || 'unknown',
+                blendName: result.data[0].name || 'Unnamed Blend',
+                confidenceScore: 0.95,
+                componentSkus: result.data[0].cultivars?.map(c => c.name) || [],
+                outcomeCategory: result.analysis.outcomeCategory
+            });
+            console.log("✅ EVENT EMITTED: Logged to Intelligence Layer");
+        }
 
-INSTRUCTIONS:
-- Answer questions about this specific blend
-- Explain ratios, cultivar choices, and effects
-- Suggest adjustments if requested
-- Be concise (2-3 sentences max)
-- Use accessible language, not overly technical
-- Reference the specific cultivars and ratios when relevant`;
-    } else {
-        const stack = rec as UIStackRecommendation;
-        return `You are a cannabis consultant helping a user understand their stack recommendation: "${stack.name}".
+        console.groupEnd();
+        return response;
 
-STACK DETAILS:
-- Description: ${stack.description}
-- Match Score: ${stack.matchScore}%
-- Reasoning: ${stack.reasoning || 'Multi-phase protocol'}
+    } catch (error) {
+        if (error instanceof LiveAssistantError) {
+            // Already logged, just re-throw
+            throw error;
+        }
 
-Answer questions concisely and helpfully about this stack.`;
+        // Unexpected error
+        console.error("💥 FATAL ORCHESTRATOR EXCEPTION");
+        console.error("ERROR:", error);
+        console.groupEnd();
+
+        throw new LiveAssistantError(
+            'Fatal orchestrator exception: ' + (error instanceof Error ? error.message : String(error)),
+            false // orchestrator may not have executed
+        );
     }
 }

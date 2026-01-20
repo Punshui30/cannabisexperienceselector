@@ -4,6 +4,7 @@ import { Mic, Camera, Search, Check, Upload } from 'lucide-react';
 import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { SwipeDeck } from './SwipeDeck';
+import { PublicFeed } from './PublicFeed';
 import logoImg from '../assets/logo.png';
 
 // --- DESIGN TOKENS ---
@@ -406,6 +407,12 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
               )}
             />
           </div>
+
+          {/* --- PUBLIC FEED (Downstream Consumer) --- */}
+          <div className="flex-shrink-0 mt-8 mb-4">
+            <PublicFeed />
+          </div>
+
         </div>
 
       </div>

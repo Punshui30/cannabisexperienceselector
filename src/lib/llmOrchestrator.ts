@@ -9,6 +9,7 @@ export interface OrchestratorResult {
     analysis?: {
         targetTerpenes: string[];
         reasoning: string;
+        outcomeCategory?: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other';
     };
     followUpQuestion?: string;
 }
@@ -28,6 +29,18 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
         console.log('ORCHESTRATOR: Parsing Intent Locally...');
         const intentSpec = parseIntentLocally(seed);
         console.log('ORCHESTRATOR: Intent Analyzed', intentSpec);
+
+        // Derive Outcome Category for downstream consumers
+        let outcomeCategory: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other' = 'Other';
+        const primaryEffect = intentSpec.targetEffects?.[0]?.toLowerCase();
+
+        if (primaryEffect) {
+            if (['focus', 'energy', 'creative', 'work'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Focus';
+            else if (['relax', 'calm', 'chill', 'unwind'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Relax';
+            else if (['social', 'party', 'fun'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Social';
+            else if (['sleep', 'sedation', 'night', 'insomnia'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Sleep';
+            else if (['pain', 'relief', 'medical'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Relief';
+        }
 
         // 2. ENGINE EXECUTION (Generate 3 Options)
         const engineIntent = interpretIntentFromSpec(intentSpec);
@@ -195,7 +208,8 @@ export async function processIntent(seed: IntentSeed, mode: string = 'blend-engi
             data: engineResults,
             analysis: {
                 targetTerpenes: intentSpec.terpenePreferences.include,
-                reasoning: intentSpec.consultationScript || "Analysis complete."
+                reasoning: intentSpec.consultationScript || "Analysis complete.",
+                outcomeCategory: outcomeCategory
             }
         };
 

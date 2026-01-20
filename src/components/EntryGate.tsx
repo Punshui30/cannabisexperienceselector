@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, ArrowRight, Info, User, Settings } from 'lucide-react';
+import { ChevronRight, ArrowRight, Info, User, Settings, Zap, Shield } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
 interface EntryGateProps {
@@ -261,54 +261,66 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
               </div>
 
               <div className="flex flex-col gap-4 w-full">
+                {/* USER MODE */}
                 <button
                   onClick={onEnterUser}
-                  className="group relative p-6 glass-card border-[#00FFD1]/20 hover:border-[#00FFD1]/40 transition-all text-left"
+                  className="group relative p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent hover:from-white/10 hover:to-white/5 transition-all flex items-center justify-between overflow-hidden"
                 >
-                  <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 rounded-xl bg-[#00FFD1]/10 flex items-center justify-center border border-[#00FFD1]/30 text-[#00FFD1] group-hover:bg-[#00FFD1]/20 shadow-[0_0_15px_rgba(0,255,209,0.1)]">
-                      <User size={24} />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#00FFD1]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00FFD1]/20 to-[#00E0B8]/10 flex items-center justify-center border border-[#00FFD1]/20">
+                      <User size={24} className="text-[#00FFD1]" />
                     </div>
-                    <div className="flex-1">
-                      <span className="block text-lg font-medium text-white group-hover:text-[#00FFD1] transition-colors">Start Experience</span>
-                      <span className="text-xs text-white/30">Consumer interface</span>
+                    <div className="text-left">
+                      <span className="block text-base font-semibold text-white group-hover:text-[#00FFD1] transition-colors">Find Your Experience</span>
+                      <span className="text-xs text-white/40">Personalized recommendations</span>
                     </div>
-                    <ChevronRight size={20} className="text-white/10 group-hover:text-[#00FFD1]" />
                   </div>
+                  <ChevronRight size={20} className="text-white/20 group-hover:text-[#00FFD1] transition-colors" />
                 </button>
 
+                {/* LIVE BLENDS FEED - ELEVATED */}
                 <button
-                  onClick={onEnterAdmin}
-                  className="group relative p-6 glass-card border-orange-500/20 hover:border-orange-500/40 transition-all text-left"
+                  onClick={onEnterFeed}
+                  className="group relative p-6 rounded-2xl border border-[#00FFD1]/20 bg-gradient-to-br from-[#00FFD1]/10 to-transparent hover:from-[#00FFD1]/15 hover:to-[#00FFD1]/5 transition-all flex items-center justify-between overflow-hidden"
                 >
-                  <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/30 text-orange-500 group-hover:bg-orange-500/20 shadow-[0_0_15px_rgba(251,146,60,0.1)]">
-                      <Settings size={24} />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#00FFD1]/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-[#00FFD1]/30 to-[#00E0B8]/20 flex items-center justify-center border border-[#00FFD1]/30">
+                      <div className="absolute inset-0 rounded-full bg-[#00FFD1]/20 animate-pulse" />
+                      <Zap size={24} className="text-[#00FFD1] relative z-10" />
                     </div>
-                    <div className="flex-1">
-                      <span className="block text-lg font-medium text-white group-hover:text-orange-500 transition-colors">Admin Mode</span>
-                      <span className="text-xs text-white/30">Operator controls</span>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="block text-base font-semibold text-white group-hover:text-[#00FFD1] transition-colors">Live Blends</span>
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FFD1] opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FFD1]"></span>
+                        </span>
+                      </div>
+                      <span className="text-xs text-white/50">See what people are creating now</span>
                     </div>
-                    <ChevronRight size={20} className="text-white/10 group-hover:text-orange-500" />
                   </div>
+                  <ChevronRight size={20} className="text-[#00FFD1]/40 group-hover:text-[#00FFD1] transition-colors" />
                 </button>
 
                 <div className="w-full h-px bg-white/5 my-2" />
 
+                {/* ADMIN MODE */}
                 <button
-                  onClick={onEnterFeed}
+                  onClick={onEnterAdmin}
                   className="group relative p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#00FFD1]/10 flex items-center justify-center border border-[#00FFD1]/20">
-                      <div className="w-2 h-2 rounded-full bg-[#00FFD1] animate-pulse" />
+                    <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                      <Shield size={16} className="text-orange-500" />
                     </div>
                     <div className="text-left">
-                      <span className="block text-sm font-medium text-white/80 group-hover:text-white transition-colors">Live Experience Feed</span>
-                      <span className="text-[10px] text-white/30">Public display mode</span>
+                      <span className="block text-sm font-medium text-white/60 group-hover:text-white transition-colors">Admin Portal</span>
+                      <span className="text-xs text-white/30">Operator controls</span>
                     </div>
                   </div>
-                  <ArrowRight size={14} className="text-white/20 group-hover:text-white transition-colors" />
+                  <ChevronRight size={20} className="text-white/10 group-hover:text-orange-500" />
                 </button>
 
                 <p className="text-center text-white/20 text-[10px] mt-6">

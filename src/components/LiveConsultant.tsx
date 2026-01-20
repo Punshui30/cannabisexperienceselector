@@ -58,7 +58,7 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
         setIsLoading(true);
 
         try {
-            // Call real LLM API
+            // Call real orchestrator (NO FALLBACK)
             const response = await callLLMChat(
                 [...messages, newUserMessage].map(m => ({ role: m.role, content: m.content })),
                 context
@@ -66,10 +66,16 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
 
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);
         } catch (error) {
-            console.error('Chat error:', error);
+            // HARD FAIL - Show explicit unavailability
+            console.error('Live Assistant Error:', error);
+
+            const errorMessage = error instanceof Error && 'orchestratorExecuted' in error
+                ? `⚠️ **Live Assistant Unavailable**\n\nRunning in Engine-only mode.\n\n${error.message}\n\n*Check console for orchestration details.*`
+                : `⚠️ **Live Assistant Unavailable**\n\nThe orchestrator could not execute.\n\n*Check console for details.*`;
+
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: 'I apologize, but I encountered an error. Please try again.'
+                content: errorMessage
             }]);
         } finally {
             setIsLoading(false);
@@ -84,77 +90,129 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="w-full max-w-lg h-[80vh] flex flex-col bg-[#0a0a0a]/95 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden relative"
+                className="w-full max-w-lg h-[80vh] flex flex-col glass-card overflow-hidden relative"
+                style={{
+                    background: `
+                        linear-gradient(rgba(10, 10, 10, 0.95), rgba(0, 0, 0, 0.98)) padding-box, 
+                        linear-gradient(135deg, #00FFD140 0%, #BF5AF220 45%, rgba(255,255,255,0.2) 50%, #00FFD130 100%) border-box
+                    `,
+                    border: '1px solid transparent',
+                    boxShadow: `
+                        inset 0 1px 1px 0 rgba(255, 255, 255, 0.05), 
+                        inset 0 0 20px -10px #00FFD120,
+                        0 20px 60px -10px rgba(0, 0, 0, 0.5)
+                    `,
+                }}
             >
-                {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-white/5 bg-white/5 relative overflow-hidden shrink-0">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#00FFD1]/5 to-transparent pointer-events-none" />
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
+                {/* Header - Premium Glass Treatment */}
+                <div className="flex items-center justify-between p-6 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent relative overflow-hidden shrink-0">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00FFD1]/30 to-transparent" />
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-1">
                             <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FFD1] opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FFD1]"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FFD1] opacity-50"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FFD1] shadow-[0_0_10px_#00FFD1]"></span>
                             </span>
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-white shadow-[#00FFD1]/20 drop-shadow-sm">Live Consultant</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-white/90">Live Consultant</h3>
                         </div>
-                        <p className="text-[10px] text-white/40 uppercase tracking-wider pl-4">
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest pl-5 font-medium">
                             {context?.recommendation && 'recommendation' in context.recommendation ? 'Session Active' : 'AI Assistant'}
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white/60 hover:text-white backdrop-blur-md border border-white/5"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all text-white/40 hover:text-white border border-white/10 hover:border-white/20 group"
                     >
-                        <X size={16} />
+                        <X size={18} className="group-hover:rotate-90 transition-transform duration-300" />
                     </button>
                 </div>
 
-                {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                {/* Messages Area - Premium Scrollbar */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                     <AnimatePresence initial={false} mode="popLayout">
                         {messages.map((message, i) => (
                             <motion.div
                                 key={i}
                                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                                transition={{ duration: 0.2 }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
                                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
                                     className={`
-                                        max-w-[85%] rounded-2xl px-5 py-3.5 text-sm leading-relaxed shadow-sm
+                                        max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-relaxed relative overflow-hidden
                                         ${message.role === 'user'
-                                            ? 'bg-[#00FFD1] text-black font-medium rounded-br-sm shadow-[0_0_15px_rgba(0,255,209,0.15)]'
-                                            : 'bg-white/5 border border-white/10 text-white/90 rounded-bl-sm backdrop-blur-md'
+                                            ? 'bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black font-medium rounded-br-md shadow-[0_4px_20px_rgba(0,255,209,0.25)]'
+                                            : 'backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 text-white/90 rounded-bl-md shadow-lg'
                                         }
                                     `}
+                                    style={message.role === 'assistant' ? {
+                                        boxShadow: `
+                                            inset 0 1px 1px 0 rgba(255, 255, 255, 0.1),
+                                            0 4px 16px rgba(0, 0, 0, 0.3)
+                                        `
+                                    } : undefined}
                                 >
-                                    {message.content}
+                                    {/* Subtle top shine for assistant bubbles */}
+                                    {message.role === 'assistant' && (
+                                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                    )}
+
+                                    {/* Render message with markdown-style formatting */}
+                                    <div className="whitespace-pre-wrap">
+                                        {message.content.split('\n').map((line, idx) => {
+                                            // Handle bold markdown
+                                            if (line.startsWith('**') && line.endsWith('**')) {
+                                                return <div key={idx} className="font-bold text-[#00FFD1] mb-2">{line.slice(2, -2)}</div>;
+                                            }
+                                            // Handle italic markdown
+                                            if (line.startsWith('*') && line.endsWith('*')) {
+                                                return <div key={idx} className="italic text-white/60 text-xs mt-2">{line.slice(1, -1)}</div>;
+                                            }
+                                            // Handle warning emoji
+                                            if (line.startsWith('⚠️')) {
+                                                return <div key={idx} className="flex items-center gap-2 mb-2"><span className="text-lg">⚠️</span><span className="font-bold text-orange-400">{line.slice(2)}</span></div>;
+                                            }
+                                            return line ? <div key={idx} className="mb-1">{line}</div> : <div key={idx} className="h-2" />;
+                                        })}
+                                    </div>
                                 </div>
                             </motion.div>
                         ))}
                     </AnimatePresence>
 
+                    {/* Loading State - Premium Treatment */}
                     {isLoading && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             className="flex justify-start"
                         >
-                            <div className="bg-white/5 border border-white/10 rounded-2xl rounded-bl-sm px-5 py-4 backdrop-blur-md">
+                            <div className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl rounded-bl-md px-6 py-5 shadow-lg"
+                                style={{
+                                    boxShadow: `
+                                        inset 0 1px 1px 0 rgba(255, 255, 255, 0.1),
+                                        0 4px 16px rgba(0, 0, 0, 0.3)
+                                    `
+                                }}
+                            >
                                 <div className="flex gap-1.5">
                                     {[0, 1, 2].map(j => (
                                         <motion.div
                                             key={j}
-                                            className="w-1.5 h-1.5 rounded-full bg-[#00FFD1]/80"
-                                            animate={{ y: [0, -3, 0] }}
-                                            transition={{ duration: 0.6, repeat: Infinity, delay: j * 0.1 }}
+                                            className="w-2 h-2 rounded-full bg-[#00FFD1]"
+                                            animate={{
+                                                y: [0, -6, 0],
+                                                opacity: [0.4, 1, 0.4],
+                                                scale: [1, 1.2, 1]
+                                            }}
+                                            transition={{ duration: 0.8, repeat: Infinity, delay: j * 0.15 }}
                                         />
                                     ))}
                                 </div>
@@ -163,33 +221,43 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
                     )}
                 </div>
 
-                {/* Input Area */}
-                <div className="p-5 bg-black/20 border-t border-white/10 backdrop-blur-md shrink-0">
-                    <div className="flex gap-3 items-center relative">
-                        {/* Voice Input Trigger */}
-                        <button
-                            className="flex-shrink-0 w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 hover:bg-[#00FFD1]/5 flex items-center justify-center transition-all duration-300 group"
-                            onClick={() => alert("Voice interface activating...")}
-                            title="Voice Input"
-                        >
-                            <Mic size={18} className="group-hover:scale-110 transition-transform" />
-                        </button>
+                {/* Input Area - Premium Floating Pill */}
+                <div className="p-6 bg-gradient-to-t from-black/90 via-black/60 to-transparent shrink-0">
+                    <div className="relative group">
+                        {/* Glow underlayer on focus */}
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00FFD1]/20 to-[#BF5AF2]/20 rounded-full blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
 
-                        <div className="flex-1 relative group">
+                        <div className="relative flex items-center backdrop-blur-xl bg-[#0a0a0a]/90 border border-white/10 rounded-full p-1.5 shadow-2xl"
+                            style={{
+                                boxShadow: `
+                                    inset 0 1px 1px 0 rgba(255, 255, 255, 0.05),
+                                    0 8px 32px rgba(0, 0, 0, 0.4)
+                                `
+                            }}
+                        >
+                            {/* Voice Trigger */}
+                            <button
+                                className="w-10 h-10 rounded-full flex items-center justify-center text-white/40 hover:text-[#00FFD1] hover:bg-white/5 transition-all ml-1"
+                                onClick={() => alert("Voice interface activating...")}
+                            >
+                                <Mic size={18} />
+                            </button>
+
                             <input
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 placeholder="Type your message..."
-                                className="w-full bg-black/40 border border-white/10 rounded-full pl-5 pr-12 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#00FFD1]/40 focus:bg-black/60 focus:shadow-[0_0_20px_rgba(0,255,209,0.05)] transition-all"
+                                className="flex-1 bg-transparent border-none text-white placeholder-white/30 text-sm px-4 focus:outline-none h-10 tracking-wide"
                                 disabled={isLoading}
                                 autoFocus
                             />
+
                             <button
                                 onClick={handleSendMessage}
                                 disabled={!inputValue.trim() || isLoading}
-                                className="absolute right-1.5 top-1.5 w-9 h-9 rounded-full bg-[#00FFD1] hover:bg-[#00FFD1]/90 disabled:bg-white/10 disabled:cursor-not-allowed flex items-center justify-center transition-all shadow-[0_0_10px_rgba(0,255,209,0.2)] hover:scale-105 active:scale-95"
+                                className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] hover:from-[#00E0B8] hover:to-[#00FFD1] disabled:from-white/10 disabled:to-white/5 disabled:cursor-not-allowed flex items-center justify-center text-black shadow-lg shadow-[#00FFD1]/20 transition-all hover:scale-105 active:scale-95 disabled:shadow-none"
                             >
                                 <Send size={16} className={inputValue.trim() ? 'text-black' : 'text-white/40'} />
                             </button>
