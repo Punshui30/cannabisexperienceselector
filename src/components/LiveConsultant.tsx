@@ -36,7 +36,7 @@ function generateContextAwareIntro(context?: LiveConsultantProps['context']): st
     }
 }
 
-export function LiveConsultant({ consultantText, context, onClose }: LiveConsultantProps) {
+export function LiveConsultant({ consultantText, context, onApplyResult, onClose }: LiveConsultantProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
