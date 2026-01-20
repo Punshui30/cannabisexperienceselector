@@ -442,6 +442,14 @@ export default function App() {
                         (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
                   userInput: userInput?.text
                 }}
+                onApplyResult={(newResult) => {
+                  // Apply the Live Consultant's new recommendation
+                  const adapted = adaptEngineResult(newResult);
+                  if (adapted) {
+                    setBlendRecs([adapted, ...blendRecs.slice(1)]);
+                    setView('results');
+                  }
+                }}
                 onClose={() => setShowConsultant(false)}
                 onApplyResult={(newResult) => {
                   console.log("APP: Applying Live Assistant Update", newResult);
