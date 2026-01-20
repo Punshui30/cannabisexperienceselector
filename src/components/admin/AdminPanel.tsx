@@ -371,8 +371,8 @@ export function AdminPanel({
                 <button
                   onClick={handleToggleDemoMode}
                   className={`w-12 h-7 rounded-full transition-colors relative ${demoMode
-                      ? "bg-purple-600"
-                      : "bg-white/10"
+                    ? "bg-purple-600"
+                    : "bg-white/10"
                     }`}
                 >
                   <div
@@ -473,8 +473,7 @@ export function AdminPanel({
         {/* Operator Demo - Auto-playing presentation */}
         {showOperatorDemo && (
           <OperatorDemo
-            onComplete={() => setShowOperatorDemo(false)}
-            onExit={() => setShowOperatorDemo(false)}
+            onClose={() => setShowOperatorDemo(false)}
           />
         )}
       </div>

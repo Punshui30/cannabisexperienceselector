@@ -75,15 +75,15 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="w-full max-w-sm max-[360px]:max-w-[90vw] p-8 max-[360px]:p-5 rounded-3xl relative overflow-hidden group flex flex-col items-center text-center"
+              className="w-full max-w-sm max-[360px]:max-w-[90vw] p-8 max-[360px]:p-5 rounded-3xl relative group flex flex-col items-center text-center"
             >
-              {/* IRIDESCENT GOLD BORDER & GLOW */}
-              <div className="absolute inset-0 p-[1px] rounded-3xl bg-gradient-to-br from-[#C9A24D]/60 via-[#FFE194]/40 to-[#C9A24D]/20 opacity-80 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="absolute inset-0 bg-black rounded-3xl" />
+              {/* IRIDESCENT GOLD BORDER (Increased to 2px for visibility) */}
+              <div className="absolute inset-0 p-[2px] rounded-3xl bg-gradient-to-br from-[#C9A24D] via-[#FFE194] to-[#C9A24D]/40 opacity-100 transition-opacity duration-500 overflow-hidden">
+                <div className="absolute inset-0 bg-black rounded-[22px]" /> {/* Adjusted radius for internal fit */}
               </div>
 
-              {/* Ambient Gold Glow Underlay */}
-              <div className="absolute -inset-1 bg-[#C9A24D]/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-pulse-slow pointer-events-none" />
+              {/* Ambient Gold Glow Underlay (Moved outside or ensuring visibility) */}
+              <div className="absolute -inset-4 bg-[#C9A24D]/20 blur-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-700 animate-pulse-slow pointer-events-none z-[-1]" />
 
               <div className="relative z-10 w-full flex flex-col items-center">
                 <h2 className="text-2xl font-light text-white mb-2 serif">Age Verification Required</h2>
@@ -108,7 +108,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
                 <button
                   onClick={() => isAgeConfirmed && setStep('familiarity')}
                   disabled={!isAgeConfirmed}
-                  className={`w-full btn-neon-green ${!isAgeConfirmed && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+                  className={`w-full btn-neon-green shadow-lg shadow-[#00FFD1]/20 ${!isAgeConfirmed && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
                 >
                   Continue
                 </button>
