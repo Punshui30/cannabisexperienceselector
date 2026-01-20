@@ -236,7 +236,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 <img
                   src={logoImg}
                   alt="StrainMath Logo"
-                  className="h-[40px] w-auto max-h-[48px] object-contain brightness-0 invert opacity-80"
+                  className="h-[40px] w-auto max-h-[48px] object-contain opacity-100"
+                  style={{ filter: 'brightness(0) saturate(100%) invert(83%) sepia(36%) saturate(1478%) hue-rotate(354deg) brightness(91%) contrast(93%)' }}
                 />
               </button>
             </div>
