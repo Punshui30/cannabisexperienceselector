@@ -2,16 +2,14 @@ import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { chat as conversationFacadeChat } from './conversationFacade';
 
 /**
- * LIVE ASSISTANT CHAT (CONVERSATION FACADE)
+ * LIVE CONSULTANT (SYSTEM OVERLAY)
  * 
- * This is now a lightweight wrapper around the conversation facade.
- * It NO LONGER calls the orchestrator or mutates engine state.
- * 
- * Purpose:
- * - Read-only chat interface
- * - Direct LLM calls via api/llm.js
- * - Graceful error handling
- * - No state mutations
+ * STRICT RULES:
+ * - NOT a chatbot.
+ * - NO emojis.
+ * - NO pleasantries ("Sure!", "I can help with that").
+ * - MAX 2-3 sentences.
+ * - Tone: Clinical, authoritative, neutral.
  */
 
 export interface ChatMessage {
@@ -19,8 +17,21 @@ export interface ChatMessage {
     content: string;
 }
 
+const SYSTEM_OVERLAY_PROMPT = `
+You are the Guided Outcomes System Overlay.
+You are NOT a conversational AI. You are a functional interface layer.
+
+RULES:
+1. MAX 3 sentences per response.
+2. NO EMOJIS.
+3. NO fillers (e.g. "Sure", "I understand", "Let me check").
+4. Tone: Analytical, dry, confident.
+5. If the user asks for an adjustment, acknowledge it as a command: "Updating parameters for [intent]."
+6. If the user asks a question, answer efficiently.
+`.trim();
+
 /**
- * Call the conversation facade for lightweight chat
+ * Call the conversation facade with strict System Overlay constraints
  */
 export async function callLLMChat(
     messages: ChatMessage[],
@@ -30,10 +41,14 @@ export async function callLLMChat(
         cardType?: 'primary' | 'secondary' | 'contextual';
     }
 ): Promise<{ text: string, data?: any }> {
-    console.log('[llmChat] Routing to conversation facade');
 
-    // Route to conversation facade (read-only, lightweight)
-    return conversationFacadeChat(messages, context);
+    // Inject the System Overlay Persona at the root
+    const strictMessages: ChatMessage[] = [
+        { role: 'system', content: SYSTEM_OVERLAY_PROMPT },
+        ...messages
+    ];
+
+    return conversationFacadeChat(strictMessages, context);
 }
 
 /**
@@ -43,14 +58,9 @@ export async function triggerRefactor(
     query: string,
     context?: any
 ): Promise<any> {
-    console.log('[llmChat] Triggering AUTHORITATIVE REFACTOR with query:', query);
-
-    // Dynamic import to avoid circular dependency in standard chat path
     const { processIntent } = await import('./llmOrchestrator');
-
-    // Call the engine
     return processIntent(
-        { text: query, mode: 'engine', kind: 'blend' }, // Added kind: 'blend' for type safety
+        { text: query, mode: 'engine', kind: 'blend' },
         context || {},
         'blend-engine'
     );
