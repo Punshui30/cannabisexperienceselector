@@ -39,6 +39,49 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+
+    const toggleVoiceInput = () => {
+        if (isListening) {
+            // Manual stop not typically needed for single-shot, but good UX
+            setIsListening(false);
+            return;
+        }
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            setIsListening(true);
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event: any) => {
+                const transcript = event.results[0][0].transcript;
+                if (transcript) {
+                    setInputValue(prev => prev + (prev ? ' ' : '') + transcript);
+                }
+            };
+
+            recognition.onerror = (event: any) => {
+                console.error('Speech recognition error', event.error);
+                setIsListening(false);
+            };
+
+            recognition.onend = () => {
+                setIsListening(false);
+            };
+
+            recognition.start();
+        } else {
+            // Fallback for unsupported browsers
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: "⚠️ **Voice Not Supported**\n\nYour browser doesn't support the Web Speech API. Please type your message."
+            }]);
+        }
+    };
 
     useEffect(() => {
         // Initialize with context-aware intro
@@ -237,10 +280,13 @@ export function LiveConsultant({ consultantText, context, onClose }: LiveConsult
                         >
                             {/* Voice Trigger */}
                             <button
-                                className="w-10 h-10 rounded-full flex items-center justify-center text-white/40 hover:text-[#00FFD1] hover:bg-white/5 transition-all ml-1"
-                                onClick={() => alert("Voice interface activating...")}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ml-1 ${isListening
+                                    ? 'bg-[#00FFD1]/20 text-[#00FFD1] animate-pulse'
+                                    : 'text-white/40 hover:text-[#00FFD1] hover:bg-white/5'
+                                    }`}
+                                onClick={toggleVoiceInput}
                             >
-                                <Mic size={18} />
+                                <Mic size={18} className={isListening ? 'animate-bounce' : ''} />
                             </button>
 
                             <input
