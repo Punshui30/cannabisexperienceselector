@@ -113,17 +113,17 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
 
             // 2. Apply Data Result (if any)
             if (response.data && response.data.length > 0) {
-                const resultToApply = response.data[0];
-                console.log("🚀 LIVE CONSULTANT: Result found, checking for onApplyResult prop...");
+                const resultsToApply = response.data;
+                console.log("🚀 LIVE CONSULTANT: Results found, checking for onApplyResult prop...");
 
                 if (typeof onApplyResult === 'function') {
-                    console.log("🚀 LIVE CONSULTANT: Callback found. Applying in 1.5s...", resultToApply.name);
+                    console.log(`🚀 LIVE CONSULTANT: Authoritative Pipeline: Applying ${resultsToApply.length} results...`);
                     setTimeout(() => {
-                        console.log("🚀 LIVE CONSULTANT: Executing callback...");
+                        console.log("🚀 LIVE CONSULTANT: Executing authoritative update...");
                         try {
-                            onApplyResult(resultToApply);
+                            onApplyResult(resultsToApply);
                         } catch (cbErr) {
-                            console.error("❌ LIVE CONSULTANT: Callback execution failed:", cbErr);
+                            console.error("❌ LIVE CONSULTANT: Authoritative update failed:", cbErr);
                         }
                     }, 1500);
                 } else {

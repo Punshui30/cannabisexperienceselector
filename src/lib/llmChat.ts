@@ -1,6 +1,7 @@
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { processIntent } from './llmOrchestrator';
 import { Intelligence } from './merchantIntelligence';
+import { generateLiveFeedCommentary } from './llmLiveFeedAdapter';
 
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'system';
@@ -95,16 +96,27 @@ export async function callLLMChat(
 
         // 4. EVENT EMISSION (Downstream Intelligence)
         if (result.analysis?.outcomeCategory && result.data && result.data.length > 0) {
-            Intelligence.logResolution({
-                inputMode: 'assisted',
-                inputText: userText,
-                blendId: result.data[0].id || 'unknown',
-                blendName: result.data[0].name || 'Unnamed Blend',
-                confidenceScore: 0.95,
-                componentSkus: result.data[0].cultivars?.map(c => c.name) || [],
-                outcomeCategory: result.analysis.outcomeCategory
+            const firstResult = result.data[0];
+            generateLiveFeedCommentary({
+                blendName: firstResult.name || 'Unnamed Blend',
+                cultivars: firstResult.cultivars?.map((c: any) => c.name) || [],
+                outcomeCategory: result.analysis.outcomeCategory,
+                userInput: userText
+            }).then(commentary => {
+                if (commentary) {
+                    Intelligence.logResolution({
+                        inputMode: 'assisted',
+                        inputText: userText,
+                        blendId: firstResult.id || 'unknown',
+                        blendName: firstResult.name || 'Unnamed Blend',
+                        confidenceScore: 0.95,
+                        componentSkus: firstResult.cultivars?.map((c: any) => c.name) || [],
+                        outcomeCategory: (result.analysis?.outcomeCategory as any) || 'Other',
+                        commentary: commentary
+                    });
+                    console.log("✅ EVENT EMITTED: Logged to Intelligence Layer with LLM Commentary");
+                }
             });
-            console.log("✅ EVENT EMITTED: Logged to Intelligence Layer");
         }
 
         console.groupEnd();

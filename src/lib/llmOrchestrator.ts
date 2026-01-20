@@ -12,6 +12,7 @@ export interface OrchestratorResult {
     analysis?: {
         targetTerpenes: string[];
         reasoning: string;
+        consultationScript?: string;
         outcomeCategory?: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other';
     };
     followUpQuestion?: string;
@@ -40,9 +41,12 @@ export async function processIntent(
         console.log(`  Context:`, context?.blendName ? `${context.blendName} (${context.screen})` : "General");
 
         // 1. LLM-DRIVEN INTENT ANALYSIS
-        console.log('ORCHESTRATOR: Analyzing Intent via LLM...');
+        console.group('ORCHESTRATOR: New Intent Analysis (Authoritative)');
         const intentSpec = await analyzeIntent(seed);
-        console.log('ORCHESTRATOR: Intent Analyzed (LLM)', intentSpec);
+        console.log('Intent Result:', intentSpec);
+        console.groupEnd();
+
+        console.log('ORCHESTRATOR: New Engine Run (Authoritative)');
 
         // Derive Outcome Category for downstream consumers (REFINED)
         let outcomeCategory: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other' = 'Other';

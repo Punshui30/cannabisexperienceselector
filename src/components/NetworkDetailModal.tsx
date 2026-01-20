@@ -8,6 +8,7 @@ interface NetworkDetailModalProps {
         outcomeCategory: string;
         componentSkus: string[];
         inputMode: string;
+        commentary: string; // Mandatory LLM commentary
     };
     onClose: () => void;
 }
@@ -172,7 +173,7 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                             }}
                         />
                         <p className="text-sm leading-relaxed text-white/60 font-light italic pl-5">
-                            &ldquo;This clinical-grade configuration targets {event.outcomeCategory === 'Other' ? 'your specific goals' : event.outcomeCategory.toLowerCase()} by optimizing terpene ratios. The synergy between these cultivars provides a controlled, repeatable experience.&rdquo;
+                            &ldquo;{event.commentary}&rdquo;
                         </p>
                     </div>
 

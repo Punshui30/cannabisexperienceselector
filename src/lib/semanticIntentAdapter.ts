@@ -12,7 +12,11 @@ const LLM_ENDPOINT = '/api/llm';
  * 3. Extract key constraints
  * 4. Return typed IntentSpec
  * 
- * CONSTRIANTS:
+ * CORRECTION HANDLING:
+ * - If user text implies a correction (e.g. "I said", "Actually", "No"), DISCARD previous specific weights and replace them.
+ * - Do not "average" corrections with previous intent.
+ * 
+ * CONSTRAINTS:
  * - NO generation of blends
  * - NO invention of data
  * - STRICT JSON output
@@ -43,6 +47,7 @@ Output a strict JSON object matching this schema:
 RULES:
 - Map synonyms to standard effects (e.g., "racy" -> avoid: "anxiety", "uplifting" -> target: "mood").
 - Map "Affirmative Body Load" signals (e.g., "sink into the couch", "melt", "heavy", "physically relaxed") as targets for sedation/relaxation/body, NOT constraints.
+- **Correction Handling**: If the user text implies a correction (e.g., "I said I did want...", "No, actually..."), you must DISCARD the previous intent vector for that parameter and replace it with the new value. Do not average or soften the change.
 - Allow simultaneous cognitive targets (e.g., "clear mind", "focus") and physical sedation.
 - If input is vague, set confidenceScore low (< 0.6).
 - If specific terpenes are mentioned, map them to 'include'.

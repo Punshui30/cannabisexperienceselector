@@ -24,6 +24,9 @@ export interface BlendResolutionEvent {
 
     // Abstracted Outcome Vector (Simplified for V1)
     outcomeCategory: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other';
+
+    // LLM-Generated Insight (Mandatory for Live Feed)
+    commentary: string;
 }
 
 const STORAGE_KEY = 'strainmath_merchant_intelligence_v1';

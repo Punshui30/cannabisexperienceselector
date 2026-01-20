@@ -24,6 +24,8 @@ import { adaptEngineResult } from './lib/adaptEngineResult';
 import { SharedBlendService } from './services/SharedBlendService';
 import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
 import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar, EngineResult } from './types/domain';
+import logoImg from './assets/logo.png';
+import { generateLiveFeedCommentary } from './lib/llmLiveFeedAdapter';
 import './index.css';
 
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed';
@@ -212,14 +214,25 @@ export default function App() {
               // We log the Primary blend for analytics
               const primary = allAdapted[0];
               if (primary.kind === 'blend') {
-                Intelligence.logResolution({
-                  inputMode: userInput.mode as any,
-                  inputText: userInput.text,
-                  blendId: primary.id,
+                // Generate Live Feed Commentary at publish time
+                generateLiveFeedCommentary({
                   blendName: primary.name,
-                  confidenceScore: primary.matchScore,
-                  componentSkus: primary.cultivars.map(c => c.name),
-                  outcomeCategory: 'Other' // Default for now, engine should return this
+                  cultivars: primary.cultivars.map(c => c.name),
+                  outcomeCategory: result.analysis?.outcomeCategory || 'Other',
+                  userInput: userInput.text
+                }).then(commentary => {
+                  if (commentary) {
+                    Intelligence.logResolution({
+                      inputMode: userInput.mode as any,
+                      inputText: userInput.text,
+                      blendId: primary.id,
+                      blendName: primary.name,
+                      confidenceScore: primary.matchScore,
+                      componentSkus: primary.cultivars.map(c => c.name),
+                      outcomeCategory: (result.analysis?.outcomeCategory as any) || 'Other',
+                      commentary: commentary
+                    });
+                  }
                 });
               }
             } else {
@@ -442,12 +455,17 @@ export default function App() {
                         (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
                   userInput: userInput?.text
                 }}
-                onApplyResult={(newResult) => {
-                  // Apply the Live Consultant's new recommendation
-                  const adapted = adaptEngineResult(newResult);
-                  if (adapted) {
-                    setBlendRecs([adapted, ...blendRecs.slice(1)]);
+                onApplyResult={(newResults: any[]) => {
+                  // Authoritative Update: Replace the ENTIRE set
+                  console.log("APP: Authoritative Update from Live Consultant...");
+                  const adaptedSet = newResults
+                    .map(r => adaptEngineResult(r))
+                    .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
+
+                  if (adaptedSet.length > 0) {
+                    setBlendRecs(adaptedSet);
                     setView('results');
+                    console.log(`APP: Successfully replaced ${adaptedSet.length} recommendations recursively.`);
                   }
                 }}
                 onClose={() => setShowConsultant(false)}
