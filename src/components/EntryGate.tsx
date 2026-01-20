@@ -40,7 +40,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
   );
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center relative px-4 overflow-hidden py-12">
+    <div className="w-full h-full flex flex-col items-center justify-center relative px-4 max-[360px]:px-2 overflow-hidden py-12 max-[360px]:py-6">
 
       {/* Persistent Branding */}
       <div className="z-20 flex flex-col items-center mb-12">
@@ -75,7 +75,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="w-full max-w-sm p-8 glass-card flex flex-col items-center text-center"
+              className="w-full max-w-sm max-[360px]:max-w-[90vw] p-8 max-[360px]:p-5 glass-card flex flex-col items-center text-center"
             >
               <h2 className="text-2xl font-light text-white mb-2 serif">Age Verification Required</h2>
               <p className="text-white/50 text-sm mb-8">
@@ -116,7 +116,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="w-full max-w-md flex flex-col items-center"
+              className="w-full max-w-md max-[360px]:max-w-[95vw] flex flex-col items-center"
             >
               <h2 className="text-3xl font-light text-white mb-4 serif text-center">Have you used<br />Guided Outcomes™ before?</h2>
               <p className="text-white/40 mb-8 text-sm">This helps us show the right amount of explanation for this session.</p>
@@ -163,7 +163,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
-              className="w-full max-w-sm p-8 glass-card flex flex-col items-center text-center"
+              className="w-full max-w-sm max-[360px]:max-w-[90vw] p-8 max-[360px]:p-4 glass-card flex flex-col items-center text-center"
             >
               <div className="mb-8">
                 <div className="w-16 h-16 rounded-full bg-[#BF5AF2]/10 flex items-center justify-center mb-6 mx-auto border border-[#BF5AF2]/30 shadow-[0_0_20px_rgba(191,90,242,0.15)]">

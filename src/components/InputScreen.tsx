@@ -210,7 +210,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
         <div className="w-full flex flex-col items-center pt-4 pb-2 relative z-10">
 
           {/* --- BRANDING HEADER --- */}
-          <div className="w-full flex-shrink-0 px-6 flex flex-col items-center">
+          <div className="w-full flex-shrink-0 px-6 max-[360px]:px-4 flex flex-col items-center">
             {/* Logo */}
             <div className="mb-2">
               <img
@@ -245,7 +245,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           </div>
 
           {/* Tabs - Centered & Compact */}
-          <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10 mt-4 max-w-sm w-full mx-6">
+          <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10 mt-4 max-w-sm w-full mx-6 max-[360px]:mx-4 max-[360px]:max-w-[90vw]">
             <button
               onClick={() => setMode('describe')}
               className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'describe' ? TAB_ACTIVE : TAB_INACTIVE}`}
@@ -449,7 +449,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
       <LiveNetworkDrawer />
 
       {/* --- FOOTER (Fixed) --- */}
-      <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3" style={{ marginBottom: '60px' }}>
+      <div className="flex-shrink-0 px-6 max-[360px]:px-4 pb-safe-footer pt-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3" style={{ marginBottom: '0' }}>
         <button
           onClick={handleSubmit}
           disabled={!canSubmit()}
