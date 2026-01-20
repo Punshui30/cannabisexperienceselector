@@ -368,7 +368,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
       {/* --- SCENARIOS (Flexible height) --- */}
       {/* --- SCENARIOS (Fixed Height Block) --- */}
-      <div className="w-full relative flex flex-col gap-2 shrink-0">
+      <div className="w-full relative flex flex-col gap-2 shrink-0 px-6">
         <div className="flex justify-between items-end mb-2 flex-shrink-0">
           <div>
             <h3 className="text-white text-lg font-light serif">Start with a Scenario</h3>

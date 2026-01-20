@@ -28,12 +28,7 @@ export function getGlassCardStyles(primaryColor: string = '#00FFD1', secondaryCo
             0 2px 8px rgba(0, 0, 0, 0.2)
         `,
 
-        // Gradient border effect (subtle -> distinct)
-        borderImage: `linear-gradient(135deg, 
-            ${primaryColor}50, 
-            transparent, 
-            ${gradientColor}50
-        ) 1`,
+        // Note: borderImage doesn't respect border-radius, removed for clean rounded corners
     };
 }
 
