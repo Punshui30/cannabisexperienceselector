@@ -54,7 +54,7 @@ export function LiveNetworkDrawer() {
             {/* The Expanded Drawer */}
             <AnimatePresence>
                 {isOpen && (
-                    <div className="absolute inset-0 z-40 flex flex-col justify-end">
+                    <div className="fixed inset-0 z-40 flex flex-col">
                         {/* Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -64,18 +64,21 @@ export function LiveNetworkDrawer() {
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                         />
 
-                        {/* Drawer Panel */}
+                        {/* Drawer Panel - Opens from TOP */}
                         <motion.div
-                            initial={{ y: "100%" }}
+                            initial={{ y: "-100%" }}
                             animate={{ y: 0 }}
-                            exit={{ y: "100%" }}
+                            exit={{ y: "-100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
                             drag="y"
                             dragConstraints={{ top: 0, bottom: 0 }}
                             dragElastic={0.2}
-                            onDragEnd={handleDragEnd}
-                            className="relative w-full bg-[#0a0a0a] border-t border-white/10 rounded-t-3xl shadow-2xl overflow-hidden max-h-[70vh] flex flex-col"
-                            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.y < -100 || info.velocity.y < -500) {
+                                    setIsOpen(false);
+                                }
+                            }}
+                            className="relative w-full bg-[#0a0a0a] border-b border-white/10 rounded-b-3xl shadow-2xl overflow-hidden max-h-[70vh] flex flex-col"
                         >
                             {/* Drag Handle */}
                             <div className="w-full flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
