@@ -26,6 +26,8 @@ interface InputScreenProps {
 export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSelectPreset, onAdminModeToggle, isAdminMode, initialText }: InputScreenProps) {
   const [mode, setMode] = useState<'describe' | 'product' | 'strain'>('describe');
   const [description, setDescription] = useState('');
+  const [logoTapCount, setLogoTapCount] = useState(0);
+  const [lastTapTime, setLastTapTime] = useState(0);
 
   // DEBUG: Verify version
   useEffect(() => {
@@ -211,13 +213,32 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
           {/* --- BRANDING HEADER --- */}
           <div className="w-full flex-shrink-0 px-6 max-[360px]:px-4 flex flex-col items-center">
-            {/* Logo */}
+            {/* Logo with Secret Admin Trigger (6 Taps) */}
             <div className="mb-2">
-              <img
-                src={logoImg}
-                alt="StrainMath Logo"
-                className="h-[40px] w-auto max-h-[48px] object-contain brightness-0 invert opacity-80"
-              />
+              <button
+                onClick={() => {
+                  const now = Date.now();
+                  // Reset if too slow (more than 1s between taps)
+                  if (now - lastTapTime > 1000) {
+                    setLogoTapCount(1);
+                  } else {
+                    const newCount = logoTapCount + 1;
+                    setLogoTapCount(newCount);
+                    if (newCount >= 6) {
+                      onAdminModeToggle();
+                      setLogoTapCount(0);
+                    }
+                  }
+                  setLastTapTime(now);
+                }}
+                className="active:scale-95 transition-transform outline-none"
+              >
+                <img
+                  src={logoImg}
+                  alt="StrainMath Logo"
+                  className="h-[40px] w-auto max-h-[48px] object-contain brightness-0 invert opacity-80"
+                />
+              </button>
             </div>
 
             <div className="text-center">
@@ -233,15 +254,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 <span className="h-[1px] w-3 bg-white/10" />
               </div>
             </div>
-
-            {/* Admin Toggle (Absolute top right) */}
-            <button
-              onClick={onAdminModeToggle}
-              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isAdminMode ? 'bg-[#00FFD1]/20 text-[#00FFD1]' : 'text-white/20 hover:text-white'}`}
-            >
-              <span className="sr-only">Admin</span>
-              <div className={`w-2 h-2 rounded-full ${isAdminMode ? 'bg-[#00FFD1]' : 'bg-current'}`} />
-            </button>
+            {/* Admin Toggle Removed - Use text Tap Gesture */}
           </div>
 
           {/* Tabs - Centered & Compact */}
