@@ -1,618 +1,263 @@
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { COLORS } from '../lib/colors';
+import { X, ChevronRight, Activity, Database, Lock, TrendingUp, ShieldCheck } from 'lucide-react';
 
-type DemoScene = {
-  title: string;
-  narration: string[];
-  caption: string;
-  visual: 'intro' | 'problem' | 'positioning' | 'gate' | 'admin' | 'scan' | 'business' | 'demo-mode' | 'consumer' | 'recommendation' | 'different' | 'explanation' | 'preroll' | 'cart' | 'feedback' | 'share' | 'unique' | 'monetization' | 'big-picture' | 'final';
-  duration: number; // seconds
-};
+interface OperatorDemoProps {
+  onClose: () => void;
+}
 
-const DEMO_SCENES: DemoScene[] = [
+// OPERATOR DEMO - SCRIPTED LINEAR FLOW
+// 1. Industry Problem
+// 2. What This Is (Deterministic Engine)
+// 3. Operator Flow (Input -> Output)
+// 4. Public Feed (Intelligence)
+// 5. COA Ingestion & Control
+// 6. Differentiation
+// 7. Business Paths
+// 8. Safety & Scope (Ingestion Lock)
+// 9. Close
+
+const SECTIONS = [
   {
-    title: 'Precision Pharmacology',
-    narration: [
-      'Standard categorization fails to account for chemical variance.',
-      'A strain is not a constant; every harvest is a unique chemical profile.',
-      'We move beyond "Indica/Sativa" towards molecular precision.',
-      'Guidance is derived from the lab, not the label.'
+    id: 'problem',
+    title: 'THE INDUSTRY PROBLEM',
+    icon: <Activity className="text-red-400" />,
+    content: [
+      "Indica / Sativa is not science.",
+      "Budtender intuition does not scale.",
+      "Consumers are guessing.",
+      "Dispensaries absorb the cost of dissatisfaction."
     ],
-    caption: 'Beyond Nomenclature. Towards Molecular Truth.',
-    visual: 'scan',
-    duration: 12
+    visual: 'alert'
   },
   {
-    title: 'Real-time Entropy Management',
-    narration: [
-      'Inventory rotation creates a constant "data gap" in customer guidance.',
-      'Our engine performs real-time synthesis of your active COA library.',
-      'By balancing terpene ratios across multiple cultivars, we stabilize the outcome.',
-      'The experience remains constant, even as the products change.'
+    id: 'solution',
+    title: 'WHAT THIS SYSTEM IS',
+    icon: <Database className="text-[#00FFD1]" />,
+    content: [
+      "A deterministic cannabis compounding engine.",
+      "Based on terpene + cannabinoid math.",
+      "Produces repeatable, auditable blends.",
+      "NOT a chatbot. NOT a quiz."
     ],
-    caption: 'Stabilizing the Outcome. Eliminating the Variable.',
-    visual: 'recommendation',
-    duration: 14
+    visual: 'engine'
   },
   {
-    title: 'Live Intelligence Network',
-    narration: [
-      'Every interaction contributes to a decentralized network of intelligence.',
-      'Surface successful formulations to the community through the Live Feed.',
-      'Anonymized data translates into public trust and operational authority.',
-      'Transparency becomes your most powerful sales asset.'
+    id: 'flow',
+    title: 'OPERATOR FLOW',
+    icon: <TrendingUp className="text-[#BF5AF2]" />,
+    content: [
+      "1. User Intent (Sleep, Focus, Social)",
+      "2. Engine Analysis (Chemotyping)",
+      "3. Inventory Matching (Real-time)",
+      "4. Deterministic Outcome"
     ],
-    caption: 'Operational Intelligence. Public Transparency.',
-    visual: 'business',
-    duration: 12
+    visual: 'flow'
   },
   {
-    title: 'Engineered Diversity',
-    narration: [
-      'The system automatically guards against formulation redundancy.',
-      'Every calculation cycle scans for cultural and chemical diversity.',
-      'We avoid "input mirroring" to provide sophisticated, clinical guidance.',
-      'Intelligent re-calculation ensures the best botanical match every time.'
+    id: 'feed',
+    title: 'PUBLIC INTELLIGENCE FEED',
+    icon: <Activity className="text-blue-400" />,
+    content: [
+      "A live, observable intelligence layer.",
+      "Aggregates anonymized outcome data.",
+      "Builds trust through transparency.",
+      "Signals system activity to consumers."
     ],
-    caption: 'Clinical Guidance. Non-Redundant Synthesis.',
-    visual: 'unique',
-    duration: 12
+    visual: 'feed_mock'
   },
   {
-    title: 'Revenue & Retention',
-    narration: [
-      'Predictable outcomes lead to sustained customer retention.',
-      'Multi-cultivar recommendations naturally drive higher average cart sizes.',
-      'Transform the budtender into a data-backed consultant.',
-      'Increasing throughput while deepening trust at every session.'
+    id: 'control',
+    title: 'COA INGESTION & CONTROL',
+    icon: <Lock className="text-orange-400" />,
+    content: [
+      "Dispensaries upload raw COAs.",
+      "Data is normalized automatically.",
+      "Inventory constraints are enforced.",
+      "Nothing is hallucinated. Everything is in stock."
     ],
-    caption: 'Predictable Science. Compounded Growth.',
-    visual: 'cart',
-    duration: 12
+    visual: 'coa_mock'
   },
   {
-    title: 'Future Compliance',
-    narration: [
-      'The platform maintains an immutable audit trail of every recommendation.',
-      'Bridge the gap between medical-grade precision and adult-use retail.',
-      'Ready for a future where chemistry is the only standard.',
-      'Welcome to the age of Informed Selection.'
+    id: 'differentiation',
+    title: 'DIFFERENTIATION',
+    icon: <ShieldCheck className="text-green-400" />,
+    content: [
+      "Two users → Different blends.",
+      "Same user, different inventory → Different outcomes.",
+      "Static menus cannot do this.",
+      "Budtenders cannot calculate this."
     ],
-    caption: 'The Future is Formulation.',
-    visual: 'final',
-    duration: 10
+    visual: 'diff'
+  },
+  {
+    id: 'business',
+    title: 'BUSINESS PATHS',
+    icon: <TrendingUp className="text-gold-400" />,
+    content: [
+      "Kiosk Licensing (In-store).",
+      "Web Access (Pre-order / Discovery).",
+      "Optional End-User App.",
+      "Monetizable Intelligence Layer."
+    ],
+    visual: 'business'
+  },
+  {
+    id: 'safety',
+    title: 'SAFETY & SCOPE',
+    icon: <ShieldCheck className="text-white" />,
+    content: [
+      "Deterministic Logic (No hallucinations).",
+      "No Medical Claims.",
+      "No Ingestion Modeling (Form Factor Agnostic).",
+      "Full Auditability for Regulators."
+    ],
+    visual: 'safety'
+  },
+  {
+    id: 'close',
+    title: 'GUIDED OUTCOMES',
+    icon: <Database className="text-[#00FFD1]" />,
+    content: [
+      "Repeatable Cannabis Compounding.",
+      "Guided Outcomes at Scale.",
+      "A Platform, Not a Gimmick."
+    ],
+    visual: 'logo'
   }
 ];
 
-type Props = {
-  onComplete: () => void;
-  onExit: () => void;
-};
+export function OperatorDemo({ onClose }: OperatorDemoProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-export function OperatorDemo({ onComplete, onExit }: Props) {
-  const [currentScene, setCurrentScene] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-
-  const scene = DEMO_SCENES[currentScene];
-  const totalScenes = DEMO_SCENES.length;
-
+  // Auto-Advance logic
   useEffect(() => {
-    if (isPaused) return;
-
     const timer = setInterval(() => {
-      setProgress((prev) => {
-        const increment = 100 / (scene.duration * 10); // Update every 100ms
-        const newProgress = prev + increment;
-
-        if (newProgress >= 100) {
-          // Move to next scene
-          if (currentScene < totalScenes - 1) {
-            setCurrentScene((curr) => curr + 1);
-            return 0;
-          } else {
-            // Demo complete
-            setTimeout(onComplete, 500);
-            return 100;
-          }
-        }
-
-        return newProgress;
+      setCurrentIndex(prev => {
+        if (prev < SECTIONS.length - 1) return prev + 1;
+        return prev; // Stop at end
       });
-    }, 100);
+    }, 8000); // 8 seconds per slide = ~3 minutes total, plenty of read time
 
     return () => clearInterval(timer);
-  }, [currentScene, scene.duration, totalScenes, onComplete, isPaused]);
+  }, []);
 
-  const handleSkip = () => {
-    if (currentScene < totalScenes - 1) {
-      setCurrentScene((curr) => curr + 1);
-      setProgress(0);
+  const handleNext = () => {
+    if (currentIndex < SECTIONS.length - 1) {
+      setCurrentIndex(prev => prev + 1);
     } else {
-      onComplete();
+      onClose();
     }
   };
+
+  const currentSection = SECTIONS[currentIndex];
+  const progress = ((currentIndex + 1) / SECTIONS.length) * 100;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: COLORS.background }}
-    >
-      {/* Background subtle animation */}
-      <div className="absolute inset-0 opacity-5">
-        <motion.div
-          animate={{
-            backgroundPosition: ['0% 0%', '100% 100%'],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            repeatType: 'reverse',
-          }}
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at center, ${COLORS.blend.primary}40, transparent 70%)`,
-            backgroundSize: '200% 200%',
-          }}
-        />
-      </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+      {/* Background Texture */}
+      <div className="absolute inset-0 z-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-50" />
 
-      {/* IP Protection Badge - Persistent overlay */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="absolute top-20 right-6 z-30 px-3 py-1.5 rounded-full border backdrop-blur-md"
-        style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          borderColor: `${COLORS.blend.primary}40`,
-        }}
-      >
-        <div
-          className="text-xs font-light tracking-wide"
-          style={{ color: COLORS.neutral.text.tertiary, opacity: 0.7 }}
-        >
-          Demo content — proprietary system preview
-        </div>
-      </motion.div>
+      <div className="relative z-10 w-full max-w-4xl h-[80vh] flex flex-col items-center justify-center p-8">
 
-      {/* Main content */}
-      <div className="relative w-full h-full flex flex-col">
-        {/* Header controls */}
-        <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* Logo/Branding */}
-            <div className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{
-                  background: COLORS.blend.gradient,
-                  boxShadow: `0 0 20px ${COLORS.blend.primary}40`,
-                }}
-              >
-                <svg width="16" height="18" viewBox="0 0 16 18" fill="none">
-                  <path
-                    d="M8 0L0 4.5V13.5L8 18L16 13.5V4.5L8 0Z"
-                    fill={COLORS.background}
-                    fillOpacity="0.9"
-                  />
-                </svg>
-              </div>
-              <div>
-                <div className="text-sm font-medium" style={{ color: COLORS.foreground }}>
-                  Operator Demo
-                </div>
-                <div className="text-xs text-[#ffd700]">
-                  Powered by <span className="serif">StrainMath</span>™
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Mute button */}
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              className="w-10 h-10 rounded-xl border flex items-center justify-center transition-all"
-              style={{
-                backgroundColor: COLORS.neutral.surface,
-                borderColor: COLORS.neutral.border,
-              }}
-            >
-              {isMuted ? (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path
-                    d="M10 4L6 7H3V13H6L10 16V4Z"
-                    stroke={COLORS.foreground}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    opacity="0.5"
-                  />
-                  <path
-                    d="M16 7L13 10M13 7L16 10"
-                    stroke={COLORS.foreground}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path
-                    d="M10 4L6 7H3V13H6L10 16V4Z"
-                    stroke={COLORS.foreground}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M14 7C15 8 15 10 14 11M16 5C18 7 18 11 16 13"
-                    stroke={COLORS.foreground}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              )}
-            </button>
-
-            {/* Pause/Play button */}
-            <button
-              onClick={() => setIsPaused(!isPaused)}
-              className="w-10 h-10 rounded-xl border flex items-center justify-center transition-all"
-              style={{
-                backgroundColor: COLORS.neutral.surface,
-                borderColor: COLORS.neutral.border,
-              }}
-            >
-              {isPaused ? (
-                <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
-                  <path d="M0 0L12 7L0 14V0Z" fill={COLORS.foreground} />
-                </svg>
-              ) : (
-                <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
-                  <rect width="4" height="14" fill={COLORS.foreground} />
-                  <rect x="8" width="4" height="14" fill={COLORS.foreground} />
-                </svg>
-              )}
-            </button>
-
-            {/* Exit button */}
-            <button
-              onClick={onExit}
-              className="w-10 h-10 rounded-xl border flex items-center justify-center transition-all"
-              style={{
-                backgroundColor: COLORS.neutral.surface,
-                borderColor: COLORS.neutral.border,
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M4 4L12 12M12 4L4 12"
-                  stroke={COLORS.foreground}
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
+        {/* Progress Bar */}
+        <div className="w-full max-w-lg h-1 bg-white/10 rounded-full mb-12 overflow-hidden">
+          <motion.div
+            className="h-full bg-[#00FFD1]"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.5 }}
+          />
         </div>
 
-        {/* Progress bar */}
-        <div className="flex-shrink-0 px-6">
-          <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full rounded-full"
-              style={{
-                background: COLORS.blend.gradient,
-                width: `${progress}%`,
-              }}
-            />
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <div className="text-xs" style={{ color: COLORS.neutral.text.tertiary }}>
-              Scene {currentScene + 1} of {totalScenes}
-            </div>
-            <button
-              onClick={handleSkip}
-              className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-xs font-semibold uppercase tracking-wider"
-              style={{ color: COLORS.foreground }}
-            >
-              Next ❯
-            </button>
-          </div>
-        </div>
-
-        {/* Scene content */}
-        <div className="flex-1 flex items-center justify-center px-6 py-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentScene}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-              className="w-full max-w-2xl"
-            >
-              {/* Visual representation */}
-              <div className="mb-8 flex items-center justify-center">
-                <SceneVisual visual={scene.visual} />
-              </div>
-
-              {/* Caption */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-                className="text-center"
-              >
-                <h2
-                  className="text-4xl font-light mb-6 leading-tight"
-                  style={{ color: COLORS.foreground }}
-                >
-                  {scene.caption}
-                </h2>
-
-                {/* Narration text (simulating captions) */}
-                <div
-                  className="text-lg leading-relaxed space-y-3 max-w-xl mx-auto font-medium"
-                  style={{ color: COLORS.foreground }}
-                >
-                  {scene.narration.map((line, idx) => (
-                    <motion.p
-                      key={idx}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.1 + idx * 0.1 }}
-                      className="drop-shadow-md"
-                    >
-                      {line}
-                    </motion.p>
-                  ))}
-                </div>
-              </motion.div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Scene title (small, bottom) */}
-        <div className="flex-shrink-0 px-6 pb-6 text-center">
-          <div
-            className="text-xs uppercase tracking-widest"
-            style={{ color: COLORS.neutral.text.tertiary }}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col items-center text-center space-y-8"
           >
-            {scene.title}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+            {/* ICON */}
+            <div className="p-4 rounded-full bg-white/5 border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+              {React.cloneElement(currentSection.icon as React.ReactElement, { size: 48 })}
+            </div>
 
-// Visual component for each scene type
-function SceneVisual({ visual }: { visual: DemoScene['visual'] }) {
-  const renderVisual = () => {
-    switch (visual) {
-      case 'problem':
-        // VISUAL: Inconsistency / Confusion
-        // Three bars that change height/color randomly
-        return (
-          <div className="flex gap-4 items-end h-32">
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                animate={{
-                  height: ['40%', '80%', '30%', '90%'],
-                  backgroundColor: [COLORS.blend.primary, COLORS.warning, COLORS.blend.primary, COLORS.warning],
-                  opacity: [1, 0.5, 1, 0.6]
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  delay: i * 0.5,
-                  ease: "easeInOut"
-                }}
-                className="w-12 rounded-t-xl"
-                style={{
-                  border: `1px solid ${COLORS.foreground}20`
-                }}
-              />
-            ))}
-          </div>
-        );
+            {/* TITLE */}
+            <h2 className="text-4xl font-black tracking-widest text-white uppercase">
+              {currentSection.title}
+            </h2>
 
-      case 'business':
-        // VISUAL: Broken Loyalty / Drop
-        // A line chart dipping down
-        return (
-          <div className="relative w-40 h-32 border-l border-b border-white/20">
-            <motion.svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" className="overflow-visible">
-              <motion.path
-                d="M0 20 Q 30 20, 40 50 T 100 90"
-                stroke={COLORS.warning}
-                strokeWidth="4"
-                strokeLinecap="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 2, ease: "easeOut" }}
-              />
-              <motion.circle
-                cx="100" cy="90" r="4" fill={COLORS.warning}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 2 }}
-              />
-            </motion.svg>
-          </div>
-        );
-
-      case 'scan':
-        // VISUAL: System / COA Data
-        // Scanning effect over a grid
-        return (
-          <div className="relative w-32 h-40 border border-white/20 rounded-xl overflow-hidden bg-white/5">
-            <div className="absolute inset-0 grid grid-cols-4 grid-rows-5 gap-1 p-2 opacity-30">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="bg-white/40 rounded-sm" />
+            {/* CONTENT */}
+            <div className="space-y-4 max-w-2xl">
+              {currentSection.content.map((line, idx) => (
+                <motion.p
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.2 + 0.3 }}
+                  className="text-xl text-white/80 font-light leading-relaxed"
+                >
+                  {line}
+                </motion.p>
               ))}
             </div>
-            <motion.div
-              className="absolute left-0 right-0 h-1 bg-[#00FFD1] blur-[2px]"
-              animate={{ top: ['0%', '100%', '0%'] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              style={{ boxShadow: '0 0 10px #00FFD1' }}
-            />
-          </div>
-        );
 
-      case 'recommendation':
-        // VISUAL: The Solution / Stack
-        return (
-          <div className="space-y-1 w-48">
-            <motion.div
-              initial={{ width: '0%', opacity: 0 }}
-              animate={{ width: '100%', opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="h-8 rounded-lg flex items-center justify-center text-[10px] font-bold uppercase tracking-widest relative overflow-hidden"
-              style={{
-                background: 'rgba(0, 255, 209, 0.2)',
-                borderColor: 'rgba(0, 255, 209, 0.5)',
-                borderWidth: '1px',
-                color: '#00FFD1'
-              }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00FFD1]/20 to-transparent animate-shimmer" />
-              Terpene Modulation
-            </motion.div>
-            <motion.div
-              initial={{ width: '0%', opacity: 0 }}
-              animate={{ width: '100%', opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="h-10 rounded-lg flex items-center justify-center text-[10px] font-bold uppercase tracking-widest"
-              style={{
-                background: 'rgba(16, 185, 129, 0.2)', // Emerald-500
-                borderColor: 'rgba(16, 185, 129, 0.5)',
-                borderWidth: '1px',
-                color: '#6EE7B7' // Emerald-300
-              }}
-            >
-              Cannabinoid Synergy
-            </motion.div>
-            <motion.div
-              initial={{ width: '0%', opacity: 0 }}
-              animate={{ width: '100%', opacity: 1 }}
-              transition={{ delay: 1.0 }}
-              className="h-12 rounded-lg flex items-center justify-center text-[10px] font-bold uppercase tracking-widest"
-              style={{
-                background: 'rgba(6, 95, 70, 0.3)', // Emerald-900
-                borderColor: 'rgba(6, 95, 70, 0.6)',
-                borderWidth: '1px',
-                color: '#34D399' // Emerald-400
-              }}
-            >
-              Botanical Foundation
-            </motion.div>
-          </div>
-        );
+            {/* VISUAL MOCKS (Simplistic CSS-only representations) */}
+            <div className="mt-8 h-32 w-full flex items-center justify-center opacity-50">
+              {currentSection.visual === 'feed_mock' && (
+                <div className="space-y-2 w-64 text-left p-4 border border-white/10 bg-black/40 rounded text-xs text-green-400 font-mono">
+                  <div className="animate-pulse">_FEED_ACTIVE</div>
+                  <div>[13:14:02] FOCUS_STACK_04 Generated</div>
+                  <div>[13:14:05] New Inventory Synced</div>
+                  <div>[13:14:10] SLEEP_BLEND_09 Optimized</div>
+                </div>
+              )}
+              {currentSection.visual === 'coa_mock' && (
+                <div className="flex items-center gap-4 text-xs font-mono text-orange-400">
+                  <div className="border border-white/10 p-2">RAW_COA_PDF</div>
+                  <ChevronRight size={16} />
+                  <div className="border border-white/10 p-2">NORMALIZER</div>
+                  <ChevronRight size={16} />
+                  <div className="border border-white/10 p-2 text-white">ENGINE_READY</div>
+                </div>
+              )}
+              {currentSection.visual === 'flow' && (
+                <div className="flex items-center gap-4 text-xs font-mono text-[#BF5AF2]">
+                  <div className="border border-white/10 p-2">INTENT</div>
+                  <ChevronRight size={16} />
+                  <div className="border border-white/10 p-2">CHEMOTYPE</div>
+                  <ChevronRight size={16} />
+                  <div className="border border-white/10 p-2 text-white">OUTCOME</div>
+                </div>
+              )}
+            </div>
 
-      case 'cart':
-        // VISUAL: Basket Size
-        // Items animating into a container
-        return (
-          <div className="relative w-32 h-32 flex items-center justify-center">
-            <div className="absolute bottom-0 w-24 h-24 border-2 border-white/20 rounded-b-xl border-t-0" />
-            {[0, 1, 2].map(i => (
-              <motion.div
-                key={i}
-                className="absolute w-8 h-8 rounded-full border border-white/40 bg-white/10"
-                initial={{ y: -50, opacity: 0 }}
-                animate={{ y: 0 + (i * 10), x: (i - 1) * 10, opacity: 1 }}
-                transition={{ delay: i * 0.5, duration: 0.5, type: 'spring' }}
-              />
-            ))}
-            <motion.div
-              className="absolute -top-4 right-0 bg-[#00FFD1] text-black text-xs font-bold px-2 py-1 rounded-full"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 1.5, type: 'spring' }}
-            >
-              +35%
-            </motion.div>
-          </div>
-        );
-
-      case 'unique':
-        // VISUAL: Star / Badge / Premium
-        return (
-          <div className="relative">
-            <motion.svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke={COLORS.blend.primary} strokeWidth="1">
-              <motion.path
-                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                initial={{ pathLength: 0, fill: "transparent" }}
-                animate={{ pathLength: 1, fill: `${COLORS.blend.primary}20` }}
-                transition={{ duration: 2 }}
-              />
-            </motion.svg>
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              style={{ boxShadow: `0 0 40px ${COLORS.blend.primary}40` }}
-              animate={{ opacity: [0.5, 0.8, 0.5] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            />
-          </div>
-        );
-
-      case 'final':
-        // VISUAL: Checkmark / Success
-        return (
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-32 h-32 rounded-full border-2 border-[#00FFD1] flex items-center justify-center bg-[#00FFD1]/10"
-          >
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00FFD1" strokeWidth="2">
-              <motion.path
-                d="M20 6L9 17L4 12"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ delay: 0.5, duration: 1 }}
-              />
-            </svg>
           </motion.div>
-        );
+        </AnimatePresence>
 
-      default:
-        return (
-          <motion.div
-            animate={{
-              scale: [1, 1.05, 1],
-              opacity: [0.8, 1, 0.8],
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="w-24 h-24 rounded-2xl flex items-center justify-center"
-            style={{
-              backgroundColor: `${COLORS.blend.primary}20`,
-              borderWidth: 2,
-              borderColor: COLORS.blend.primary,
-            }}
+        {/* Footer Controls */}
+        <div className="absolute bottom-8 right-8 flex items-center gap-4">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 text-white/40 hover:text-white uppercase text-xs tracking-widest transition-colors"
           >
-            <div
-              className="w-12 h-12 rounded-xl"
-              style={{
-                backgroundColor: COLORS.blend.primary,
-                boxShadow: `0 0 20px ${COLORS.blend.primary}60`,
-              }}
-            />
-          </motion.div>
-        );
-    }
-  };
-
-  return <div className="flex items-center justify-center p-8">{renderVisual()}</div>;
+            Exit Demo
+          </button>
+          <button
+            onClick={handleNext}
+            className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors group"
+          >
+            {currentIndex === SECTIONS.length - 1 ? (
+              <X size={20} className="text-white group-hover:rotate-90 transition-transform" />
+            ) : (
+              <ChevronRight size={20} className="text-white" />
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
