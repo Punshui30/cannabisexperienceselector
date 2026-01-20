@@ -44,8 +44,8 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
         </div>
 
         {/* HEADER */}
-        <div className="flex-shrink-0 pt-16 px-6 pb-6 relative z-30">
-          <div className="flex justify-between items-start mb-8">
+        <div className="flex-shrink-0 pt-12 px-6 pb-4 relative z-30"> {/* Density: pt-16 -> pt-12, pb-6 -> pb-4 */}
+          <div className="flex justify-between items-start mb-4"> {/* Density: mb-8 -> mb-4 */}
             <button
               onClick={onBack}
               className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 transition-colors backdrop-blur-md"
@@ -78,10 +78,10 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
           </div>
 
           <div className="text-center">
-            <p className="text-[#00FFD1] text-[9px] uppercase tracking-[0.4em] mb-3 opacity-80">
+            <p className="text-[#00FFD1] text-[9px] uppercase tracking-[0.4em] mb-2 opacity-80"> {/* Density: mb-3 -> mb-2 */}
               Engine Result #{activeIndex + 1}
             </p>
-            <h1 className="text-4xl font-light text-white serif tracking-tight">Your Blends</h1>
+            <h1 className="text-3xl font-light text-white serif tracking-tight">Your Blends</h1> {/* Density: text-4xl -> text-3xl */}
           </div>
         </div>
 
