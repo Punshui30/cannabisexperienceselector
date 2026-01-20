@@ -1,24 +1,30 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ChevronRight, Activity, Database, Lock, TrendingUp, ShieldCheck } from 'lucide-react';
+import { X, ChevronRight, Activity, Database, Lock, TrendingUp, ShieldCheck, Box, Search } from 'lucide-react';
 
 interface OperatorDemoProps {
   onClose: () => void;
 }
 
-// OPERATOR DEMO - SCRIPTED LINEAR FLOW
-// 1. Industry Problem
-// 2. What This Is (Deterministic Engine)
-// 3. Operator Flow (Input -> Output)
-// 4. Public Feed (Intelligence)
-// 5. COA Ingestion & Control
-// 6. Differentiation
-// 7. Business Paths
-// 8. Safety & Scope (Ingestion Lock)
-// 9. Close
+// OPERATOR DEMO - SCRIPTED LINEAR FLOW (STRICT)
+// Total Sections: 10 (Intro + 8 Core + Close)
+// State Machine Rules: Forward Only, No Branching.
+// Auto-Advance: Deterministic (10s fixed).
 
 const SECTIONS = [
+  {
+    id: 'intro',
+    title: 'OPERATOR BRIEFING',
+    icon: <Box className="text-white" />,
+    content: [
+      "System Overview: Guided Outcomes Platform",
+      "Target: Enterprise & Multi-State Operators",
+      "Mode: Autonomous Demonstration",
+      "Duration: ~3 Minutes"
+    ],
+    visual: 'logo'
+  },
   {
     id: 'problem',
     title: 'THE INDUSTRY PROBLEM',
@@ -61,8 +67,8 @@ const SECTIONS = [
     icon: <Activity className="text-blue-400" />,
     content: [
       "A live, observable intelligence layer.",
-      "Aggregates anonymized outcome data.",
-      "Builds trust through transparency.",
+      "Aggregates anonymized outcome data ONLY.",
+      "NO user identifiable information.",
       "Signals system activity to consumers."
     ],
     visual: 'feed_mock'
@@ -74,7 +80,7 @@ const SECTIONS = [
     content: [
       "Dispensaries upload raw COAs.",
       "Data is normalized automatically.",
-      "Inventory constraints are enforced.",
+      "Inventory constraints are enforced (Read-Only).",
       "Nothing is hallucinated. Everything is in stock."
     ],
     visual: 'coa_mock'
@@ -110,7 +116,7 @@ const SECTIONS = [
     content: [
       "Deterministic Logic (No hallucinations).",
       "No Medical Claims.",
-      "No Ingestion Modeling (Form Factor Agnostic).",
+      "Ingestion route modeling (edibles, smoking) is NOT part of this system.",
       "Full Auditability for Regulators."
     ],
     visual: 'safety'
@@ -131,19 +137,21 @@ const SECTIONS = [
 export function OperatorDemo({ onClose }: OperatorDemoProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Auto-Advance logic
+  // DETERMINISTIC AUTO-ADVANCE (10s CONSTANT)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex(prev => {
+        // Forward Only Rule
         if (prev < SECTIONS.length - 1) return prev + 1;
-        return prev; // Stop at end
+        return prev;
       });
-    }, 8000); // 8 seconds per slide = ~3 minutes total, plenty of read time
+    }, 10000);
 
     return () => clearInterval(timer);
   }, []);
 
   const handleNext = () => {
+    // Forward Only Rule
     if (currentIndex < SECTIONS.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
@@ -152,17 +160,19 @@ export function OperatorDemo({ onClose }: OperatorDemoProps) {
   };
 
   const currentSection = SECTIONS[currentIndex];
+
+  // Non-interactive progress visualization
   const progress = ((currentIndex + 1) / SECTIONS.length) * 100;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
-      {/* Background Texture */}
+      {/* Background Texture - Operator Artifact */}
       <div className="absolute inset-0 z-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-50" />
 
       <div className="relative z-10 w-full max-w-4xl h-[80vh] flex flex-col items-center justify-center p-8">
 
-        {/* Progress Bar */}
-        <div className="w-full max-w-lg h-1 bg-white/10 rounded-full mb-12 overflow-hidden">
+        {/* Progress Indicator - informational only, no interaction */}
+        <div className="w-full max-w-lg h-0.5 bg-white/10 rounded-full mb-12 overflow-hidden">
           <motion.div
             className="h-full bg-[#00FFD1]"
             initial={{ width: 0 }}
@@ -174,10 +184,10 @@ export function OperatorDemo({ onClose }: OperatorDemoProps) {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
             className="flex flex-col items-center text-center space-y-8"
           >
             {/* ICON */}
@@ -197,7 +207,7 @@ export function OperatorDemo({ onClose }: OperatorDemoProps) {
                   key={idx}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.2 + 0.3 }}
+                  transition={{ delay: idx * 0.1 + 0.2 }}
                   className="text-xl text-white/80 font-light leading-relaxed"
                 >
                   {line}
@@ -205,58 +215,49 @@ export function OperatorDemo({ onClose }: OperatorDemoProps) {
               ))}
             </div>
 
-            {/* VISUAL MOCKS (Simplistic CSS-only representations) */}
-            <div className="mt-8 h-32 w-full flex items-center justify-center opacity-50">
+            {/* VISUAL MOCKS - Non-Interactive, CSS Only */}
+            <div className="mt-8 h-32 w-full flex items-center justify-center opacity-50 grayscale hover:grayscale-0 transition-all duration-1000">
               {currentSection.visual === 'feed_mock' && (
-                <div className="space-y-2 w-64 text-left p-4 border border-white/10 bg-black/40 rounded text-xs text-green-400 font-mono">
-                  <div className="animate-pulse">_FEED_ACTIVE</div>
-                  <div>[13:14:02] FOCUS_STACK_04 Generated</div>
-                  <div>[13:14:05] New Inventory Synced</div>
-                  <div>[13:14:10] SLEEP_BLEND_09 Optimized</div>
+                <div className="space-y-2 w-64 text-left p-4 border border-white/10 bg-black/40 rounded text-[10px] text-green-400 font-mono tracking-wider">
+                  <div className="animate-pulse opacity-50">_SYSTEM_FEED_LIVE</div>
+                  <div className="opacity-70">ID:99281... CALC_COMPLETE</div>
+                  <div className="opacity-70">ID:12993... INVENTORY_SYNC</div>
+                  <div className="opacity-70">ID:88271... BLEND_OPTIMIZED</div>
                 </div>
               )}
               {currentSection.visual === 'coa_mock' && (
-                <div className="flex items-center gap-4 text-xs font-mono text-orange-400">
-                  <div className="border border-white/10 p-2">RAW_COA_PDF</div>
-                  <ChevronRight size={16} />
-                  <div className="border border-white/10 p-2">NORMALIZER</div>
-                  <ChevronRight size={16} />
-                  <div className="border border-white/10 p-2 text-white">ENGINE_READY</div>
+                <div className="flex items-center gap-4 text-[10px] font-mono text-orange-400 tracking-wider">
+                  <div className="border border-white/10 p-2 opacity-70">INPUT_COA</div>
+                  <ChevronRight size={12} className="opacity-30" />
+                  <div className="border border-white/10 p-2 opacity-70">NORMALIZE</div>
+                  <ChevronRight size={12} className="opacity-30" />
+                  <div className="border border-white/10 p-2 text-white opacity-90">LOCKED</div>
                 </div>
               )}
               {currentSection.visual === 'flow' && (
-                <div className="flex items-center gap-4 text-xs font-mono text-[#BF5AF2]">
-                  <div className="border border-white/10 p-2">INTENT</div>
-                  <ChevronRight size={16} />
-                  <div className="border border-white/10 p-2">CHEMOTYPE</div>
-                  <ChevronRight size={16} />
-                  <div className="border border-white/10 p-2 text-white">OUTCOME</div>
+                <div className="flex items-center gap-4 text-[10px] font-mono text-[#BF5AF2] tracking-wider">
+                  <div className="border border-white/10 p-2 opacity-70">USER_INTENT</div>
+                  <ChevronRight size={12} className="opacity-30" />
+                  <div className="border border-white/10 p-2 opacity-70">CHEMOTYPE</div>
+                  <ChevronRight size={12} className="opacity-30" />
+                  <div className="border border-white/10 p-2 text-white opacity-90">OUTCOME</div>
                 </div>
               )}
             </div>
 
           </motion.div>
         </AnimatePresence>
+      </div>
 
-        {/* Footer Controls */}
-        <div className="absolute bottom-8 right-8 flex items-center gap-4">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 text-white/40 hover:text-white uppercase text-xs tracking-widest transition-colors"
-          >
-            Exit Demo
-          </button>
-          <button
-            onClick={handleNext}
-            className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors group"
-          >
-            {currentIndex === SECTIONS.length - 1 ? (
-              <X size={20} className="text-white group-hover:rotate-90 transition-transform" />
-            ) : (
-              <ChevronRight size={20} className="text-white" />
-            )}
-          </button>
-        </div>
+      {/* FOOTER - Exit Only */}
+      <div className="absolute bottom-6 right-6">
+        <button
+          onClick={onClose}
+          className="flex items-center gap-2 px-4 py-2 text-white/20 hover:text-white/60 uppercase text-[10px] tracking-widest transition-colors"
+        >
+          <span>Exit Artifact</span>
+          <X size={12} />
+        </button>
       </div>
     </div>
   );

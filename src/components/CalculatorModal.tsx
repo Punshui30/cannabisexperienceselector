@@ -23,7 +23,7 @@ export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
   const [showResults, setShowResults] = useState(false);
 
   const calculateBlend = (): CalculationResult[] => {
-    return recommendation.cultivars.map((c, idx) => {
+    return recommendation.cultivars?.map((c, idx) => {
       const isFoundation = idx === 0;
       const isBalance = idx === 1;
       const role = isFoundation ? 'Foundation' : isBalance ? 'Balance' : 'Accent';
