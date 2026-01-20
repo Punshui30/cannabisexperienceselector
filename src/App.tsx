@@ -16,6 +16,7 @@ import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { LiveConsultant } from './components/LiveConsultant';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { LiveExperienceFeed } from './components/LiveExperienceFeed';
+import { LiveNetworkDrawer } from './components/LiveNetworkDrawer';
 import { Intelligence } from './lib/merchantIntelligence';
 import { GlobalCultivarProvider } from './context/GlobalCultivarContext';
 import { Brain, Sparkles } from 'lucide-react';
@@ -500,6 +501,8 @@ export default function App() {
             )}
           </AnimatePresence>
         </main>
+
+        {!showSplash && !showEntryGate && view !== 'live-feed' && <LiveNetworkDrawer />}
 
         {!showSplash && !showEntryGate && mode !== 'admin' && view !== 'live-feed' && (
           <>

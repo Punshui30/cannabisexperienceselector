@@ -5,7 +5,7 @@ import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { SwipeDeck } from './SwipeDeck';
 import { PublicFeed } from './PublicFeed';
-import { LiveNetworkDrawer } from './LiveNetworkDrawer';
+
 import logoImg from '../assets/logo.png';
 
 // --- DESIGN TOKENS ---
@@ -463,8 +463,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
       </div>
 
-      {/* --- LIVE NETWORK DRAWER (Fixed Overlay) --- */}
-      <LiveNetworkDrawer />
+
 
       {/* --- FOOTER (Fixed) --- */}
       <div className="flex-shrink-0 px-6 max-[360px]:px-4 pb-safe-footer pt-2 max-[360px]:pt-1 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3 max-[360px]:gap-2" style={{ marginBottom: '0' }}>

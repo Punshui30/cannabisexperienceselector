@@ -28,7 +28,7 @@ export function LiveNetworkDrawer() {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="!fixed !top-4 !right-4 !left-auto z-[9999] pointer-events-none flex justify-end w-auto min-w-0"
+                    className="fixed top-4 right-4 z-[100] pointer-events-none"
                 >
                     <button
                         onClick={() => setIsOpen(true)}
