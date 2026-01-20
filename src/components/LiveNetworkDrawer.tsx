@@ -28,11 +28,11 @@ export function LiveNetworkDrawer() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
-                    className="fixed bottom-0 left-0 right-0 z-10 px-6 pb-4 pt-2 bg-gradient-to-t from-black via-black to-transparent pointer-events-none"
+                    className="fixed bottom-24 left-0 right-0 z-50 px-6 max-[420px]:px-4 pointer-events-none flex justify-center"
                 >
                     <button
                         onClick={() => setIsOpen(true)}
-                        className="w-full flex items-center justify-between px-4 py-3 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl transition-all shadow-lg shadow-black/50 group pointer-events-auto"
+                        className="flex items-center gap-3 px-4 py-2 bg-black/80 hover:bg-black/90 backdrop-blur-xl border border-white/20 rounded-full transition-all shadow-lg shadow-black/50 group pointer-events-auto"
                     >
                         <div className="flex items-center gap-3">
                             <div className="relative flex h-2 w-2">
