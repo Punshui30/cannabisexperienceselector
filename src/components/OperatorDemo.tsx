@@ -250,13 +250,13 @@ export function OperatorDemo({ onClose }: OperatorDemoProps) {
       </div>
 
       {/* FOOTER - Exit Only */}
-      <div className="absolute bottom-6 right-6">
+      <div className="absolute top-6 right-6 z-50">
         <button
           onClick={onClose}
-          className="flex items-center gap-2 px-4 py-2 text-white/20 hover:text-white/60 uppercase text-[10px] tracking-widest transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-colors text-[10px] uppercase tracking-widest backdrop-blur-md border border-white/5"
         >
-          <span>Exit Artifact</span>
-          <X size={12} />
+          <span>Exit Demo</span>
+          <X size={14} />
         </button>
       </div>
     </div>

@@ -449,18 +449,18 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
       <LiveNetworkDrawer />
 
       {/* --- FOOTER (Fixed) --- */}
-      <div className="flex-shrink-0 px-6 max-[360px]:px-4 pb-safe-footer pt-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3" style={{ marginBottom: '0' }}>
+      <div className="flex-shrink-0 px-6 max-[360px]:px-4 pb-safe-footer pt-2 max-[360px]:pt-1 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3 max-[360px]:gap-2" style={{ marginBottom: '0' }}>
         <button
           onClick={handleSubmit}
           disabled={!canSubmit()}
-          className={`w-full btn-neon-green ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+          className={`w-full btn-neon-green max-[360px]:py-2.5 max-[360px]:text-xs ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
         >
           Generate Recommendations
         </button>
 
         <button
           onClick={onBrowsePresets}
-          className="mx-auto py-2 px-4 rounded-full bg-transparent text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-all hover:bg-white/5"
+          className="mx-auto py-2 max-[360px]:py-1 px-4 rounded-full bg-transparent text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-all hover:bg-white/5"
         >
           Explore Preset Stacks
         </button>
