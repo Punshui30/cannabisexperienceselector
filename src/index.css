@@ -5,6 +5,11 @@
     --primary-neon: #00FFD1;
     --secondary-neon: #BF5AF2;
     --bg-black: #000000;
+    --brand-gold: #C9A24D;
+
+    /* Mobile Safe Areas */
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
   }
 
   html,
@@ -88,4 +93,22 @@
 
 .animate-pulse-slow {
   animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Mobile Constraint: Minimum Interaction Width */
+@media (max-width: 319px) {
+  body::after {
+    content: "Device too narrow for optimal experience. Please use a wider screen.";
+    position: fixed;
+    inset: 0;
+    background: black;
+    color: white;
+    z-index: 9999;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+  }
 }

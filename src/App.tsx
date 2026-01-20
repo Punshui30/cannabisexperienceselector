@@ -293,7 +293,7 @@ export default function App() {
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
         </div>
 
-        <main className="relative z-10 w-full flex-grow flex flex-col justify-center">
+        <main className="relative z-10 w-full flex-grow flex flex-col justify-center pb-24">
           {showSplash && (
             <SplashScreen onComplete={() => setShowSplash(false)} />
           )}
@@ -435,7 +435,7 @@ export default function App() {
               {view === 'input' && (
                 <button
                   onClick={() => setView('library')}
-                  className="fixed top-6 right-6 z-40 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40 hover:text-white uppercase tracking-widest transition-colors"
+                  className="fixed top-6 left-6 z-40 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40 hover:text-white uppercase tracking-widest transition-colors backdrop-blur-md"
                 >
                   Strain Lib
                 </button>
@@ -471,6 +471,7 @@ export default function App() {
                   }
                 }}
                 onClose={() => setShowConsultant(false)}
+                isGenerating={isAnalyzing}
               />
             )}
           </AnimatePresence>
@@ -481,7 +482,7 @@ export default function App() {
             {/* Admin Toggle (Hidden Corner) */}
             <button
               onClick={() => setMode('admin')}
-              className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all opacity-0 hover:opacity-100"
+              className="fixed bottom-4 left-4 z-40 p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white/60 hover:bg-white/10 transition-all opacity-0 hover:opacity-100"
               title="Admin Panel"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -491,16 +492,22 @@ export default function App() {
             </button>
 
             {/* LIVE CONSULTANT TRIGGER FAB */}
+            {/* LIVE CONSULTANT TRIGGER FAB */}
             <button
-              onClick={() => setShowConsultant(true)}
-              className="fixed bottom-6 right-6 z-50 group flex items-center justify-center w-12 h-12 rounded-full bg-[#00FFD1] text-black shadow-[0_0_20px_rgba(0,255,209,0.3)] hover:scale-110 hover:shadow-[0_0_30px_rgba(0,255,209,0.5)] transition-all duration-300"
-              title="Ask AI Consultant"
+              onClick={() => {
+                if (!isAnalyzing) setShowConsultant(true);
+              }}
+              disabled={isAnalyzing}
+              className={`fixed bottom-6 right-6 z-40 group flex items-center justify-center w-12 h-12 rounded-full bg-[#00FFD1] text-black shadow-[0_0_20px_rgba(0,255,209,0.3)] transition-all duration-300 ${isAnalyzing ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110 hover:shadow-[0_0_30px_rgba(0,255,209,0.5)]'}`}
+              title={isAnalyzing ? "System Processing..." : "Ask AI Consultant"}
             >
-              <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/80 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-              </span>
+              <Sparkles size={20} className={`transition-transform ${!isAnalyzing && 'group-hover:rotate-12'}`} />
+              {!isAnalyzing && (
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/80 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                </span>
+              )}
             </button>
           </>
         )}

@@ -206,57 +206,61 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     <div className="w-full h-screen flex flex-col relative z-10 overflow-hidden bg-transparent"> {/* h-screen fixed */}
 
       {/* --- HEADER (Fixed) --- */}
-      <div className="flex-shrink-0 pt-12 px-6 pb-4 bg-gradient-to-b from-black/90 via-black/50 to-transparent z-20">
-        <div className="flex-1 w-full max-w-md flex flex-col items-center relative z-10">
+      <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/90 via-black/50 to-transparent z-20">
+        <div className="w-full flex flex-col items-center pt-4 pb-2 relative z-10">
 
           {/* --- BRANDING HEADER --- */}
-          <div className="w-full flex-shrink-0 pt-0 pb-6 px-6 flex flex-col items-center">
+          <div className="w-full flex-shrink-0 px-6 flex flex-col items-center">
             {/* Logo */}
-            <div className="mb-4">
-              <img src={logoImg} alt="StrainMath Logo" className="w-10 h-10 object-contain brightness-0 invert opacity-80" />
+            <div className="mb-2">
+              <img
+                src={logoImg}
+                alt="StrainMath Logo"
+                className="h-[40px] w-auto max-h-[48px] object-contain brightness-0 invert opacity-80"
+              />
             </div>
 
             <div className="text-center">
-              <h2 className="text-3xl text-white font-light serif tracking-tight">Describe Your Goal</h2>
-              <p className="text-[10px] text-white/30 uppercase tracking-[0.4em] font-medium mt-2">
+              <h2 className="text-2xl text-white font-light serif tracking-tight">Describe Your Goal</h2>
+              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-medium mt-1">
                 Start with a scenario or describe usage
               </p>
-              <div className="flex items-center justify-center gap-1.5 mt-2">
-                <span className="h-[1px] w-4 bg-white/10" />
-                <p className="text-[9px] text-[#ffd700] uppercase tracking-widest font-light">
-                  Powered by <span className="serif font-normal">StrainMath</span><span className="text-[7px] align-top">™</span>
+              <div className="flex items-center justify-center gap-1.5 mt-1.5">
+                <span className="h-[1px] w-3 bg-white/10" />
+                <p className="text-[7px] text-[#C9A24D]/80 uppercase tracking-widest font-light">
+                  Powered by <span className="serif font-normal">StrainMath</span><span className="text-[6px] align-top">™</span>
                 </p>
-                <span className="h-[1px] w-4 bg-white/10" />
+                <span className="h-[1px] w-3 bg-white/10" />
               </div>
             </div>
 
             {/* Admin Toggle (Absolute top right) */}
             <button
               onClick={onAdminModeToggle}
-              className={`absolute top-0 right-0 p-2 rounded-full transition-colors ${isAdminMode ? 'bg-[#00FFD1]/20 text-[#00FFD1]' : 'text-white/20 hover:text-white'}`}
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isAdminMode ? 'bg-[#00FFD1]/20 text-[#00FFD1]' : 'text-white/20 hover:text-white'}`}
             >
               <span className="sr-only">Admin</span>
               <div className={`w-2 h-2 rounded-full ${isAdminMode ? 'bg-[#00FFD1]' : 'bg-current'}`} />
             </button>
           </div>
 
-          {/* Tabs */}
-          <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10">
+          {/* Tabs - Centered & Compact */}
+          <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10 mt-4 max-w-sm w-full mx-6">
             <button
               onClick={() => setMode('describe')}
-              className={`flex-1 py-3 px-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'describe' ? TAB_ACTIVE : TAB_INACTIVE}`}
+              className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'describe' ? TAB_ACTIVE : TAB_INACTIVE}`}
             >
               Describe
             </button>
             <button
               onClick={() => setMode('product')}
-              className={`flex-1 py-3 px-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'product' ? TAB_ACTIVE : TAB_INACTIVE}`}
+              className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'product' ? TAB_ACTIVE : TAB_INACTIVE}`}
             >
               Photo
             </button>
             <button
               onClick={() => setMode('strain')}
-              className={`flex-1 py-3 px-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'strain' ? TAB_ACTIVE : TAB_INACTIVE}`}
+              className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'strain' ? TAB_ACTIVE : TAB_INACTIVE}`}
             >
               Strain
             </button>
@@ -280,7 +284,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe how you want to feel, what you want to avoid, or a scenario..."
-                  className={`${GLASS_INPUT} h-32 resize-none transition-all placeholder:text-white/30`}
+                  className={`${GLASS_INPUT} h-32 resize-none transition-all placeholder:text-white/30 px-5 py-4 leading-relaxed text-base`} // Added padding and text-base
                 />
                 {/* NO CHIPS HERE */}
                 <button
@@ -457,7 +461,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
         <button
           onClick={onBrowsePresets}
-          className="w-full py-4 rounded-xl border border-white/10 bg-white/[0.02] text-white/40 text-[10px] font-semibold uppercase tracking-widest hover:bg-white/5 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 transition-all"
+          className="mx-auto py-2 px-4 rounded-full bg-transparent text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-all hover:bg-white/5"
         >
           Explore Preset Stacks
         </button>

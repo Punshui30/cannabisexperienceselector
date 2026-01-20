@@ -13,6 +13,7 @@ interface LiveConsultantProps {
     };
     onApplyResult?: (result: any) => void;
     onClose: () => void;
+    isGenerating?: boolean; // Guardrail prop
 }
 
 interface Message {
@@ -31,7 +32,7 @@ function generateContextAwareIntro(context?: LiveConsultantProps['context']): st
     return `Have questions about ${name}? I can explain why this blend fits your goal, suggest adjustments, or help refine it.`;
 }
 
-export function LiveConsultant({ consultantText, context, onApplyResult, onClose }: LiveConsultantProps) {
+export function LiveConsultant({ consultantText, context, onApplyResult, onClose, isGenerating = false }: LiveConsultantProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -90,6 +91,12 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     }, [context?.recommendation?.id, consultantText]); // Trigger on specific recommendation change or text override
 
     const handleSendMessage = async () => {
+        // PROMPT 4: Stability Guardrail (Prevent race conditions during generation)
+        if (isGenerating) {
+            console.warn("⚠️ LIVE CONSULTANT: Blocked interaction during engine generation.");
+            return;
+        }
+
         if (!inputValue.trim() || isLoading) return;
 
         const userMessage = inputValue.trim();
@@ -293,6 +300,15 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                     <div className="relative group">
                         {/* Glow underlayer on focus */}
                         <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00FFD1]/20 to-[#BF5AF2]/20 rounded-full blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+
+                        {/* Guardrail Overlay */}
+                        {isGenerating && (
+                            <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[2px] rounded-full flex items-center justify-center">
+                                <span className="text-[10px] text-white/60 uppercase tracking-widest font-medium animate-pulse">
+                                    System Syncing...
+                                </span>
+                            </div>
+                        )}
 
                         <div className="relative flex items-center backdrop-blur-xl bg-[#0a0a0a]/90 border border-white/10 rounded-full p-1.5 shadow-2xl"
                             style={{
