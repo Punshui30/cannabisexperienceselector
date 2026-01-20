@@ -12,85 +12,74 @@ type DemoScene = {
 
 const DEMO_SCENES: DemoScene[] = [
   {
-    title: 'The Challenge',
+    title: 'Precision Pharmacology',
     narration: [
-      'Customers expect consistency, but cannabis chemistry is naturally variable.',
-      '"Blue Dream" from Grower A isn\'t the same as "Blue Dream" from Grower B.',
-      'When the batch changes, the customer experience shifts.',
-      'This variability creates friction and loss of trust at the counter.'
+      'Standard categorization fails to account for chemical variance.',
+      'A strain is not a constant; every harvest is a unique chemical profile.',
+      'We move beyond "Indica/Sativa" towards molecular precision.',
+      'Guidance is derived from the lab, not the label.'
     ],
-    caption: 'Chemistry varies. Outcomes shouldn\'t.',
-    visual: 'problem',
-    duration: 12
-  },
-  {
-    title: 'The Data Gap',
-    narration: [
-      'Budtenders are forced to guess based on strain names or "Indica/Sativa" labels.',
-      'These categories or labels are too broad to predict specific therapeutic effects.',
-      'Without lab-verified intelligence, every sale is a chemical variable.',
-      'StrainMath™ bridges the gap between lab data and human experience.'
-    ],
-    caption: 'Labels are not guarantees.',
+    caption: 'Beyond Nomenclature. Towards Molecular Truth.',
     visual: 'scan',
     duration: 12
   },
   {
-    title: 'The Solution: Outcomes',
+    title: 'Real-time Entropy Management',
     narration: [
-      'We focus on chemical outcomes, not historical strain lore.',
-      'Our engine analyzes your live inventory COAs in real-time.',
-      'We generate precise cultivar blends designed to hit target feelings.',
-      'Consistency is maintained even as individual strains rotate in and out.'
+      'Inventory rotation creates a constant "data gap" in customer guidance.',
+      'Our engine performs real-time synthesis of your active COA library.',
+      'By balancing terpene ratios across multiple cultivars, we stabilize the outcome.',
+      'The experience remains constant, even as the products change.'
     ],
-    caption: 'From Strain Names to Engineered Outcomes.',
+    caption: 'Stabilizing the Outcome. Eliminating the Variable.',
     visual: 'recommendation',
     duration: 14
   },
   {
-    title: 'Operational Efficiency',
+    title: 'Live Intelligence Network',
     narration: [
-      'Budtenders can resolve complex customer queries in seconds.',
-      'Guided recommendations help manage peak traffic at the counter.',
-      'Staff confidence increases as they become experts in chemistry.',
-      'Faster decision-making means higher throughput and shorter waits.'
+      'Every interaction contributes to a decentralized network of intelligence.',
+      'Surface successful formulations to the community through the Live Feed.',
+      'Anonymized data translates into public trust and operational authority.',
+      'Transparency becomes your most powerful sales asset.'
     ],
-    caption: 'Empower your team with data.',
+    caption: 'Operational Intelligence. Public Transparency.',
+    visual: 'business',
+    duration: 12
+  },
+  {
+    title: 'Engineered Diversity',
+    narration: [
+      'The system automatically guards against formulation redundancy.',
+      'Every calculation cycle scans for cultural and chemical diversity.',
+      'We avoid "input mirroring" to provide sophisticated, clinical guidance.',
+      'Intelligent re-calculation ensures the best botanical match every time.'
+    ],
+    caption: 'Clinical Guidance. Non-Redundant Synthesis.',
     visual: 'unique',
     duration: 12
   },
   {
-    title: 'Live Network Intelligence',
+    title: 'Revenue & Retention',
     narration: [
-      'The platform generates an anonymized Live Network feed.',
-      'Surface your store\'s intelligence publicly to build authority.',
-      'Customers can explore successful outcomes from their community.',
-      'Building trust through transparency and data-backed success.'
+      'Predictable outcomes lead to sustained customer retention.',
+      'Multi-cultivar recommendations naturally drive higher average cart sizes.',
+      'Transform the budtender into a data-backed consultant.',
+      'Increasing throughput while deepening trust at every session.'
     ],
-    caption: 'A Network of Reliable Intelligence.',
-    visual: 'scan',
-    duration: 12
-  },
-  {
-    title: 'Revenue Impact',
-    narration: [
-      'One outcome recommendation typically includes 2 to 3 cultivars.',
-      'This naturally increases average cart size (AOV).',
-      'Repeat business grows as customers find reliable results.',
-      'Turning chemistry into a predictable business asset.'
-    ],
-    caption: 'Drive loyalty and growth through data.',
+    caption: 'Predictable Science. Compounded Growth.',
     visual: 'cart',
     duration: 12
   },
   {
-    title: 'The Result',
+    title: 'Future Compliance',
     narration: [
-      'Predictable effects.',
-      'Confident budtenders.',
-      'Loyal, satisfied customers.'
+      'The platform maintains an immutable audit trail of every recommendation.',
+      'Bridge the gap between medical-grade precision and adult-use retail.',
+      'Ready for a future where chemistry is the only standard.',
+      'Welcome to the age of Informed Selection.'
     ],
-    caption: 'Guidance. Consistency. Confidence.',
+    caption: 'The Future is Formulation.',
     visual: 'final',
     duration: 10
   }
@@ -497,7 +486,7 @@ function SceneVisual({ visual }: { visual: DemoScene['visual'] }) {
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00FFD1]/20 to-transparent animate-shimmer" />
-              Accent
+              Terpene Modulation
             </motion.div>
             <motion.div
               initial={{ width: '0%', opacity: 0 }}
@@ -511,7 +500,7 @@ function SceneVisual({ visual }: { visual: DemoScene['visual'] }) {
                 color: '#6EE7B7' // Emerald-300
               }}
             >
-              Balance
+              Cannabinoid Synergy
             </motion.div>
             <motion.div
               initial={{ width: '0%', opacity: 0 }}
@@ -525,7 +514,7 @@ function SceneVisual({ visual }: { visual: DemoScene['visual'] }) {
                 color: '#34D399' // Emerald-400
               }}
             >
-              Foundation
+              Botanical Foundation
             </motion.div>
           </div>
         );

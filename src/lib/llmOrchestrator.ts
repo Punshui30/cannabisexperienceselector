@@ -1,6 +1,6 @@
 import { IntentSeed, IntentSpec, EngineResult } from '../types/domain';
 import { interpretIntentFromSpec, generateRecommendations as engineGenerate } from './engineAdapter';
-import { getCultivarIdFromName } from './strainLibrary';
+import { getCultivarIdFromName, STRAIN_LIBRARY } from './strainLibrary';
 import { generateIntentBoundName, generateVariantNarrative } from './llmOrchestrator_helpers';
 
 // Define OrchestratorResult locally
@@ -43,30 +43,28 @@ export async function processIntent(
         const intentSpec = parseIntentLocally(seed);
         console.log('ORCHESTRATOR: Intent Analyzed', intentSpec);
 
-        // Derive Outcome Category for downstream consumers
+        // Derive Outcome Category for downstream consumers (REFINED)
         let outcomeCategory: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other' = 'Other';
-        const primaryEffect = intentSpec.targetEffects?.[0]?.toLowerCase();
+        const searchPool = (seed.text + " " + (intentSpec.targetEffects?.join(" ") || "")).toLowerCase();
 
-        if (primaryEffect) {
-            if (['focus', 'energy', 'creative', 'work'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Focus';
-            else if (['relax', 'calm', 'chill', 'unwind'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Relax';
-            else if (['social', 'party', 'fun'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Social';
-            else if (['sleep', 'sedation', 'night', 'insomnia'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Sleep';
-            else if (['pain', 'relief', 'medical'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Relief';
-        }
+        if (['focus', 'energy', 'creative', 'work', 'clarity', 'study'].some(k => searchPool.includes(k))) outcomeCategory = 'Focus';
+        else if (['sleep', 'sedation', 'night', 'insomnia', 'rest'].some(k => searchPool.includes(k))) outcomeCategory = 'Sleep';
+        else if (['pain', 'relief', 'medical', 'ache', 'sore', 'physical'].some(k => searchPool.includes(k))) outcomeCategory = 'Relief';
+        else if (['social', 'party', 'fun', 'conversation', 'friends'].some(k => searchPool.includes(k))) outcomeCategory = 'Social';
+        else if (['relax', 'calm', 'chill', 'unwind', 'stress'].some(k => searchPool.includes(k))) outcomeCategory = 'Relax';
 
         // 2. ENGINE EXECUTION (Generate 3 Options with Diversity)
         const engineIntent = interpretIntentFromSpec(intentSpec);
         console.log('ORCHESTRATOR: Running Engine with Spec...');
 
         const engineResults: EngineResult[] = [];
-        const usedCultivarIds = new Set<string>(); // Track used cultivars by ID
+        const usedCultivarIds = new Set<string>(intentSpec.cultivarExclusions || []); // Start with user-defined exclusions
 
         // ---------------------------------------------------------
         // BLEND 1: PRIMARY INTERPRETATION (Original Intent)
         // ---------------------------------------------------------
         console.log('ORCHESTRATOR: Generating Primary Blend (original intent)');
-        const results1 = engineGenerate(seed, engineIntent); // No exclusions for first blend
+        const results1 = engineGenerate(seed, engineIntent, intentSpec.cultivarExclusions); // Pass explicit exclusions first
         if (results1 && results1.length > 0) {
             const r1 = results1[0];
             r1.id = `blend-primary-${Date.now()}`;
@@ -280,25 +278,51 @@ export async function processIntent(
  */
 function parseIntentLocally(seed: IntentSeed): IntentSpec {
     const text = (seed.text || "").toLowerCase();
-
-    // 1. Generic Dynamic Script (Quote User)
     const rawText = seed.text || "";
-    const previewText = rawText.length > 30 ? rawText.substring(0, 30) + "..." : rawText;
 
-    // Default Script
-    let script = `Analyzing request: "${previewText}". Calibrating terpene ratios...`;
-    console.log('PARSE_INTENT: Generated script:', script);
+    // 1. TOPIC & SENTIMENT ANALYSIS
+    const topicMatch = text.match(/(sleep|pain|focus|energy|anxiety|relax|diesel|haze|kush|purple|creative|social|relief)/i);
+    const topic = topicMatch ? topicMatch[0].toLowerCase() : null;
 
-    // 2. Keyword Topic Detection
-    const topicMatch = text.match(/(sleep|pain|focus|energy|anxiety|relax|diesel|haze|kush|purple|creative|social)/i);
+    // 2. NEGATIVE STRAIN DETECTION (Explicit Exclusions)
+    const exclusions: string[] = [];
+    const negativeStrainMatch = text.match(/(don't like|not a fan of|avoid|bad experience|exclude|remove|no|without|makes me edgy|makes me anxious|makes me paranoid|don't want|rather not have)\s+([a-z0-9\s#]+)/i);
 
-    if (topicMatch) {
-        const topic = topicMatch[0].toLowerCase();
-        script = `Detected focus on ${topic} in "${previewText}". Adjusting chemotypes for optimal synergy.`;
-        console.log('PARSE_INTENT: Enhanced script with topic:', script);
+    if (negativeStrainMatch) {
+        const potentialStrain = negativeStrainMatch[2].trim();
+        // Check if this matches a known strain
+        const foundId = getCultivarIdFromName(potentialStrain);
+        if (foundId) {
+            exclusions.push(foundId);
+            console.log(`PARSE_INTENT: Explicitly excluding ${potentialStrain} (ID: ${foundId})`);
+        } else {
+            // Fuzzy match for common names if explicit lookup fails
+            const fuzzyMatch = STRAIN_LIBRARY.find(s => potentialStrain.toLowerCase().includes(s.name.toLowerCase()));
+            if (fuzzyMatch) {
+                exclusions.push(fuzzyMatch.id);
+                console.log(`PARSE_INTENT: Fuzzy excluded ${fuzzyMatch.name} (from "${potentialStrain}")`);
+            }
+        }
     }
 
-    // 3. Construct Spec
+    // 3. GENERATE NON-MIRRORED CONSULTATION SCRIPT
+    let script = "";
+    if (exclusions.length > 0) {
+        const strainObj = STRAIN_LIBRARY.find(s => s.id === exclusions[0]);
+        script = `Understood. I've removed ${strainObj?.name} from the active formulation parameters. Finding a cleaner outcome that maintains your intended profile without any unwanted variables.`;
+    } else if (topic === 'pain' || topic === 'relief') {
+        script = "Got it. I'm focusing on physical comfort and systemic relief. Re-balancing the terpene ratios to prioritize a smoothing effect on the body.";
+    } else if (topic === 'focus' || topic === 'energy') {
+        script = "Understood. Prioritizing mental clarity and sustained energy. Selecting chemotypes with sharp, stimulating profiles for daytime endurance.";
+    } else if (topic === 'sleep' || topic === 'relax') {
+        script = "Understood. Calibrating for deep relaxation and a quiet transition. Emphasizing heavier sedating terpenes for a restorative finish.";
+    } else if (topic) {
+        script = `I've adjusted the engine logic to emphasize those characteristic ${topic} notes while ensuring the final blend stays aligned with your stated primary goal.`;
+    } else {
+        script = "I'm re-balancing the active logic layer based on your feedback. Fine-tuning the synergy for a smoother, more effective result.";
+    }
+
+    // 4. CONSTRUCT SPEC
     const spec: IntentSpec = {
         targetEffects: ["mood", "relaxation"], // Defaults
         avoidEffects: ["anxiety"],
@@ -309,9 +333,10 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
             sensitivity: "medium"
         },
         confidenceScore: 1.0,
-        reasoning: `Local Analysis: Keywords detected.`,
+        reasoning: `Local Analysis: ${topic ? `Targeting ${topic}` : 'General refinement'}. ${exclusions.length ? `Excluding ${exclusions.length} strains.` : ''}`,
         originalInput: rawText,
         consultationScript: script,
+        cultivarExclusions: exclusions
     };
     console.log('PARSE_INTENT: Final spec with consultationScript:', spec.consultationScript);
 

@@ -36,6 +36,7 @@ export interface IntentSpec {
     confidenceScore: number;
     reasoning: string;
     consultationScript?: string;
+    cultivarExclusions?: string[]; // Explicit IDs to exclude
 }
 
 /**
