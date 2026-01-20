@@ -412,6 +412,17 @@ export function getStrainsByType(type: "indica" | "sativa" | "hybrid"): Strain[]
 }
 
 /**
+ * Get cultivar ID from name (case-insensitive)
+ * Used for normalizing exclusions to IDs
+ */
+export function getCultivarIdFromName(name: string): string | undefined {
+  if (!name) return undefined;
+  const normalized = name.toLowerCase().trim();
+  const found = STRAIN_LIBRARY.find(s => s.name.toLowerCase() === normalized);
+  return found?.id;
+}
+
+/**
  * LIBRARY METADATA
  */
 export const LIBRARY_METADATA = {

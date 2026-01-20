@@ -1013,7 +1013,11 @@ function evaluateBlend(
 // MAIN GENERATION FUNCTION
 // ============================================================================
 
-export function calculateBlends(inventory: Inventory, intent: Intent): EngineOutput {
+export function calculateBlends(
+  inventory: Inventory,
+  intent: Intent,
+  exclusionIds?: string[] // ID-based exclusions only
+): EngineOutput {
   const startTime = Date.now();
   const validatedIntent = validateIntent(intent);
 
@@ -1036,7 +1040,16 @@ export function calculateBlends(inventory: Inventory, intent: Intent): EngineOut
     [0.6, 0.2, 0.2]
   ];
 
-  const cultivars = inventory.cultivars.filter(c => c.available);
+  // Filter cultivars: available AND not excluded (ID-only filtering)
+  const cultivars = inventory.cultivars
+    .filter(c => c.available)
+    .filter(c => !exclusionIds?.includes(c.id));
+
+  if (exclusionIds && exclusionIds.length > 0) {
+    console.log(`🔧 ENGINE: Processing ${cultivars.length} cultivars (${exclusionIds.length} excluded by ID)`);
+    console.log(`   Excluded IDs:`, exclusionIds);
+  }
+
 
   // 1. Evaluate single cultivars first (to eliminate poor fits)
   const cultivarScores = cultivars.map(c => {

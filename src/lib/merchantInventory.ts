@@ -10,6 +10,15 @@ export type InventoryState = {
     }
 }
 
+// Combined type for inventory items with strain data
+export type InventoryItem = Strain & {
+    inventory: {
+        status: InventoryStatus;
+        hasCOA: boolean;
+        dateAdded: string;
+    }
+};
+
 // Key for LocalStorage
 const STORAGE_KEY = 'merchant_inventory_v1';
 
@@ -58,7 +67,7 @@ class MerchantInventoryService {
     }
 
     // Public API
-    public getAllItems(): (Strain & { inventory: { status: InventoryStatus; hasCOA: boolean; dateAdded: string } })[] {
+    public getAllItems(): InventoryItem[] {
         return STRAIN_LIBRARY.map(strain => {
             const state = this.state[strain.id] || { status: 'inactive', hasCOA: false, dateAdded: new Date().toISOString() };
             return {

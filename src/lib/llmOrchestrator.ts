@@ -1,5 +1,6 @@
 import { IntentSeed, IntentSpec, EngineResult } from '../types/domain';
 import { interpretIntentFromSpec, generateRecommendations as engineGenerate } from './engineAdapter';
+import { getCultivarIdFromName } from './strainLibrary';
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -53,17 +54,18 @@ export async function processIntent(
             else if (['pain', 'relief', 'medical'].some(k => primaryEffect.includes(k))) outcomeCategory = 'Relief';
         }
 
-        // 2. ENGINE EXECUTION (Generate 3 Options)
+        // 2. ENGINE EXECUTION (Generate 3 Options with Diversity)
         const engineIntent = interpretIntentFromSpec(intentSpec);
         console.log('ORCHESTRATOR: Running Engine with Spec...');
 
         const engineResults: EngineResult[] = [];
+        const usedCultivarIds = new Set<string>(); // Track used cultivars by ID
 
         // ---------------------------------------------------------
         // BLEND 1: PRIMARY INTERPRETATION (Original Intent)
         // ---------------------------------------------------------
         console.log('ORCHESTRATOR: Generating Primary Blend (original intent)');
-        const results1 = engineGenerate(seed, engineIntent);
+        const results1 = engineGenerate(seed, engineIntent); // No exclusions for first blend
         if (results1 && results1.length > 0) {
             const r1 = results1[0];
             r1.id = `blend-primary-${Date.now()}`;
@@ -105,6 +107,15 @@ export async function processIntent(
             r1.reasoning = reasoning;
             engineResults.push(r1);
             console.log('Primary Blend Cultivars:', r1.cultivars?.map(c => c.name).join(', '));
+
+            // Track used cultivar IDs for exclusion
+            r1.cultivars?.forEach(c => {
+                const cultivarId = getCultivarIdFromName(c.name) || (c as any).id;
+                if (cultivarId) {
+                    usedCultivarIds.add(cultivarId);
+                    console.log(`  ✓ Excluding cultivar ID: ${cultivarId} (${c.name})`);
+                }
+            });
         }
 
         // ---------------------------------------------------------
@@ -132,7 +143,10 @@ export async function processIntent(
         intent2.targetEffects.body = Math.min(0.8, (intent2.targetEffects.body || 0) + 0.4);
         console.log(`  Boosted body to ${intent2.targetEffects.body}`);
 
-        const results2 = engineGenerate(seed, intent2);
+        // Pass exclusions to force diversity
+        const exclusions2 = Array.from(usedCultivarIds);
+        console.log(`  Excluding ${exclusions2.length} cultivars:`, exclusions2);
+        const results2 = engineGenerate(seed, intent2, exclusions2);
         if (results2 && results2.length > 0) {
             const r2 = results2[0];
             r2.id = `blend-secondary-${Date.now()}`;
@@ -151,6 +165,15 @@ export async function processIntent(
 
             engineResults.push(r2);
             console.log('Secondary Blend Cultivars:', r2.cultivars?.map(c => c.name).join(', '));
+
+            // Track additional used cultivars
+            r2.cultivars?.forEach(c => {
+                const cultivarId = getCultivarIdFromName(c.name) || (c as any).id;
+                if (cultivarId) {
+                    usedCultivarIds.add(cultivarId);
+                    console.log(`  ✓ Excluding cultivar ID: ${cultivarId} (${c.name})`);
+                }
+            });
         }
 
         // ---------------------------------------------------------
@@ -188,7 +211,10 @@ export async function processIntent(
             console.log(`  Terpene bias: Reduced energy, boosted creativity`);
         }
 
-        const results3 = engineGenerate(seed, intent3);
+        // Pass exclusions to force further diversity
+        const exclusions3 = Array.from(usedCultivarIds);
+        console.log(`  Excluding ${exclusions3.length} cultivars:`, exclusions3);
+        const results3 = engineGenerate(seed, intent3, exclusions3);
         if (results3 && results3.length > 0) {
             const r3 = results3[0];
             r3.id = `blend-contextual-${Date.now()}`;
@@ -212,6 +238,25 @@ export async function processIntent(
         // FALLBACK: If engine returns nothing
         if (engineResults.length === 0) {
             return { success: false, data: [], error: 'Engine returned no results.' };
+        }
+
+        // DIVERSITY VALIDATION: Check for duplicate blends (ID-based)
+        const uniqueBlendSignatures = new Set(
+            engineResults.map(r =>
+                r.cultivars?.map(c => {
+                    const id = getCultivarIdFromName(c.name) || (c as any).id;
+                    return id;
+                }).sort().join(',')
+            )
+        );
+
+        if (uniqueBlendSignatures.size < engineResults.length) {
+            console.warn('⚠️ WARNING: Duplicate blends detected!');
+            console.log('  Unique signatures:', uniqueBlendSignatures.size, '/ Total blends:', engineResults.length);
+            console.log('  This indicates exclusions may not be working or inventory is too small.');
+            console.log('  Signatures:', Array.from(uniqueBlendSignatures));
+        } else {
+            console.log(`✓ DIVERSITY CHECK PASSED: ${uniqueBlendSignatures.size} unique blends generated`);
         }
 
         // 3. HARD VALIDATION

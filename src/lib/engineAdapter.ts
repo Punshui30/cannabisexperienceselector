@@ -249,7 +249,11 @@ function getTerpeneColor(terpene: string): string {
 /**
  * LAYER 2: Call Engine + Transform Output
  */
-export function generateRecommendations(input: IntentSeed, intentOverride?: Intent): EngineResult[] {
+export function generateRecommendations(
+  input: IntentSeed,
+  intentOverride?: Intent,
+  exclusionIds?: string[] // ID-based exclusions
+): EngineResult[] {
   // Layer 1: Interpret intent (or use Override)
   let intent: Intent;
   if (intentOverride) {
@@ -279,7 +283,7 @@ export function generateRecommendations(input: IntentSeed, intentOverride?: Inte
     // In a real implementation, we'd parse "A then B" into Intent A and Intent B.
 
     // Simplification: Run engine once, distribute top 2 strains into phases
-    const engineOutput = calculateBlends(INVENTORY, intent);
+    const engineOutput = calculateBlends(INVENTORY, intent, exclusionIds); // Pass exclusions
 
     if (engineOutput.recommendations.length >= 2) {
       const rec1 = engineOutput.recommendations[0];
@@ -342,7 +346,7 @@ export function generateRecommendations(input: IntentSeed, intentOverride?: Inte
 
   // Layer 2: Call calculation engine
   console.log('LAYER 2: Engine Start - Inventory Size:', INVENTORY.cultivars.length);
-  const engineOutput = calculateBlends(INVENTORY, intent);
+  const engineOutput = calculateBlends(INVENTORY, intent, exclusionIds); // Pass exclusions
   console.log('LAYER 2: Engine Output', {
     candidatesEvaluated: engineOutput.audit.candidatesEvaluated,
     topBlendIDs: engineOutput.recommendations.map(r => r.cultivars.map(c => c.id))
