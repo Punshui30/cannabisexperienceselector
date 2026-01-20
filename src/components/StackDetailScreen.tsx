@@ -8,10 +8,9 @@ import { resolveCultivarVisuals } from '../lib/visuals';
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
     onBack: () => void;
-    onOpenConsultant: () => void;
 }
 
-export function StackDetailScreen({ stack, onBack, onOpenConsultant }: StackDetailScreenProps) {
+export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
     const [prerollSize, setPrerollSize] = useState<number>(1.0); // Grams
 

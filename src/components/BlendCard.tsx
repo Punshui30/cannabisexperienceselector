@@ -128,13 +128,6 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
 
             <div className="flex justify-center gap-6">
               <button
-                onClick={onOpenConsultant}
-                className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
-              >
-                Feedback
-              </button>
-              <div className="w-px h-3 bg-white/10 self-center" />
-              <button
                 onClick={() => onViewDetail?.(recommendation)}
                 className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
               >

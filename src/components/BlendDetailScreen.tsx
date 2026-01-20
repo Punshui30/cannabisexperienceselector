@@ -9,10 +9,9 @@ import { CultivarCard } from './shared/CultivarCard';
 interface BlendDetailScreenProps {
     blend: UIBlendRecommendation;
     onBack: () => void;
-    onOpenConsultant: () => void;
 }
 
-export function BlendDetailScreen({ blend, onBack, onOpenConsultant }: BlendDetailScreenProps) {
+export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
     // Removed local state
 
     if (!blend) return null;

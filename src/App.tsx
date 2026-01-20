@@ -364,7 +364,6 @@ export default function App() {
                     if (view === 'results') setView('input');
                     else setView('presets');
                   }}
-                  onOpenConsultant={() => setShowConsultant(true)}
                 />
               )}
 
@@ -373,7 +372,6 @@ export default function App() {
                 <BlendDetailScreen
                   blend={selectedBlend}
                   onBack={() => setView('results')}
-                  onOpenConsultant={() => setShowConsultant(true)}
                 />
               )}
 
@@ -420,7 +418,12 @@ export default function App() {
               <LiveConsultant
                 consultantText={consultantText}
                 context={{
-                  recommendation: blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined),
+                  recommendation:
+                    // 1. If viewing explicit details, prioritize that
+                    (view === 'blend-detail' && selectedBlend) ? selectedBlend :
+                      (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || blendRecs[0]) :
+                        // 2. Fallback to primary result if in results view
+                        (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
                   userInput: userInput?.text
                 }}
                 onClose={() => setShowConsultant(false)}
