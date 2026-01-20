@@ -75,13 +75,21 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="w-full max-w-sm max-[360px]:max-w-[90vw] p-8 max-[360px]:p-5 rounded-3xl relative group flex flex-col items-center text-center"
+              className="w-full max-w-sm max-[360px]:max-w-[90vw] p-8 max-[360px]:p-5 rounded-3xl relative group flex flex-col items-center text-center border border-white/10"
             >
-              {/* IRIDESCENT GOLD BORDER (Increased to 2px for visibility) */}
-              {/* IRIDESCENT GOLD BORDER (Fixed Masking) */}
-              <div className="absolute inset-0 p-[2px] rounded-3xl bg-gradient-to-br from-[#C9A24D] via-[#FFE194] to-[#C9A24D]/40 opacity-100 transition-opacity duration-500 text-white">
-                <div className="absolute top-[2px] left-[2px] right-[2px] bottom-[2px] bg-black rounded-[22px]" />
-              </div>
+              {/* Top-weighted iridescent gold accent */}
+              <div
+                className="absolute top-0 left-0 right-0 h-[4px] opacity-80 group-hover:opacity-100 transition-opacity duration-500"
+                style={{
+                  background: `linear-gradient(90deg, 
+                      transparent 0%, 
+                      #C9A24D80 20%, 
+                      #FFE194 50%, 
+                      #C9A24D80 80%, 
+                      transparent 100%)`,
+                  filter: 'blur(0.5px)'
+                }}
+              />
 
               {/* Ambient Gold Glow Underlay */}
               <div className="absolute -inset-4 bg-[#C9A24D]/20 blur-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-700 animate-pulse-slow pointer-events-none z-[-1]" />
