@@ -68,7 +68,7 @@ export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
                   {recommendation.name}
                 </h2>
                 <p className="text-xs text-white/30 font-light">
-                  Exact cultivar weights based on total weight
+                  Exact cultivar weights for your pre-roll portion
                 </p>
               </div>
 
@@ -88,7 +88,7 @@ export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
 
             {/* Preroll Size Selector */}
             <div className="mb-10">
-              <label className="block text-sm text-white/40 uppercase tracking-widest font-semibold mb-6">Target Weight (Grams)</label>
+              <label className="block text-sm text-white/40 uppercase tracking-widest font-semibold mb-6">Pre-Roll Size</label>
 
               <div className="flex flex-col gap-6">
                 <div className="relative">
