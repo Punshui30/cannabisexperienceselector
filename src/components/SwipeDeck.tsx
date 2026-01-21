@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, PanInfo, useAnimation } from 'motion/react';
+import { Hand } from 'lucide-react';
 
 interface SwipeDeckProps<T> {
     items: T[];
@@ -109,13 +110,14 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
                         {/* Curved arrow graphic using SVG */}
                         <div className="relative w-32 h-32 opacity-80">
                             {/* Abstract Gesture Icon */}
-                            <motion.img
-                                src="/assets/swipe_gesture.png"
-                                alt="Swipe Left"
-                                animate={{ x: [0, -40, 0] }}
+                            {/* Hand Gesture Icon */}
+                            <motion.div
+                                animate={{ x: [0, -40, 0], rotate: [0, -10, 0] }}
                                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute bottom-0 left-8 w-16 h-16 object-contain opacity-80 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
-                            />
+                                className="absolute bottom-0 left-8"
+                            >
+                                <Hand className="w-16 h-16 text-white/80 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] fill-white/10" />
+                            </motion.div>
                         </div>
                     </motion.div>
                 )}

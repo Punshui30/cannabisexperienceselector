@@ -287,6 +287,24 @@ export async function processIntent(
             console.log('ORCHESTRATOR: Stack Mode detected. Bypassing Narrative Adapter & Blend-Specific Validation.');
         }
 
+        // ---------------------------------------------------------
+        // DEFENSIVE NORMALIZATION (Prevent Crashes)
+        // ---------------------------------------------------------
+        // Ensure all blends have valid cultivars before passing to ANY narrative adapter
+        const sanitizeBlend = (b: EngineResult) => {
+            if (!b || !b.cultivars) return [];
+            return b.cultivars.filter(Boolean).filter(c => c && typeof c.name === 'string');
+        };
+
+        const safePrimary = sanitizeBlend(engineResults[0]);
+        const safeSecondary = sanitizeBlend(engineResults[1]);
+        const safeContextual = sanitizeBlend(engineResults[2]);
+
+        // Check if we have valid primary data to proceed
+        if (safePrimary.length === 0) {
+            console.warn("ORCHESTRATOR: Primary blend has no valid cultivars. Skipping narrative.");
+        }
+
         console.log('ORCHESTRATOR: Narrative Generation Phase');
         if (!isStack && engineResults.length >= 2) { // At least Primary and Secondary
             const variants = {
@@ -295,49 +313,44 @@ export async function processIntent(
                 contextual: engineResults[2] || engineResults[0] // Fallback if no contextual
             };
 
-            // Attempt LLM-driven narratives with full intent context
-            const narratives = await generateNarratives(seed.text || "", intentSpec, variants);
-
-            if (narratives && narratives.primary && narratives.secondary) {
-                console.log('ORCHESTRATOR: Narratives successfully unified via LLM');
-                engineResults[0].name = narratives.primary.name;
-                engineResults[0].reasoning = narratives.primary.explanation;
-
-                engineResults[1].name = narratives.secondary.name;
-                engineResults[1].reasoning = narratives.secondary.explanation;
-
-                if (engineResults[2]) {
-                    engineResults[2].name = narratives.contextual.name;
-                    engineResults[2].reasoning = narratives.contextual.explanation;
+            // Attempt LLM-driven narratives with full intent context (Old Adapter)
+            try {
+                const narratives = await generateNarratives(seed.text || "", intentSpec, variants);
+                if (narratives && narratives.primary && narratives.secondary) {
+                    engineResults[0].name = narratives.primary.name;
+                    engineResults[0].reasoning = narratives.primary.explanation;
+                    engineResults[1].name = narratives.secondary.name;
+                    engineResults[1].reasoning = narratives.secondary.explanation;
+                    if (engineResults[2]) {
+                        engineResults[2].name = narratives.contextual.name;
+                        engineResults[2].reasoning = narratives.contextual.explanation;
+                    }
+                } else {
+                    throw new Error("Narrative generation returned incomplete data");
                 }
-            } else {
-                console.warn('ORCHESTRATOR: Narrative generation failed. Using smart fallback.');
+            } catch (err) {
+                console.warn('ORCHESTRATOR: Narrative generation failed. Using smart fallback.', err);
 
-                // SMART FALLBACK: Reference user goal and exclusions
+                // SMART FALLBACK
                 const userGoal = seed.text || "your stated preferences";
-                const avoidances = intentSpec.avoidEffects.length > 0
-                    ? ` while avoiding ${intentSpec.avoidEffects.join(', ')}`
-                    : '';
+                const avoidances = intentSpec.avoidEffects.length > 0 ? ` while avoiding ${intentSpec.avoidEffects.join(', ')}` : '';
 
-                engineResults[0].name = (engineResults[0]?.cultivars || []).map(c => c.name).join(' × ');
+                engineResults[0].name = safePrimary.map(c => c.name).join(' × ');
                 engineResults[0].reasoning = `This formulation is tuned for your stated goal: ${userGoal}. The selected cultivars were chosen to balance the desired effects${avoidances}.`;
 
                 if (engineResults[1]) {
-                    engineResults[1].name = (engineResults[1]?.cultivars || []).map(c => c.name).join(' × ');
+                    engineResults[1].name = safeSecondary.map(c => c.name).join(' × ');
                     engineResults[1].reasoning = `An alternative approach to ${userGoal}, emphasizing a different terpene balance${avoidances}.`;
                 }
-
-                if (engineResults[2]) {
-                    engineResults[2].name = (engineResults[2]?.cultivars || []).map(c => c.name).join(' × ');
-                    engineResults[2].reasoning = `A contextual variation optimized for ${userGoal} with adjusted ratios${avoidances}.`;
-                }
             }
+        }
 
-            // -------------------------------------------------------------
-            // CLAUDE NARRATIVE SPECIALIST (Additive Layer)
-            // -------------------------------------------------------------
-            console.log('ORCHESTRATOR: Invoking Claude Narrative Specialist...');
+        // -------------------------------------------------------------
+        // CLAUDE NARRATIVE SPECIALIST (Additive Layer)
+        // -------------------------------------------------------------
+        console.log('ORCHESTRATOR: Invoking Claude Narrative Specialist...');
 
+        try {
             // Map Tone Mode
             let toneMode: ToneMode = 'neutral';
             switch (outcomeCategory) {
@@ -348,24 +361,26 @@ export async function processIntent(
                 default: toneMode = 'neutral';
             }
 
-            // Prepare Input
-            const primaryBlend = engineResults[0];
-            const claudeInput = {
-                userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
-                decisionSummary: `Engine generated ${primaryBlend.name} focusing on ${outcomeCategory}. Decision Reasoning: ${decision.reasoning}`,
-                blendContext: `Primary Blend: ${primaryBlend.name}. Cultivars: ${primaryBlend.cultivars?.map(c => c.name).join(', ')}. Top Terpenes: ${primaryBlend.cultivars?.flatMap(c => c.terpenes).slice(0, 3).map(t => t.name).join(', ')}.`,
-                toneMode: toneMode
-            };
+            if (safePrimary.length > 0) {
+                const primaryBlend = engineResults[0];
+                const claudeInput = {
+                    userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
+                    decisionSummary: `Engine generated ${primaryBlend.name} focusing on ${outcomeCategory}. Decision Reasoning: ${decision.reasoning}`,
+                    // USE SAFE CULTIVARS HERE
+                    blendContext: `Primary Blend: ${primaryBlend.name}. Cultivars: ${safePrimary.map(c => c.name).join(', ')}. Top Terpenes: ${safePrimary.flatMap(c => c.terpenes || []).slice(0, 3).map(t => t.name).join(', ')}.`,
+                    toneMode: toneMode
+                };
 
-            // Call Claude (Silent Fallback)
-            const claudeReasoning = await generateNarrative(claudeInput);
+                // Call Claude
+                const claudeReasoning = await generateNarrative(claudeInput);
 
-            if (claudeReasoning) {
-                console.log('ORCHESTRATOR: Claude Narrative Applied ✓');
-                engineResults[0].reasoning = claudeReasoning;
-            } else {
-                console.log('ORCHESTRATOR: Using Fallback Narrative (Claude silent)');
+                if (claudeReasoning) {
+                    console.log('ORCHESTRATOR: Claude Narrative Applied ✓');
+                    engineResults[0].reasoning = claudeReasoning;
+                }
             }
+        } catch (e) {
+            console.error("ORCHESTRATOR: Claude Step Failed", e);
         }
 
         // ISSUE 3: STRAIN MODE ACKNOWLEDGMENT
