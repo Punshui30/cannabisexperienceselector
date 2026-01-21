@@ -2,7 +2,9 @@ import { IntentSeed, IntentSpec, EngineResult } from '../types/domain';
 import { interpretIntentFromSpec, generateRecommendations as engineGenerate } from './engineAdapter';
 import { getCultivarIdFromName, STRAIN_LIBRARY } from './strainLibrary';
 import { analyzeIntent } from './semanticIntentAdapter';
-import { generateNarratives } from './llmNarrativeAdapter';
+import { generateNarratives, generateConversationalResponse } from './llmNarrativeAdapter';
+import { decideAction } from './llmDecisionAdapter';
+import { performSearch } from './search/searchClient';
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -16,14 +18,14 @@ export interface OrchestratorResult {
         outcomeCategory?: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other';
     };
     followUpQuestion?: string;
+    decision?: any; // Expose decision for debugging/telemetry
 }
 
 /**
  * ORCHESTRATOR (CORE)
- * 1. Takes Raw User Input (IntentSeed)
- * 2. Parses it locally (Regex/Keyword) -> IntentSpec
- * 3. Runs Engine 3 times with STRONG variation -> EngineResult[]
- * 4. Returns OrchestratorResult
+ * 1. DECISION STEP: Classify Intent
+ * 2. If Action Required: Run Engine & Narratives
+ * 3. If Chat Only: Run Conversational Adapter
  */
 export async function processIntent(
     seed: IntentSeed,
@@ -39,6 +41,80 @@ export async function processIntent(
         console.log(`ORCHESTRATOR: Starting Process`);
         console.log(`  Input: "${seed.text}"`);
         console.log(`  Context:`, context?.blendName ? `${context.blendName} (${context.screen})` : "General");
+
+
+        // 0. DECISION STEP (The Cognitive Choke Point)
+        console.group('ORCHESTRATOR: Decision Matrix');
+
+        // A. Initial Classification & Entity Extraction
+        let decision = await decideAction(seed, {
+            screen: context?.screen,
+            currentBlendName: context?.blendName
+        });
+
+        // B. Search Grounding for Unknown Entities
+        if (decision.target_entities && decision.target_entities.length > 0) {
+            const unknownEntities = decision.target_entities.filter(entity => {
+                // Check if entity exists in our library (Case insensitive partial match or ID lookup)
+                // Using simple heuristic: Is it a key in STRAIN_LIBRARY or strict match?
+                // Real app would use a fuzzy match or getCultivarIdFromName
+                const id = getCultivarIdFromName(entity);
+                return !id || id.startsWith('unknown');
+            });
+
+            if (unknownEntities.length > 0) {
+                console.log('ORCHESTRATOR: Unknown entities detected, initiating Search Grounding:', unknownEntities);
+
+                const searchResults = await Promise.all(
+                    unknownEntities.map(entity => performSearch(`${entity} cannabis strain effects`))
+                );
+
+                const validEvidence = searchResults.filter(r => r && r.sourcesFound);
+
+                if (validEvidence.length > 0) {
+                    console.log('ORCHESTRATOR: Evidence found, refining Decision...');
+                    // Re-run Decision with Evidence to classify as "external_verified"
+                    decision = await decideAction(seed, {
+                        screen: context?.screen,
+                        currentBlendName: context?.blendName,
+                        evidence: validEvidence
+                    });
+                } else {
+                    console.log('ORCHESTRATOR: No external evidence found.');
+                }
+            }
+        }
+
+        console.log('Final Decision:', decision);
+        console.groupEnd();
+
+
+        // GATING: If no mutation required, skip engine entirely
+        if (!decision.requires_engine_mutation) {
+            console.log('ORCHESTRATOR: Decision indicates NO ENGINE MUTATION. Switching to Conversational Mode.');
+
+            // Generate conversational response without engine context
+            const responseText = await generateConversationalResponse(
+                seed.text || "",
+                context?.blendName ? `User is viewing blend "${context.blendName}" on screen ${context.screen}` : undefined
+            );
+
+            console.log('ORCHESTRATOR: Conversational Response generated:', responseText);
+
+            return {
+                success: true,
+                data: [], // Empty data signals "Keep State" to App.tsx
+                analysis: {
+                    targetTerpenes: [],
+                    reasoning: responseText, // This becomes the spoken response
+                    consultationScript: responseText,
+                    outcomeCategory: 'Other'
+                },
+                decision // Pass for telemetry
+            };
+        }
+
+        console.log('ORCHESTRATOR: Decision requires MUTATION. Proceeding to Engine...');
 
         // 1. LLM-DRIVEN INTENT ANALYSIS
         console.group('ORCHESTRATOR: New Intent Analysis (Authoritative)');

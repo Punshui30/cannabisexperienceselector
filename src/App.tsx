@@ -203,61 +203,76 @@ export default function App() {
         try {
           const result = await processIntent(userInput);
 
-          if (result.success && result.data.length > 0) {
-            // Adapter Strategy: Adapt ALL results
-            console.log('DEBUG: Engine Results Raw', result.data);
+          if (result.success) {
+            // Case A: Mutation occurred (New Data)
+            if (result.data.length > 0) {
+              // Adapter Strategy: Adapt ALL results
+              console.log('DEBUG: Engine Results Raw', result.data);
 
-            // Capture consultant text from orchestrator (REMOVED: PROMPT 7)
-            /* 
-            if (result.analysis?.reasoning) {
-              setConsultantText(result.analysis.reasoning);
-              console.log('DEBUG: Consultant Text:', result.analysis.reasoning);
+              const allAdapted = result.data
+                .map((item: EngineResult) => adaptEngineResult(item))
+                .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
+
+              if (allAdapted.length > 0) {
+                setBlendRecs(allAdapted);
+                setIsAnalyzing(false);
+
+                // UPDATE ENGINE SNAPSHOT for Live Assistant (read-only access)
+                updateEngineSnapshot({
+                  inputs: userInput.text,
+                  results: allAdapted,
+                  summary: result.analysis?.reasoning || null
+                });
+                console.log('[App] Engine snapshot updated for Live Assistant');
+
+                // MERCHANT INTELLIGENCE: Log the resolution
+                const primary = allAdapted[0];
+                if (primary.kind === 'blend') {
+                  generateLiveFeedCommentary({
+                    blendName: primary.name,
+                    cultivars: primary.cultivars.map(c => c.name),
+                    outcomeCategory: result.analysis?.outcomeCategory || 'Other',
+                    userInput: userInput.text
+                  }).then(commentary => {
+                    if (commentary) {
+                      Intelligence.logResolution({
+                        inputMode: userInput.mode as any,
+                        inputText: userInput.text,
+                        blendId: primary.id,
+                        blendName: primary.name,
+                        confidenceScore: primary.matchScore,
+                        componentSkus: primary.cultivars.map(c => c.name),
+                        outcomeCategory: (result.analysis?.outcomeCategory as any) || 'Other',
+                        commentary: commentary
+                      });
+                    }
+                  });
+                }
+              } else {
+                throw new Error("Adapter returned null result for all items");
+              }
             }
-            */
-
-            const allAdapted = result.data
-              .map((item: EngineResult) => adaptEngineResult(item))
-              .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
-
-            if (allAdapted.length > 0) {
-              setBlendRecs(allAdapted);
+            // Case B: No Mutation (Conversation/Explain Only)
+            else {
+              console.log('APP: No engine mutation required. Preserving state.');
               setIsAnalyzing(false);
 
-              // UPDATE ENGINE SNAPSHOT for Live Assistant (read-only access)
-              updateEngineSnapshot({
-                inputs: userInput.text,
-                results: allAdapted,
-                summary: result.analysis?.reasoning || null
-              });
-              console.log('[App] Engine snapshot updated for Live Assistant');
-
-              // MERCHANT INTELLIGENCE: Log the resolution
-              // We log the Primary blend for analytics
-              const primary = allAdapted[0];
-              if (primary.kind === 'blend') {
-                // Generate Live Feed Commentary at publish time
-                generateLiveFeedCommentary({
-                  blendName: primary.name,
-                  cultivars: primary.cultivars.map(c => c.name),
-                  outcomeCategory: result.analysis?.outcomeCategory || 'Other',
-                  userInput: userInput.text
-                }).then(commentary => {
-                  if (commentary) {
-                    Intelligence.logResolution({
-                      inputMode: userInput.mode as any,
-                      inputText: userInput.text,
-                      blendId: primary.id,
-                      blendName: primary.name,
-                      confidenceScore: primary.matchScore,
-                      componentSkus: primary.cultivars.map(c => c.name),
-                      outcomeCategory: (result.analysis?.outcomeCategory as any) || 'Other',
-                      commentary: commentary
-                    });
-                  }
+              // We still update the snapshot so the Live Consultant sees the response
+              if (result.analysis?.reasoning) {
+                updateEngineSnapshot({
+                  inputs: userInput.text,
+                  // Keep existing results if possible, or pass empty. 
+                  // Since updateEngineSnapshot merges partials? No, it defines full state.
+                  // IMPORTANT: We don't want to wipe the snapshot results.
+                  // We should ideally read current snapshot or pass null to indicate "no change".
+                  // For now, passing 'undefined' for results might work if updateEngineSnapshot supports it.
+                  // Looking at usage, updateEngineSnapshot takes { inputs, results, summary }.
+                  // If we pass empty results, it might wipe the context. 
+                  // But strictly speaking, the Assistant should just speak the summary.
+                  results: [],
+                  summary: result.analysis.reasoning
                 });
               }
-            } else {
-              throw new Error("Adapter returned null result for all items");
             }
           } else {
             throw new Error(result.error || 'Orchestrator returned failure');

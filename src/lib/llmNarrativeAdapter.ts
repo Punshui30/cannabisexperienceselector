@@ -148,3 +148,42 @@ export async function generateNarratives(
 
     return null;
 }
+
+const CONVERSATION_SYSTEM_PROMPT = `
+You are the StrainMath™ Live Assistant.
+Your goal is to answer user questions about cannabis, terpenes, and the current session helpfuly and concisely.
+- Tone: Expert, boutique, friendly but authoritative.
+- Context: The user is in a "Live Experience" exploring generative blends.
+- If the user greets you, greet them back warmly.
+- If the user asks a factual question, answer it accurately (no hallucinations).
+- Keep answers short (max 2 sentences) unless asked for detail.
+`.trim();
+
+export async function generateConversationalResponse(
+    userInput: string,
+    context?: string
+): Promise<string> {
+    try {
+        const response = await fetch(LLM_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'gpt-4-turbo',
+                messages: [
+                    { role: "system", content: CONVERSATION_SYSTEM_PROMPT },
+                    { role: "user", content: `User: "${userInput}"\nContext: ${context || 'General Chat'}` }
+                ],
+                temperature: 0.5
+            })
+        });
+
+        if (!response.ok) return "I'm having trouble connecting to the network right now.";
+
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || "I heard you, but I'm not sure what to say.";
+
+    } catch (e) {
+        console.error("CONVERSATIONAL ADAPTER FAILED", e);
+        return "I'm having a brief connection issue. Please try again.";
+    }
+}
