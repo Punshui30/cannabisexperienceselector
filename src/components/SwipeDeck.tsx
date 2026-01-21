@@ -72,9 +72,9 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "" }: Swi
                 {renderItem(activeItem, true)}
             </motion.div>
 
-            {/* Pagination Indicators - Animated Hint */}
+            {/* Pagination Indicators - Positioned BELOW card */}
             {items.length > 1 && (
-                <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 pointer-events-none z-10 w-full">
+                <div className="absolute bottom-[-30px] left-0 right-0 flex justify-center gap-2 pointer-events-none z-0 w-full">
                     {items.map((_, idx) => (
                         <motion.div
                             key={idx}
@@ -86,38 +86,19 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "" }: Swi
                             animate={{
                                 width: idx === currentIndex ? 24 : 6,
                                 boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none",
-                                // Keyframes for light accumulation (White filling the bar)
-                                backgroundColor: [
-                                    idx === currentIndex ? "#ffffff" : "rgba(255,255,255,0.2)", // Start
-                                    "#ffffff", // Turn ON
-                                    "#ffffff", // Stay ON
-                                    "rgba(255,255,255,0.2)", // Reset to OFF
-                                    "#ffffff", // Turn ON (Cycle 2)
-                                    "#ffffff", // Stay ON (Cycle 2)
-                                    idx === currentIndex ? "#ffffff" : "rgba(255,255,255,0.2)" // End
-                                ]
+                                backgroundColor: idx === currentIndex ? "#ffffff" : "rgba(255,255,255,0.2)"
                             }}
                             transition={{
                                 width: { duration: 0.3 },
                                 boxShadow: { duration: 0.3 },
-                                backgroundColor: {
-                                    duration: 4, // 2s per cycle x 2 cycles
-                                    times: [
-                                        0,
-                                        (idx * 0.1 + 0.1) / 4, // Turn ON stagger
-                                        0.4, // Stay ON until reset
-                                        0.5, // Reset
-                                        0.5 + (idx * 0.1 + 0.1) / 4, // Turn ON Cycle 2
-                                        0.9, // Stay ON Cycle 2
-                                        1 // Settle
-                                    ]
-                                }
+                                backgroundColor: { duration: 0.3 }
                             }}
                             className="rounded-full h-1.5"
                         />
                     ))}
                 </div>
             )}
+
         </div>
     );
 }

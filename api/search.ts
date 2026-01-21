@@ -40,13 +40,16 @@ export default async function handler(request: any, response: any) {
             });
         }
 
+        console.debug(`[SEARCH_API] Request received for query: "${query}"`);
+
         const provider = new TavilySearchProvider();
         const result = await provider.search(query);
 
+        console.debug(`[SEARCH_API] Success: Found ${result.evidence.length} sources`);
         return response.status(200).json(result);
 
     } catch (error: any) {
-        console.error('Search API Critical Failure:', error);
+        console.error(`[SEARCH_API] Critical Failure:`, error);
         // STANDARDIZED FAILURE RESPONSE (200 OK)
         // Prevents client-side crashes
         return response.status(200).json({

@@ -35,7 +35,10 @@ export default async function handler(request: any, response: any) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
         console.error("Missing ANTHROPIC_API_KEY");
-        return response.status(500).json({ error: 'Configuration Error' });
+        return response.status(500).json({
+            error: 'Configuration Error: Missing ANTHROPIC_API_KEY',
+            details: 'Please add ANTHROPIC_API_KEY to your Vercel Environment Variables.'
+        });
     }
 
     try {

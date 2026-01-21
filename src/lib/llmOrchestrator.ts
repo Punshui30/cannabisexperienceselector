@@ -83,7 +83,7 @@ export async function processIntent(
                         evidence: validEvidence
                     });
                 } else {
-                    console.log('ORCHESTRATOR: No external evidence found.');
+                    console.warn('[SEARCH_FALLBACK_APPLIED] No external evidence found. Proceeding with internal heuristic inference.');
                 }
             }
         }
