@@ -34,12 +34,20 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                         <motion.div
                             key={index}
                             onClick={() => handleTap(index)}
-                            animate={{ scale: isExpanded ? 1.02 : 1 }}
                             className={`
                                 relative w-full overflow-hidden rounded-xl border border-white/5 
                                 ${isExpanded ? 'bg-white/10 p-4' : 'bg-white/5 p-3'}
                                 transition-all duration-300 cursor-pointer
                             `}
+                            initial={{ borderColor: 'rgba(255,255,255,0.05)' }}
+                            animate={{
+                                scale: isExpanded ? 1.02 : 1,
+                                borderColor: ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.4)', 'rgba(255,255,255,0.05)']
+                            }}
+                            transition={{
+                                scale: { duration: 0.3 },
+                                borderColor: { duration: 0.6, delay: 0.5 + index * 0.15, times: [0, 0.5, 1] }
+                            }}
                         >
                             {/* Header Row */}
                             <div className="flex justify-between items-center mb-2">
@@ -74,7 +82,7 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                                                 {/* Bar Fill */}
                                                 <motion.div
                                                     initial={{ width: 0 }}
-                                                    animate={{ width: `${cultivar.ratio * 100}%` }}
+                                                    animate={{ width: `${cultivar.ratio * 100}% ` }}
                                                     transition={{ duration: 1, delay: cIdx * 0.1 }}
                                                     className="h-full rounded-full"
                                                     style={{

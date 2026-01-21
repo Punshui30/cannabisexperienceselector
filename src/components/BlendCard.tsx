@@ -172,9 +172,19 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
                   <h3 className="text-[9px] font-bold uppercase tracking-widest text-[#00FFD1]">
                     Why This Blend
                   </h3>
-                  <span className="text-[9px] text-white/40 group-hover/reasoning:text-white/60 transition-colors">
+                  <motion.span
+                    initial={{ opacity: 0.4 }}
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{
+                      duration: 1.5,
+                      times: [0, 0.5, 1],
+                      delay: 1, // Wait for card to settle
+                      repeat: 0
+                    }}
+                    className="text-[9px] text-white/40 group-hover/reasoning:text-white/60 transition-colors"
+                  >
                     Read Full Detail →
-                  </span>
+                  </motion.span>
                 </div>
 
                 <div className="relative overflow-hidden h-[2.4rem]"> {/* Fixed height, ~2 lines */}

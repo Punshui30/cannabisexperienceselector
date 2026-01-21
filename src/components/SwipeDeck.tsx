@@ -1,40 +1,29 @@
-
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, PanInfo, useAnimation } from 'motion/react';
-import { MoveLeft } from 'lucide-react';
+// ... imports
+import { useState, useRef, useEffect } from 'react';
+import { motion, PanInfo, useAnimation } from 'motion/react';
 
 interface SwipeDeckProps<T> {
     items: T[];
     renderItem: (item: T, isActive: boolean) => React.ReactNode;
     onSwipe?: (index: number) => void;
     className?: string;
-    enableGuidance?: boolean;
 }
 
 const SWIPE_THRESHOLD = 50;
 
-export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enableGuidance = true }: SwipeDeckProps<T>) {
+export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "" }: SwipeDeckProps<T>) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const controls = useAnimation();
-    const [showGuidance, setShowGuidance] = useState(false);
 
-    // Session storage key for guidance
-    const GUIDANCE_KEY = "go_swipe_hint_shown";
+    // Mount Animation for Pagination Pills
+    // We want them to light up sequentially to indicate more content
+    const [hasAnimatedHint, setHasAnimatedHint] = useState(false);
 
     useEffect(() => {
-        if (enableGuidance) {
-            const hasShown = sessionStorage.getItem(GUIDANCE_KEY);
-            if (!hasShown && items.length > 1) {
-                setShowGuidance(true);
-                // Auto-dismiss after 3s
-                const timer = setTimeout(() => {
-                    setShowGuidance(false);
-                    sessionStorage.setItem(GUIDANCE_KEY, "true");
-                }, 3000);
-                return () => clearTimeout(timer);
-            }
+        if (!hasAnimatedHint && items.length > 1) {
+            setHasAnimatedHint(true);
         }
-    }, [enableGuidance, items.length]);
+    }, [items.length]);
 
     const handleDragEnd = async (event: any, info: PanInfo) => {
         const offset = info.offset.x;
@@ -50,12 +39,6 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
                 onSwipe?.(nextIndex);
                 controls.set({ x: window.innerWidth }); // Reset to right
                 await controls.start({ x: 0, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 30 } });
-
-                // Dismiss guidance on interaction
-                if (showGuidance) {
-                    setShowGuidance(false);
-                    sessionStorage.setItem(GUIDANCE_KEY, "true");
-                }
             } else {
                 // Bounce back (Resistance)
                 controls.start({ x: 0, transition: { type: "spring", stiffness: 400, damping: 40 } });
@@ -84,7 +67,7 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
     if (!activeItem) return null;
 
     return (
-        <div className={`relative w-full h-full ${className}`}> {/* Removed overflow-hidden */}
+        <div className={`relative w-full h-full ${className}`}>
             {/* Current Card */}
             <motion.div
                 drag="x"
@@ -93,44 +76,51 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
                 dragDirectionLock={true} // STRICT HORIZONTAL LOCK
                 onDragEnd={handleDragEnd}
                 animate={controls}
-                className="w-full h-full absolute inset-0" // Removed touch-pan-y
+                className="w-full h-full absolute inset-0"
                 style={{ x: 0 }}
             >
                 {renderItem(activeItem, true)}
             </motion.div>
 
-            {/* Guidance Overlay */}
-            <AnimatePresence>
-                {showGuidance && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center p-12"
-                    >
-                        {/* Curved arrow graphic using SVG */}
-                        <div className="relative w-32 h-32 opacity-80">
-                            {/* Abstract Gesture Icon */}
-                            {/* Hand Gesture Icon */}
-                            <motion.div
-                                animate={{ x: [0, -40, 0], rotate: [0, -10, 0] }}
-                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute bottom-0 left-8"
-                            >
-                                <MoveLeft className="w-16 h-16 text-white/80 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] fill-white/10" />
-                            </motion.div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Pagination Indicators (Optional but helpful for context) */}
+            {/* Pagination Indicators - Animated Hint */}
             {items.length > 1 && (
                 <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 pointer-events-none z-10">
                     {items.map((_, idx) => (
-                        <div
+                        <motion.div
                             key={idx}
-                            className={`transition-all duration-300 rounded-full h-1 ${idx === currentIndex ? 'w-6 bg-white shadow-[0_0_10px_white]' : 'w-1.5 bg-white/20'}`}
+                            // Initial State based on active index
+                            animate={
+                                hasAnimatedHint
+                                    ? {
+                                        width: idx === currentIndex ? 24 : 6,
+                                        backgroundColor: idx === currentIndex ? "#ffffff" : "rgba(255, 255, 255, 0.2)",
+                                        boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none"
+                                    }
+                                    : {}
+                            }
+                            // The "Ripple" Hint Animation on Mount
+                            // We animate opacity/brightness briefly in sequence
+                            whileInView={!hasAnimatedHint ? {
+                                backgroundColor: ["rgba(255,255,255,0.2)", "#ffffff", "rgba(255,255,255,0.2)"],
+                            } : undefined}
+                            transition={{
+                                duration: 0.3, // Fast duration for state changes
+                                // For the hint ripple:
+                                backgroundColor: {
+                                    duration: 0.6,
+                                    times: [0, 0.5, 1],
+                                    delay: idx * 0.2 + 0.5, // Staggered delay
+                                    repeat: 1, // Run twice
+                                    repeatDelay: 0.5
+                                }
+                            }}
+
+                            className={`rounded-full h-1`}
+                            style={{
+                                width: idx === currentIndex ? 24 : 6,
+                                backgroundColor: idx === currentIndex ? "#ffffff" : "rgba(255, 255, 255, 0.2)",
+                                boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none"
+                            }}
                         />
                     ))}
                 </div>

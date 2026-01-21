@@ -83,7 +83,16 @@ export function LiveNetworkDrawer() {
                         >
                             {/* Drag Handle */}
                             <div className="w-full flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
-                                <div className="w-12 h-1 bg-white/20 rounded-full" />
+                                <motion.div
+                                    className="w-12 h-1 bg-white/20 rounded-full"
+                                    animate={{ y: [0, 6, 0] }}
+                                    transition={{
+                                        duration: 1.5,
+                                        repeat: Infinity,
+                                        repeatDelay: 3,
+                                        ease: "easeInOut"
+                                    }}
+                                />
                             </div>
 
                             {/* Header */}
