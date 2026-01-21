@@ -392,7 +392,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
           {mode === 'strain' && (
             <motion.div key="strain" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-shrink-0">
-              <input type="text" value={strainName} onChange={(e) => setStrainName(e.target.value)} placeholder={placeholderText} className={`${GLASS_INPUT} mb-4 placeholder:text-white/30`} />
+              <input type="text" value={strainName} onChange={(e) => setStrainName(e.target.value)} placeholder="Enter a strain name or brand..." className={`${GLASS_INPUT} mb-4 placeholder:text-white/30`} />
             </motion.div>
           )}
         </AnimatePresence>

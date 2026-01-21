@@ -581,7 +581,7 @@ function validateIntent(intent: Intent): Intent {
 // CULTIVAR EFFECT CALCULATION (First Pass)
 // ============================================================================
 
-function calculateCultivarEffect(cultivar: Cultivar): { effect: EffectVector; unknownCount: number } {
+export function calculateCultivarEffect(cultivar: Cultivar): { effect: EffectVector; unknownCount: number } {
   const effect: EffectVector = {
     energy: 0,
     focus: 0,

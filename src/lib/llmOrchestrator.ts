@@ -6,6 +6,7 @@ import { generateNarratives, generateConversationalResponse } from './llmNarrati
 import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
 import { generateNarrative, ToneMode } from './llm/claudeNarrator';
+import { findSubstitute } from './engine/substitution';
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -141,6 +142,50 @@ export async function processIntent(
 
         const engineResults: EngineResult[] = [];
         const usedCultivarIds = new Set<string>(intentSpec.cultivarExclusions || []); // Start with user-defined exclusions
+
+        // ---------------------------------------------------------
+        // SMART SUBSTITUTION LOGIC (Deterministic)
+        // ---------------------------------------------------------
+        if (intentSpec.cultivarExclusions && intentSpec.cultivarExclusions.length > 0) {
+            console.log('ORCHESTRATOR: Processing Exclusions via Smart Substitution...');
+
+            // Try to find substitutes for excluded cultivars
+            // Map STRAIN_LIBRARY (Strain) to Inventory (Cultivar) format
+            const inventoryForSub: any[] = STRAIN_LIBRARY.map(s => ({
+                id: s.id,
+                name: s.name,
+                thcPercent: s.thc_percent,
+                cbdPercent: s.cbd_percent,
+                terpenes: s.terpenes,
+                available: true
+            }));
+
+            for (const excludedId of intentSpec.cultivarExclusions) {
+                const subResult = findSubstitute(excludedId, inventoryForSub, {
+                    family: intentSpec.avoidEffects.find(e => ['berry', 'lemon', 'pine', 'cookie', 'kush'].includes(e)) // Heuristic family mapping
+                });
+
+                if (subResult.success && subResult.replacement) {
+                    console.log(`ORCHESTRATOR: Substitution Found: ${subResult.replacement.name} (Score: ${subResult.similarityScore})`);
+
+                    // Force Include the Substitute (Logic: User removed X, so let's try Y)
+                    // We modify the intentSpec to include the substitute in the "preferred" list (if supported)
+                    // OR we manually inject it into the engine results later.
+                    // BETTER: Add to "context.cultivars" (if supported) or engineIntent.
+
+                    // Since engineGenerate takes "seed" and "intent", and "intent" implies broad goals,
+                    // we can't easily FORCE a specific cultivar unless we lock it.
+                    // For now, we'll log it and let the narrative know.
+                    // Actually, if we want the ENGINE to pick it, we should add it to "terpenePreferences" metadata or similar?
+                    // No, implementation constraint: Engine picks based on score.
+                    // If Substitute is truly similar, it should score high.
+                    // Let's explicitly log it for the prompt.
+
+                    if (!context) context = {};
+                    context.cultivars = [...(context.cultivars || []), subResult.replacement.name];
+                }
+            }
+        }
 
         // ---------------------------------------------------------
         // BLEND 1: PRIMARY INTERPRETATION (Original Intent)

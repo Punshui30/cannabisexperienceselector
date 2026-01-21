@@ -353,5 +353,6 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
           </AnimatePresence>
         </div>
       </div>
-      );
+    </div>
+  );
 }
