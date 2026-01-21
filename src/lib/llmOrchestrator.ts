@@ -525,67 +525,60 @@ export async function processIntent(
 
 
         // -------------------------------------------------------------
-        // TIER-2: GEMINI ENHANCEMENT (Non-Blocking, Async)
+        // TIER-2: GEMINI ENHANCEMENT (Timeout-Protected)
         // -------------------------------------------------------------
-        // CRITICAL: Gemini NEVER blocks UI readiness
-        // Engine results are returned immediately
-        // Narrative enhancement happens asynchronously in background
+        // CRITICAL: Gemini NEVER blocks UI indefinitely
+        // Max wait: 2 seconds
+        // On timeout or failure: Return Tier-1 immediately
 
         if (!isStack && engineResults.length > 0) {
-            console.log('ORCHESTRATOR: Scheduling Gemini Enhancement (non-blocking)...');
+            console.log('ORCHESTRATOR: Attempting Gemini Enhancement (2s timeout)...');
 
-            // Fire-and-forget: Gemini enhancement happens in background
-            // UI transitions immediately on engine success
-            const enhanceNarrative = async () => {
-                try {
-                    // Map Tone Mode
-                    let toneMode: ToneMode = 'neutral';
-                    switch (outcomeCategory) {
-                        case 'Sleep': case 'Relax': toneMode = 'calm_reassuring'; break;
-                        case 'Relief': toneMode = 'supportive'; break;
-                        case 'Focus': toneMode = 'confident'; break;
-                        case 'Social': toneMode = 'curious'; break;
-                        default: toneMode = 'neutral';
-                    }
-
-                    // Prepare Input for Gemini Enhancement
-                    const primaryBlend = engineResults[0];
-
-                    const geminiInput = {
-                        tier1Narrative: {
-                            name: primaryBlend.name || "Custom Blend",
-                            reasoning: primaryBlend.reasoning || ""
-                        },
-                        userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
-                        decisionSummary: `Engine decision: ${decision.reasoning}`,
-                        blendSummary: engineResults.map(b => ({
-                            name: b.name || "Blend",
-                            cultivars: (b.cultivars || []).map(c => c.name)
-                        })),
-                        toneMode: toneMode
-                    };
-
-                    // Call Gemini Narrator (returns null on failure)
-                    const enhancedText = await generateNarrative(geminiInput);
-
-                    if (enhancedText) {
-                        console.log(`[GEMINI_ENHANCED] Narrative enhancement applied asynchronously ✓`);
-                        // Note: This update happens after UI has already rendered
-                        // Client would need to re-fetch or use real-time updates to see enhancement
-                    } else {
-                        console.log("[GEMINI_FAILED_USING_TIER1] Gemini returned null. Tier-1 narrative already rendered.");
-                    }
-
-                } catch (e) {
-                    console.error("[GEMINI_FAILED_USING_TIER1] Async enhancement failed (non-fatal)", e);
-                    // No action needed, Tier-1 already rendered
+            try {
+                // Map Tone Mode
+                let toneMode: ToneMode = 'neutral';
+                switch (outcomeCategory) {
+                    case 'Sleep': case 'Relax': toneMode = 'calm_reassuring'; break;
+                    case 'Relief': toneMode = 'supportive'; break;
+                    case 'Focus': toneMode = 'confident'; break;
+                    case 'Social': toneMode = 'curious'; break;
+                    default: toneMode = 'neutral';
                 }
-            };
 
-            // Start enhancement in background (don't await)
-            enhanceNarrative().catch(() => {
-                // Silent catch - enhancement is optional
-            });
+                // Prepare Input for Gemini Enhancement
+                const primaryBlend = engineResults[0];
+
+                const geminiInput = {
+                    tier1Narrative: {
+                        name: primaryBlend.name || "Custom Blend",
+                        reasoning: primaryBlend.reasoning || ""
+                    },
+                    userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
+                    decisionSummary: `Engine decision: ${decision.reasoning}`,
+                    blendSummary: engineResults.map(b => ({
+                        name: b.name || "Blend",
+                        cultivars: (b.cultivars || []).map(c => c.name)
+                    })),
+                    toneMode: toneMode
+                };
+
+                // Race Gemini against timeout
+                const enhancedText = await Promise.race([
+                    generateNarrative(geminiInput),
+                    new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000))
+                ]);
+
+                if (enhancedText) {
+                    console.log(`[GEMINI_ENHANCED] Narrative enhancement applied ✓`);
+                    engineResults[0].reasoning = enhancedText;
+                } else {
+                    console.log("[GEMINI_TIMEOUT_OR_FAILED] Using Tier-1 narrative (Gemini took >2s or failed)");
+                }
+
+            } catch (e) {
+                console.error("[GEMINI_FAILED_USING_TIER1] Enhancement failed (non-fatal)", e);
+                // Tier-1 remains unchanged
+            }
         }
 
         // 4. HARD VALIDATION (BLENDS ONLY)
@@ -602,9 +595,9 @@ export async function processIntent(
             }
         }
 
-        // CRITICAL PATH COMPLETE: Return results immediately
-        // UI can transition now, Gemini enhancement happens in background
-        console.log('[ENGINE_COMPLETE] Returning results to UI (Gemini enhancement async)');
+        // CRITICAL PATH COMPLETE: Return results to UI
+        // Gemini either enhanced within 2s or Tier-1 is used
+        console.log('[ORCHESTRATOR_V4_FINAL] Returning results to UI');
 
         return {
             success: true,

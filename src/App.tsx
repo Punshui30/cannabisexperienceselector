@@ -221,7 +221,7 @@ export default function App() {
               if (allAdapted.length > 0) {
                 setAnalysisProgress(85); // Milestone: Results generated
                 setBlendRecs(allAdapted);
-                setAnalysisProgress(95); // Milestone: UI state ready
+                setAnalysisProgress(100); // Milestone: UI state hydrated & ready to transition
                 setIsAnalyzing(false);
 
                 // UPDATE ENGINE SNAPSHOT for Live Assistant (read-only access)
