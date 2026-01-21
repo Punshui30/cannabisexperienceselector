@@ -99,8 +99,16 @@ export async function generateNarratives(
         let content = data.choices?.[0]?.message?.content;
         if (!content) throw new Error("No narrative content received");
 
-        // Clean markdown blocks
-        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+        // Clean markdown blocks and extract JSON
+        content = content.replace(/```json/g, '').replace(/```/g, '');
+
+        // Robust extraction: Find the first '{' and last '}'
+        const firstOpen = content.indexOf('{');
+        const lastClose = content.lastIndexOf('}');
+
+        if (firstOpen !== -1 && lastClose !== -1) {
+            content = content.substring(firstOpen, lastClose + 1);
+        }
 
         return JSON.parse(content) as NarrativeResult;
 
