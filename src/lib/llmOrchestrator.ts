@@ -242,14 +242,16 @@ export async function processIntent(
                     ? ` while avoiding ${intentSpec.avoidEffects.join(', ')}`
                     : '';
 
-                engineResults[0].name = engineResults[0].cultivars.map(c => c.name).join(' × ');
+                engineResults[0].name = (engineResults[0]?.cultivars || []).map(c => c.name).join(' × ');
                 engineResults[0].reasoning = `This formulation is tuned for your stated goal: ${userGoal}. The selected cultivars were chosen to balance the desired effects${avoidances}.`;
 
-                engineResults[1].name = engineResults[1].cultivars.map(c => c.name).join(' × ');
-                engineResults[1].reasoning = `An alternative approach to ${userGoal}, emphasizing a different terpene balance${avoidances}.`;
+                if (engineResults[1]) {
+                    engineResults[1].name = (engineResults[1]?.cultivars || []).map(c => c.name).join(' × ');
+                    engineResults[1].reasoning = `An alternative approach to ${userGoal}, emphasizing a different terpene balance${avoidances}.`;
+                }
 
                 if (engineResults[2]) {
-                    engineResults[2].name = engineResults[2].cultivars.map(c => c.name).join(' × ');
+                    engineResults[2].name = (engineResults[2]?.cultivars || []).map(c => c.name).join(' × ');
                     engineResults[2].reasoning = `A contextual variation optimized for ${userGoal} with adjusted ratios${avoidances}.`;
                 }
             }

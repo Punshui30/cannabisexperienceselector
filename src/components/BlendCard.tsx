@@ -13,8 +13,9 @@ interface BlendCardProps {
   index?: number;
 }
 
+// State restoration for expand/collapse behavior
 export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, onOpenConsultant, index = 0 }: BlendCardProps) {
-  // @ts-expect-error UI behavior preserved intentionally
+  // State restoration for expand/collapse behavior
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Derive accent color from outcome category
