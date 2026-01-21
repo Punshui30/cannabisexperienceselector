@@ -529,14 +529,11 @@ export async function processIntent(
         // TIER-2: CLAUDE ENHANCEMENT (Optional Stylistic Polish)
         // -------------------------------------------------------------
 
-        // ROUTING LOGIC (STRICT)
-        // - Strain/Substitution logic -> NO CLAUDE (Deterministic is safer)
-        // - Editorial/Creative -> CLAUDE ALLOWED
-        const isStrainTask = isStrainMode || seed.text?.toLowerCase().includes('substitute') || seed.text?.toLowerCase().includes('replace');
+        // ROUTING LOGIC: Only skip Claude for Stacks (already checked above)
+        // Claude enhancement should be attempted for ALL blend results.
+        // If Claude fails, Tier-1 narrative remains as deterministic fallback.
 
-        if (isStrainTask) {
-            console.log("ORCHESTRATOR: ROUTER -> Skipping Claude for Strain/Substitution task. Keeping Tier-1.");
-        } else if (!isStack && engineResults.length > 0) {
+        if (!isStack && engineResults.length > 0) {
             console.log('ORCHESTRATOR: Invoking Claude Narrative Specialist (Tier-2)...');
 
             try {
@@ -569,9 +566,7 @@ export async function processIntent(
                     toneMode: toneMode
                 };
 
-                // Call Orchestrator (Claude only, no fallback needed because we ARE the fallback)
-                // Note: orchestrateNarrative wrapper might need update or direct call. 
-                // Let's use generaNarrative directly from claudeNarrator to be pure.
+                // Call Claude Narrator directly for pure enhancement
                 const enhancedText = await generateNarrative(claudeInput);
 
                 if (enhancedText) {
@@ -584,7 +579,7 @@ export async function processIntent(
 
             } catch (e) {
                 console.error("ORCHESTRATOR: Tier-2 Enhancement Failed (Non-fatal)", e);
-                // No action needed, Tier-1 matches.
+                // No action needed, Tier-1 remains.
             }
         }
 
