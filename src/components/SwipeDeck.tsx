@@ -87,22 +87,22 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "" }: Swi
                                 width: idx === currentIndex ? 24 : 6,
                                 backgroundColor: idx === currentIndex ? "#ffffff" : "rgba(255, 255, 255, 0.2)",
                                 boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none",
-                                // Ripple Sequence Logic
-                                // We use a keyframe array for opacity/brightness that triggers on mount
-                                opacity: [0.5, 1, 0.5, 1], // Flash brightness
+                                opacity: [0.3, 1, 1, 0.3, 1, 1],
                             }}
                             transition={{
-                                // State transitions (width/color) are fast
                                 width: { duration: 0.3 },
                                 backgroundColor: { duration: 0.3 },
                                 boxShadow: { duration: 0.3 },
-                                // Ripple Effect: Run twice on mount
                                 opacity: {
-                                    duration: 0.4,
-                                    times: [0, 0.5, 1],
-                                    delay: (idx * 0.15) + 0.5, // Waterfall delay
-                                    repeat: 1, // Repeat once (total 2 cycles)
-                                    repeatDelay: (items.length * 0.15) + 0.5 // Wait for full sequence before repeating
+                                    duration: 3,
+                                    times: [
+                                        0,
+                                        (idx * 0.15) / 3,
+                                        ((idx * 0.15) + 0.1) / 3,
+                                        0.45,
+                                        0.5 + ((idx * 0.15) / 3),
+                                        0.5 + (((idx * 0.15) + 0.1) / 3),
+                                    ],
                                 }
                             }}
                             className="rounded-full h-1.5"
