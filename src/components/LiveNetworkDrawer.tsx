@@ -23,31 +23,32 @@ export function LiveNetworkDrawer() {
     return (
         <>
             {/* The Trigger / Collapsed State */}
+            {/* The Trigger / Collapsed State */}
             {!isOpen && (
                 <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="fixed top-4 right-4 z-[100] pointer-events-none"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="fixed top-24 right-0 z-[100] flex justify-end group interact-visible"
                 >
                     <button
                         onClick={() => setIsOpen(true)}
-                        className="flex items-center gap-3 px-3 py-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/10 rounded-full transition-all shadow-lg shadow-black/50 group pointer-events-auto"
+                        className="flex items-center gap-2 pl-3 pr-4 py-2 bg-black/90 hover:bg-black border-l border-y border-white/20 rounded-l-xl shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out translate-x-[calc(100%-34px)] hover:translate-x-0"
                     >
-                        <div className="flex items-center gap-3">
-                            <div className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FFD1] opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FFD1]"></span>
-                            </div>
-                            <span className="text-xs font-bold text-white tracking-wide uppercase group-hover:text-[#00FFD1] transition-colors">
-                                Live Network
-                            </span>
+                        {/* Status Dot */}
+                        <div className="relative flex h-2 w-2 mr-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FFD1] opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FFD1]"></span>
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase tracking-wider">
-                            <span>View Activity</span>
-                            <ChevronUp size={14} />
-                        </div>
+
+                        {/* Text (Hidden until hover/expand) */}
+                        <span className="text-[10px] font-bold text-white tracking-widest uppercase whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            Live Network
+                        </span>
                     </button>
+
+                    {/* Collapsed view indicator (Always visible part) */}
+                    <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none" />
                 </motion.div>
             )}
 
