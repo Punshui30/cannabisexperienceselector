@@ -132,22 +132,45 @@ ORIGINAL QUERY: "${context.userInput || 'Not specified'}"
 Provide helpful, conversational explanations.`;
     }
 
-    // Priority 2: Use snapshot if available
+    // Priority 2: Use snapshot if available (Strict Source of Truth)
     const snapshot = getEngineSnapshot();
     if (hasValidSnapshot() && snapshot.results && snapshot.results.length > 0) {
         const primaryResult = snapshot.results[0];
-        const cultivarNames = primaryResult.kind === 'blend'
-            ? primaryResult.cultivars.map(c => c.name).join(', ')
-            : 'N/A';
+
+        // STRICT METADATA BLOCK
+        let cultivars: string[] = [];
+
+        if (primaryResult.kind === 'blend') {
+            cultivars = primaryResult.cultivars?.map(c => c.name) || [];
+        } else if (primaryResult.kind === 'stack') {
+            cultivars = primaryResult.layers?.flatMap(l => l.cultivars.map(c => c.name)) || [];
+        }
+
+        const metadata = {
+            blendId: primaryResult.kind === 'blend' ? primaryResult.id : primaryResult.stackId,
+            blendName: primaryResult.name,
+            cultivars: cultivars,
+            engineTimestamp: snapshot.timestamp,
+            snapshotHash: `${primaryResult.kind === 'blend' ? primaryResult.id : primaryResult.stackId}-${snapshot.timestamp}`
+        };
 
         return `${baseInstruction}
 
-The user recently received these recommendations:
-PRIMARY BLEND: "${primaryResult.name}"
-CULTIVARS: ${cultivarNames}
-ORIGINAL QUERY: "${snapshot.inputs || 'Not specified'}"
+        [SYSTEM STATE INVALIDATION PROTOCOL]
+        Current Engine Snapshot:
+        ${JSON.stringify(metadata, null, 2)}
 
-Provide helpful, conversational explanations.`;
+        GUARDRAIL RULES:
+        1. Never reference cultivars or blends unless they appear in the current engine snapshot above.
+        2. If a user mentions a strain not in the snapshot, state clearly: "That strain is not currently compatible with the active blend state."
+        3. Do not assume continuity if the snapshot ID changes.
+
+        The user recently received these recommendations:
+        PRIMARY BLEND: "${primaryResult.name}"
+        CULTIVARS: ${metadata.cultivars.join(', ')}
+        ORIGINAL QUERY: "${snapshot.inputs || 'Not specified'}"
+
+        Provide helpful, conversational explanations.`;
     }
 
     // Priority 3: Generic mode (no snapshot yet)
