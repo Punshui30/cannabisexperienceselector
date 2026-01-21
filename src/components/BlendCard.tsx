@@ -80,21 +80,25 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
           style={{
             boxShadow: `inset 0 0 0 1px ${accentColor}20`
           }}
-          // GLOW HINT: SLOW BREATHE (Enhanced)
+          // GLOW HINT: SLOW BREATHE (Enhanced Branding High-Vis)
           animate={{
-            borderColor: ["rgba(255, 255, 255, 0.1)", "rgba(0, 255, 209, 0.6)", "rgba(255, 255, 255, 0.1)"],
+            borderColor: [
+              "rgba(255, 255, 255, 0.1)",
+              "rgba(0, 255, 209, 0.8)", // More saturated
+              "rgba(255, 255, 255, 0.1)"
+            ],
             boxShadow: [
-              `inset 0 0 0 1px ${accentColor}20`,
-              `inset 0 0 0 1px ${accentColor}20, 0 0 60px rgba(0, 255, 209, 0.4)`,
-              `inset 0 0 0 1px ${accentColor}20`
+              `inset 0 0 20px ${accentColor}10, 0 0 0px rgba(0, 255, 209, 0)`,
+              `inset 0 0 40px ${accentColor}20, 0 0 80px rgba(0, 255, 209, 0.5)`, // Aggressive outset
+              `inset 0 0 20px ${accentColor}10, 0 0 0px rgba(0, 255, 209, 0)`
             ]
           }}
           transition={{
-            duration: 4, // Slower breathe for subtlety
-            delay: 0.5,
-            times: [0, 0.5, 1], // Peak at 2s
-            repeat: Infinity, // Continuous subtle pulse
-            repeatDelay: 2 // 2s pause between cycles
+            duration: 5, // Slower, deeper breathe
+            delay: 0.8, // Start after card entrance
+            times: [0, 0.5, 1],
+            repeat: Infinity,
+            repeatDelay: 1.5
           }}
         >
           {/* Layer 1: Top-weighted iridescent accent */}

@@ -22,19 +22,30 @@ export function PaginationDots({ currentIndex, totalItems, className = "" }: Pag
                     }}
                     animate={{
                         width: idx === currentIndex ? 24 : 6,
-                        boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none",
-                        backgroundColor: idx === currentIndex ? "#ffffff" : "rgba(255,255,255,0.2)",
+                        boxShadow: [
+                            "none",
+                            "0 0 20px rgba(255,255,255,1)", // FLASH ON
+                            idx === currentIndex ? "0 0 12px rgba(255,255,255,0.6)" : "none" // SETTLE
+                        ],
+                        backgroundColor: [
+                            "rgba(255, 255, 255, 0.2)",
+                            "#ffffff", // FLASH ON
+                            idx === currentIndex ? "#ffffff" : "rgba(255, 255, 255, 0.4)" // SETTLE (slightly more visible)
+                        ],
                         opacity: 1
                     }}
                     transition={{
                         width: { duration: 0.3 },
-                        boxShadow: { duration: 0.3 },
-                        backgroundColor: { duration: 0.3 },
-                        // Cascade animation on mount
-                        opacity: {
-                            duration: 0.4,
-                            delay: idx * 0.15,
-                            ease: "easeOut"
+                        opacity: { duration: 0.4, delay: idx * 0.1 },
+                        boxShadow: {
+                            duration: 1.5,
+                            times: [0, 0.5, 1],
+                            delay: 0.8 + idx * 0.15 // Cascade delay starts after cards land
+                        },
+                        backgroundColor: {
+                            duration: 1.5,
+                            times: [0, 0.5, 1],
+                            delay: 0.8 + idx * 0.15 // Cascade delay starts after cards land
                         }
                     }}
                     className="rounded-full h-1.5"
