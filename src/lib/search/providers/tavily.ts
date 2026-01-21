@@ -56,7 +56,10 @@ export class TavilySearchProvider implements SearchProvider {
                 throw new Error(`Tavily API error: ${response.status}`);
             }
 
+
             const data = await response.json();
+
+            console.log("TAVILY RESULT COUNT:", data.results?.length);
 
             // Transform to normalized Evidence shape
             const evidence = (data.results || []).map((r: any) => ({
