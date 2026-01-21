@@ -27,14 +27,14 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-transparent overflow-hidden font-sans relative">
+    <div className="w-full flex flex-col bg-transparent font-sans relative">
       {/* BACKGROUND */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-black" />
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-10 opacity-50" />
       </div>
 
-      <div className="relative z-20 flex flex-col h-full animate-in fade-in zoom-in-95 duration-500"> {/* Added subtle entry animation for Refactor Transitions */}
+      <div className="relative z-20 flex flex-col animate-in fade-in zoom-in-95 duration-500"> {/* Added subtle entry animation for Refactor Transitions */}
         {/* DEBUG OVERLAY (Bottom) */}
         <div className="absolute bottom-[-200px] left-0 w-full z-50 pointer-events-none p-4 opacity-50 hover:opacity-100 transition-opacity">
           <h3 className="text-red-500 font-bold text-xs">DEBUG</h3>
@@ -85,10 +85,10 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
           </div>
         </div>
 
-        {/* LAYOUT TEST: Horizontal Scroll Container */}
-        <div className="flex-1 w-full relative min-h-0 z-10 overflow-x-auto overflow-y-auto snap-x snap-mandatory flex items-center px-6 max-[360px]:px-4 gap-4">
+        {/* LAYOUT TEST: Horizontal Scroll Container. Vertical scrolling removed. */}
+        <div className="w-full relative z-10 overflow-x-auto snap-x snap-mandatory flex items-center px-6 max-[360px]:px-4 gap-4 pb-8">
           {recommendations.length > 0 ? recommendations.map((rec, i) => (
-            <div key={rec.id} className="min-w-full h-full snap-center shrink-0 flex items-center justify-center p-4">
+            <div key={rec.id} className="min-w-full snap-center shrink-0 flex items-center justify-center p-4">
               <BlendCard
                 recommendation={rec}
                 onShare={onShare}

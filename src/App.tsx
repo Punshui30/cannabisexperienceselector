@@ -19,7 +19,7 @@ import { LiveExperienceFeed } from './components/LiveExperienceFeed';
 import { LiveNetworkDrawer } from './components/LiveNetworkDrawer';
 import { Intelligence } from './lib/merchantIntelligence';
 import { GlobalCultivarProvider } from './context/GlobalCultivarContext';
-import { Brain, Sparkles } from 'lucide-react';
+import { Brain, Sparkles, ArrowLeft } from 'lucide-react';
 import { processIntent } from './lib/llmOrchestrator';
 import { adaptEngineResult } from './lib/adaptEngineResult';
 import { SharedBlendService } from './services/SharedBlendService';
@@ -28,6 +28,7 @@ import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExempl
 import logoImg from './assets/logo.png';
 import { generateLiveFeedCommentary } from './lib/llmLiveFeedAdapter';
 import { updateEngineSnapshot } from './lib/engineSnapshot';
+import { ScrollStage } from './components/layout/ScrollStage';
 import './index.css';
 
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed';
@@ -319,7 +320,8 @@ export default function App() {
 
   return (
     <GlobalCultivarProvider>
-      <div className="dark min-h-[100dvh] bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col supports-[min-height:100dvh]:min-h-[100dvh]">
+      {/* STRICT APP SHELL ROOT: h-[100dvh], overflow-hidden */}
+      <div className="dark h-[100dvh] bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
 
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[60%] bg-[#7C3AED]/80 rounded-full blur-[120px] animate-pulse-slow" />
@@ -327,211 +329,215 @@ export default function App() {
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
         </div>
 
-        <main className="relative z-10 w-full flex-grow flex flex-col justify-center pb-safe-footer">
-          {showSplash && (
-            <SplashScreen onComplete={() => setShowSplash(false)} />
-          )}
-
-          {showEntryGate ? (
-            <EntryGate
-              onEnterUser={handleEnterUser}
-              onEnterAdmin={handleEnterAdmin}
-              onEnterFeed={() => {
-                setShowEntryGate(false);
-                setView('live-feed');
-              }}
-            />
-          ) : mode === 'admin' ? (
-            <>
-              <AdminPanel
-                onExitAdmin={() => setMode('user')}
-                onEnterDemoMode={() => setView('input')}
-              />
-            </>
-          ) : (
-            <>
-
-
-              {view === 'input' && (
-                <InputScreen
-                  onSubmit={handleSubmit}
-                  onBrowsePresets={() => setView('presets')}
-                  onSelectPreset={handleSelectPreset}
-                  onAdminModeToggle={() => setMode('admin')}
-                  isAdminMode={false}
-                  initialText={initialInputText}
-                />
-              )}
-
-              {/* PRESET STACKS BROWSER */}
-              {view === 'presets' && (
-                <PresetStacks
-                  onBack={() => setView('input')}
-                  onSelect={(exemplar) => {
-                    if (exemplar.kind === 'stack') {
-                      setStackRec(exemplar.data as UIStackRecommendation);
-                      setView('stack-detail');
-                    } else {
-                      console.log('Blend preset selected:', exemplar);
-                    }
-                  }}
-                />
-              )}
-
-              {/* STRAIN LIBRARY */}
-              {view === 'library' && (
-                <StrainLibraryScreen onBack={() => setView('input')} />
-              )}
-
-              {/* RESOLVING SCREEN - Waits for Data */}
-              {view === 'resolving' && userInput && (
-                <ResolvingScreen
-                  input={userInput}
-                  recommendation={blendRecs[0] || stackRec as any}
-                  consultantText={consultantText}
-                  onComplete={handleResolvingComplete}
-                  onRecalculate={handleRecalculateWithFeedback}
-                />
-              )}
-
-              {/* RESULTS SCREEN (Blends Only) */}
-              {view === 'results' && blendRecs.length > 0 && (
-                <ResultsScreen
-                  key={blendRecs[0]?.id} // FORCE REMOUNT on new results to trigger entry animation
-                  recommendations={blendRecs as UIBlendRecommendation[]}
-                  onCalculate={handleCalculate}
-                  onBack={handleBack}
-                  onShare={(rec) => setQRShareOpen(true)}
-                  onViewDetail={(blend) => {
-                    setSelectedBlendId(blend.id);
-                    setView('blend-detail');
-                  }}
-                  onOpenConsultant={() => setShowConsultant(true)}
-                />
-              )}
-
-              {/* SHARED READ-ONLY VIEW */}
-              {view === 'shared' && blendRecs.length > 0 && blendRecs[0].kind === 'blend' && (
-                <SharedResultScreen recommendation={blendRecs[0] as UIBlendRecommendation} />
-              )}
-
-              {/* REMOTE ACCESS PREVIEW (Customer Demo) */}
-              {view === 'remote-access' && (
-                <RemoteAccessPreview />
-              )}
-
-              {/* STACK DETAIL (Stacks Only) - Prompt D */}
-              {/* Logic: If explicitly in stack-detail view, OR if in results view but we have a stack result */}
-              {((view === 'stack-detail' && stackRec) || (view === 'results' && blendRecs.length > 0 && blendRecs[0].kind === 'stack')) && (
-                <StackDetailScreen
-                  stack={(stackRec || blendRecs[0]) as UIStackRecommendation}
-                  onBack={() => {
-                    // Back logic
-                    if (view === 'results') setView('input');
-                    else setView('presets');
-                  }}
-                />
-              )}
-
-              {/* BLEND DETAIL (Blends Only) */}
-              {view === 'blend-detail' && activeBlend && (
-                <BlendDetailScreen
-                  blend={activeBlend}
-                  onBack={() => { setSelectedBlendId(null); setView('results'); }}
-                />
-              )}
-
-              {/* LIVE EXPERIENCE FEED */}
-              {view === 'live-feed' && (
-                <LiveExperienceFeed
-                  onBack={() => {
-                    setShowEntryGate(true); // Return to gate
-                    setView('splash'); // or just gate logic, but keeping state clean
-                  }}
-                />
-              )}
-
-              {/* Components */}
-              {(calculatorOpen && (stackRec || (blendRecs.length > 0 ? blendRecs[0] : null))) && (
-                <CalculatorModal
-                  recommendation={(stackRec || blendRecs[0])!}
-                  onClose={() => setCalculatorOpen(false)}
-                />
-              )}
-
-              {/* QR SHARE - Blend Only (Prompt E) */}
-              {qrShareOpen && blendRecs.length > 0 && blendRecs[0].kind === 'blend' && (
-                <QRShareModal
-                  recommendation={blendRecs[0] as UIBlendRecommendation}
-                  onClose={() => setQRShareOpen(false)}
-                />
-              )}
-
-              {view === 'input' && (
-                <button
-                  onClick={() => setView('library')}
-                  className="fixed top-6 left-6 z-40 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40 hover:text-white uppercase tracking-widest transition-colors backdrop-blur-md"
-                >
-                  Strain Lib
-                </button>
-              )}
-            </>
-          )}
-
-          {/* LIVE CONSULTANT OVERLAY */}
-          <AnimatePresence>
-            {showConsultant && (
-              <LiveConsultant
-                consultantText={consultantText}
-                context={{
-                  screen: view,
-                  recommendation:
-                    // 1. If viewing explicit details, prioritize that
-                    (view === 'blend-detail' && activeBlend) ? activeBlend :
-                      (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || blendRecs[0]) :
-                        // 2. Fallback to primary result if in results view
-                        (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
-                  userInput: userInput?.text
-                }}
-                onApplyResult={(newResults: any[]) => {
-                  // Authoritative Update: Replace the ENTIRE set
-                  console.log("APP: Authoritative Update from Live Consultant...");
-                  const adaptedSet = newResults
-                    .map(r => adaptEngineResult(r))
-                    .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
-
-                  if (adaptedSet.length > 0) {
-                    setBlendRecs(adaptedSet);
-
-                    // RE-SELECT ACTIVE BLEND FROM NEW RESULTS (prevents stale state)
-                    // If we were viewing a detail, select the corresponding new blend by index
-                    if (view === 'blend-detail' && selectedBlendId) {
-                      const oldIndex = blendRecs.findIndex(b => b.id === selectedBlendId);
-                      const newSelection = adaptedSet[oldIndex >= 0 ? oldIndex : 0];
-                      if (newSelection) {
-                        setSelectedBlendId(newSelection.id);
-                        console.log(`APP: Re-selected blend: ${newSelection.id}`);
-                      }
-                    } else {
-                      setView('results');
-                    }
-
-                    // UPDATE SNAPSHOT so Facade knows about the new state
-                    updateEngineSnapshot({
-                      inputs: "Live Consultant Refactor",
-                      results: adaptedSet,
-                      summary: "Refactored via Live Consultant"
-                    });
-
-                    console.log(`APP: Successfully replaced ${adaptedSet.length} recommendations recursively.`);
-                  }
-                }}
-                onClose={() => setShowConsultant(false)}
-                isGenerating={isAnalyzing}
-              />
+        {/* SCROLL STAGE - The Single Scroll Authority */}
+        <ScrollStage>
+          {/* Main Content Area - Expands naturally */}
+          <main className="relative z-10 w-full min-h-full flex flex-col justify-center">
+            {showSplash && (
+              <SplashScreen onComplete={() => setShowSplash(false)} />
             )}
-          </AnimatePresence>
-        </main>
+
+            {showEntryGate ? (
+              <EntryGate
+                onEnterUser={handleEnterUser}
+                onEnterAdmin={handleEnterAdmin}
+                onEnterFeed={() => {
+                  setShowEntryGate(false);
+                  setView('live-feed');
+                }}
+              />
+            ) : mode === 'admin' ? (
+              <>
+                <AdminPanel
+                  onExitAdmin={() => setMode('user')}
+                  onEnterDemoMode={() => setView('input')}
+                />
+              </>
+            ) : (
+              <>
+
+
+                {view === 'input' && (
+                  <InputScreen
+                    onSubmit={handleSubmit}
+                    onBrowsePresets={() => setView('presets')}
+                    onSelectPreset={handleSelectPreset}
+                    onAdminModeToggle={() => setMode('admin')}
+                    isAdminMode={false}
+                    initialText={initialInputText}
+                  />
+                )}
+
+                {/* PRESET STACKS BROWSER */}
+                {view === 'presets' && (
+                  <PresetStacks
+                    onBack={() => setView('input')}
+                    onSelect={(exemplar) => {
+                      if (exemplar.kind === 'stack') {
+                        setStackRec(exemplar.data as UIStackRecommendation);
+                        setView('stack-detail');
+                      } else {
+                        console.log('Blend preset selected:', exemplar);
+                      }
+                    }}
+                  />
+                )}
+
+                {/* STRAIN LIBRARY */}
+                {view === 'library' && (
+                  <StrainLibraryScreen onBack={() => setView('input')} />
+                )}
+
+                {/* RESOLVING SCREEN - Waits for Data */}
+                {view === 'resolving' && userInput && (
+                  <ResolvingScreen
+                    input={userInput}
+                    recommendation={blendRecs[0] || stackRec as any}
+                    consultantText={consultantText}
+                    onComplete={handleResolvingComplete}
+                    onRecalculate={handleRecalculateWithFeedback}
+                  />
+                )}
+
+                {/* RESULTS SCREEN (Blends Only) */}
+                {view === 'results' && blendRecs.length > 0 && (
+                  <ResultsScreen
+                    key={blendRecs[0]?.id} // FORCE REMOUNT on new results to trigger entry animation
+                    recommendations={blendRecs as UIBlendRecommendation[]}
+                    onCalculate={handleCalculate}
+                    onBack={handleBack}
+                    onShare={(rec) => setQRShareOpen(true)}
+                    onViewDetail={(blend) => {
+                      setSelectedBlendId(blend.id);
+                      setView('blend-detail');
+                    }}
+                    onOpenConsultant={() => setShowConsultant(true)}
+                  />
+                )}
+
+                {/* SHARED READ-ONLY VIEW */}
+                {view === 'shared' && blendRecs.length > 0 && blendRecs[0].kind === 'blend' && (
+                  <SharedResultScreen recommendation={blendRecs[0] as UIBlendRecommendation} />
+                )}
+
+                {/* REMOTE ACCESS PREVIEW (Customer Demo) */}
+                {view === 'remote-access' && (
+                  <RemoteAccessPreview />
+                )}
+
+                {/* STACK DETAIL (Stacks Only) - Prompt D */}
+                {/* Logic: If explicitly in stack-detail view, OR if in results view but we have a stack result */}
+                {((view === 'stack-detail' && stackRec) || (view === 'results' && blendRecs.length > 0 && blendRecs[0].kind === 'stack')) && (
+                  <StackDetailScreen
+                    stack={(stackRec || blendRecs[0]) as UIStackRecommendation}
+                    onBack={() => {
+                      // Back logic
+                      if (view === 'results') setView('input');
+                      else setView('presets');
+                    }}
+                  />
+                )}
+
+                {/* BLEND DETAIL (Blends Only) */}
+                {view === 'blend-detail' && activeBlend && (
+                  <BlendDetailScreen
+                    blend={activeBlend}
+                    onBack={() => { setSelectedBlendId(null); setView('results'); }}
+                  />
+                )}
+
+                {/* LIVE EXPERIENCE FEED */}
+                {view === 'live-feed' && (
+                  <LiveExperienceFeed
+                    onBack={() => {
+                      setShowEntryGate(true); // Return to gate
+                      setView('splash'); // or just gate logic, but keeping state clean
+                    }}
+                  />
+                )}
+
+                {/* Components */}
+                {(calculatorOpen && (stackRec || (blendRecs.length > 0 ? blendRecs[0] : null))) && (
+                  <CalculatorModal
+                    recommendation={(stackRec || blendRecs[0])!}
+                    onClose={() => setCalculatorOpen(false)}
+                  />
+                )}
+
+                {/* QR SHARE - Blend Only (Prompt E) */}
+                {qrShareOpen && blendRecs.length > 0 && blendRecs[0].kind === 'blend' && (
+                  <QRShareModal
+                    recommendation={blendRecs[0] as UIBlendRecommendation}
+                    onClose={() => setQRShareOpen(false)}
+                  />
+                )}
+
+                {view === 'input' && (
+                  <button
+                    onClick={() => setView('library')}
+                    className="fixed top-6 left-6 z-40 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40 hover:text-white uppercase tracking-widest transition-colors backdrop-blur-md"
+                  >
+                    Strain Lib
+                  </button>
+                )}
+              </>
+            )}
+
+            {/* LIVE CONSULTANT OVERLAY */}
+            <AnimatePresence>
+              {showConsultant && (
+                <LiveConsultant
+                  consultantText={consultantText}
+                  context={{
+                    screen: view,
+                    recommendation:
+                      // 1. If viewing explicit details, prioritize that
+                      (view === 'blend-detail' && activeBlend) ? activeBlend :
+                        (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || blendRecs[0]) :
+                          // 2. Fallback to primary result if in results view
+                          (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
+                    userInput: userInput?.text
+                  }}
+                  onApplyResult={(newResults: any[]) => {
+                    // Authoritative Update: Replace the ENTIRE set
+                    console.log("APP: Authoritative Update from Live Consultant...");
+                    const adaptedSet = newResults
+                      .map(r => adaptEngineResult(r))
+                      .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
+
+                    if (adaptedSet.length > 0) {
+                      setBlendRecs(adaptedSet);
+
+                      // RE-SELECT ACTIVE BLEND FROM NEW RESULTS (prevents stale state)
+                      // If we were viewing a detail, select the corresponding new blend by index
+                      if (view === 'blend-detail' && selectedBlendId) {
+                        const oldIndex = blendRecs.findIndex(b => b.id === selectedBlendId);
+                        const newSelection = adaptedSet[oldIndex >= 0 ? oldIndex : 0];
+                        if (newSelection) {
+                          setSelectedBlendId(newSelection.id);
+                          console.log(`APP: Re-selected blend: ${newSelection.id}`);
+                        }
+                      } else {
+                        setView('results');
+                      }
+
+                      // UPDATE SNAPSHOT so Facade knows about the new state
+                      updateEngineSnapshot({
+                        inputs: "Live Consultant Refactor",
+                        results: adaptedSet,
+                        summary: "Refactored via Live Consultant"
+                      });
+
+                      console.log(`APP: Successfully replaced ${adaptedSet.length} recommendations recursively.`);
+                    }
+                  }}
+                  onClose={() => setShowConsultant(false)}
+                  isGenerating={isAnalyzing}
+                />
+              )}
+            </AnimatePresence>
+          </main>
+        </ScrollStage>
 
         {!showSplash && !showEntryGate && view !== 'live-feed' && <LiveNetworkDrawer />}
 

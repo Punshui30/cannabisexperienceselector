@@ -84,15 +84,16 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
     if (!activeItem) return null;
 
     return (
-        <div className={`relative w-full h-full overflow-hidden ${className}`}>
+        <div className={`relative w-full h-full ${className}`}> {/* Removed overflow-hidden */}
             {/* Current Card */}
             <motion.div
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.2} // Linear resistance
+                dragDirectionLock={true} // STRICT HORIZONTAL LOCK
                 onDragEnd={handleDragEnd}
                 animate={controls}
-                className="w-full h-full absolute inset-0 touch-pan-y"
+                className="w-full h-full absolute inset-0" // Removed touch-pan-y
                 style={{ x: 0 }}
             >
                 {renderItem(activeItem, true)}

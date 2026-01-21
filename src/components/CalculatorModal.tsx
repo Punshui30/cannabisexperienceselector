@@ -53,7 +53,7 @@ export function CalculatorModal({ recommendation, onClose }: CalculatorProps) {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className="w-full max-w-[90vw] mx-auto max-h-[90vh] flex flex-col glass-card border-white/10 bg-black/60 rounded-t-[2.5rem] overflow-hidden shadow-2xl"
+          className="w-full max-w-[90%] mx-auto max-h-[90%] flex flex-col glass-card border-white/10 bg-black/60 rounded-t-[2.5rem] overflow-hidden shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}

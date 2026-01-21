@@ -149,7 +149,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
-                className="w-full max-w-lg h-[60vh] flex flex-col glass-card-neon-green shadow-2xl overflow-hidden border-[#00FFD120]"
+                className="w-full max-w-lg h-[60%] flex flex-col glass-card-neon-green shadow-2xl overflow-hidden border-[#00FFD120]"
             >
                 {/* SYSTEM HEADER */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">

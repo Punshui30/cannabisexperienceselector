@@ -205,7 +205,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   }, [mode]);
 
   return (
-    <div className="w-full h-full flex flex-col relative z-10 overflow-hidden bg-transparent"> {/* h-full to fit parent flex container */}
+    <div className="w-full flex flex-col relative z-10 bg-transparent">
 
       {/* --- HEADER (Fixed) --- */}
       <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/90 via-black/50 to-transparent z-20">
@@ -213,12 +213,12 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
           {/* --- BRANDING HEADER --- */}
           <div className="w-full flex-shrink-0 px-6 max-[360px]:px-4 flex flex-col items-center">
-            {/* Logo with Secret Admin Trigger (6 Taps) */}
+            {/* ... logo parts ... */}
             <div className="mb-2">
               <button
                 onClick={() => {
                   const now = Date.now();
-                  // Reset if too slow (more than 1s between taps)
+                  // ... logic ...
                   if (now - lastTapTime > 1000) {
                     setLogoTapCount(1);
                   } else {
@@ -282,8 +282,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
         </div>
       </div>
 
-      {/* --- BODY (Scrollable/Flexible) --- */}
-      <div className="flex-1 overflow-y-auto px-6 pb-32 min-h-0 flex flex-col gap-4"> {/* Increased padding-bottom to pb-32 */}
+      {/* --- BODY (Natural Flow) --- */}
+      <div className="flex-1 px-6 min-h-0 flex flex-col gap-4">
         <AnimatePresence mode="wait">
           {mode === 'describe' && (
             <motion.div

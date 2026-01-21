@@ -79,7 +79,7 @@ export function LiveNetworkDrawer() {
                                     setIsOpen(false);
                                 }
                             }}
-                            className="relative w-full bg-[#0a0a0a] border-b border-white/10 rounded-b-3xl shadow-2xl overflow-hidden max-h-[70vh] flex flex-col"
+                            className="relative w-full bg-[#0a0a0a] border-b border-white/10 rounded-b-3xl shadow-2xl overflow-hidden max-h-[70%] flex flex-col"
                         >
                             {/* Drag Handle */}
                             <div className="w-full flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
