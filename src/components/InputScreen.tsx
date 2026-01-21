@@ -5,6 +5,7 @@ import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { SwipeDeck } from './SwipeDeck';
 import { PublicFeed } from './PublicFeed';
+import { PaginationDots } from './PaginationDots';
 
 import logoImg from '../assets/logo.png';
 
@@ -48,6 +49,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
   const [dragActive, setDragActive] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [scenarioIndex, setScenarioIndex] = useState(0);
 
   const canSubmit = () => {
     if (mode === 'describe') return description.length > 5;
@@ -411,7 +413,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
         <div className="w-full relative h-56"> {/* Density adjustment: h-72 → h-56 (22% reduction) */}
           <SwipeDeck
             items={BLEND_SCENARIOS}
-            enableGuidance={true}
+            onSwipe={(idx) => setScenarioIndex(idx)}
             renderItem={(scenario, isActive) => (
               <div className="w-full h-full pr-4 pb-4">
                 <button
@@ -458,6 +460,14 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 </button>
               </div>
             )}
+          />
+        </div>
+
+        {/* PAGINATION DOTS - Outside scenario cards */}
+        <div className="w-full relative mt-6 mb-4">
+          <PaginationDots
+            currentIndex={scenarioIndex}
+            totalItems={BLEND_SCENARIOS.length}
           />
         </div>
 

@@ -3,6 +3,7 @@ import { EngineResult, UIBlendRecommendation, assertBlend } from '../types/domai
 import { adaptEngineResult } from '../lib/adaptEngineResult';
 import { SwipeDeck } from './SwipeDeck';
 import { BlendCard } from './BlendCard';
+import { PaginationDots } from './PaginationDots';
 import { Layers, Share2, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
@@ -108,6 +109,14 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
           ) : (
             <div className="text-white text-center w-full">Loading recommendations...</div>
           )}
+        </div>
+
+        {/* PAGINATION DOTS - Outside card container */}
+        <div className="w-full relative z-10 mt-6 mb-4">
+          <PaginationDots
+            currentIndex={activeIndex}
+            totalItems={recommendations.length}
+          />
         </div>
 
         {/* FOOTER DISCLAIMER */}

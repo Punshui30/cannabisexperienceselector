@@ -72,33 +72,6 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "" }: Swi
                 {renderItem(activeItem, true)}
             </motion.div>
 
-            {/* Pagination Indicators - Positioned BELOW card */}
-            {items.length > 1 && (
-                <div className="absolute bottom-[-30px] left-0 right-0 flex justify-center gap-2 pointer-events-none z-0 w-full">
-                    {items.map((_, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial={{
-                                backgroundColor: "rgba(255, 255, 255, 0.2)",
-                                width: 6,
-                                boxShadow: "none"
-                            }}
-                            animate={{
-                                width: idx === currentIndex ? 24 : 6,
-                                boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none",
-                                backgroundColor: idx === currentIndex ? "#ffffff" : "rgba(255,255,255,0.2)"
-                            }}
-                            transition={{
-                                width: { duration: 0.3 },
-                                boxShadow: { duration: 0.3 },
-                                backgroundColor: { duration: 0.3 }
-                            }}
-                            className="rounded-full h-1.5"
-                        />
-                    ))}
-                </div>
-            )}
-
         </div>
     );
 }

@@ -80,20 +80,21 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
           style={{
             boxShadow: `inset 0 0 0 1px ${accentColor}20`
           }}
-          // GLOW HINT: SLOW BREATHE (3s)
+          // GLOW HINT: SLOW BREATHE (Enhanced)
           animate={{
             borderColor: ["rgba(255, 255, 255, 0.1)", "rgba(0, 255, 209, 0.6)", "rgba(255, 255, 255, 0.1)"],
             boxShadow: [
               `inset 0 0 0 1px ${accentColor}20`,
-              `inset 0 0 0 1px ${accentColor}20, 0 0 40px rgba(0, 255, 209, 0.3)`,
+              `inset 0 0 0 1px ${accentColor}20, 0 0 60px rgba(0, 255, 209, 0.4)`,
               `inset 0 0 0 1px ${accentColor}20`
             ]
           }}
           transition={{
-            duration: 3, // Slow breathe
+            duration: 4, // Slower breathe for subtlety
             delay: 0.5,
-            times: [0, 0.5, 1], // Peak at 1.5s
-            repeat: 0
+            times: [0, 0.5, 1], // Peak at 2s
+            repeat: Infinity, // Continuous subtle pulse
+            repeatDelay: 2 // 2s pause between cycles
           }}
         >
           {/* Layer 1: Top-weighted iridescent accent */}
