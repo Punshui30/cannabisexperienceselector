@@ -40,7 +40,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
   );
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center relative px-4 max-[360px]:px-2 overflow-hidden py-12 max-[360px]:py-6">
+    <div className="w-full h-full flex flex-col items-center justify-center relative px-4 max-[360px]:px-2 overflow-y-auto py-12 max-[360px]:py-6 scrollbar-hide">
 
       {/* Persistent Branding */}
       <div className="z-20 flex flex-col items-center mb-12">

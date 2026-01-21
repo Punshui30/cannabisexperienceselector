@@ -205,7 +205,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   }, [mode]);
 
   return (
-    <div className="w-full h-screen flex flex-col relative z-10 overflow-hidden bg-transparent"> {/* h-screen fixed */}
+    <div className="w-full h-full flex flex-col relative z-10 overflow-hidden bg-transparent"> {/* h-full to fit parent flex container */}
 
       {/* --- HEADER (Fixed) --- */}
       <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/90 via-black/50 to-transparent z-20">
