@@ -13,7 +13,10 @@ export type ToneMode = "neutral" | "supportive" | "curious" | "confident" | "cal
 export interface ClaudeNarrativeInput {
     userIntentSummary: string;
     decisionSummary: string;
-    blendContext: string; // Curated, not raw engine state
+    blendSummary: {
+        name: string;
+        cultivars: string[];
+    }[];
     toneMode: ToneMode;
 }
 

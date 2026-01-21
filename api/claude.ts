@@ -43,7 +43,7 @@ export default async function handler(request: any, response: any) {
         return response.status(500).json({ error: 'Configuration Error' });
     }
 
-    const { userIntentSummary, decisionSummary, blendContext, toneMode } = request.body;
+    const { userIntentSummary, decisionSummary, blendSummary, toneMode } = request.body;
 
     // Construct the User Message based on Tone
     let toneInstruction = "Tone Mode: neutral (Informative, Balanced, No emotional language)";
@@ -55,10 +55,16 @@ export default async function handler(request: any, response: any) {
         case 'calm_reassuring': toneInstruction = "Tone Mode: calm_reassuring (Slower pacing, Grounded, Used for anxiety/confusion)"; break;
     }
 
+    // Format Blend Summary for Prompt
+    const formattedContext = blendSummary.map((b: any, i: number) =>
+        `Option ${i + 1} (${b.name}): Contains ${b.cultivars.join(', ')}.`
+    ).join('\n');
+
     const userMessage = `
 User Intent: ${userIntentSummary}
 System Decision: ${decisionSummary}
-Outcome Context: ${blendContext}
+Outcome Context:
+${formattedContext}
 
 ${toneInstruction}
 

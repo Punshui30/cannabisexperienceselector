@@ -350,6 +350,23 @@ export async function processIntent(
         // -------------------------------------------------------------
         console.log('ORCHESTRATOR: Invoking Claude Narrative Specialist...');
 
+        // STRICT BOUNDARY NORMALIZATION
+        // Sanitizes input before it ever touches the AI Layer
+        const sanitizeNarrativeInput = (input: any) => {
+            return {
+                userIntentSummary: String(input.userIntent ?? ""),
+                decisionSummary: String(input.decisionSummary ?? ""),
+                blendSummary: input.blends.map((b: any) => ({
+                    name: b.name || "Custom Blend",
+                    cultivars: (b.cultivars || [])
+                        .filter(Boolean)
+                        .map((c: any) => c.name)
+                        .slice(0, 5)
+                })),
+                toneMode: input.toneMode
+            };
+        };
+
         try {
             // Map Tone Mode
             let toneMode: ToneMode = 'neutral';
@@ -363,13 +380,17 @@ export async function processIntent(
 
             if (safePrimary.length > 0) {
                 const primaryBlend = engineResults[0];
-                const claudeInput = {
-                    userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
+
+                // Prepare Raw Input
+                const rawInput = {
+                    userIntent: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
                     decisionSummary: `Engine generated ${primaryBlend.name} focusing on ${outcomeCategory}. Decision Reasoning: ${decision.reasoning}`,
-                    // USE SAFE CULTIVARS HERE
-                    blendContext: `Primary Blend: ${primaryBlend.name}. Cultivars: ${safePrimary.map(c => c.name).join(', ')}. Top Terpenes: ${safePrimary.flatMap(c => c.terpenes || []).slice(0, 3).map(t => t.name).join(', ')}.`,
+                    blends: [primaryBlend], // Pass as array for the sanitizer
                     toneMode: toneMode
                 };
+
+                // NORMALIZE at the boundary
+                const claudeInput = sanitizeNarrativeInput(rawInput);
 
                 // Call Claude
                 const claudeReasoning = await generateNarrative(claudeInput);
