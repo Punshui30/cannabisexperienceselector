@@ -25,6 +25,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isRefactorComplete, setIsRefactorComplete] = useState(false);
+    const [hasCommitted, setHasCommitted] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Initial Greeting
@@ -49,6 +50,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     }, [isRefactorComplete, onClose]);
 
     const handleSendMessage = async () => {
+        if (hasCommitted) return; // Prevent re-entry after commit
         if (isGenerating || isRefactorComplete || !inputValue.trim() || isLoading) return;
 
         const userMessage = inputValue.trim();
@@ -86,9 +88,10 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                     // SUCCESS STATE - MANDATED TERMINAL MESSAGE
                     setMessages(prev => [...prev, {
                         role: 'assistant',
-                        content: "Changes applied. Returning to updated results..."
+                        content: "Changes applied. Updating results..."
                     }]);
 
+                    setHasCommitted(true); // Lock out further input
                     setIsRefactorComplete(true); // Locks UI
 
                     if (onApplyResult) {
@@ -142,8 +145,8 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                     {messages.map((m, i) => (
                         <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                             <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${m.role === 'user'
-                                    ? 'bg-[#00FFD1] text-black font-semibold rounded-tr-none'
-                                    : 'bg-white/5 border border-white/10 text-white rounded-tl-none'
+                                ? 'bg-[#00FFD1] text-black font-semibold rounded-tr-none'
+                                : 'bg-white/5 border border-white/10 text-white rounded-tl-none'
                                 }`}>
                                 {m.content.replace('> ', '')}
                             </div>

@@ -234,20 +234,23 @@ export async function processIntent(
                     engineResults[2].reasoning = narratives.contextual.explanation;
                 }
             } else {
-                console.warn('ORCHESTRATOR: Narrative generation failed. Blends will use intent-aware fallback.');
+                console.warn('ORCHESTRATOR: Narrative generation failed. Using smart fallback.');
 
-                // MID-FIDELITY FALLBACK: Use intent reasoning to build a generic but relevant description
-                const intentSummary = intentSpec.reasoning.replace('Local Analysis: ', '');
+                // SMART FALLBACK: Reference user goal and exclusions
+                const userGoal = seed.text || "your stated preferences";
+                const avoidances = intentSpec.avoidEffects.length > 0
+                    ? ` while avoiding ${intentSpec.avoidEffects.join(', ')}`
+                    : '';
 
-                engineResults[0].name = "Targeted Formulation";
-                engineResults[0].reasoning = `A precise blend designed to address your goal of ${intentSummary}. ${engineResults[0].reasoning}`;
+                engineResults[0].name = engineResults[0].cultivars.map(c => c.name).join(' × ');
+                engineResults[0].reasoning = `This formulation is tuned for your stated goal: ${userGoal}. The selected cultivars were chosen to balance the desired effects${avoidances}.`;
 
-                engineResults[1].name = "Alternative Spectrum";
-                engineResults[1].reasoning = `An adjacent profile optimized for a slightly different emphasis on your ${intentSummary} goal. ${engineResults[1].reasoning}`;
+                engineResults[1].name = engineResults[1].cultivars.map(c => c.name).join(' × ');
+                engineResults[1].reasoning = `An alternative approach to ${userGoal}, emphasizing a different terpene balance${avoidances}.`;
 
                 if (engineResults[2]) {
-                    engineResults[2].name = "Contextual Variation";
-                    engineResults[2].reasoning = `A variant tuned for the specific environment or time context implied by your request. ${engineResults[2].reasoning}`;
+                    engineResults[2].name = engineResults[2].cultivars.map(c => c.name).join(' × ');
+                    engineResults[2].reasoning = `A contextual variation optimized for ${userGoal} with adjusted ratios${avoidances}.`;
                 }
             }
         }
