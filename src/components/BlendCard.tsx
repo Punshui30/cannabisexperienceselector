@@ -80,19 +80,19 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
           style={{
             boxShadow: `inset 0 0 0 1px ${accentColor}20`
           }}
-          // GLOW HINT: One-time pulse on mount
+          // GLOW HINT: SLOW BREATHE (3s)
           animate={{
-            borderColor: ["rgba(255, 255, 255, 0.1)", "rgba(0, 255, 209, 0.8)", "rgba(255, 255, 255, 0.1)"],
+            borderColor: ["rgba(255, 255, 255, 0.1)", "rgba(0, 255, 209, 0.6)", "rgba(255, 255, 255, 0.1)"],
             boxShadow: [
               `inset 0 0 0 1px ${accentColor}20`,
-              `inset 0 0 0 1px ${accentColor}20, 0 0 30px rgba(0, 255, 209, 0.4)`,
+              `inset 0 0 0 1px ${accentColor}20, 0 0 40px rgba(0, 255, 209, 0.3)`,
               `inset 0 0 0 1px ${accentColor}20`
             ]
           }}
           transition={{
-            duration: 1.5,
+            duration: 3, // Slow breathe
             delay: 0.5,
-            times: [0, 0.2, 1],
+            times: [0, 0.5, 1], // Peak at 1.5s
             repeat: 0
           }}
         >

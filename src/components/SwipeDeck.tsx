@@ -85,24 +85,32 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "" }: Swi
                             }}
                             animate={{
                                 width: idx === currentIndex ? 24 : 6,
-                                backgroundColor: idx === currentIndex ? "#ffffff" : "rgba(255, 255, 255, 0.2)",
                                 boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none",
-                                opacity: [0.3, 1, 1, 0.3, 1, 1],
+                                // Keyframes for light accumulation (White filling the bar)
+                                backgroundColor: [
+                                    idx === currentIndex ? "#ffffff" : "rgba(255,255,255,0.2)", // Start
+                                    "#ffffff", // Turn ON
+                                    "#ffffff", // Stay ON
+                                    "rgba(255,255,255,0.2)", // Reset to OFF
+                                    "#ffffff", // Turn ON (Cycle 2)
+                                    "#ffffff", // Stay ON (Cycle 2)
+                                    idx === currentIndex ? "#ffffff" : "rgba(255,255,255,0.2)" // End
+                                ]
                             }}
                             transition={{
                                 width: { duration: 0.3 },
-                                backgroundColor: { duration: 0.3 },
                                 boxShadow: { duration: 0.3 },
-                                opacity: {
-                                    duration: 3,
+                                backgroundColor: {
+                                    duration: 4, // 2s per cycle x 2 cycles
                                     times: [
                                         0,
-                                        (idx * 0.15) / 3,
-                                        ((idx * 0.15) + 0.1) / 3,
-                                        0.45,
-                                        0.5 + ((idx * 0.15) / 3),
-                                        0.5 + (((idx * 0.15) + 0.1) / 3),
-                                    ],
+                                        (idx * 0.1 + 0.1) / 4, // Turn ON stagger
+                                        0.4, // Stay ON until reset
+                                        0.5, // Reset
+                                        0.5 + (idx * 0.1 + 0.1) / 4, // Turn ON Cycle 2
+                                        0.9, // Stay ON Cycle 2
+                                        1 // Settle
+                                    ]
                                 }
                             }}
                             className="rounded-full h-1.5"
