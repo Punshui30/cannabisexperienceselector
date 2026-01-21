@@ -36,10 +36,10 @@ INVALID: "Whispered Amethyst", "Velvet Dream", "Serene Sunrise", "Mystic Haze"
 
 CONTENT VISUALIZATION
 - Literal Nuance: Reference specific concepts from the user's raw query (e.g., "first date", "verbal creativity", "nature walk") in the EXPLANATION, not the name.
-- Variant Distinction:
-    - Primary: Directly addresses the user's stated scenario.
-    - Secondary: Explores an adjacent or deeper interpretation of the goal.
-    - Contextual: Adapts to implied time, environment, or gentleness.
+- Variant Distinction (STRICT):
+    - Primary: THE ANSWER. Frame this as the definitive recommendation. It satisfies the user's intent most directly.
+    - Secondary: THE OPTION. Frame this as "If you prefer..." or "A different approach...".
+    - Contextual: THE SITUATIONAL ALTERNATIVE. Frame this as "For later..." or "If the setting changes...".
 - Tone: Premium, clinical-yet-vibrant, authoritative but empathetic.
 - Body-Forward Specifics: If user wants "couch lock", use terms like "physically grounded".
 

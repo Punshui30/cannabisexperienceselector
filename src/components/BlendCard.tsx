@@ -102,8 +102,25 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
                 <span className="text-[9px] font-bold uppercase tracking-widest text-[#00FFD1] bg-[#00FFD1]/10 px-1.5 py-px rounded-full border border-[#00FFD1]/20 shadow-[0_0_10px_-2px_rgba(0,255,209,0.3)]">
                   Match {recommendation.matchScore}%
                 </span>
-                {recommendation.kind === 'blend' && (
+                {/* SEMANTIC ROLE BADGE */}
+                {recommendation.role === 'primary' && (
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#EAB308] bg-[#EAB308]/10 px-1.5 py-px rounded-full border border-[#EAB308]/20 shadow-[0_0_10px_-2px_rgba(234,179,8,0.3)]">
+                    Top Pick
+                  </span>
+                )}
+                {recommendation.role === 'alternative' && (
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-1.5 py-px rounded-full border border-blue-500/20">
+                    Option
+                  </span>
+                )}
+                {recommendation.role === 'contextual' && (
                   <span className="text-[9px] font-bold uppercase tracking-widest text-purple-400 bg-purple-500/10 px-1.5 py-px rounded-full border border-purple-500/20">
+                    Contextual
+                  </span>
+                )}
+                {/* Fallback for legacy/other */}
+                {!recommendation.role && recommendation.kind === 'blend' && (
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-white/40 bg-white/5 px-1.5 py-px rounded-full border border-white/10">
                     Blend
                   </span>
                 )}

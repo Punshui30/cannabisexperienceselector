@@ -107,6 +107,7 @@ export type UIBlendRecommendation = {
     terpeneProfile: Record<string, number>; // Required by UI
     description?: string; // Optional helper
     blendEvaluation?: BlendEvaluation;
+    role?: 'primary' | 'alternative' | 'contextual';
 };
 
 /**

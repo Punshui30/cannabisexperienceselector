@@ -213,11 +213,33 @@ export async function processIntent(
         // BLEND 1: PRIMARY INTERPRETATION (Original Intent)
         // ---------------------------------------------------------
         console.log('ORCHESTRATOR: Generating Primary Blend (original intent)');
-        const results1 = engineGenerate(seed, engineIntent, Array.from(anchorConstraints.cultivarExclusions));
+        // BOUNDED REGENERATION LOGIC (Primary)
+        let results1: EngineResult[] = [];
+        let r1Attempts = 0;
+        const r1Exclusions = Array.from(anchorConstraints.cultivarExclusions);
+
+        while (r1Attempts < 3) {
+            results1 = engineGenerate(seed, engineIntent, r1Exclusions);
+            if (results1.length > 0) {
+                if (validateCompliance(results1[0], `Primary (Attempt ${r1Attempts + 1})`)) {
+                    break; // Success
+                } else {
+                    console.warn(`Primary Attempt ${r1Attempts + 1} failed validation. enforcing exclusions.`);
+                    results1[0].cultivars?.forEach(c => {
+                        const id = getCultivarIdFromName(c.name);
+                        if (id) r1Exclusions.push(id);
+                    });
+                }
+            }
+            r1Attempts++;
+        }
+
         if (results1 && results1.length > 0) {
             const r1 = results1[0];
-            if (validateCompliance(r1, "Primary")) {
+            // Final check or fallback
+            if (validateCompliance(r1, "Primary Final")) {
                 r1.id = `blend-primary-${Date.now()}`;
+                r1.role = 'primary'; // DETERMINISTIC ROLE ASSIGNMENT
                 engineResults.push(r1);
                 console.log('Primary Blend:', r1.name, '|', r1.cultivars?.map(c => c.name).join(', '));
 
@@ -226,7 +248,7 @@ export async function processIntent(
                     if (cultivarId) usedCultivarIds.add(cultivarId);
                 });
             } else {
-                console.error("CRITICAL: Primary blend failed validation. Engine cannot satisfy constraints.");
+                console.error("CRITICAL: Primary blend failed validation after max attempts.");
             }
         }
 
@@ -267,22 +289,35 @@ export async function processIntent(
         // Add original exclusions just in case
         intentSpec.cultivarExclusions?.forEach(e => exclusions2.push(e));
 
-        let results2 = engineGenerate(seed, intent2, exclusions2);
+        // BOUNDED REGENERATION LOGIC (Secondary)
+        let results2: EngineResult[] = [];
+        let r2Attempts = 0;
 
-        // REGENERATION LOGIC
-        if (results2.length > 0 && !validateCompliance(results2[0], "Secondary")) {
-            console.warn("Secondary blend failed validation. Regenerating with stricter constraints...");
-            // Simple strategy: exclude the offenders and retry
-            results2[0].cultivars?.forEach(c => {
-                const id = getCultivarIdFromName(c.name);
-                if (id) exclusions2.push(id);
-            });
+        while (r2Attempts < 3) {
             results2 = engineGenerate(seed, intent2, exclusions2);
+            if (results2.length > 0) {
+                // Check uniqueness against Primary
+                const isUnique = !results2[0].cultivars?.some(c => usedCultivarIds.has(getCultivarIdFromName(c.name) || ''));
+
+                if (validateCompliance(results2[0], `Secondary (Attempt ${r2Attempts + 1})`) && isUnique) {
+                    break;
+                } else {
+                    console.warn(`Secondary Attempt ${r2Attempts + 1} failed validation/uniqueness.`);
+                    results2[0].cultivars?.forEach(c => {
+                        const id = getCultivarIdFromName(c.name);
+                        if (id) exclusions2.push(id);
+                    });
+                }
+            } else {
+                break; // Engine exhausted
+            }
+            r2Attempts++;
         }
 
-        if (results2 && results2.length > 0 && validateCompliance(results2[0], "Secondary")) {
+        if (results2 && results2.length > 0 && validateCompliance(results2[0], "Secondary Final")) {
             const r2 = results2[0];
             r2.id = `blend-secondary-${Date.now()}`;
+            r2.role = 'alternative'; // DETERMINISTIC ROLE ASSIGNMENT
             engineResults.push(r2);
             console.log('Secondary Blend:', r2.name, '|', r2.cultivars?.map(c => c.name).join(', '));
             r2.cultivars?.forEach(c => {
@@ -327,21 +362,34 @@ export async function processIntent(
         // Add original exclusions just in case
         intentSpec.cultivarExclusions?.forEach(e => exclusions3.push(e));
 
-        let results3 = engineGenerate(seed, intent3, exclusions3);
+        // BOUNDED REGENERATION LOGIC (Contextual)
+        let results3: EngineResult[] = [];
+        let r3Attempts = 0;
 
-        // REGENERATION LOGIC
-        if (results3.length > 0 && !validateCompliance(results3[0], "Contextual")) {
-            console.warn("Contextual blend failed validation. Regenerating...");
-            results3[0].cultivars?.forEach(c => {
-                const id = getCultivarIdFromName(c.name);
-                if (id) exclusions3.push(id);
-            });
+        while (r3Attempts < 3) {
             results3 = engineGenerate(seed, intent3, exclusions3);
+            if (results3.length > 0) {
+                const isUnique = !results3[0].cultivars?.some(c => usedCultivarIds.has(getCultivarIdFromName(c.name) || ''));
+
+                if (validateCompliance(results3[0], `Contextual (Attempt ${r3Attempts + 1})`) && isUnique) {
+                    break;
+                } else {
+                    console.warn(`Contextual Attempt ${r3Attempts + 1} failed validation/uniqueness.`);
+                    results3[0].cultivars?.forEach(c => {
+                        const id = getCultivarIdFromName(c.name);
+                        if (id) exclusions3.push(id);
+                    });
+                }
+            } else {
+                break;
+            }
+            r3Attempts++;
         }
 
-        if (results3 && results3.length > 0 && validateCompliance(results3[0], "Contextual")) {
+        if (results3 && results3.length > 0 && validateCompliance(results3[0], "Contextual Final")) {
             const r3 = results3[0];
             r3.id = `blend-contextual-${Date.now()}`;
+            r3.role = 'contextual'; // DETERMINISTIC ROLE ASSIGNMENT
             engineResults.push(r3);
             console.log('Contextual Blend Cultivars:', r3.cultivars?.map(c => c.name).join(', '));
         }
