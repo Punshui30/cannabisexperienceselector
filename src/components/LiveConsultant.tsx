@@ -79,15 +79,18 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         setInputValue(''); // Hide input immediately
 
         // Log user command
-        setMessages(prev => [...prev, { role: 'user', content: `> ${userMessage}` }]);
+        const newUserMessage: Message = { role: 'user', content: `> ${userMessage}` };
+        const updatedHistory = [...messages, newUserMessage];
+
+        setMessages(updatedHistory);
         setIsLoading(true);
 
         try {
             const { callLLMChat, triggerRefactor } = await import('../lib/llmChat');
 
-            // 1. Read-only check
+            // 1. Read-only check - PASS UPDATED HISTORY
             const response = await callLLMChat(
-                messages.map(m => ({ role: m.role, content: m.content.replace('> ', '') })),
+                updatedHistory.map(m => ({ role: m.role, content: m.content.replace('> ', '') })),
                 { ...context, userInput: userMessage }
             );
 
