@@ -57,8 +57,8 @@ export default async function handler(request: any, response: any) {
 
         console.log('[GEMINI] Generating narrative enhancement...');
 
-        // Construct prompt for Gemini
-        const systemPrompt = `You are a premium cannabis experience narrator. Your role is to enhance technical blend explanations into compelling, human-readable narratives.
+        // FLATTEN INPUT INTO SINGLE PROMPT STRING (Gemini requires single user message)
+        const promptText = `You are a premium cannabis experience narrator. Your role is to enhance technical blend explanations into compelling, human-readable narratives.
 
 STRICT RULES:
 - You receive a Tier-1 deterministic narrative based on engine math
@@ -82,26 +82,31 @@ OUTPUT REQUIREMENTS:
 - Preserve all technical accuracy
 - Reference specific cultivar names from the blend`;
 
-        // Call Google Gemini API
-        const geminiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: systemPrompt
-                    }]
-                }],
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 200,
-                    topP: 0.9
-                }
-            })
-        });
+        // CORRECT GEMINI API REQUEST FORMAT
+        // Use query parameter for API key and proper user role
+        const geminiResponse = await fetch(
+            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [
+                                { text: promptText }
+                            ]
+                        }
+                    ],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 400
+                    }
+                })
+            }
+        );
 
         if (!geminiResponse.ok) {
             const errText = await geminiResponse.text();
