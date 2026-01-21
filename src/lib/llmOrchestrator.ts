@@ -437,68 +437,8 @@ export async function processIntent(
         // ---------------------------------------------------------
         console.log('ORCHESTRATOR: Generating Tier-1 Deterministic Narratives...');
 
-        /**
-         * HELPER: SANITIZE BLEND
-         */
-        const sanitizeBlend = (b: EngineResult) => {
-            if (!b || !b.cultivars) return [];
-            return b.cultivars.filter(Boolean).filter(c => c && typeof c.name === 'string');
-        };
+        // Helpers are now defined at global scope to avoid duplications
 
-        /**
-         * GENERATE DETERMINISTIC NARRATIVE
-         * This function produces the final-quality output derived strictly from engine math.
-         * It must NOT depend on any LLM.
-         */
-        const generateDeterministicNarrative = (
-            result: EngineResult,
-            role: 'primary' | 'alternative' | 'contextual',
-            intent: IntentSpec,
-            seedText: string
-        ): { name: string, reasoning: string } => {
-            const cultivars = result.cultivars || [];
-            if (cultivars.length === 0) return { name: "Custom Blend", reasoning: "A specialized formulation." };
-
-            // 1. Identify Roles (Anchor vs Support)
-            // Assumes engine returns sorted by ratio desc, or we sort here.
-            const sorted = [...cultivars].sort((a, b) => b.ratio - a.ratio);
-            const anchor = sorted[0];
-            const supports = sorted.slice(1);
-
-            // 2. Derive Math Insight
-            let insight = "";
-            const requestedEffect = intent.targetEffects[0] || "balance"; // Heuristic main effect
-            const avoid = intent.avoidEffects.length > 0 ? intent.avoidEffects[0] : null;
-
-            if (role === 'primary') {
-                if (anchor.name.toLowerCase().includes(seedText.toLowerCase())) {
-                    insight = `This formulation is anchored by ${anchor.name} as requested, preserving its core profile while using ${supports.length > 0 ? supports[0].name : "supporting strains"} to modulate the experience.`;
-                } else if (avoid) {
-                    insight = `Constructed to bypass ${avoid} by selecting ${anchor.name} as a low-risk foundation.`;
-                } else {
-                    insight = `${anchor.name} drives the primary ${requestedEffect} effect, while ${supports.map(s => s.name).join(' and ')} broaden the terpene profile for a more complex finish.`;
-                }
-            } else if (role === 'alternative') {
-                // Secondary usually flips effects
-                const isBodyFocus = intent.targetEffects.some(e => ['body', 'sleep', 'relax', 'sedation', 'pain'].includes(e.toLowerCase()));
-                insight = `An alternative approach to ${requestedEffect}. While the primary blend relies on ${isBodyFocus ? 'body' : 'cerebral'} effects, this shifts the focus toward a ${anchor.profile || 'distinct'} profile using ${anchor.name}.`;
-            } else if (role === 'contextual') {
-                // Contextual usually shifts constraints (Time/Anxiety)
-                const time = intent.constraints.timeOfDay;
-                const isAnxietyReduced = intent.avoidEffects.includes('anxiety') || intent.targetEffects.includes('calm');
-                insight = `Optimized for ${time || 'specific context'}. adjusted to fit a ${isAnxietyReduced ? 'lower intensity' : 'different'} use-case, relying on ${anchor.name} for consistent output.`;
-            }
-
-            // 3. Construct Name
-            const name = sorted.length <= 2
-                ? sorted.map(c => c.name).join(' + ')
-                : `${anchor.name} System`;
-
-            return {
-                name: name,
-                reasoning: insight
-            };
-        };
 
         // APPLY TIER-1 NARRATIVE TO ALL RESULTS
         const safePrimary = sanitizeBlend(engineResults[0]);
@@ -525,14 +465,14 @@ export async function processIntent(
 
 
         // -------------------------------------------------------------
-        // TIER-2: GEMINI ENHANCEMENT (Timeout-Protected)
+        // TIER-2: GEMINI ENHANCEMENT (Non-Blocking / Async)
         // -------------------------------------------------------------
-        // CRITICAL: Gemini NEVER blocks UI indefinitely
-        // Max wait: 2 seconds
-        // On timeout or failure: Return Tier-1 immediately
+        // CRITICAL: Gemini NEVER blocks UI readiness
+        // We return Tier-1 results immediately.
+        // Enhancement happens in the background.
 
         if (!isStack && engineResults.length > 0) {
-            console.log('ORCHESTRATOR: Attempting Gemini Enhancement (2s timeout)...');
+            console.log('ORCHESTRATOR: Initiating background Gemini Enhancement...');
 
             try {
                 // Map Tone Mode
@@ -562,24 +502,22 @@ export async function processIntent(
                     toneMode: toneMode
                 };
 
-                // Race Gemini against timeout
-                const enhancedText = await Promise.race([
-                    generateNarrative(geminiInput),
-                    new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000))
-                ]);
-
-                if (enhancedText) {
-                    console.log(`[GEMINI_ENHANCED] Narrative enhancement applied ✓`);
-                    engineResults[0].reasoning = enhancedText;
-                } else {
-                    console.log("[GEMINI_TIMEOUT_OR_FAILED] Using Tier-1 narrative (Gemini took >2s or failed)");
-                }
+                // NON-BLOCKING: Fire and forget
+                generateNarrative(geminiInput).then((enhancedText) => {
+                    if (enhancedText && engineResults[0]) {
+                        console.log(`[GEMINI_ASYNC_SUCCESS] Narrative enhancement ready ✓`);
+                        engineResults[0].reasoning = enhancedText;
+                    }
+                }).catch(err => {
+                    console.warn("[GEMINI_ASYNC_FAILED]", err);
+                });
 
             } catch (e) {
-                console.error("[GEMINI_FAILED_USING_TIER1] Enhancement failed (non-fatal)", e);
-                // Tier-1 remains unchanged
+                console.warn("[GEMINI_ENHANCEMENT_INIT_FAILED] (Non-fatal)", e);
             }
         }
+
+
 
         // 4. HARD VALIDATION (BLENDS ONLY)
         // GUARD: Stacks bypass strict blend validation (which requires >=2 cultivars)
@@ -711,10 +649,43 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
     return spec;
 }
 
+
+function sanitizeBlend(blend: EngineResult): string[] {
+    if (!blend || !blend.cultivars) return [];
+    return blend.cultivars.map(c => c.name);
+}
+
+function generateDeterministicNarrative(
+    blend: EngineResult,
+    type: 'primary' | 'alternative' | 'contextual',
+    intent: IntentSpec,
+    userInput: string
+): { name: string; reasoning: string } {
+    if (!blend?.cultivars?.length) return { name: "Custom Blend", reasoning: "Analysis complete." };
+
+    const cultivarNames = blend.cultivars.map(c => c.name).join(' & ');
+    let name = '';
+    let reasoning = '';
+
+    if (type === 'primary') {
+        name = `${blend.cultivars[0].name} Dominant Blend`;
+        reasoning = `Constructed to address your primary goal by selecting ${blend.cultivars[0].name} as a foundation. This blend focuses on ${intent.targetEffects.join(' and ')} through a precise combination of ${cultivarNames}.`;
+    } else if (type === 'alternative') {
+        name = `${blend.cultivars[1]?.name || blend.cultivars[0].name} Offset`;
+        reasoning = `An alternative approach focusing on ${intent.targetEffects[1] || 'balance'}. While the primary blend relies on a different core, this shifts the focus toward a complementary profile using ${blend.cultivars[1]?.name || 'balanced components'}.`;
+    } else {
+        name = `Contextual ${blend.cultivars[0].name} Mix`;
+        reasoning = `Optimized for the context of your request, relying on ${blend.cultivars[0].name} and ${blend.cultivars[1]?.name || 'supporting strains'} for a consistent output profile.`;
+    }
+
+    return { name, reasoning };
+}
+
 function validateStrict(results: EngineResult[]): string | null {
-    if (!results) return "No results object";
+    if (!results || results.length === 0) return "No results object";
     for (const r of results) {
         if (!r.cultivars || r.cultivars.length < 2) return "Blend has fewer than 2 cultivars";
     }
     return null;
 }
+
