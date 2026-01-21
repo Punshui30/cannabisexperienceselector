@@ -1,17 +1,18 @@
 /**
- * GEMINI API PROXY (Hardened V8 - TypeScript)
+ * GEMINI API PROXY (Hardened V8.1 - JS Standard)
  * 
- * Path: /api/gemini.ts
+ * Path: /api/gemini.js
  * Primary Engine LLM for blend narratives.
- * GUARANTEED 200 OK STATUS.
+ * ALWAYS returns 200 OK Status.
+ * No external dependencies.
  */
 
-export default async function handler(request: any, response: any) {
+module.exports = async function handler(request, response) {
     try {
-        console.log('[GEMINI_API_V8] Request started');
+        console.log('[GEMINI_API_V8.1] Request started');
 
-        // CORS Header Setup (Standard for Vercel functions)
-        response.setHeader('Access-Control-Allow-Credentials', 'true');
+        // CORS Header Setup (Mirroring llm.js)
+        response.setHeader('Access-Control-Allow-Credentials', true);
         response.setHeader('Access-Control-Allow-Origin', '*');
         response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
         response.setHeader(
@@ -20,24 +21,24 @@ export default async function handler(request: any, response: any) {
         );
 
         if (request.method === 'OPTIONS') {
-            return response.status(200).end();
+            response.status(200).end();
+            return;
         }
 
         if (request.method !== 'POST') {
-            return response.status(200).json({ ok: false, error: 'method_not_allowed' });
+            return response.status(200).json({ ok: false, error: 'Method Not Allowed' });
         }
 
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            console.error('[GEMINI_API_V8] Missing API KEY in Environment');
+            console.error('[GEMINI_API_V8.1] Missing GEMINI_API_KEY');
             return response.status(200).json({ ok: false, error: 'missing_key' });
         }
 
-        // Use request.body (Vercel parses this automatically for JSON)
         const { tier1Narrative, toneMode } = request.body || {};
 
-        if (!tier1Narrative?.reasoning) {
-            return response.status(200).json({ ok: false, error: 'invalid_input' });
+        if (!tier1Narrative || !tier1Narrative.reasoning) {
+            return response.status(200).json({ ok: false, error: 'Missing Input' });
         }
 
         const promptText = `You are a premium cannabis experience narrator.
@@ -47,6 +48,7 @@ Tone: ${toneMode || 'neutral'}
 Blend: ${tier1Narrative.name}
 Facts: ${tier1Narrative.reasoning}`;
 
+        // Node 18+ global fetch
         const geminiRes = await fetch(
             `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
@@ -54,38 +56,36 @@ Facts: ${tier1Narrative.reasoning}`;
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [{ role: "user", parts: [{ text: promptText }] }],
-                    generationConfig: { temperature: 0.7, maxOutputTokens: 400 }
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 500 }
                 })
             }
         );
 
         if (!geminiRes.ok) {
             const status = geminiRes.status;
-            const errorText = await geminiRes.text().catch(() => 'No error text');
-            console.warn(`[GEMINI_API_V8] API Error ${status}:`, errorText.slice(0, 100));
             return response.status(200).json({ ok: false, error: 'api_failed', status });
         }
 
         const data = await geminiRes.json();
 
-        // Robust Extraction
-        const textParts = data?.candidates?.[0]?.content?.parts || [];
-        const narrative = textParts.map((p: any) => p.text || '').join(' ').trim();
+        // Robust Extraction (Multi-part support)
+        const candidates = data.candidates || [];
+        const parts = candidates[0]?.content?.parts || [];
+        const narrative = parts.map(p => p.text).join(' ').trim();
 
         if (!narrative) {
-            console.warn('[GEMINI_API_V8] No narrative extraction possible', JSON.stringify(data).slice(0, 100));
-            return response.status(200).json({ ok: false, error: 'empty_extraction' });
+            return response.status(200).json({ ok: false, error: 'no_narrative' });
         }
 
-        console.log('[GEMINI_API_V8] Success');
+        console.log('[GEMINI_API_V8.1] Success');
         return response.status(200).json({ ok: true, narrative });
 
-    } catch (err: any) {
-        console.error('[GEMINI_API_V8] Global Catch:', err.message);
+    } catch (err) {
+        console.error('[GEMINI_API_V8.1] Global Error:', err.message);
         return response.status(200).json({
             ok: false,
-            error: 'server_crash',
-            details: err.message || 'Unknown'
+            error: 'server_error',
+            details: err.message
         });
     }
-}
+};

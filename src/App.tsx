@@ -428,6 +428,9 @@ export default function App() {
                     onOpenConsultant={() => setShowConsultant(true)}
                   />
                 )}
+                {/* Deployment Marker */}
+                <div className="fixed bottom-2 right-2 text-[8px] text-white/10 pointer-events-none">v8.1</div>
+
 
                 {/* SHARED READ-ONLY VIEW */}
                 {view === 'shared' && blendRecs.length > 0 && blendRecs[0].kind === 'blend' && (
