@@ -84,6 +84,7 @@ export default function App() {
   const [qrShareOpen, setQRShareOpen] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [consultantText, setConsultantText] = useState<string | undefined>(undefined);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
 
   // Navigation Handlers
   const handleEnterUser = () => {
@@ -104,6 +105,7 @@ export default function App() {
     setBlendRecs([]); // Clear previous
     setUserInput(input);
     setIsAnalyzing(true);
+    setAnalysisProgress(20); // Milestone: Intent received
     setView('resolving');
   };
 
@@ -201,7 +203,9 @@ export default function App() {
 
       const run = async () => {
         console.log('APP: Invoking Orchestrator...');
+        setAnalysisProgress(40); // Milestone: Orchestrator started
         try {
+          setAnalysisProgress(60); // Milestone: Engine running
           const result = await processIntent(userInput);
 
           if (result.success) {
@@ -215,7 +219,9 @@ export default function App() {
                 .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
 
               if (allAdapted.length > 0) {
+                setAnalysisProgress(85); // Milestone: Results generated
                 setBlendRecs(allAdapted);
+                setAnalysisProgress(95); // Milestone: UI state ready
                 setIsAnalyzing(false);
 
                 // UPDATE ENGINE SNAPSHOT for Live Assistant (read-only access)
@@ -292,8 +298,13 @@ export default function App() {
 
   // ResolvingScreen onComplete trigger
   const handleResolvingComplete = () => {
-    if (blendRecs.length > 0) setView('results');
-    else if (stackRec) setView('stack-detail'); // Rare fallback
+    if (blendRecs.length > 0) {
+      setAnalysisProgress(100); // Milestone: Transition triggered
+      setView('results');
+    } else if (stackRec) {
+      setAnalysisProgress(100);
+      setView('stack-detail'); // Rare fallback
+    }
   };
 
   const handleCalculate = () => {
@@ -306,6 +317,7 @@ export default function App() {
     setBlendRecs([]); // Fixed
     setUserInput(null);
     setIsAnalyzing(false);
+    setAnalysisProgress(0); // Reset progress
   };
 
   const handleRecalculateWithFeedback = (feedback: string) => {
@@ -314,6 +326,7 @@ export default function App() {
     setView('resolving');
     setUserInput({ kind: 'blend', text: `Refinement: ${feedback}`, mode: 'engine' });
     setIsAnalyzing(true);
+    setAnalysisProgress(20); // Reset to intent received
     // Note: In a real persistent app, we'd merge feedback with original intent.
     // For this V2, treating feedback as a fresh refinement intent works well.
   };
@@ -394,6 +407,7 @@ export default function App() {
                     input={userInput}
                     recommendation={blendRecs[0] || stackRec as any}
                     consultantText={consultantText}
+                    progress={analysisProgress}
                     onComplete={handleResolvingComplete}
                     onRecalculate={handleRecalculateWithFeedback}
                   />

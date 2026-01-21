@@ -10,36 +10,16 @@ interface ResolvingScreenProps {
     consultantText?: string;
     onComplete: () => void;
     onRecalculate?: (feedback: string) => void;
+    progress?: number; // Controlled progress from parent
 }
 
-export function ResolvingScreen({ input, recommendation, onComplete }: ResolvingScreenProps) {
-    const [progress, setProgress] = useState(0);
-
-    // Simulate analysis phases
-    useEffect(() => {
-        const duration = 2500; // 2.5s total "analysis" time
-        const interval = 50;
-        const step = 100 / (duration / interval);
-
-        const timer = setInterval(() => {
-            setProgress(p => {
-                if (p >= 100) {
-                    clearInterval(timer);
-                    return 100;
-                }
-                return p + step;
-            });
-        }, interval);
-
-        return () => clearInterval(timer);
-    }, []);
-
-    // Auto-complete when ready and animation done
+export function ResolvingScreen({ input, recommendation, onComplete, progress = 0 }: ResolvingScreenProps) {
+    // Auto-complete when ready and progress reaches 100%
     useEffect(() => {
         if (recommendation && progress >= 100) {
             const timeout = setTimeout(() => {
                 onComplete();
-            }, 500); // Slight pause at 100%
+            }, 300); // Brief pause at 100% before transition
             return () => clearTimeout(timeout);
         }
     }, [recommendation, progress, onComplete]);
