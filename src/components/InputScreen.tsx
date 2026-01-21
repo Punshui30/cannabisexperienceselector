@@ -331,7 +331,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                   type="file"
                   id="camera-upload"
                   className="hidden"
-                  accept="image/*"
+                  accept="image/*;capture=camera"
                   capture="environment"
                   onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])}
                 />
