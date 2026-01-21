@@ -30,6 +30,7 @@ export async function chat(
     context?: {
         recommendation?: UIBlendRecommendation | UIStackRecommendation;
         userInput?: string;
+        screen?: string;
     }
 ): Promise<{ text: string; data?: any }> {
     try {
@@ -88,6 +89,7 @@ function truncateHistory(messages: ChatMessage[]): ChatMessage[] {
 function buildSystemContext(context?: {
     recommendation?: UIBlendRecommendation | UIStackRecommendation;
     userInput?: string;
+    screen?: string;
 }): string {
     const baseInstruction = `You are a knowledgeable cannabis consultant.
     
@@ -128,6 +130,7 @@ The user is currently viewing:
 BLEND: "${rec.name}"
 CULTIVARS: ${cultivarNames}
 ORIGINAL QUERY: "${context.userInput || 'Not specified'}"
+SCREEN: "${context.screen || 'Detail View'}"
 
 Provide helpful, conversational explanations.`;
     }
@@ -169,6 +172,7 @@ Provide helpful, conversational explanations.`;
         PRIMARY BLEND: "${primaryResult.name}"
         CULTIVARS: ${metadata.cultivars.join(', ')}
         ORIGINAL QUERY: "${snapshot.inputs || 'Not specified'}"
+        SCREEN: "${context?.screen || 'Results'}"
 
         Provide helpful, conversational explanations.`;
     }
@@ -176,7 +180,14 @@ Provide helpful, conversational explanations.`;
     // Priority 3: Generic mode (no snapshot yet)
     return `${baseInstruction}
 
-The user hasn't generated any recommendations yet. Provide general guidance.`;
+    CURRENT SCREEN: ${context?.screen || 'Unknown'}
+    
+    The user hasn't generated any recommendations yet. 
+    If Screen is 'Input', help them formulate a query.
+    If Screen is 'Library', assist with strain lookup.
+    If Screen is 'Splash' or 'Entry', explain the system.
+    
+    Provide context-aware guidance.`;
 }
 
 /**
