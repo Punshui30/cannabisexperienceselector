@@ -7,6 +7,7 @@ import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
 import { generateNarrative, ToneMode } from './llm/claudeNarrator';
 import { findSubstitute } from './engine/substitution';
+import { orchestrateNarrative } from './llm/narrativeOrchestrator';
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -532,16 +533,16 @@ export async function processIntent(
                 // NORMALIZE at the boundary
                 const claudeInput = sanitizeNarrativeInput(rawInput);
 
-                // Call Claude
-                const claudeReasoning = await generateNarrative(claudeInput);
+                // Call Orchestrator (Claude -> GPT Fallback)
+                const narrativeResult = await orchestrateNarrative(claudeInput);
 
-                if (claudeReasoning) {
-                    console.log('ORCHESTRATOR: Claude Narrative Applied ✓');
-                    engineResults[0].reasoning = claudeReasoning;
+                if (narrativeResult) {
+                    console.log(`ORCHESTRATOR: Narrative Applied via ${narrativeResult.provider.toUpperCase()} ✓`);
+                    engineResults[0].reasoning = narrativeResult.text;
                 }
             }
         } catch (e) {
-            console.error("ORCHESTRATOR: Claude Step Failed", e);
+            console.error("ORCHESTRATOR: Narrative Step Failed", e);
         }
 
         // ISSUE 3: STRAIN MODE ACKNOWLEDGMENT

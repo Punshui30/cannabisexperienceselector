@@ -24,6 +24,14 @@ const CLAUDE_ENDPOINT = '/api/claude';
 
 export async function generateNarrative(input: ClaudeNarrativeInput): Promise<string | null> {
     try {
+        // DIAGNOSTIC LOGGING (User Request)
+        try {
+            console.log("CLAUDE PAYLOAD SIZE (chars):", JSON.stringify(input).length);
+            console.log("CLAUDE MODEL: claude-3-5-sonnet-20240620 (configured in /api/claude.ts)");
+        } catch (err) {
+            console.error("CLAUDE DEBUG: Payload stringify failed", err);
+        }
+
         const response = await fetch(CLAUDE_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -31,15 +39,16 @@ export async function generateNarrative(input: ClaudeNarrativeInput): Promise<st
         });
 
         if (!response.ok) {
-            console.warn(`Claude Narrative Failed: ${response.status}`);
-            return null; // Silent fallback
+            throw new Error(`Claude API responded with ${response.status}`);
         }
 
         const data = await response.json();
-        return data.narrative || null;
+        if (!data.narrative) throw new Error("Claude returned empty narrative");
+
+        return data.narrative;
 
     } catch (e) {
-        console.error("Claude Narrative Exception (Silent Fallback):", e);
-        return null;
+        // Re-throw so Orchestrator can handle fallback
+        throw e;
     }
 }
