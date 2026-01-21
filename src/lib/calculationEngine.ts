@@ -1091,6 +1091,8 @@ export function calculateBlends(
 
       // Hard cap score to prevent it from winning if generic
       score -= penalty;
+
+      console.debug("[DOMINANCE]", c.id, frequency, penalty.toFixed(4));
     }
 
     return { id: c.id, score, effect, cultivar: c, penalty, baseScore: score + penalty };
