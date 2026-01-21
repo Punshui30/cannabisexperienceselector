@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
@@ -13,7 +14,9 @@ interface BlendCardProps {
 }
 
 export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, onOpenConsultant, index = 0 }: BlendCardProps) {
-  // Density adjustment: Removed inline expansion state
+  // @ts-expect-error UI behavior preserved intentionally
+  const [isExpanded, setIsExpanded] = useState(false);
+
   // Derive accent color from outcome category
   const outcomeColors = {
     'Focus': '#00FFD1',
@@ -71,7 +74,8 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
         className="relative w-full max-w-sm mx-auto z-10"
       >
         <CardShell
-          className="relative overflow-hidden group border border-white/10"
+          className="relative overflow-hidden group border border-white/10 cursor-pointer"
+          onClick={() => setIsExpanded(!isExpanded)}
           style={{
             boxShadow: `inset 0 0 0 1px ${accentColor}20`
           }}
