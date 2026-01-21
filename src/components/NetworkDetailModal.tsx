@@ -218,7 +218,7 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                                     <button
                                         key={i}
                                         onClick={social.action}
-                                        className="flex-1 aspect-square rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-95 group relative overflow-hidden cursor-pointer touch-manipulation"
+                                        className="flex-1 aspect-square rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-95 group relative overflow-hidden cursor-pointer touch-manipulation"
                                         title={social.label}
                                     >
                                         {/* Glass Shine */}
@@ -233,9 +233,8 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                                             }}
                                         />
 
-                                        {/* Hover Glow */}
                                         <div
-                                            className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity"
+                                            className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity"
                                             style={{ backgroundColor: social.color }}
                                         />
                                     </button>

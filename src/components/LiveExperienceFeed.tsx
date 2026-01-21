@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Intelligence, BlendResolutionEvent } from '../lib/merchantIntelligence';
 import { ArrowLeft, Activity, Users, Clock, Zap } from 'lucide-react';
+import { resolveCultivarVisuals } from '../lib/visuals';
 
 interface LiveExperienceFeedProps {
     onBack: () => void;
@@ -193,11 +194,18 @@ export function LiveExperienceFeed({ onBack }: LiveExperienceFeedProps) {
                                                 </h4>
 
                                                 <div className="flex flex-wrap gap-1.5 mb-3">
-                                                    {event.componentSkus.map((sku, i) => (
-                                                        <span key={i} className="text-[9px] text-white/60 bg-white/5 px-2 py-1 rounded border border-white/10">
-                                                            {sku}
-                                                        </span>
-                                                    ))}
+                                                    {event.componentSkus.map((sku, i) => {
+                                                        const visuals = resolveCultivarVisuals(sku);
+                                                        return (
+                                                            <span key={i} className="flex items-center gap-1.5 text-[9px] text-white/80 bg-white/5 px-2 py-1 rounded border border-white/10">
+                                                                <div
+                                                                    className="w-1.5 h-1.5 rounded-full"
+                                                                    style={{ backgroundColor: visuals.primaryColor }}
+                                                                />
+                                                                {sku}
+                                                            </span>
+                                                        );
+                                                    })}
                                                 </div>
 
                                                 {event.inputMode === 'assisted' && (
