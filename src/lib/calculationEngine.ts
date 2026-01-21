@@ -1010,6 +1010,16 @@ function evaluateBlend(
 }
 
 // ============================================================================
+// DOMINANCE HISTORY (Session-based Anti-Attractor State)
+// ============================================================================
+export const DOMINANCE_HISTORY = new Map<string, number>();
+
+export function resetDominanceHistory() {
+  DOMINANCE_HISTORY.clear();
+  console.log("ENGINE: Dominance history cleared.");
+}
+
+// ============================================================================
 // MAIN GENERATION FUNCTION
 // ============================================================================
 
@@ -1067,10 +1077,28 @@ export function calculateBlends(
     // Constraints
     if (effect.anxiety > validatedIntent.constraints.maxAnxiety) score -= 0.5;
 
-    return { id: c.id, score, effect, cultivar: c };
+    // DOMINANCE SUPPRESSION (Contextual Penalty)
+    const frequency = DOMINANCE_HISTORY.get(c.id) || 0;
+    let penalty = 0;
+    if (frequency > 0) {
+      // Nonlinear penalty: High score resists penalty, Low score gets crushed.
+      // If score is 0.95, resistance is 0.05. Penalty = Freq * 0.15 * 0.05 = Tiny.
+      // If score is 0.70, resistance is 0.30. Penalty = Freq * 0.15 * 0.30 = Moderate.
+      // If score is 0.50, resistance is 0.50. Penalty = Freq * 0.15 * 0.50 = Significant.
+      // Max score is approx 1.0.
+      const alignmentFactor = Math.max(0, 1.0 - score);
+      penalty = frequency * 0.25 * alignmentFactor;
+
+      // Hard cap score to prevent it from winning if generic
+      score -= penalty;
+    }
+
+    return { id: c.id, score, effect, cultivar: c, penalty, baseScore: score + penalty };
   });
 
   // Filter top candidates for blending
+  // Filter top candidates for blending
+
   const topCandidates = cultivarScores
     .sort((a, b) => b.score - a.score)
     .slice(0, 12) // Top 12 strains
@@ -1113,8 +1141,18 @@ export function calculateBlends(
     }
   }
 
+  const recommendations = results.sort((a, b) => b.blendScore - a.blendScore).slice(0, 3);
+
+  // UPDATE DOMINANCE HISTORY
+  recommendations.forEach(rec => {
+    rec.cultivars.forEach(c => {
+      const count = DOMINANCE_HISTORY.get(c.id) || 0;
+      DOMINANCE_HISTORY.set(c.id, count + 1);
+    });
+  });
+
   return {
-    recommendations: results.sort((a, b) => b.blendScore - a.blendScore).slice(0, 3),
+    recommendations,
     intent: validatedIntent,
     inventory_timestamp: new Date().toISOString(),
     calculation_timestamp: new Date().toISOString(),
