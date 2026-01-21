@@ -491,58 +491,67 @@ export async function processIntent(
         // -------------------------------------------------------------
         console.log('ORCHESTRATOR: Invoking Claude Narrative Specialist...');
 
-        // STRICT BOUNDARY NORMALIZATION
-        // Sanitizes input before it ever touches the AI Layer
-        const sanitizeNarrativeInput = (input: any) => {
-            return {
-                userIntentSummary: String(input.userIntent ?? ""),
-                decisionSummary: String(input.decisionSummary ?? ""),
-                blendSummary: input.blends.map((b: any) => ({
-                    name: b.name || "Custom Blend",
-                    cultivars: (b.cultivars || [])
-                        .filter(Boolean)
-                        .map((c: any) => c.name)
-                        .slice(0, 5)
-                })),
-                toneMode: input.toneMode
-            };
-        };
+        // ROUTING LOGIC (STRICT)
+        // - Strain/Substitution logic -> NEO (GPT/Rule-based) ONLY
+        // - Editorial/Creative -> CLAUDE ALLOWED
+        const isStrainTask = isStrainMode || seed.text?.toLowerCase().includes('substitute') || seed.text?.toLowerCase().includes('replace');
 
-        try {
-            // Map Tone Mode
-            let toneMode: ToneMode = 'neutral';
-            switch (outcomeCategory) {
-                case 'Sleep': case 'Relax': toneMode = 'calm_reassuring'; break;
-                case 'Relief': toneMode = 'supportive'; break;
-                case 'Focus': toneMode = 'confident'; break;
-                case 'Social': toneMode = 'curious'; break;
-                default: toneMode = 'neutral';
-            }
-
-            if (safePrimary.length > 0) {
-                const primaryBlend = engineResults[0];
-
-                // Prepare Raw Input
-                const rawInput = {
-                    userIntent: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
-                    decisionSummary: `Engine generated ${primaryBlend.name} focusing on ${outcomeCategory}. Decision Reasoning: ${decision.reasoning}`,
-                    blends: [primaryBlend], // Pass as array for the sanitizer
-                    toneMode: toneMode
+        if (isStrainTask) {
+            console.log("ORCHESTRATOR: ROUTER -> Skipping Claude for Strain/Substitution task. Using deterministic fallback.");
+        } else {
+            // STRICT BOUNDARY NORMALIZATION
+            // Sanitizes input before it ever touches the AI Layer
+            const sanitizeNarrativeInput = (input: any) => {
+                return {
+                    userIntentSummary: String(input.userIntent ?? ""),
+                    decisionSummary: String(input.decisionSummary ?? ""),
+                    blendSummary: input.blends.map((b: any) => ({
+                        name: b.name || "Custom Blend",
+                        cultivars: (b.cultivars || [])
+                            .filter(Boolean)
+                            .map((c: any) => c.name)
+                            .slice(0, 5)
+                    })),
+                    toneMode: input.toneMode
                 };
+            };
 
-                // NORMALIZE at the boundary
-                const claudeInput = sanitizeNarrativeInput(rawInput);
-
-                // Call Orchestrator (Claude -> GPT Fallback)
-                const narrativeResult = await orchestrateNarrative(claudeInput);
-
-                if (narrativeResult) {
-                    console.log(`ORCHESTRATOR: Narrative Applied via ${narrativeResult.provider.toUpperCase()} ✓`);
-                    engineResults[0].reasoning = narrativeResult.text;
+            try {
+                // Map Tone Mode
+                let toneMode: ToneMode = 'neutral';
+                switch (outcomeCategory) {
+                    case 'Sleep': case 'Relax': toneMode = 'calm_reassuring'; break;
+                    case 'Relief': toneMode = 'supportive'; break;
+                    case 'Focus': toneMode = 'confident'; break;
+                    case 'Social': toneMode = 'curious'; break;
+                    default: toneMode = 'neutral';
                 }
+
+                if (safePrimary.length > 0) {
+                    const primaryBlend = engineResults[0];
+
+                    // Prepare Raw Input
+                    const rawInput = {
+                        userIntent: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
+                        decisionSummary: `Engine generated ${primaryBlend.name} focusing on ${outcomeCategory}. Decision Reasoning: ${decision.reasoning}`,
+                        blends: [primaryBlend], // Pass as array for the sanitizer
+                        toneMode: toneMode
+                    };
+
+                    // NORMALIZE at the boundary
+                    const claudeInput = sanitizeNarrativeInput(rawInput);
+
+                    // Call Orchestrator (Claude -> GPT Fallback)
+                    const narrativeResult = await orchestrateNarrative(claudeInput);
+
+                    if (narrativeResult) {
+                        console.log(`ORCHESTRATOR: Narrative Applied via ${narrativeResult.provider.toUpperCase()} ✓`);
+                        engineResults[0].reasoning = narrativeResult.text;
+                    }
+                }
+            } catch (e) {
+                console.error("ORCHESTRATOR: Narrative Step Failed", e);
             }
-        } catch (e) {
-            console.error("ORCHESTRATOR: Narrative Step Failed", e);
         }
 
         // ISSUE 3: STRAIN MODE ACKNOWLEDGMENT

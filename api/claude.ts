@@ -35,24 +35,36 @@ export default async function handler(request: any, response: any) {
         return response.status(500).json({ error: 'Configuration Error' });
     }
 
-    const { userIntentSummary, decisionSummary, blendSummary, toneMode } = request.body;
+    try {
+        const body = request.body || {};
+        const { userIntentSummary, decisionSummary, blendSummary, toneMode } = body;
 
-    // Construct the User Message based on Tone
-    let toneInstruction = "Tone Mode: neutral (Informative, Balanced, No emotional language)";
+        // SAFEGUARD: If body is malformed, fail gracefully (200 OK)
+        if (!userIntentSummary || !blendSummary) {
+            console.warn("Claude API: Missing required fields in body");
+            return response.status(200).json({
+                success: false,
+                reason: "invalid_payload",
+                narrative: null
+            });
+        }
 
-    switch (toneMode) {
-        case 'supportive': toneInstruction = "Tone Mode: supportive (Acknowledge preferences, Validate experience, Gentle)"; break;
-        case 'curious': toneInstruction = "Tone Mode: curious (Exploratory, Light questions, No assumptions)"; break;
-        case 'confident': toneInstruction = "Tone Mode: confident (Clear, Concise, Decisive tradeoffs)"; break;
-        case 'calm_reassuring': toneInstruction = "Tone Mode: calm_reassuring (Slower pacing, Grounded, Used for anxiety/confusion)"; break;
-    }
+        // Construct the User Message based on Tone
+        let toneInstruction = "Tone Mode: neutral (Informative, Balanced, No emotional language)";
 
-    // Format Blend Summary for Prompt
-    const formattedContext = blendSummary.map((b: any, i: number) =>
-        `Option ${i + 1} (${b.name}): Contains ${b.cultivars.join(', ')}.`
-    ).join('\n');
+        switch (toneMode) {
+            case 'supportive': toneInstruction = "Tone Mode: supportive (Acknowledge preferences, Validate experience, Gentle)"; break;
+            case 'curious': toneInstruction = "Tone Mode: curious (Exploratory, Light questions, No assumptions)"; break;
+            case 'confident': toneInstruction = "Tone Mode: confident (Clear, Concise, Decisive tradeoffs)"; break;
+            case 'calm_reassuring': toneInstruction = "Tone Mode: calm_reassuring (Slower pacing, Grounded, Used for anxiety/confusion)"; break;
+        }
 
-    const userMessage = `
+        // Format Blend Summary for Prompt
+        const formattedContext = blendSummary.map((b: any, i: number) =>
+            `Option ${i + 1} (${b.name}): Contains ${b.cultivars.join(', ')}.`
+        ).join('\n');
+
+        const userMessage = `
 User Intent: ${userIntentSummary}
 System Decision: ${decisionSummary}
 Outcome Context:
@@ -61,9 +73,8 @@ ${formattedContext}
 ${toneInstruction}
 
 Explain this outcome to the user. Max 140 words. Plain text only.
-    `.trim();
+        `.trim();
 
-    try {
         const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
@@ -83,17 +94,32 @@ Explain this outcome to the user. Max 140 words. Plain text only.
 
         if (!anthropicResponse.ok) {
             const errText = await anthropicResponse.text();
-            console.error("Anthropic API Error:", anthropicResponse.status, errText);
-            return response.status(500).json({ error: "Upstream Error" });
+            console.warn("Anthropic API Refusal/Error:", anthropicResponse.status, errText);
+
+            // STANDARDIZED FAILURE RESPONSE (200 OK)
+            return response.status(200).json({
+                success: false,
+                reason: "provider_refusal",
+                narrative: null,
+                details: `${anthropicResponse.status}: ${errText.slice(0, 100)}`
+            });
         }
 
         const data = await anthropicResponse.json();
         const text = data.content?.[0]?.text || "";
 
-        return response.status(200).json({ narrative: text });
+        return response.status(200).json({
+            success: true,
+            narrative: text
+        });
 
     } catch (error: any) {
-        console.error("Claude Proxy Error:", error);
-        return response.status(500).json({ error: "Internal Error" });
+        console.error("Claude Proxy Critical Error:", error);
+        // STANDARDIZED FAILURE RESPONSE (200 OK)
+        return response.status(200).json({
+            success: false,
+            reason: "internal_error",
+            narrative: null
+        });
     }
 }

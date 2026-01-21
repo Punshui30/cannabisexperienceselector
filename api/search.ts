@@ -23,20 +23,38 @@ export default async function handler(request: any, response: any) {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { query } = request.body;
-
-    if (!query) {
-        return response.status(400).json({ error: 'Missing query' });
-    }
-
     try {
+        // Safe Body Access
+        const body = request.body || {};
+        const { query } = body;
+
+        if (!query) {
+            console.warn('Search API: Missing query in request body');
+            // Return empty results is safer than error for this app's flow
+            return response.status(200).json({
+                query: "",
+                provider: "system",
+                sourcesFound: false,
+                evidence: [],
+                summary: "No query provided."
+            });
+        }
+
         const provider = new TavilySearchProvider();
         const result = await provider.search(query);
 
         return response.status(200).json(result);
 
     } catch (error: any) {
-        console.error('Search API Error:', error);
-        return response.status(500).json({ error: 'Internal Search Error' });
+        console.error('Search API Critical Failure:', error);
+        // STANDARDIZED FAILURE RESPONSE (200 OK)
+        // Prevents client-side crashes
+        return response.status(200).json({
+            query: "unknown",
+            provider: "system",
+            sourcesFound: false,
+            evidence: [],
+            error: "Internal Search Error" // Metadata for debugging
+        });
     }
 }

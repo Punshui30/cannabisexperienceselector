@@ -43,12 +43,20 @@ export async function generateNarrative(input: ClaudeNarrativeInput): Promise<st
         }
 
         const data = await response.json();
+
+        // NEW: Handle standardized failure responses (200 OK with success: false)
+        if (!data.success) {
+            console.warn(`CLAUDE REFUSAL/ERROR: ${data.reason}`, data.details || "");
+            return null; // Triggers Orchestrator fallback
+        }
+
         if (!data.narrative) throw new Error("Claude returned empty narrative");
 
         return data.narrative;
 
-    } catch (e) {
-        // Re-throw so Orchestrator can handle fallback
-        throw e;
+    } catch (e: any) {
+        console.warn(`Claude Narrator Client Error: ${e.message}`);
+        // Return null to ensure fallback always runs instead of crashing the chain
+        return null;
     }
 }
