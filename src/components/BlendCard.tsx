@@ -80,6 +80,21 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
           style={{
             boxShadow: `inset 0 0 0 1px ${accentColor}20`
           }}
+          // GLOW HINT: One-time pulse on mount
+          animate={{
+            borderColor: ["rgba(255, 255, 255, 0.1)", "rgba(0, 255, 209, 0.8)", "rgba(255, 255, 255, 0.1)"],
+            boxShadow: [
+              `inset 0 0 0 1px ${accentColor}20`,
+              `inset 0 0 0 1px ${accentColor}20, 0 0 30px rgba(0, 255, 209, 0.4)`,
+              `inset 0 0 0 1px ${accentColor}20`
+            ]
+          }}
+          transition={{
+            duration: 1.5,
+            delay: 0.5,
+            times: [0, 0.2, 1],
+            repeat: 0
+          }}
         >
           {/* Layer 1: Top-weighted iridescent accent */}
           <div
