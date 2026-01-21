@@ -108,23 +108,14 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "", enabl
                     >
                         {/* Curved arrow graphic using SVG */}
                         <div className="relative w-32 h-32 opacity-80">
-                            <svg viewBox="0 0 100 100" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" className="drop-shadow-lg animate-pulse">
-                                <path d="M20 50 Q 50 20 80 50" strokeDasharray="4 4" className="opacity-50" />
-                                <path d="M20 50 Q 50 20 80 50" pathLength="1" strokeDasharray="1" strokeDashoffset="0">
-                                    <animate attributeName="stroke-dashoffset" from="1" to="0" dur="1.5s" repeatCount="indefinite" />
-                                </path>
-                                <path d="M75 45 L80 50 L75 55" />
-                            </svg>
-                            {/* Hand icon hinting swipe */}
-                            <motion.div
-                                animate={{ x: [0, 40, 0], y: [0, -10, 0], rotate: [0, 10, 0] }}
+                            {/* Abstract Gesture Icon */}
+                            <motion.img
+                                src="/assets/swipe_gesture.png"
+                                alt="Swipe Left"
+                                animate={{ x: [0, -40, 0] }}
                                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute bottom-0 left-0 text-white/80"
-                            >
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2C13.1 2 14 2.9 14 4V11.53C14.3 11.23 14.63 11.05 14.97 11.05C15.93 11.05 16.79 11.75 16.96 12.71L17.65 16.63C17.78 17.38 17.62 18.15 17.21 18.79L14.77 22.58C14.53 22.95 14.12 23.17 13.68 23.17H8.86C8.24 23.17 7.7 22.76 7.54 22.16L6.08 16.63C6 16.32 6.07 16 6.27 15.75L8 13.59V4C8 2.9 8.9 2 10 2C11.1 2 12 2 12 2ZM12 4H10V11H12V4Z" />
-                                </svg>
-                            </motion.div>
+                                className="absolute bottom-0 left-8 w-16 h-16 object-contain opacity-80 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                            />
                         </div>
                     </motion.div>
                 )}
