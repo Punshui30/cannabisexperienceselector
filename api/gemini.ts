@@ -84,8 +84,9 @@ OUTPUT REQUIREMENTS:
 
         // CORRECT GEMINI API REQUEST FORMAT
         // Use query parameter for API key and proper user role
+        // Using gemini-1.5-flash for better API stability and lower latency
         const geminiResponse = await fetch(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: {
@@ -120,10 +121,27 @@ OUTPUT REQUIREMENTS:
             });
         }
 
-        const data = await geminiResponse.json();
+        // SAFE JSON PARSING (never call .json() blindly)
+        const rawText = await geminiResponse.text();
 
-        // Extract narrative from Gemini response
-        const narrative = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        let data: any = null;
+        try {
+            data = JSON.parse(rawText);
+        } catch {
+            console.warn('GEMINI: Non-JSON response:', rawText.slice(0, 200));
+            return response.status(200).json({
+                ok: false,
+                error: 'non_json_response',
+                details: 'Gemini returned non-JSON output'
+            });
+        }
+
+        // ROBUST CANDIDATE EXTRACTION (Gemini sometimes splits output across parts)
+        const narrative =
+            data?.candidates?.[0]?.content?.parts
+                ?.map((p: any) => p.text)
+                ?.join(' ')
+                ?.trim();
 
         if (!narrative) {
             console.warn('GEMINI: Empty response from API');
