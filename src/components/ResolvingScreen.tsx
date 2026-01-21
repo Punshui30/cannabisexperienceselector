@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { IntentSeed, UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { motion } from 'motion/react';
 import { Brain, Sparkles } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 interface ResolvingScreenProps {
     input: IntentSeed;
@@ -45,20 +46,39 @@ export function ResolvingScreen({ input, recommendation, onComplete }: Resolving
 
     return (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black text-white p-6">
-            <div className="relative">
+            <div className="relative w-48 h-48 flex items-center justify-center">
                 {/* Central Pulse */}
-                <div className="absolute inset-0 bg-[#00FFD1]/20 blur-xl rounded-full animate-pulse-slow" />
+                <div className="absolute inset-0 bg-[#d4a259]/10 blur-2xl rounded-full animate-pulse-slow" />
 
-                <div className="relative w-24 h-24 flex items-center justify-center rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                    <Brain className="text-[#00FFD1] w-8 h-8 animate-pulse" />
+                {/* LOGO (Center) */}
+                <div className="relative z-10 w-24 h-24 flex items-center justify-center p-2 bg-transparent">
+                    <img
+                        src={logoImg}
+                        alt="StrainMath Logo"
+                        className="w-full h-full object-contain animate-pulse-slow drop-shadow-[0_0_15px_rgba(212,162,89,0.3)]"
+                    />
                 </div>
 
-                {/* Orbiting Particles */}
+                {/* ROTATING TEXT RING */}
                 <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-[-12px] border border-[#00FFD1]/30 rounded-full border-t-transparent border-l-transparent"
-                />
+                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 pointer-events-none"
+                >
+                    <svg viewBox="0 0 200 200" className="w-full h-full opacity-90">
+                        <defs>
+                            <path
+                                id="textCircle"
+                                d="M 100, 100 m -80, 0 a 80,80 0 1,1 160,0 a 80,80 0 1,1 -160,0"
+                            />
+                        </defs>
+                        <text className="text-[14px] font-bold tracking-[0.2em] fill-[#d4a259] uppercase">
+                            <textPath href="#textCircle" startOffset="0%">
+                                StrainMath™ • StrainMath™ • StrainMath™ •
+                            </textPath>
+                        </text>
+                    </svg>
+                </motion.div>
             </div>
 
             <div className="mt-8 text-center space-y-2">

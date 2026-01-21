@@ -126,7 +126,12 @@ export async function generateNarratives(
                 content = content.substring(firstOpen, lastClose + 1);
             }
 
-            const parsed = JSON.parse(content);
+            let parsed = JSON.parse(content);
+
+            // AUTO-CORRECTION: Handle common wrapping errors
+            if (parsed.blends) parsed = parsed.blends;
+            if (parsed.responses) parsed = parsed.responses;
+            if (parsed.variants) parsed = parsed.variants;
 
             // VALIDATION: Ensure keys exist
             if (parsed && parsed.primary && parsed.secondary && parsed.contextual) {
