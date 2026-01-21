@@ -82,13 +82,15 @@ export function adaptEngineResult(
             { time: "2h", feeling: "Tapering Off" }
         ],
         terpeneProfile: (result as any).terpeneWeights || {},
-        cultivars: (result.cultivars || []).map((c: any) => ({
-            name: c.name || 'Unknown',
-            ratio: c.ratio || 0.5,
-            profile: c.profile || 'Hybrid',
-            characteristics: c.characteristics || [],
-            prominentTerpenes: [],
-            color: getCultivarVisuals(c.name || 'Unknown', c.profile).color
-        }))
+        cultivars: (result.cultivars || [])
+            .filter((c: any) => c && c.name) // FAST FIX: Filter undefineds
+            .map((c: any) => ({
+                name: c.name || 'Unknown',
+                ratio: c.ratio || 0.5,
+                profile: c.profile || 'Hybrid',
+                characteristics: c.characteristics || [],
+                prominentTerpenes: [],
+                color: getCultivarVisuals(c.name || 'Unknown', c.profile).color
+            }))
     };
 }

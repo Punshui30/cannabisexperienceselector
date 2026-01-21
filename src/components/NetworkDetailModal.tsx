@@ -1,5 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, X, Info, Share2, Twitter, Instagram, Facebook, Link as LinkIcon } from 'lucide-react';
+import { Activity, X, Info, Share2, Twitter, Instagram, Facebook, Link as LinkIcon, Check } from 'lucide-react';
+import { resolveCultivarVisuals } from '../lib/visuals';
+import { useState } from 'react';
 
 interface NetworkDetailModalProps {
     event: {
@@ -24,6 +26,24 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
         'Other': '#ffffff'
     };
     const themeColor = categoryColors[event.outcomeCategory] || '#00FFD1';
+
+    // Share Handler
+    const [copied, setCopied] = useState(false);
+    const shareUrl = window.location.href; // Or specific deep link logic
+    const shareText = `Check out this ${event.blendName} experience on StrainMath.`;
+
+    const handleShare = (platform: 'twitter' | 'facebook' | 'copy') => {
+        if (platform === 'twitter') {
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+        } else if (platform === 'facebook') {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+        } else if (platform === 'copy') {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            });
+        }
+    };
 
     return (
         <motion.div
@@ -146,27 +166,30 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
 
                         {/* Composition list with iridescent hover */}
                         <div className="space-y-3">
-                            {event.componentSkus.map((sku, idx) => (
-                                <motion.div
-                                    key={idx}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.1 + 0.3 }}
-                                    className="bg-white/[0.04] border border-white/5 rounded-2xl p-4 flex items-center justify-between group hover:bg-white/[0.08] hover:border-white/20 transition-all duration-300 relative overflow-hidden"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div
-                                            className="w-2 h-2 rounded-full shadow-[0_0_10px_currentcolor]"
-                                            style={{ backgroundColor: themeColor, color: themeColor }}
-                                        />
-                                        <span className="text-[13px] text-white/90 font-medium tracking-wide">{sku}</span>
-                                    </div>
-                                    <span className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">COA Verified</span>
+                            {event.componentSkus.map((sku, idx) => {
+                                const visuals = resolveCultivarVisuals(sku);
+                                return (
+                                    <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.1 + 0.3 }}
+                                        className="bg-white/[0.04] border border-white/5 rounded-2xl p-4 flex items-center justify-between group hover:bg-white/[0.08] hover:border-white/20 transition-all duration-300 relative overflow-hidden"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div
+                                                className="w-2 h-2 rounded-full shadow-[0_0_10px_currentcolor]"
+                                                style={{ backgroundColor: visuals.primaryColor, color: visuals.primaryColor }}
+                                            />
+                                            <span className="text-[13px] text-white/90 font-medium tracking-wide">{sku}</span>
+                                        </div>
+                                        <span className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">COA Verified</span>
 
-                                    {/* Hover Gradient Fill */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                </motion.div>
-                            ))}
+                                        {/* Hover Gradient Fill */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                    </motion.div>
+                                );
+                            })}
                         </div>
 
                         {/* Narrative with Refined Category Text */}
@@ -188,14 +211,14 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                             <span className="text-[9px] text-white/40 uppercase tracking-[0.3em] font-black block mb-5 text-center">Share This Profile</span>
                             <div className="flex justify-between items-center gap-4">
                                 {[
-                                    { icon: Twitter, label: 'Twitter', color: '#1DA1F2' },
-                                    { icon: Instagram, label: 'Instagram', color: '#E1306C' },
-                                    { icon: Facebook, label: 'Facebook', color: '#4267B2' },
-                                    { icon: LinkIcon, label: 'Copy Link', color: '#ffffff' }
+                                    { icon: Twitter, label: 'Twitter', color: '#1DA1F2', action: () => handleShare('twitter') },
+                                    { icon: Facebook, label: 'Facebook', color: '#4267B2', action: () => handleShare('facebook') },
+                                    { icon: copied ? Check : LinkIcon, label: copied ? 'Copied' : 'Copy Link', color: copied ? '#00FFD1' : '#ffffff', action: () => handleShare('copy') }
                                 ].map((social, i) => (
                                     <button
                                         key={i}
-                                        className="flex-1 aspect-square rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-95 group relative overflow-hidden"
+                                        onClick={social.action}
+                                        className="flex-1 aspect-square rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-95 group relative overflow-hidden cursor-pointer touch-manipulation"
                                         title={social.label}
                                     >
                                         {/* Glass Shine */}
@@ -205,7 +228,8 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                                             size={20}
                                             className="group-hover:scale-125 transition-transform duration-500 z-10"
                                             style={{
-                                                filter: `drop-shadow(0 0 8px ${social.color}40)`
+                                                filter: `drop-shadow(0 0 8px ${social.color}40)`,
+                                                color: social.label === 'Copied' ? '#00FFD1' : undefined
                                             }}
                                         />
 
