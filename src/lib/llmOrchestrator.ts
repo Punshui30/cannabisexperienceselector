@@ -74,6 +74,11 @@ export async function processIntent(
 
                 const validEvidence = searchResults.filter(r => r && r.sourcesFound);
 
+                // Check for Tavily degradation
+                if (searchResults.some((r: any) => r?.tavily_failed)) {
+                    console.log('[SEARCH_DEGRADED] Tavily search failed, proceeding with internal heuristics only');
+                }
+
                 if (validEvidence.length > 0) {
                     console.log('ORCHESTRATOR: Evidence found, refining Decision...');
                     // Re-run Decision with Evidence to classify as "external_verified"

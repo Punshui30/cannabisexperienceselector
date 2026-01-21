@@ -3,6 +3,12 @@ import { TavilySearchProvider } from '../src/lib/search/providers/tavily';
 /**
  * SERVERLESS FUNCTION HANDLER
  * Path: /api/search
+ * 
+ * HARDENED IMPLEMENTATION:
+ * - Strict TAVILY_API_KEY validation
+ * - Safe JSON body parsing
+ * - Graceful degradation with tavily_failed flag
+ * - Never returns 500
  */
 export default async function handler(request: any, response: any) {
     // CORS Header Setup
@@ -23,14 +29,35 @@ export default async function handler(request: any, response: any) {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
+    // STRICT: Validate TAVILY_API_KEY presence
+    const apiKeyPresent = !!process.env.TAVILY_API_KEY;
+    console.log(`[SEARCH_API] API Key Present: ${apiKeyPresent}`);
+
+    if (!apiKeyPresent) {
+        console.error('[SEARCH_API] TAVILY_API_KEY missing from environment');
+        return response.status(200).json({
+            query: "",
+            provider: "tavily",
+            sourcesFound: false,
+            evidence: [],
+            tavily_failed: true,
+            error: "Search configuration error: Missing API key"
+        });
+    }
+
     try {
-        // Safe Body Access
-        const body = request.body || {};
+        // SAFE: Parse request body with fallback
+        let body: any = {};
+        try {
+            body = request.body || {};
+        } catch (parseError) {
+            console.warn('[SEARCH_API] Failed to parse request body, using empty object');
+        }
+
         const { query } = body;
 
-        if (!query) {
-            console.warn('Search API: Missing query in request body');
-            // Return empty results is safer than error for this app's flow
+        if (!query || typeof query !== 'string') {
+            console.warn('[SEARCH_API] Missing or invalid query in request body');
             return response.status(200).json({
                 query: "",
                 provider: "system",
@@ -40,24 +67,28 @@ export default async function handler(request: any, response: any) {
             });
         }
 
-        console.debug(`[SEARCH_API] Request received for query: "${query}"`);
+        console.log(`[SEARCH_API] Request received for query: "${query}"`);
+        console.log('[SEARCH_API] Tavily request start');
 
         const provider = new TavilySearchProvider();
         const result = await provider.search(query);
 
-        console.debug(`[SEARCH_API] Success: Found ${result.evidence.length} sources`);
+        console.log(`[SEARCH_API] Tavily response status: ${result.sourcesFound ? 'success' : 'no results'}`);
+        console.log(`[SEARCH_API] Success: Found ${result.evidence.length} sources`);
+
         return response.status(200).json(result);
 
     } catch (error: any) {
         console.error(`[SEARCH_API] Critical Failure:`, error);
-        // STANDARDIZED FAILURE RESPONSE (200 OK)
-        // Prevents client-side crashes
+
+        // GRACEFUL DEGRADATION: Return 200 with tavily_failed flag
         return response.status(200).json({
-            query: "unknown",
-            provider: "system",
+            query: request.body?.query || "unknown",
+            provider: "tavily",
             sourcesFound: false,
             evidence: [],
-            error: "Internal Search Error" // Metadata for debugging
+            tavily_failed: true,
+            error: "Tavily search failed"
         });
     }
 }

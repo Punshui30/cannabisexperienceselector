@@ -36,13 +36,15 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
       </div>
 
       <div className="relative z-20 flex flex-col animate-in fade-in zoom-in-95 duration-500"> {/* Added subtle entry animation for Refactor Transitions */}
-        {/* DEBUG OVERLAY (Bottom) */}
-        <div className="absolute bottom-[-200px] left-0 w-full z-50 pointer-events-none p-4 opacity-50 hover:opacity-100 transition-opacity">
-          <h3 className="text-red-500 font-bold text-xs">DEBUG</h3>
-          <pre className="text-[9px] text-green-400 font-mono whitespace-pre-wrap h-24 overflow-y-auto pointer-events-auto select-text bg-black/80 border border-white/10">
-            {JSON.stringify(recommendations, null, 2)}
-          </pre>
-        </div>
+        {/* DEBUG OVERLAY (Bottom) - Development Only */}
+        {(process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_SHOW_DEBUG === 'true') && (
+          <div className="absolute bottom-[-200px] left-0 w-full z-50 pointer-events-none p-4 opacity-50 hover:opacity-100 transition-opacity">
+            <h3 className="text-red-500 font-bold text-xs">DEBUG</h3>
+            <pre className="text-[9px] text-green-400 font-mono whitespace-pre-wrap h-24 overflow-y-auto pointer-events-auto select-text bg-black/80 border border-white/10">
+              {JSON.stringify(recommendations, null, 2)}
+            </pre>
+          </div>
+        )}
 
         {/* HEADER */}
         <div className="flex-shrink-0 pt-12 px-6 max-[360px]:px-4 max-[360px]:pt-8 pb-4 relative z-30"> {/* Density: pt-16 -> pt-12, pb-6 -> pb-4 */}
