@@ -47,10 +47,10 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                     intro = "Accessing Strain Library. Looking for a specific chemotype?";
                     break;
                 case 'input':
-                    intro = "System Ready. I can help you construct a query or explore presets.";
+                    intro = "Hi, I'm your Live Assistant. I can help you construct a query or explore presets.";
                     break;
                 default:
-                    intro = "System Ready. Adjust parameters or query logic.";
+                    intro = "Hi, I'm your Live Assistant. Adjust parameters or query logic.";
             }
         }
         setMessages([{ role: 'assistant', content: intro }]);
