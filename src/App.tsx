@@ -263,6 +263,8 @@ export default function App() {
             else {
               console.log('APP: No engine mutation required. Preserving state.');
               setIsAnalyzing(false);
+              setAnalysisProgress(100);
+              setView('input'); // Or stay where you are, but signal 100 to clear Resolving
 
               // We still update the snapshot so the Live Consultant sees the response
               if (result.analysis?.reasoning) {
@@ -429,7 +431,7 @@ export default function App() {
                   />
                 )}
                 {/* Deployment Marker */}
-                <div className="fixed bottom-2 right-2 text-[8px] text-white/10 pointer-events-none">v8.1</div>
+                <div className="fixed bottom-2 right-2 text-[8px] text-white/10 pointer-events-none">v8.2</div>
 
 
                 {/* SHARED READ-ONLY VIEW */}
