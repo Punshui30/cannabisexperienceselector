@@ -6,6 +6,7 @@ import { Send, X, Mic, Sparkles, Check, Brain } from 'lucide-react';
 interface LiveConsultantProps {
     consultantText?: string;
     context?: {
+        screen?: string;
         recommendation?: UIBlendRecommendation | UIStackRecommendation;
         userInput?: string;
         cardType?: 'primary' | 'secondary' | 'contextual';
@@ -28,11 +29,32 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     const [hasCommitted, setHasCommitted] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Initial Greeting
+    // Initial Greeting (Context-Aware)
     useEffect(() => {
-        const intro = consultantText || "System Ready. Adjust parameters or query logic.";
+        let intro = consultantText;
+        if (!intro) {
+            switch (context?.screen) {
+                case 'results':
+                    intro = "I've analyzed these options. Would you like to refine the terpene profile or effect target?";
+                    break;
+                case 'blend-detail':
+                    intro = "Analyzing blend synergy. Ask about specific terpene effects or request adjustments.";
+                    break;
+                case 'stack-detail':
+                    intro = "Viewing Stack architecture. I can explain the layer interactions.";
+                    break;
+                case 'library':
+                    intro = "Accessing Strain Library. Looking for a specific chemotype?";
+                    break;
+                case 'input':
+                    intro = "System Ready. I can help you construct a query or explore presets.";
+                    break;
+                default:
+                    intro = "System Ready. Adjust parameters or query logic.";
+            }
+        }
         setMessages([{ role: 'assistant', content: intro }]);
-    }, [context?.recommendation?.id, consultantText]);
+    }, [context?.recommendation?.id, context?.screen, consultantText]);
 
     // Auto-scroll to bottom
     useEffect(() => {

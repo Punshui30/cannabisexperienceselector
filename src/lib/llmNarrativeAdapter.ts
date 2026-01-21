@@ -17,36 +17,38 @@ const NARRATIVE_SYSTEM_PROMPT = `
 You are the Experiential Narrative Engine for StrainMath™.
 Your job is to generate grounded, dispensary-style names and clear explanations for cannabis blends.
 
-### NAMING DISCIPLINE (STRICT)
-Names must be **relatable, functional, and grounded**.
+NAMING DISCIPLINE (STRICT)
+Names must be relatable, functional, and grounded.
 
-**ALLOWED PATTERNS:**
+ALLOWED PATTERNS:
 1. Functional + Context (e.g., "Calm Focus", "Social Ease", "Pain Relief")
 2. Familiar Phrases (e.g., "Balanced Uplift", "Clear headed Calm")
 3. Time-Based (e.g., "Morning Balance", "Nighttime Unwind")
 
-**FORBIDDEN WORDS (Instant Fail):**
+FORBIDDEN WORDS (Instant Fail):
 - No gemstones (Amethyst, Emerald, Ruby)
 - No fantasy terms (Whisper, Dream, Ethereal, Mystic, Aura, Velvet)
 - No poetic abstraction (Serene, Bliss, Nirvana, Zen)
 
-**Examples:**
-✅ VALID: "Social Focus", "Body Relief", "Evening Calm", "Creative Energy"
-❌ INVALID: "Whispered Amethyst", "Velvet Dream", "Serene Sunrise", "Mystic Haze"
+Examples:
+VALID: "Social Focus", "Body Relief", "Evening Calm", "Creative Energy"
+INVALID: "Whispered Amethyst", "Velvet Dream", "Serene Sunrise", "Mystic Haze"
 
-### CONTENT VISUALIZATION
-- **Literal Nuance**: Reference specific concepts from the user's raw query (e.g., "first date", "verbal creativity", "nature walk") in the EXPLANATION, not the name.
-- **Variant Distinction**:
+CONTENT VISUALIZATION
+- Literal Nuance: Reference specific concepts from the user's raw query (e.g., "first date", "verbal creativity", "nature walk") in the EXPLANATION, not the name.
+- Variant Distinction:
     - Primary: Directly addresses the user's stated scenario.
     - Secondary: Explores an adjacent or deeper interpretation of the goal.
     - Contextual: Adapts to implied time, environment, or gentleness.
-- **Tone**: Premium, clinical-yet-vibrant, authoritative but empathetic.
-- **Body-Forward Specifics**: If user wants "couch lock", use terms like "physically grounded".
+- Tone: Premium, clinical-yet-vibrant, authoritative but empathetic.
+- Body-Forward Specifics: If user wants "couch lock", use terms like "physically grounded".
 
-### SANITY CHECK
-- If a name sounds like a perfume or a fantasy novel, REJECT IT.
-- Use a boring functional name rather than a bad poetic one.
-`;
+CRITICAL OUTPUT RULES
+- You must respond with VALID JSON ONLY.
+- DO NOT use markdown code blocks (no \`\`\`).
+- DO NOT use headings or intro text.
+- JUST THE JSON OBJECT.
+`.trim();
 
 export interface NarrativeResult {
     primary: { name: string; explanation: string };
@@ -79,41 +81,62 @@ export async function generateNarratives(
         }
     };
 
-    try {
-        const response = await fetch(LLM_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: 'gpt-4-turbo',
-                messages: [
-                    { role: "system", content: NARRATIVE_SYSTEM_PROMPT },
-                    { role: "user", content: `Generate narratives for this request:\n\n${JSON.stringify(promptInput, null, 2)}` }
-                ],
-                temperature: 0.7
-            })
-        });
+    const MAX_RETRIES = 1;
 
-        if (!response.ok) throw new Error(`Narrative API failed: ${response.status}`);
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const messages = [
+                { role: "system", content: NARRATIVE_SYSTEM_PROMPT },
+                { role: "user", content: `Generate narratives for this request:\n\n${JSON.stringify(promptInput, null, 2)}` }
+            ];
 
-        const data = await response.json();
-        let content = data.choices?.[0]?.message?.content;
-        if (!content) throw new Error("No narrative content received");
+            // If this is a retry, append the error context to force correction
+            if (attempt > 0) {
+                console.warn(`NARRATIVE ADAPTER: Retrying generation (Attempt ${attempt + 1})`);
+                messages.push({
+                    role: "user",
+                    content: "The previous response was NOT valid JSON. Please generate ONLY the raw JSON object. No markdown."
+                });
+            }
 
-        // Clean markdown blocks and extract JSON
-        content = content.replace(/```json/g, '').replace(/```/g, '');
+            const response = await fetch(LLM_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'gpt-4-turbo',
+                    messages,
+                    temperature: 0.7
+                })
+            });
 
-        // Robust extraction: Find the first '{' and last '}'
-        const firstOpen = content.indexOf('{');
-        const lastClose = content.lastIndexOf('}');
+            if (!response.ok) throw new Error(`Narrative API failed: ${response.status}`);
 
-        if (firstOpen !== -1 && lastClose !== -1) {
-            content = content.substring(firstOpen, lastClose + 1);
+            const data = await response.json();
+            let content = data.choices?.[0]?.message?.content;
+            if (!content) throw new Error("No narrative content received");
+
+            // Clean markdown blocks just in case they ignored the rule
+            content = content.replace(/```json/g, '').replace(/```/g, '');
+
+            // Robust extraction: Find the first '{' and last '}'
+            const firstOpen = content.indexOf('{');
+            const lastClose = content.lastIndexOf('}');
+
+            if (firstOpen !== -1 && lastClose !== -1) {
+                content = content.substring(firstOpen, lastClose + 1);
+            }
+
+            return JSON.parse(content) as NarrativeResult;
+
+        } catch (e: any) {
+            console.warn(`NARRATIVE ADAPTER: Attempt ${attempt + 1} failed:`, e.message);
+
+            if (attempt === MAX_RETRIES) {
+                console.error('NARRATIVE ADAPTER: Failed to generate synergetic narratives after retries', e);
+                return null; // Fallback handled by orchestrator
+            }
         }
-
-        return JSON.parse(content) as NarrativeResult;
-
-    } catch (e) {
-        console.error('NARRATIVE ADAPTER: Failed to generate synergetic narratives', e);
-        return null; // Fallback handled by orchestrator
     }
+
+    return null;
 }

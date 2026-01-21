@@ -73,7 +73,10 @@ export default function App() {
   // SPLIT STATE (Strict Firewall)
   const [stackRec, setStackRec] = useState<UIStackRecommendation | null>(null);
   const [blendRecs, setBlendRecs] = useState<(UIBlendRecommendation | UIStackRecommendation)[]>([]); // Array logic
-  const [selectedBlend, setSelectedBlend] = useState<UIBlendRecommendation | null>(null);
+  const [selectedBlendId, setSelectedBlendId] = useState<string | null>(null);
+
+  // DERIVED STATE: Active blend resolved from ID (Single Source of Truth)
+  const activeBlend = (blendRecs.find(b => b.id === selectedBlendId) as UIBlendRecommendation) || null;
 
   // Shared UI State
   const [calculatorOpen, setCalculatorOpen] = useState(false);
@@ -385,7 +388,7 @@ export default function App() {
                   onBack={handleBack}
                   onShare={(rec) => setQRShareOpen(true)}
                   onViewDetail={(blend) => {
-                    setSelectedBlend(blend);
+                    setSelectedBlendId(blend.id);
                     setView('blend-detail');
                   }}
                   onOpenConsultant={() => setShowConsultant(true)}
@@ -416,10 +419,10 @@ export default function App() {
               )}
 
               {/* BLEND DETAIL (Blends Only) */}
-              {view === 'blend-detail' && selectedBlend && (
+              {view === 'blend-detail' && activeBlend && (
                 <BlendDetailScreen
-                  blend={selectedBlend}
-                  onBack={() => setView('results')}
+                  blend={activeBlend}
+                  onBack={() => { setSelectedBlendId(null); setView('results'); }}
                 />
               )}
 
@@ -466,9 +469,10 @@ export default function App() {
               <LiveConsultant
                 consultantText={consultantText}
                 context={{
+                  screen: view,
                   recommendation:
                     // 1. If viewing explicit details, prioritize that
-                    (view === 'blend-detail' && selectedBlend) ? selectedBlend :
+                    (view === 'blend-detail' && activeBlend) ? activeBlend :
                       (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || blendRecs[0]) :
                         // 2. Fallback to primary result if in results view
                         (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
@@ -483,11 +487,23 @@ export default function App() {
 
                   if (adaptedSet.length > 0) {
                     setBlendRecs(adaptedSet);
-                    setView('results');
+
+                    // RE-SELECT ACTIVE BLEND FROM NEW RESULTS (prevents stale state)
+                    // If we were viewing a detail, select the corresponding new blend by index
+                    if (view === 'blend-detail' && selectedBlendId) {
+                      const oldIndex = blendRecs.findIndex(b => b.id === selectedBlendId);
+                      const newSelection = adaptedSet[oldIndex >= 0 ? oldIndex : 0];
+                      if (newSelection) {
+                        setSelectedBlendId(newSelection.id);
+                        console.log(`APP: Re-selected blend: ${newSelection.id}`);
+                      }
+                    } else {
+                      setView('results');
+                    }
 
                     // UPDATE SNAPSHOT so Facade knows about the new state
                     updateEngineSnapshot({
-                      inputs: "Live Consultant Refactor", // Generic label since we don't have the exact query here easily
+                      inputs: "Live Consultant Refactor",
                       results: adaptedSet,
                       summary: "Refactored via Live Consultant"
                     });
