@@ -7,21 +7,24 @@
  */
 
 const SYSTEM_PROMPT = `
-You are a narrative interpreter for a cannabis experience application.
+You are a narrative editor for a cannabis experience application.
 
-Your job is to explain outcomes that have already been determined by the system.
-You do NOT make decisions. You do NOT change results. You do NOT invent data.
+Your job is to ENHANCE the tone and flow of an existing "Tier-1" narrative provided by the system.
+You do NOT make decisions. You do NOT change the facts (cultivars, effects).
 
 CRITICAL POLICY:
-1. ACT FIRST: If the user expressed a dislike or preference, the system has *already* acted on it. You explain the result. Never ask for permission.
-2. SANITIZED LANGUAGE: Never use robotic phrases like "updating parameters", "adjusting variables", or "processing request". Speak human-to-human. "Got it, I've swapped that out."
-3. NO CLARIFICATION: Do not ask clarifying questions about binary preferences. Assume the user wants a smart substitution.
+1. PRESERVE INTENT: The original reasoning is mathematically correct. Do not contradict it.
+2. IMPROVE VOICE: Make it sound more human, confident, or reassuring based on the requested Tone Mode.
+3. BE CONCISE: Max 120 words.
+4. NO ROBOTIC INTROS: Start directly with the explanation.
 
-Your goal is to explain the NEW blend state to the user.
-Explain *why* the new blend is better given their input.
-Cite the substitution if one happened (e.g. "I replaced Cherry Pie with [Substitute] to avoid the cherry notes while keeping the [Effect].")
+Input will include:
+- User Intent
+- Tier-1 Draft (Name & Reasoning)
+- Tone Mode
 
-Your output must be plain text only. Max 140 words.
+Output:
+- A polished version of the reasoning text only.
 `.trim();
 
 export default async function handler(request: any, response: any) {
@@ -37,11 +40,11 @@ export default async function handler(request: any, response: any) {
 
     try {
         const body = request.body || {};
-        const { userIntentSummary, decisionSummary, blendSummary, toneMode } = body;
+        const { userIntentSummary, decisionSummary, blendSummary, toneMode, tier1Narrative } = body;
 
         // SAFEGUARD: If body is malformed, fail gracefully (200 OK)
-        if (!userIntentSummary || !blendSummary) {
-            console.warn("Claude API: Missing required fields in body");
+        if (!userIntentSummary || !tier1Narrative) {
+            console.warn("Claude API: Missing required fields (tier1Narrative)");
             return response.status(200).json({
                 success: false,
                 reason: "invalid_payload",
@@ -59,21 +62,18 @@ export default async function handler(request: any, response: any) {
             case 'calm_reassuring': toneInstruction = "Tone Mode: calm_reassuring (Slower pacing, Grounded, Used for anxiety/confusion)"; break;
         }
 
-        // Format Blend Summary for Prompt
-        const formattedContext = blendSummary.map((b: any, i: number) =>
-            `Option ${i + 1} (${b.name}): Contains ${b.cultivars.join(', ')}.`
-        ).join('\n');
-
         const userMessage = `
 User Intent: ${userIntentSummary}
-System Decision: ${decisionSummary}
-Outcome Context:
-${formattedContext}
+System Reasoning (Draft): "${tier1Narrative.reasoning}"
 
 ${toneInstruction}
 
-Explain this outcome to the user. Max 140 words. Plain text only.
+Please rewrite the System Reasoning to match the Tone Mode. Keep the facts, improve the flow.
         `.trim();
+
+        // SIGNAL: 30s Timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
         const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
@@ -89,8 +89,11 @@ Explain this outcome to the user. Max 140 words. Plain text only.
                 messages: [
                     { role: "user", content: userMessage }
                 ]
-            })
+            }),
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (!anthropicResponse.ok) {
             const errText = await anthropicResponse.text();

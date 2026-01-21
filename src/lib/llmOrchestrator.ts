@@ -431,90 +431,108 @@ export async function processIntent(
         // ---------------------------------------------------------
         // DEFENSIVE NORMALIZATION (Prevent Crashes)
         // ---------------------------------------------------------
-        // Ensure all blends have valid cultivars before passing to ANY narrative adapter
+        console.log('ORCHESTRATOR: Generating Tier-1 Deterministic Narratives...');
+
+        /**
+         * HELPER: SANITIZE BLEND
+         */
         const sanitizeBlend = (b: EngineResult) => {
             if (!b || !b.cultivars) return [];
             return b.cultivars.filter(Boolean).filter(c => c && typeof c.name === 'string');
         };
 
-        const safePrimary = sanitizeBlend(engineResults[0]);
-        const safeSecondary = sanitizeBlend(engineResults[1]);
-        const safeContextual = sanitizeBlend(engineResults[2]);
+        /**
+         * GENERATE DETERMINISTIC NARRATIVE
+         * This function produces the final-quality output derived strictly from engine math.
+         * It must NOT depend on any LLM.
+         */
+        const generateDeterministicNarrative = (
+            result: EngineResult,
+            role: 'primary' | 'alternative' | 'contextual',
+            intent: IntentSpec,
+            seedText: string
+        ): { name: string, reasoning: string } => {
+            const cultivars = result.cultivars || [];
+            if (cultivars.length === 0) return { name: "Custom Blend", reasoning: "A specialized formulation." };
 
-        // Check if we have valid primary data to proceed
-        if (safePrimary.length === 0) {
-            console.warn("ORCHESTRATOR: Primary blend has no valid cultivars. Skipping narrative.");
-        }
+            // 1. Identify Roles (Anchor vs Support)
+            // Assumes engine returns sorted by ratio desc, or we sort here.
+            const sorted = [...cultivars].sort((a, b) => b.ratio - a.ratio);
+            const anchor = sorted[0];
+            const supports = sorted.slice(1);
 
-        console.log('ORCHESTRATOR: Narrative Generation Phase');
-        if (!isStack && engineResults.length >= 2) { // At least Primary and Secondary
-            const variants = {
-                primary: engineResults[0],
-                secondary: engineResults[1],
-                contextual: engineResults[2] || engineResults[0] // Fallback if no contextual
-            };
+            // 2. Derive Math Insight
+            let insight = "";
+            const requestedEffect = intent.targetEffects[0] || "balance"; // Heuristic main effect
+            const avoid = intent.avoidEffects.length > 0 ? intent.avoidEffects[0] : null;
 
-            // Attempt LLM-driven narratives with full intent context (Old Adapter)
-            try {
-                const narratives = await generateNarratives(seed.text || "", intentSpec, variants);
-                if (narratives && narratives.primary && narratives.secondary) {
-                    engineResults[0].name = narratives.primary.name;
-                    engineResults[0].reasoning = narratives.primary.explanation;
-                    engineResults[1].name = narratives.secondary.name;
-                    engineResults[1].reasoning = narratives.secondary.explanation;
-                    if (engineResults[2]) {
-                        engineResults[2].name = narratives.contextual.name;
-                        engineResults[2].reasoning = narratives.contextual.explanation;
-                    }
+            if (role === 'primary') {
+                if (anchor.name.toLowerCase().includes(seedText.toLowerCase())) {
+                    insight = `This formulation is anchored by ${anchor.name} as requested, preserving its core profile while using ${supports.length > 0 ? supports[0].name : "supporting strains"} to modulate the experience.`;
+                } else if (avoid) {
+                    insight = `Constructed to bypass ${avoid} by selecting ${anchor.name} as a low-risk foundation.`;
                 } else {
-                    throw new Error("Narrative generation returned incomplete data");
+                    insight = `${anchor.name} drives the primary ${requestedEffect} effect, while ${supports.map(s => s.name).join(' and ')} broaden the terpene profile for a more complex finish.`;
                 }
-            } catch (err) {
-                console.warn('ORCHESTRATOR: Narrative generation failed. Using smart fallback.', err);
-
-                // SMART FALLBACK
-                const userGoal = seed.text || "your stated preferences";
-                const avoidances = intentSpec.avoidEffects.length > 0 ? ` while avoiding ${intentSpec.avoidEffects.join(', ')}` : '';
-
-                engineResults[0].name = safePrimary.map(c => c.name).join(' × ');
-                engineResults[0].reasoning = `This formulation is tuned for your stated goal: ${userGoal}. The selected cultivars were chosen to balance the desired effects${avoidances}.`;
-
-                if (engineResults[1]) {
-                    engineResults[1].name = safeSecondary.map(c => c.name).join(' × ');
-                    engineResults[1].reasoning = `An alternative approach to ${userGoal}, emphasizing a different terpene balance${avoidances}.`;
-                }
+            } else if (role === 'alternative') {
+                // Secondary usually flips effects
+                const isBodyFocus = intent.targetEffects.some(e => ['body', 'sleep', 'relax', 'sedation', 'pain'].includes(e.toLowerCase()));
+                insight = `An alternative approach to ${requestedEffect}. While the primary blend relies on ${isBodyFocus ? 'body' : 'cerebral'} effects, this shifts the focus toward a ${anchor.profile || 'distinct'} profile using ${anchor.name}.`;
+            } else if (role === 'contextual') {
+                // Contextual usually shifts constraints (Time/Anxiety)
+                const time = intent.constraints.timeOfDay;
+                const isAnxietyReduced = intent.avoidEffects.includes('anxiety') || intent.targetEffects.includes('calm');
+                insight = `Optimized for ${time || 'specific context'}. adjusted to fit a ${isAnxietyReduced ? 'lower intensity' : 'different'} use-case, relying on ${anchor.name} for consistent output.`;
             }
+
+            // 3. Construct Name
+            const name = sorted.length <= 2
+                ? sorted.map(c => c.name).join(' + ')
+                : `${anchor.name} System`;
+
+            return {
+                name: name,
+                reasoning: insight
+            };
+        };
+
+        // APPLY TIER-1 NARRATIVE TO ALL RESULTS
+        const safePrimary = sanitizeBlend(engineResults[0]);
+        if (engineResults[0] && safePrimary.length > 0) {
+            const t1 = generateDeterministicNarrative(engineResults[0], 'primary', intentSpec, seed.text || "");
+            engineResults[0].name = t1.name;
+            engineResults[0].reasoning = t1.reasoning;
+            console.log("TIER-1 (Primary):", t1.reasoning);
         }
 
+        if (engineResults[1]) {
+            const t1 = generateDeterministicNarrative(engineResults[1], 'alternative', intentSpec, seed.text || "");
+            engineResults[1].name = t1.name;
+            engineResults[1].reasoning = t1.reasoning;
+            console.log("TIER-1 (Alt):", t1.reasoning);
+        }
+
+        if (engineResults[2]) {
+            const t1 = generateDeterministicNarrative(engineResults[2], 'contextual', intentSpec, seed.text || "");
+            engineResults[2].name = t1.name;
+            engineResults[2].reasoning = t1.reasoning;
+            console.log("TIER-1 (Context):", t1.reasoning);
+        }
+
+
         // -------------------------------------------------------------
-        // CLAUDE NARRATIVE SPECIALIST (Additive Layer)
+        // TIER-2: CLAUDE ENHANCEMENT (Optional Stylistic Polish)
         // -------------------------------------------------------------
-        console.log('ORCHESTRATOR: Invoking Claude Narrative Specialist...');
 
         // ROUTING LOGIC (STRICT)
-        // - Strain/Substitution logic -> NEO (GPT/Rule-based) ONLY
+        // - Strain/Substitution logic -> NO CLAUDE (Deterministic is safer)
         // - Editorial/Creative -> CLAUDE ALLOWED
         const isStrainTask = isStrainMode || seed.text?.toLowerCase().includes('substitute') || seed.text?.toLowerCase().includes('replace');
 
         if (isStrainTask) {
-            console.log("ORCHESTRATOR: ROUTER -> Skipping Claude for Strain/Substitution task. Using deterministic fallback.");
-        } else {
-            // STRICT BOUNDARY NORMALIZATION
-            // Sanitizes input before it ever touches the AI Layer
-            const sanitizeNarrativeInput = (input: any) => {
-                return {
-                    userIntentSummary: String(input.userIntent ?? ""),
-                    decisionSummary: String(input.decisionSummary ?? ""),
-                    blendSummary: input.blends.map((b: any) => ({
-                        name: b.name || "Custom Blend",
-                        cultivars: (b.cultivars || [])
-                            .filter(Boolean)
-                            .map((c: any) => c.name)
-                            .slice(0, 5)
-                    })),
-                    toneMode: input.toneMode
-                };
-            };
+            console.log("ORCHESTRATOR: ROUTER -> Skipping Claude for Strain/Substitution task. Keeping Tier-1.");
+        } else if (!isStack && engineResults.length > 0) {
+            console.log('ORCHESTRATOR: Invoking Claude Narrative Specialist (Tier-2)...');
 
             try {
                 // Map Tone Mode
@@ -527,49 +545,41 @@ export async function processIntent(
                     default: toneMode = 'neutral';
                 }
 
-                if (safePrimary.length > 0) {
-                    const primaryBlend = engineResults[0];
+                // Prepare Input specifically for "Enhancement"
+                // We only enhance Primary for now to save tokens/time, or loop if needed.
+                // Let's enhance just Primary as the "Hero" content.
+                const primaryBlend = engineResults[0];
 
-                    // Prepare Raw Input
-                    const rawInput = {
-                        userIntent: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
-                        decisionSummary: `Engine generated ${primaryBlend.name} focusing on ${outcomeCategory}. Decision Reasoning: ${decision.reasoning}`,
-                        blends: [primaryBlend], // Pass as array for the sanitizer
-                        toneMode: toneMode
-                    };
+                const claudeInput = {
+                    tier1Narrative: {
+                        name: primaryBlend.name || "Custom Blend",
+                        reasoning: primaryBlend.reasoning || ""
+                    },
+                    userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
+                    decisionSummary: `Engine decision: ${decision.reasoning}`,
+                    blendSummary: engineResults.map(b => ({
+                        name: b.name || "Blend",
+                        cultivars: (b.cultivars || []).map(c => c.name)
+                    })),
+                    toneMode: toneMode
+                };
 
-                    // NORMALIZE at the boundary
-                    const claudeInput = sanitizeNarrativeInput(rawInput);
+                // Call Orchestrator (Claude only, no fallback needed because we ARE the fallback)
+                // Note: orchestrateNarrative wrapper might need update or direct call. 
+                // Let's use generaNarrative directly from claudeNarrator to be pure.
+                const enhancedText = await generateNarrative(claudeInput);
 
-                    // Call Orchestrator (Claude -> GPT Fallback)
-                    const narrativeResult = await orchestrateNarrative(claudeInput);
-
-                    if (narrativeResult) {
-                        console.log(`ORCHESTRATOR: Narrative Applied via ${narrativeResult.provider.toUpperCase()} ✓`);
-                        engineResults[0].reasoning = narrativeResult.text;
-                    }
+                if (enhancedText) {
+                    console.log(`ORCHESTRATOR: Claude Enhanced Narrative Applied ✓`);
+                    // ONLY OVERWRITE REASONING. Name is structural.
+                    engineResults[0].reasoning = enhancedText;
+                } else {
+                    console.log("ORCHESTRATOR: Claude returned null. Retaining Tier-1 Narrative.");
                 }
+
             } catch (e) {
-                console.error("ORCHESTRATOR: Narrative Step Failed", e);
-            }
-        }
-
-        // ISSUE 3: STRAIN MODE ACKNOWLEDGMENT
-        if (isStrainMode && !isStack && engineResults.length > 0) {
-            const requestedStrain = seed.text || "requested strain";
-            console.log(`ORCHESTRATOR: Applying strain-anchored acknowledgment for "${requestedStrain}"`);
-
-            // Check if primary result contains the actual strain
-            const primaryMatch = engineResults[0].cultivars?.some(c =>
-                c.name.toLowerCase().includes(requestedStrain.toLowerCase()) ||
-                requestedStrain.toLowerCase().includes(c.name.toLowerCase())
-            );
-
-            if (primaryMatch) {
-                engineResults[0].reasoning = `Centered on ${requestedStrain}. This formulation utilizes the specific profile of your requested cultivar as the anchor for the experience.`;
-            } else {
-                // Similarity fallback
-                engineResults[0].reasoning = `A functionally similar alternative to ${requestedStrain}. Using the specific terpene and cannabinoid ratios of ${requestedStrain} as a blueprint to recreate that experience with currently available cultivars.`;
+                console.error("ORCHESTRATOR: Tier-2 Enhancement Failed (Non-fatal)", e);
+                // No action needed, Tier-1 matches.
             }
         }
 

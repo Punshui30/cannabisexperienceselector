@@ -11,6 +11,10 @@
 export type ToneMode = "neutral" | "supportive" | "curious" | "confident" | "calm_reassuring";
 
 export interface ClaudeNarrativeInput {
+    tier1Narrative: {
+        name: string;
+        reasoning: string;
+    };
     userIntentSummary: string;
     decisionSummary: string;
     blendSummary: {
