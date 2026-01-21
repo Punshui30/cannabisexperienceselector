@@ -1,12 +1,14 @@
 
 /**
- * GPT NARRATOR (Fallback Provider)
+ * GPT NARRATOR (Auxiliary LLM)
  * 
- * Reliable, fast fallback when Claude is unavailable.
- * Uses the standard LLM endpoint but focused on narrative generation.
+ * STRICT BOUNDARIES:
+ * - ONLY used for Live Assistant, Live Feed, and auxiliary functions
+ * - NEVER touches engine outputs or blend narratives
+ * - NON-BLOCKING: silent failure, no user-visible errors
  */
 
-import { ToneMode } from './claudeNarrator';
+import { ToneMode } from './geminiNarrator';
 
 export interface GptNarrativeInput {
     userIntentSummary: string;

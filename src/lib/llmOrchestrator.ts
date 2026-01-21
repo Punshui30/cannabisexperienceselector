@@ -5,9 +5,8 @@ import { analyzeIntent } from './semanticIntentAdapter';
 import { generateNarratives, generateConversationalResponse } from './llmNarrativeAdapter';
 import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
-import { generateNarrative, ToneMode } from './llm/claudeNarrator';
+import { generateNarrative, ToneMode } from './llm/geminiNarrator';
 import { findSubstitute } from './engine/substitution';
-import { orchestrateNarrative } from './llm/narrativeOrchestrator';
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -526,15 +525,15 @@ export async function processIntent(
 
 
         // -------------------------------------------------------------
-        // TIER-2: CLAUDE ENHANCEMENT (Optional Stylistic Polish)
+        // TIER-2: GEMINI ENHANCEMENT (Primary Engine LLM)
         // -------------------------------------------------------------
 
-        // ROUTING LOGIC: Only skip Claude for Stacks (already checked above)
-        // Claude enhancement should be attempted for ALL blend results.
-        // If Claude fails, Tier-1 narrative remains as deterministic fallback.
+        // ROUTING LOGIC: Only skip Gemini for Stacks (already checked above)
+        // Gemini enhancement attempted for ALL blend results.
+        // If Gemini returns null, Tier-1 narrative remains as deterministic fallback.
 
         if (!isStack && engineResults.length > 0) {
-            console.log('ORCHESTRATOR: Invoking Claude Narrative Specialist (Tier-2)...');
+            console.log('ORCHESTRATOR: Invoking Gemini Narrative Specialist (Tier-2)...');
 
             try {
                 // Map Tone Mode
@@ -547,12 +546,10 @@ export async function processIntent(
                     default: toneMode = 'neutral';
                 }
 
-                // Prepare Input specifically for "Enhancement"
-                // We only enhance Primary for now to save tokens/time, or loop if needed.
-                // Let's enhance just Primary as the "Hero" content.
+                // Prepare Input for Gemini Enhancement
                 const primaryBlend = engineResults[0];
 
-                const claudeInput = {
+                const geminiInput = {
                     tier1Narrative: {
                         name: primaryBlend.name || "Custom Blend",
                         reasoning: primaryBlend.reasoning || ""
@@ -566,19 +563,19 @@ export async function processIntent(
                     toneMode: toneMode
                 };
 
-                // Call Claude Narrator directly for pure enhancement
-                const enhancedText = await generateNarrative(claudeInput);
+                // Call Gemini Narrator (returns null on failure)
+                const enhancedText = await generateNarrative(geminiInput);
 
                 if (enhancedText) {
-                    console.log(`ORCHESTRATOR: Claude Enhanced Narrative Applied ✓`);
+                    console.log(`ORCHESTRATOR: Gemini Enhanced Narrative Applied ✓`);
                     // ONLY OVERWRITE REASONING. Name is structural.
                     engineResults[0].reasoning = enhancedText;
                 } else {
-                    console.log("ORCHESTRATOR: Claude returned null. Retaining Tier-1 Narrative.");
+                    console.log("[GEMINI_FAILED_USING_TIER1] Gemini returned null. Retaining Tier-1 Narrative.");
                 }
 
             } catch (e) {
-                console.error("ORCHESTRATOR: Tier-2 Enhancement Failed (Non-fatal)", e);
+                console.error("[GEMINI_FAILED_USING_TIER1] Tier-2 Enhancement Failed (Non-fatal)", e);
                 // No action needed, Tier-1 remains.
             }
         }
