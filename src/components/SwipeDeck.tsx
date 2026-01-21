@@ -15,16 +15,6 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "" }: Swi
     const [currentIndex, setCurrentIndex] = useState(0);
     const controls = useAnimation();
 
-    // Mount Animation for Pagination Pills
-    // We want them to light up sequentially to indicate more content
-    const [hasAnimatedHint, setHasAnimatedHint] = useState(false);
-
-    useEffect(() => {
-        if (!hasAnimatedHint && items.length > 1) {
-            setHasAnimatedHint(true);
-        }
-    }, [items.length]);
-
     const handleDragEnd = async (event: any, info: PanInfo) => {
         const offset = info.offset.x;
         const velocity = info.velocity.x;
@@ -84,43 +74,38 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, className = "" }: Swi
 
             {/* Pagination Indicators - Animated Hint */}
             {items.length > 1 && (
-                <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 pointer-events-none z-10">
+                <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 pointer-events-none z-10 w-full">
                     {items.map((_, idx) => (
                         <motion.div
                             key={idx}
-                            // Initial State based on active index
-                            animate={
-                                hasAnimatedHint
-                                    ? {
-                                        width: idx === currentIndex ? 24 : 6,
-                                        backgroundColor: idx === currentIndex ? "#ffffff" : "rgba(255, 255, 255, 0.2)",
-                                        boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none"
-                                    }
-                                    : {}
-                            }
-                            // The "Ripple" Hint Animation on Mount
-                            // We animate opacity/brightness briefly in sequence
-                            whileInView={!hasAnimatedHint ? {
-                                backgroundColor: ["rgba(255,255,255,0.2)", "#ffffff", "rgba(255,255,255,0.2)"],
-                            } : undefined}
-                            transition={{
-                                duration: 0.3, // Fast duration for state changes
-                                // For the hint ripple:
-                                backgroundColor: {
-                                    duration: 0.6,
-                                    times: [0, 0.5, 1],
-                                    delay: idx * 0.2 + 0.5, // Staggered delay
-                                    repeat: 1, // Run twice
-                                    repeatDelay: 0.5
-                                }
+                            initial={{
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                width: 6,
+                                boxShadow: "none"
                             }}
-
-                            className={`rounded-full h-1`}
-                            style={{
+                            animate={{
                                 width: idx === currentIndex ? 24 : 6,
                                 backgroundColor: idx === currentIndex ? "#ffffff" : "rgba(255, 255, 255, 0.2)",
-                                boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none"
+                                boxShadow: idx === currentIndex ? "0 0 10px rgba(255,255,255,0.8)" : "none",
+                                // Ripple Sequence Logic
+                                // We use a keyframe array for opacity/brightness that triggers on mount
+                                opacity: [0.5, 1, 0.5, 1], // Flash brightness
                             }}
+                            transition={{
+                                // State transitions (width/color) are fast
+                                width: { duration: 0.3 },
+                                backgroundColor: { duration: 0.3 },
+                                boxShadow: { duration: 0.3 },
+                                // Ripple Effect: Run twice on mount
+                                opacity: {
+                                    duration: 0.4,
+                                    times: [0, 0.5, 1],
+                                    delay: (idx * 0.15) + 0.5, // Waterfall delay
+                                    repeat: 1, // Repeat once (total 2 cycles)
+                                    repeatDelay: (items.length * 0.15) + 0.5 // Wait for full sequence before repeating
+                                }
+                            }}
+                            className="rounded-full h-1.5"
                         />
                     ))}
                 </div>

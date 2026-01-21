@@ -85,20 +85,27 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
           </div>
         </div>
 
-        {/* LAYOUT TEST: Horizontal Scroll Container. Vertical scrolling removed. */}
-        <div className="w-full relative z-10 overflow-x-auto snap-x snap-mandatory flex items-center px-6 max-[360px]:px-4 gap-4 pb-8">
-          {recommendations.length > 0 ? recommendations.map((rec, i) => (
-            <div key={rec.id} className="min-w-full snap-center shrink-0 flex items-center justify-center p-4">
-              <BlendCard
-                recommendation={rec}
-                onShare={onShare}
-                onCalculate={onCalculate}
-                onViewDetail={onViewDetail}
-                onOpenConsultant={onOpenConsultant}
-                index={i}
-              />
-            </div>
-          )) : (
+        {/* SWIPE DECK - Gestures & Animation */}
+        <div className="w-full relative z-10 flex-1 flex items-center justify-center pb-8 min-h-[400px]">
+          {recommendations.length > 0 ? (
+            <SwipeDeck
+              items={recommendations}
+              onSwipe={(idx) => setActiveIndex(idx)}
+              className="max-w-md w-full mx-auto px-4"
+              renderItem={(rec, isActive) => (
+                <div className="w-full h-full flex items-center justify-center p-4">
+                  <BlendCard
+                    recommendation={rec}
+                    onShare={onShare}
+                    onCalculate={onCalculate}
+                    onViewDetail={onViewDetail}
+                    onOpenConsultant={onOpenConsultant}
+                    index={recommendations.indexOf(rec)}
+                  />
+                </div>
+              )}
+            />
+          ) : (
             <div className="text-white text-center w-full">Loading recommendations...</div>
           )}
         </div>
