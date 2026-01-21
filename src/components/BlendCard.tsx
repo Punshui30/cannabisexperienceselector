@@ -4,7 +4,7 @@ import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
 import { SpatialStack } from './SpatialStack';
 
-interface BlendCardProps {
+export interface BlendCardProps {
   recommendation: UIBlendRecommendation;
   onShare?: (rec: UIBlendRecommendation) => void;
   onCalculate?: (rec: UIBlendRecommendation) => void;

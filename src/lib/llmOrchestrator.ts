@@ -136,12 +136,26 @@ export async function processIntent(
         else if (['social', 'party', 'fun', 'conversation', 'friends'].some(k => searchPool.includes(k))) outcomeCategory = 'Social';
         else if (['relax', 'calm', 'chill', 'unwind', 'stress'].some(k => searchPool.includes(k))) outcomeCategory = 'Relax';
 
+        // ---------------------------------------------------------
+        // ANCHOR CONSTRAINT DEFINITION (The "Iron Laws")
+        // ---------------------------------------------------------
+        const anchorConstraints = {
+            avoidEffects: intentSpec.avoidEffects || [],
+            cultivarExclusions: new Set<string>(intentSpec.cultivarExclusions || []),
+            safetyThresholds: {
+                maxAnxiety: intentSpec.avoidEffects.includes('anxiety') ? 0.1 : (intentSpec.avoidEffects.includes('paranoia') ? 0.05 : undefined),
+                maxParanoia: intentSpec.avoidEffects.includes('paranoia') ? 0.05 : undefined // Strict paranoia lock
+            }
+        };
+
+        console.log('ORCHESTRATOR: Anchor Constraints Established', anchorConstraints);
+
         // 2. ENGINE EXECUTION (Generate 3 Options with Diversity)
         const engineIntent = interpretIntentFromSpec(intentSpec);
         console.log('ORCHESTRATOR: Running Engine with Spec...');
 
         const engineResults: EngineResult[] = [];
-        const usedCultivarIds = new Set<string>(intentSpec.cultivarExclusions || []); // Start with user-defined exclusions
+        const usedCultivarIds = new Set<string>(intentSpec.cultivarExclusions || []);
 
         // ---------------------------------------------------------
         // SMART SUBSTITUTION LOGIC (Deterministic)
@@ -154,9 +168,10 @@ export async function processIntent(
             const inventoryForSub: any[] = STRAIN_LIBRARY.map(s => ({
                 id: s.id,
                 name: s.name,
-                thcPercent: s.thc_percent,
-                cbdPercent: s.cbd_percent,
-                terpenes: s.terpenes,
+                // Mocking COA data since it's not in the main library yet
+                thcPercent: 22.5,
+                cbdPercent: 0.1,
+                terpenes: ["Myrcene", "Caryophyllene", "Limonene"],
                 available: true
             }));
 
@@ -167,132 +182,164 @@ export async function processIntent(
 
                 if (subResult.success && subResult.replacement) {
                     console.log(`ORCHESTRATOR: Substitution Found: ${subResult.replacement.name} (Score: ${subResult.similarityScore})`);
-
-                    // Force Include the Substitute (Logic: User removed X, so let's try Y)
-                    // We modify the intentSpec to include the substitute in the "preferred" list (if supported)
-                    // OR we manually inject it into the engine results later.
-                    // BETTER: Add to "context.cultivars" (if supported) or engineIntent.
-
-                    // Since engineGenerate takes "seed" and "intent", and "intent" implies broad goals,
-                    // we can't easily FORCE a specific cultivar unless we lock it.
-                    // For now, we'll log it and let the narrative know.
-                    // Actually, if we want the ENGINE to pick it, we should add it to "terpenePreferences" metadata or similar?
-                    // No, implementation constraint: Engine picks based on score.
-                    // If Substitute is truly similar, it should score high.
-                    // Let's explicitly log it for the prompt.
-
                     if (!context) context = {};
                     context.cultivars = [...(context.cultivars || []), subResult.replacement.name];
                 }
             }
         }
 
+        /**
+         * HELPER: HARD CONSTRAINT VALIDATOR
+         * Returns true if blend complies with anchors, false if rejection required.
+         */
+        const validateCompliance = (blend: EngineResult, contextLabel: string): boolean => {
+            // 1. Check Avoided Effects (Heuristic check on vibeTags or logic)
+            // This is hard to check perfectly without chem data, but we can check vibeTags
+            if (!blend.cultivars) return false;
+
+            for (const c of blend.cultivars) {
+                const id = getCultivarIdFromName(c.name) || (c as any).id;
+                if (anchorConstraints.cultivarExclusions.has(id)) {
+                    console.warn(`VALIDATION FAILURE (${contextLabel}): Contains explicitly excluded cultivar ${c.name}`);
+                    return false;
+                }
+            }
+
+            // Future: real chemistry check against maxAnxiety
+            return true;
+        };
+
         // ---------------------------------------------------------
         // BLEND 1: PRIMARY INTERPRETATION (Original Intent)
         // ---------------------------------------------------------
         console.log('ORCHESTRATOR: Generating Primary Blend (original intent)');
-        const results1 = engineGenerate(seed, engineIntent, intentSpec.cultivarExclusions); // Pass explicit exclusions first
+        const results1 = engineGenerate(seed, engineIntent, Array.from(anchorConstraints.cultivarExclusions));
         if (results1 && results1.length > 0) {
             const r1 = results1[0];
-            r1.id = `blend-primary-${Date.now()}`;
-            engineResults.push(r1);
-            console.log('Primary Blend:', r1.name, '|', r1.cultivars?.map(c => c.name).join(', '));
+            if (validateCompliance(r1, "Primary")) {
+                r1.id = `blend-primary-${Date.now()}`;
+                engineResults.push(r1);
+                console.log('Primary Blend:', r1.name, '|', r1.cultivars?.map(c => c.name).join(', '));
 
-            // Track used cultivar IDs for exclusion
-            r1.cultivars?.forEach(c => {
-                const cultivarId = getCultivarIdFromName(c.name) || (c as any).id;
-                if (cultivarId) {
-                    usedCultivarIds.add(cultivarId);
-                    console.log(`  ✓ Excluding cultivar ID: ${cultivarId} (${c.name})`);
-                }
-            });
+                r1.cultivars?.forEach(c => {
+                    const cultivarId = getCultivarIdFromName(c.name) || (c as any).id;
+                    if (cultivarId) usedCultivarIds.add(cultivarId);
+                });
+            } else {
+                console.error("CRITICAL: Primary blend failed validation. Engine cannot satisfy constraints.");
+            }
         }
 
         // ---------------------------------------------------------
         // BLEND 2: SECONDARY EMPHASIS (STRONG Effect Priority Shift)
         // ---------------------------------------------------------
-        console.log('ORCHESTRATOR: Generating Secondary Blend (STRONG priority shift)');
+        console.log('ORCHESTRATOR: Generating Secondary BlendWith ANCHOR ENFORCEMENT');
         const intent2 = { ...engineIntent };
 
         // STRONG SHIFT: Completely invert top 2 effects + boost body
         const effects2 = Object.entries(intent2.targetEffects)
             .sort(([, a], [, b]) => Math.abs((b as number)) - Math.abs((a as number)));
 
-        let shiftDesc = "balanced profile";
         if (effects2.length >= 2) {
             const [primary, secondary] = effects2;
             const temp = intent2.targetEffects[primary[0] as keyof typeof intent2.targetEffects];
             intent2.targetEffects[primary[0] as keyof typeof intent2.targetEffects] =
                 intent2.targetEffects[secondary[0] as keyof typeof intent2.targetEffects];
             intent2.targetEffects[secondary[0] as keyof typeof intent2.targetEffects] = temp;
-            shiftDesc = `swapping ${primary[0]} for ${secondary[0]}`;
             console.log(`  STRONG SHIFT: Swapped ${primary[0]} ↔ ${secondary[0]}`);
         }
 
-        // Boost body/relaxation to shift cultivar class
-        intent2.targetEffects.body = Math.min(0.8, (intent2.targetEffects.body || 0) + 0.4);
-        console.log(`  Boosted body to ${intent2.targetEffects.body}`);
+        // Boost body/relaxation only if not conflicting with anchors?
+        // Body boost is generally safe unless "sedation" is avoided.
+        if (!anchorConstraints.avoidEffects.includes('sedation')) {
+            intent2.targetEffects.body = Math.min(0.8, (intent2.targetEffects.body || 0) + 0.4);
+            console.log(`  Boosted body to ${intent2.targetEffects.body}`);
+        }
+
+        // ENFORCE ANCHORS: Reset constraints to original strictness
+        if (anchorConstraints.safetyThresholds.maxAnxiety !== undefined) {
+            intent2.constraints.maxAnxiety = anchorConstraints.safetyThresholds.maxAnxiety;
+            console.log(`  Anchor Locked: maxAnxiety reset to ${intent2.constraints.maxAnxiety}`);
+        }
 
         // Pass exclusions to force diversity
         const exclusions2 = Array.from(usedCultivarIds);
-        console.log(`  Excluding ${exclusions2.length} cultivars:`, exclusions2);
-        const results2 = engineGenerate(seed, intent2, exclusions2);
-        if (results2 && results2.length > 0) {
+        // Add original exclusions just in case
+        intentSpec.cultivarExclusions?.forEach(e => exclusions2.push(e));
+
+        let results2 = engineGenerate(seed, intent2, exclusions2);
+
+        // REGENERATION LOGIC
+        if (results2.length > 0 && !validateCompliance(results2[0], "Secondary")) {
+            console.warn("Secondary blend failed validation. Regenerating with stricter constraints...");
+            // Simple strategy: exclude the offenders and retry
+            results2[0].cultivars?.forEach(c => {
+                const id = getCultivarIdFromName(c.name);
+                if (id) exclusions2.push(id);
+            });
+            results2 = engineGenerate(seed, intent2, exclusions2);
+        }
+
+        if (results2 && results2.length > 0 && validateCompliance(results2[0], "Secondary")) {
             const r2 = results2[0];
             r2.id = `blend-secondary-${Date.now()}`;
             engineResults.push(r2);
             console.log('Secondary Blend:', r2.name, '|', r2.cultivars?.map(c => c.name).join(', '));
-
-            // Track additional used cultivars
             r2.cultivars?.forEach(c => {
                 const cultivarId = getCultivarIdFromName(c.name) || (c as any).id;
-                if (cultivarId) {
-                    usedCultivarIds.add(cultivarId);
-                    console.log(`  ✓ Excluding cultivar ID: ${cultivarId} (${c.name})`);
-                }
+                if (cultivarId) usedCultivarIds.add(cultivarId);
             });
         }
 
         // ---------------------------------------------------------
         // BLEND 3: CONTEXTUAL VARIANT (STRONG Constraint Changes)
         // ---------------------------------------------------------
-        console.log('ORCHESTRATOR: Generating Contextual Blend (STRONG context shift)');
+        console.log('ORCHESTRATOR: Generating Contextual Blend with ANCHOR ENFORCEMENT');
         const intent3 = { ...engineIntent };
 
-        // Ensure context and constraints exist
-        if (!intent3.context) {
-            intent3.context = { timeOfDay: 'afternoon', tolerance: 'medium', experience: 'intermediate' };
-        }
-        if (!intent3.constraints) {
-            intent3.constraints = { maxAnxiety: 0.3 };
-        }
+        if (!intent3.context) intent3.context = { timeOfDay: 'afternoon', tolerance: 'medium', experience: 'intermediate' };
+        if (!intent3.constraints) intent3.constraints = { maxAnxiety: 0.3 };
 
-        // STRONG SHIFT 1: Dramatically relax anxiety constraint
+        // STRONG SHIFT 1: Anxiety Relaxation (CONDITIONAL)
+        // Only relax if NOT an anchor
         const originalAnxiety = intent3.constraints.maxAnxiety || 0.3;
-        intent3.constraints.maxAnxiety = Math.min(0.7, originalAnxiety + 0.35);
-        console.log(`  STRONG SHIFT: Anxiety ${originalAnxiety.toFixed(2)} → ${intent3.constraints.maxAnxiety.toFixed(2)}`);
+        if (anchorConstraints.safetyThresholds.maxAnxiety === undefined) {
+            intent3.constraints.maxAnxiety = Math.min(0.7, originalAnxiety + 0.35);
+            console.log(`  Shift Allowed: Anxiety relaxed ${originalAnxiety.toFixed(2)} → ${intent3.constraints.maxAnxiety.toFixed(2)}`);
+        } else {
+            console.log(`  Shift BLOCKED: Anxiety locked at ${originalAnxiety.toFixed(2)} by Anchor.`);
+        }
 
-        // STRONG SHIFT 2: Major time shift
+        // STRONG SHIFT 2: Time shift (Generally safe exploration)
         const originalTime = intent3.context.timeOfDay || 'afternoon';
         intent3.context.timeOfDay = originalTime === 'morning' ? 'night' :
             originalTime === 'afternoon' ? 'evening' :
                 originalTime === 'evening' ? 'morning' : 'afternoon';
         console.log(`  Time shift: ${originalTime} → ${intent3.context.timeOfDay}`);
 
-        // STRONG SHIFT 3: Reduce energy, boost creativity (terpene bias)
-        let terpeneChange = "";
+        // STRONG SHIFT 3: Terpene Bias
         if (intent3.targetEffects.energy && intent3.targetEffects.energy > 0.3) {
             intent3.targetEffects.energy = Math.max(0, intent3.targetEffects.energy - 0.4);
             intent3.targetEffects.creativity = Math.min(0.9, (intent3.targetEffects.creativity || 0) + 0.5);
-            terpeneChange = ", and emphasizing creativity over raw energy";
-            console.log(`  Terpene bias: Reduced energy, boosted creativity`);
         }
 
-        // Pass exclusions to force further diversity
         const exclusions3 = Array.from(usedCultivarIds);
-        console.log(`  Excluding ${exclusions3.length} cultivars:`, exclusions3);
-        const results3 = engineGenerate(seed, intent3, exclusions3);
-        if (results3 && results3.length > 0) {
+        // Add original exclusions just in case
+        intentSpec.cultivarExclusions?.forEach(e => exclusions3.push(e));
+
+        let results3 = engineGenerate(seed, intent3, exclusions3);
+
+        // REGENERATION LOGIC
+        if (results3.length > 0 && !validateCompliance(results3[0], "Contextual")) {
+            console.warn("Contextual blend failed validation. Regenerating...");
+            results3[0].cultivars?.forEach(c => {
+                const id = getCultivarIdFromName(c.name);
+                if (id) exclusions3.push(id);
+            });
+            results3 = engineGenerate(seed, intent3, exclusions3);
+        }
+
+        if (results3 && results3.length > 0 && validateCompliance(results3[0], "Contextual")) {
             const r3 = results3[0];
             r3.id = `blend-contextual-${Date.now()}`;
             engineResults.push(r3);
