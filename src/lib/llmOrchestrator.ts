@@ -5,6 +5,7 @@ import { analyzeIntent } from './semanticIntentAdapter';
 import { generateNarratives, generateConversationalResponse } from './llmNarrativeAdapter';
 import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
+import { generateNarrative, ToneMode } from './llm/claudeNarrator';
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -330,6 +331,40 @@ export async function processIntent(
                     engineResults[2].name = (engineResults[2]?.cultivars || []).map(c => c.name).join(' × ');
                     engineResults[2].reasoning = `A contextual variation optimized for ${userGoal} with adjusted ratios${avoidances}.`;
                 }
+            }
+
+            // -------------------------------------------------------------
+            // CLAUDE NARRATIVE SPECIALIST (Additive Layer)
+            // -------------------------------------------------------------
+            console.log('ORCHESTRATOR: Invoking Claude Narrative Specialist...');
+
+            // Map Tone Mode
+            let toneMode: ToneMode = 'neutral';
+            switch (outcomeCategory) {
+                case 'Sleep': case 'Relax': toneMode = 'calm_reassuring'; break;
+                case 'Relief': toneMode = 'supportive'; break;
+                case 'Focus': toneMode = 'confident'; break;
+                case 'Social': toneMode = 'curious'; break;
+                default: toneMode = 'neutral';
+            }
+
+            // Prepare Input
+            const primaryBlend = engineResults[0];
+            const claudeInput = {
+                userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
+                decisionSummary: `Engine generated ${primaryBlend.name} focusing on ${outcomeCategory}. Decision Reasoning: ${decision.reasoning}`,
+                blendContext: `Primary Blend: ${primaryBlend.name}. Cultivars: ${primaryBlend.cultivars?.map(c => c.name).join(', ')}. Top Terpenes: ${primaryBlend.cultivars?.flatMap(c => c.terpenes).slice(0, 3).map(t => t.name).join(', ')}.`,
+                toneMode: toneMode
+            };
+
+            // Call Claude (Silent Fallback)
+            const claudeReasoning = await generateNarrative(claudeInput);
+
+            if (claudeReasoning) {
+                console.log('ORCHESTRATOR: Claude Narrative Applied ✓');
+                engineResults[0].reasoning = claudeReasoning;
+            } else {
+                console.log('ORCHESTRATOR: Using Fallback Narrative (Claude silent)');
             }
         }
 
