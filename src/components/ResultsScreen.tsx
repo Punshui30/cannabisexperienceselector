@@ -86,7 +86,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
         </div>
 
         {/* LAYOUT TEST: Horizontal Scroll Container */}
-        <div className="flex-1 w-full relative min-h-0 z-10 overflow-x-auto overflow-y-hidden snap-x snap-mandatory flex items-center px-6 max-[360px]:px-4 gap-4">
+        <div className="flex-1 w-full relative min-h-0 z-10 overflow-x-auto overflow-y-auto snap-x snap-mandatory flex items-center px-6 max-[360px]:px-4 gap-4">
           {recommendations.length > 0 ? recommendations.map((rec, i) => (
             <div key={rec.id} className="min-w-full h-full snap-center shrink-0 flex items-center justify-center p-4">
               <BlendCard
