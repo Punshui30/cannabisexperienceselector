@@ -126,7 +126,15 @@ export async function generateNarratives(
                 content = content.substring(firstOpen, lastClose + 1);
             }
 
-            return JSON.parse(content) as NarrativeResult;
+            const parsed = JSON.parse(content);
+
+            // VALIDATION: Ensure keys exist
+            if (parsed && parsed.primary && parsed.secondary && parsed.contextual) {
+                return parsed as NarrativeResult;
+            }
+            console.warn('NARRATIVE ADAPTER: partial JSON received, missing keys', Object.keys(parsed || {}));
+            // Continue to retry loop if validation fails
+            throw new Error("Missing specific variant keys in JSON");
 
         } catch (e: any) {
             console.warn(`NARRATIVE ADAPTER: Attempt ${attempt + 1} failed:`, e.message);

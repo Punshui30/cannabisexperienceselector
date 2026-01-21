@@ -221,7 +221,7 @@ export async function processIntent(
             // Attempt LLM-driven narratives with full intent context
             const narratives = await generateNarratives(seed.text || "", intentSpec, variants);
 
-            if (narratives) {
+            if (narratives && narratives.primary && narratives.secondary) {
                 console.log('ORCHESTRATOR: Narratives successfully unified via LLM');
                 engineResults[0].name = narratives.primary.name;
                 engineResults[0].reasoning = narratives.primary.explanation;
