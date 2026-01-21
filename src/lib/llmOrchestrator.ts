@@ -534,8 +534,8 @@ export async function processIntent(
         }
 
         // CRITICAL PATH COMPLETE: Return results to UI
-        // Gemini either enhanced within 2s or Tier-1 is used
-        console.log('[ORCHESTRATOR_V4_FINAL] Returning results to UI');
+        // Gemini enhancement is now truly backgrounded (non-blocking)
+        console.log('[ORCHESTRATOR_V8_FINAL] Returning results to UI');
 
         return {
             success: true,

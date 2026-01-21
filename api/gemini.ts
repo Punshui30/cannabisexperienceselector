@@ -1,16 +1,17 @@
 /**
- * GEMINI API PROXY (Hardened V5)
+ * GEMINI API PROXY (Hardened V8 - TypeScript)
  * 
+ * Path: /api/gemini.ts
  * Primary Engine LLM for blend narratives.
- * ALWAYS returns 200 OK Status.
+ * GUARANTEED 200 OK STATUS.
  */
 
-module.exports = async function handler(request, response) {
+export default async function handler(request: any, response: any) {
     try {
-        console.log('[GEMINI_API_V5] Request started');
+        console.log('[GEMINI_API_V8] Request started');
 
-        // CORS Header Setup
-        response.setHeader('Access-Control-Allow-Credentials', true);
+        // CORS Header Setup (Standard for Vercel functions)
+        response.setHeader('Access-Control-Allow-Credentials', 'true');
         response.setHeader('Access-Control-Allow-Origin', '*');
         response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
         response.setHeader(
@@ -19,24 +20,24 @@ module.exports = async function handler(request, response) {
         );
 
         if (request.method === 'OPTIONS') {
-            response.status(200).end();
-            return;
+            return response.status(200).end();
         }
 
         if (request.method !== 'POST') {
-            return response.status(200).json({ ok: false, error: 'Method Not Allowed' });
+            return response.status(200).json({ ok: false, error: 'method_not_allowed' });
         }
 
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            console.error('[GEMINI_API_V5] Missing GEMINI_API_KEY');
+            console.error('[GEMINI_API_V8] Missing API KEY in Environment');
             return response.status(200).json({ ok: false, error: 'missing_key' });
         }
 
-        const { tier1Narrative, userIntentSummary, decisionSummary, toneMode } = request.body || {};
+        // Use request.body (Vercel parses this automatically for JSON)
+        const { tier1Narrative, toneMode } = request.body || {};
 
         if (!tier1Narrative?.reasoning) {
-            return response.status(200).json({ ok: false, error: 'Missing Reasoning' });
+            return response.status(200).json({ ok: false, error: 'invalid_input' });
         }
 
         const promptText = `You are a premium cannabis experience narrator.
@@ -46,8 +47,6 @@ Tone: ${toneMode || 'neutral'}
 Blend: ${tier1Narrative.name}
 Facts: ${tier1Narrative.reasoning}`;
 
-        // Use global fetch (built-in to Node 18+)
-        // If it fails, the catch block will return 200
         const geminiRes = await fetch(
             `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
@@ -62,25 +61,31 @@ Facts: ${tier1Narrative.reasoning}`;
 
         if (!geminiRes.ok) {
             const status = geminiRes.status;
+            const errorText = await geminiRes.text().catch(() => 'No error text');
+            console.warn(`[GEMINI_API_V8] API Error ${status}:`, errorText.slice(0, 100));
             return response.status(200).json({ ok: false, error: 'api_failed', status });
         }
 
         const data = await geminiRes.json();
-        const narrative = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join(' ').trim();
+
+        // Robust Extraction
+        const textParts = data?.candidates?.[0]?.content?.parts || [];
+        const narrative = textParts.map((p: any) => p.text || '').join(' ').trim();
 
         if (!narrative) {
-            return response.status(200).json({ ok: false, error: 'no_narrative' });
+            console.warn('[GEMINI_API_V8] No narrative extraction possible', JSON.stringify(data).slice(0, 100));
+            return response.status(200).json({ ok: false, error: 'empty_extraction' });
         }
 
-        console.log('[GEMINI_API_V5] Success');
+        console.log('[GEMINI_API_V8] Success');
         return response.status(200).json({ ok: true, narrative });
 
-    } catch (err) {
-        console.error('[GEMINI_API_V5] Fatal Error:', err.message);
+    } catch (err: any) {
+        console.error('[GEMINI_API_V8] Global Catch:', err.message);
         return response.status(200).json({
             ok: false,
-            error: 'fatal_error',
-            details: err.message
+            error: 'server_crash',
+            details: err.message || 'Unknown'
         });
     }
-};
+}

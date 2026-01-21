@@ -219,9 +219,9 @@ export default function App() {
                 .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
 
               if (allAdapted.length > 0) {
-                setAnalysisProgress(85); // Milestone: Results generated
+                console.log('[App_V8] Analysis Successful, hydrating UI');
                 setBlendRecs(allAdapted);
-                setAnalysisProgress(100); // Milestone: UI state hydrated & ready to transition
+                setAnalysisProgress(100); // CRITICAL: This is the definitive signal for ResolvingScreen
                 setIsAnalyzing(false);
 
                 // UPDATE ENGINE SNAPSHOT for Live Assistant (read-only access)
