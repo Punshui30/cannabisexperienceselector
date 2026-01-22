@@ -47,7 +47,11 @@ export async function generateNarrative(input: AntigravityNarrativeInput): Promi
             console.log("NARRATOR: Enhancement successful ✓");
             return data.narrative.trim();
         } else {
-            console.warn("NARRATOR: No narrative returned from Vertex - falling back to Tier-1", data.error);
+            console.warn("NARRATOR: Vertex API call failed", {
+                error: data.error,
+                status: data.status,
+                details: data.details
+            });
             return null;
         }
 

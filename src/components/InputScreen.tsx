@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Camera, Search, Check, Upload, Layers, ChevronRight, X } from 'lucide-react';
 import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
@@ -30,6 +30,13 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   const [logoTapCount, setLogoTapCount] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
   const [showCamera, setShowCamera] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
+  };
 
   // Effect to populate text from Static View return
   useEffect(() => {
@@ -59,12 +66,17 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     return false;
   };
 
+  useEffect(() => {
+    if (uploadedImage) scrollToBottom();
+  }, [uploadedImage]);
+
   const [listeningField, setListeningField] = useState<string | null>(null);
 
   const handleMicClick = () => {
     startListening(t => setDescription(prev => prev ? `${prev} ${t}` : t), (listening) => {
       setIsListening(listening);
       setListeningField(listening ? 'describe' : null);
+      if (!listening) scrollToBottom();
     });
   };
 
@@ -222,6 +234,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder={placeholderText}
                     className={`${GLASS_INPUT} h-28 resize-none transition-all placeholder:text-white/20 px-5 py-4 leading-relaxed text-sm`}
+                    onBlur={() => { if (description.length > 5) scrollToBottom(); }}
                   />
                   <button
                     onClick={handleMicClick}
@@ -269,9 +282,14 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       onChange={(e) => setStrainName(e.target.value)}
                       placeholder="Strain Name (e.g. Jack Herer)"
                       className={GLASS_INPUT}
+                      onBlur={() => { if (strainName.length > 2) scrollToBottom(); }}
                     />
                     <button
-                      onClick={() => startListening(t => setStrainName(t), (l) => { setIsListening(l); setListeningField(l ? 'strain' : null); })}
+                      onClick={() => startListening(t => setStrainName(t), (l) => {
+                        setIsListening(l);
+                        setListeningField(l ? 'strain' : null);
+                        if (!l) scrollToBottom();
+                      })}
                       className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening && listeningField === 'strain' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
                     >
                       <Mic size={14} />
@@ -284,9 +302,14 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       onChange={(e) => setGrowerName(e.target.value)}
                       placeholder="Brand/Grower (Optional)"
                       className={GLASS_INPUT}
+                      onBlur={() => { if (growerName.length > 2) scrollToBottom(); }}
                     />
                     <button
-                      onClick={() => startListening(t => setGrowerName(t), (l) => { setIsListening(l); setListeningField(l ? 'grower' : null); })}
+                      onClick={() => startListening(t => setGrowerName(t), (l) => {
+                        setIsListening(l);
+                        setListeningField(l ? 'grower' : null);
+                        if (!l) scrollToBottom();
+                      })}
                       className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening && listeningField === 'grower' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
                     >
                       <Mic size={14} />
@@ -314,6 +337,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                     onClick={() => {
                       setMode('describe');
                       setDescription(scenario.inputText);
+                      scrollToBottom();
                     }}
                     className="snap-center shrink-0 w-[85%] rounded-2xl p-5 text-left bg-white/5 border border-white/10 relative overflow-hidden group transition-all"
                     style={{ minHeight: '140px' }}
@@ -347,7 +371,10 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 {PRESET_STACKS.slice(0, 4).map((stack) => (
                   <button
                     key={stack.id}
-                    onClick={() => onSelectPreset(stack)}
+                    onClick={() => {
+                      onSelectPreset(stack);
+                      scrollToBottom();
+                    }}
                     className="snap-center shrink-0 w-[75%] rounded-2xl p-5 text-left bg-gradient-to-br from-white/10 to-transparent border border-white/5 relative overflow-hidden group transition-all"
                     style={{ minHeight: '120px' }}
                   >
@@ -378,6 +405,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
             </div>
 
           </div>
+          <div ref={bottomRef} className="h-px w-full" />
         </div>
       </div>
 

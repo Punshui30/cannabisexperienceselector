@@ -33,7 +33,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
         <img src={logoImg} alt="GO Logo" className="w-full h-full object-contain" />
       </div>
       <div className="mt-2 flex flex-col items-center">
-        <h1 className="text-3xl font-normal text-white serif tracking-wide">Guided Outcomes</h1>
+        <h1 className="text-3xl font-normal text-white serif tracking-wide">Antigravity System</h1>
         <p className="text-base text-white/60">powered by <span className="text-[#FFD700] italic serif">StrainMath™</span></p>
       </div>
     </div>
@@ -138,7 +138,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
                 exit={{ opacity: 0, x: -10 }}
                 className="w-full max-w-md max-[360px]:max-w-[95vw] flex flex-col items-center"
               >
-                <h2 className="text-3xl font-light text-white mb-4 serif text-center">Have you used<br />Guided Outcomes™ before?</h2>
+                <h2 className="text-3xl font-light text-white mb-4 serif text-center">Have you used the<br />Antigravity System™ before?</h2>
                 <p className="text-white/40 mb-8 text-sm">This helps us show the right amount of explanation for this session.</p>
 
                 <div className="flex flex-col gap-4 w-full px-4">

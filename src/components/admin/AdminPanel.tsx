@@ -83,7 +83,7 @@ export function AdminPanel({
                     color: COLORS.neutral.text.tertiary,
                   }}
                 >
-                  Guided Outcomes™ Operator System
+                  Antigravity Operator System
                 </div>
               </div>
             </div>
