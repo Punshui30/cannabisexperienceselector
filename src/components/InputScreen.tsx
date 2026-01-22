@@ -69,18 +69,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     return false;
   };
 
-  // --- SYSTEM-WIDE AUTO-SCROLL (The "Jump" Logic) ---
-  // Signals to the user that the engine is ready to fire by bringing the button into view.
-  // CRITICAL: Suppressed while typing to prevent the field from moving away from the user.
-  useEffect(() => {
-    const isFieldFocused = document.activeElement?.tagName === 'TEXTAREA' ||
-      document.activeElement?.tagName === 'INPUT';
-
-    if (canSubmit() && !isFieldFocused) {
-      scrollToBottom();
-    }
-  }, [description, strainName, uploadedImage, mode]);
-
 
   const [listeningField, setListeningField] = useState<string | null>(null);
 
