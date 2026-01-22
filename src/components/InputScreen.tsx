@@ -464,7 +464,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
         </div>
 
         {/* PAGINATION DOTS - Outside scenario cards */}
-        <div className="w-full relative mt-6 mb-4">
+        <div className="w-full relative mt-12 mb-6">
           <PaginationDots
             currentIndex={scenarioIndex}
             totalItems={BLEND_SCENARIOS.length}

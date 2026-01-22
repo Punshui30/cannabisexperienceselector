@@ -47,7 +47,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
         )}
 
         {/* HEADER */}
-        <div className="flex-shrink-0 pt-12 px-6 max-[360px]:px-4 max-[360px]:pt-8 pb-4 relative z-30"> {/* Density: pt-16 -> pt-12, pb-6 -> pb-4 */}
+        <div className="flex-shrink-0 pt-4 px-6 max-[360px]:px-4 max-[360px]:pt-2 pb-16 relative z-30">
           <div className="flex justify-between items-start mb-4"> {/* Density: mb-8 -> mb-4 */}
             <button
               onClick={onBack}
@@ -81,7 +81,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
           </div>
 
           <div className="text-center">
-            <p className="text-[#00FFD1] text-[9px] uppercase tracking-[0.4em] mb-2 opacity-80"> {/* Density: mb-3 -> mb-2 */}
+            <p className="text-[#00FFD1] text-[9px] uppercase tracking-[0.4em] mb-1 opacity-80">
               Engine Result #{activeIndex + 1}
             </p>
             <h1 className="text-3xl font-light text-white serif tracking-tight">Your Blends</h1> {/* Density: text-4xl -> text-3xl */}
@@ -114,7 +114,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
         </div>
 
         {/* PAGINATION DOTS - Outside card container */}
-        <div className="w-full relative z-10 mt-6 mb-4">
+        <div className="w-full relative z-10 mt-12 mb-6">
           <PaginationDots
             currentIndex={activeIndex}
             totalItems={recommendations.length}
