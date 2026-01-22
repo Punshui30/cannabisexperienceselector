@@ -207,14 +207,27 @@ body,
   }
 }
 
-/* HIDE SCROLLBAR UTILITY */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
+/* HIDE SCROLLBAR UTILITY - Comprehensive cross-browser */
 .no-scrollbar {
   -ms-overflow-style: none;
   /* IE and Edge */
   scrollbar-width: none;
   /* Firefox */
+  overflow-y: hidden;
+  /* Prevent vertical scrollbar */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
+}
+
+.no-scrollbar::-webkit-scrollbar-track {
+  display: none;
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb {
+  display: none;
 }
