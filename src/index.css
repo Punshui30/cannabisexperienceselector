@@ -46,31 +46,57 @@
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-2xl bg-white/5 border border-white/10 shadow-2xl rounded-3xl;
+    backdrop-filter: blur(40px);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-radius: 1.5rem;
   }
 
   .glass-card-neon-green {
-    @apply backdrop-blur-2xl bg-white/5 border border-[#00FFD11a] shadow-[0_0_20px_#00FFD11a] rounded-2xl;
+    backdrop-filter: blur(40px);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 209, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 209, 0.1);
+    border-radius: 1rem;
   }
 
   .glass-card-neon-purple {
-    @apply backdrop-blur-2xl bg-white/5 border border-[#BF5AF21a] shadow-[0_0_20px_#BF5AF21a] rounded-2xl;
+    backdrop-filter: blur(40px);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(191, 90, 242, 0.1);
+    box-shadow: 0 0 20px rgba(191, 90, 242, 0.1);
+    border-radius: 1rem;
   }
 
   .btn-neon-green {
-    @apply bg-gradient-to-r from-[#00FFD1] to-[#00E0B8] text-black font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_#00FFD166];
+    background-image: linear-gradient(to right, #00FFD1, #00E0B8);
+    color: black;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    transition: all 300ms;
+  }
+
+  .btn-neon-green:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba(0, 255, 209, 0.4);
   }
 
   main {
-    @apply flex-1 w-full flex flex-col min-h-dvh;
+    flex: 1 1 0%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
   }
 
   .text-neon-green {
-    @apply text-[#00FFD1];
+    color: #00FFD1;
   }
 
   .text-neon-purple {
-    @apply text-[#BF5AF2];
+    color: #BF5AF2;
   }
 }
 
