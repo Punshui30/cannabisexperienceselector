@@ -78,9 +78,18 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     return false;
   };
 
+  // --- SYSTEM-WIDE AUTO-SCROLL (The "Jump" Logic) ---
+  // Signals to the user that the engine is ready to fire by bringing the button into view.
   useEffect(() => {
-    if (uploadedImage) scrollToBottom();
-  }, [uploadedImage]);
+    if (canSubmit()) {
+      scrollToBottom();
+    }
+  }, [
+    description.length > 5,
+    strainName.length > 2,
+    !!uploadedImage,
+    mode
+  ]);
 
   const [listeningField, setListeningField] = useState<string | null>(null);
 
@@ -246,7 +255,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder={placeholderText}
                     className={`${GLASS_INPUT} h-28 resize-none transition-all placeholder:text-white/20 px-5 py-4 leading-relaxed text-sm`}
-                    onBlur={() => { if (description.length > 5) scrollToBottom(); }}
                   />
                   <button
                     onClick={handleMicClick}
@@ -294,7 +302,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       onChange={(e) => setStrainName(e.target.value)}
                       placeholder="Strain Name (e.g. Jack Herer)"
                       className={GLASS_INPUT}
-                      onBlur={() => { if (strainName.length > 2) scrollToBottom(); }}
                     />
                     <button
                       onClick={() => startListening(t => setStrainName(t), (l) => {
@@ -314,7 +321,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       onChange={(e) => setGrowerName(e.target.value)}
                       placeholder="Brand/Grower (Optional)"
                       className={GLASS_INPUT}
-                      onBlur={() => { if (growerName.length > 2) scrollToBottom(); }}
                     />
                     <button
                       onClick={() => startListening(t => setGrowerName(t), (l) => {
