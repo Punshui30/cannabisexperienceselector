@@ -14,15 +14,16 @@ interface ResolvingScreenProps {
 }
 
 export function ResolvingScreen({ input, recommendation, onComplete, progress = 0 }: ResolvingScreenProps) {
-    // Auto-complete when ready and progress reaches 100%
+    // Auto-complete when progress reaches 100%
     useEffect(() => {
-        if (recommendation && progress >= 100) {
+        if (progress >= 100) {
+            console.log('[ResolvingScreen_V8.4] Progress 100% detected, transitioning...');
             const timeout = setTimeout(() => {
                 onComplete();
-            }, 300); // Brief pause at 100% before transition
+            }, 300);
             return () => clearTimeout(timeout);
         }
-    }, [recommendation, progress, onComplete]);
+    }, [progress, onComplete]);
 
     return (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black text-white p-6 overflow-y-auto">
