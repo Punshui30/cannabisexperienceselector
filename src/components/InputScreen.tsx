@@ -14,7 +14,6 @@ interface InputScreenProps {
   onBrowsePresets: () => void;
   onSelectExemplar?: (exemplar: OutcomeExemplar) => void;
   onSelectPreset: (exemplar: OutcomeExemplar | BlendScenario) => void;
-  onSelectScenario: (scenario: BlendScenario) => void;
   onAdminModeToggle: () => void;
   isAdminMode: boolean;
   initialText?: string;
