@@ -1,4 +1,4 @@
-// [BUILD-ID: 2026-01-22-v5]
+// [BUILD-ID: 2026-01-22-v8]
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SplashScreen } from './components/SplashScreen';
