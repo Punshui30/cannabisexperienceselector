@@ -36,7 +36,9 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
         : null;
 
     return (
-        <div className="fixed inset-0 flex flex-col bg-black text-white font-sans overflow-hidden">
+        <div className="fixed inset-0 flex flex-col bg-transparent text-white font-sans overflow-hidden">
+            {/* Background Layer to ensure orbs show but don't overwhelm */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-none" />
             {/* Header */}
             <div className="flex-shrink-0 px-8 py-6 flex items-center justify-between z-20 bg-black/80 backdrop-blur-md border-b border-white/5">
                 <button

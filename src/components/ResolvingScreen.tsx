@@ -26,7 +26,8 @@ export function ResolvingScreen({ input, recommendation, onComplete, progress = 
     }, [progress, onComplete]);
 
     return (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black text-white p-6 overflow-y-auto">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-transparent text-white p-6 overflow-y-auto">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             <div className="relative w-40 h-40 flex items-center justify-center">
                 {/* Central Pulse (Tighter) */}
                 <div className="absolute inset-0 bg-white/10 blur-xl rounded-full animate-pulse-slow" />
