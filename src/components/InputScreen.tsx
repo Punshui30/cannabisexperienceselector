@@ -470,7 +470,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           </div>
         </div>
 
-        {/* FLOATING ACTION BUTTON - Always Visible */}
+        {/* FLOATING ACTION BUTTON - Always Visible (Bottom Left) */}
         <motion.button
           initial={false}
           animate={{
@@ -480,14 +480,15 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
           onClick={handleSubmit}
           disabled={!canSubmit()}
-          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black shadow-[0_0_30px_rgba(0,255,209,0.4)] flex items-center justify-center font-bold text-xs uppercase tracking-widest hover:scale-110 active:scale-95 transition-transform"
+          className="fixed bottom-6 left-6 z-50 px-6 py-4 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black shadow-[0_0_30px_rgba(0,255,209,0.4)] flex items-center gap-2 font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-transform"
           style={{
             boxShadow: '0 8px 32px rgba(0, 255, 209, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
+          <span>Generate</span>
         </motion.button>
 
         <AnimatePresence>
