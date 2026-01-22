@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { CameraModal } from '../CameraModal';
 
 type Props = {
   onClose: () => void;
@@ -11,11 +12,24 @@ type ScanState = 'ready' | 'capturing' | 'processing' | 'confirming' | 'complete
 export function COAScanner({ onClose, onComplete }: Props) {
   const [scanState, setScanState] = useState<ScanState>('ready');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [showCamera, setShowCamera] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
-
+  const handleCapture = (blob: Blob) => {
+    setScanState('capturing');
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCapturedImage(event.target?.result as string);
+      setScanState('processing');
+      // Simulate processing
+      setTimeout(() => {
+        setScanState('confirming');
+      }, 2000);
+    };
+    reader.readAsDataURL(blob);
+    setShowCamera(false);
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -141,16 +155,8 @@ export function COAScanner({ onClose, onComplete }: Props) {
 
                   <div className="grid grid-cols-3 gap-3">
                     {/* OPTION 1: CAMERA */}
-                    <input
-                      ref={cameraInputRef}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
                     <button
-                      onClick={() => cameraInputRef.current?.click()}
+                      onClick={() => setShowCamera(true)}
                       className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 transition-colors text-white border border-emerald-400/20"
                     >
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -336,6 +342,15 @@ export function COAScanner({ onClose, onComplete }: Props) {
           </div>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {showCamera && (
+          <CameraModal
+            onClose={() => setShowCamera(false)}
+            onCapture={handleCapture}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

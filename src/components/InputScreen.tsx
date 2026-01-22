@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, Camera, Search, Check, Upload, Layers, ChevronRight } from 'lucide-react';
+import { Mic, Camera, Search, Check, Upload, Layers, ChevronRight, X } from 'lucide-react';
 import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { PRESET_STACKS } from '../data/presetStacks';
+import { CameraModal } from './CameraModal';
 
 import logoImg from '../assets/logo.png';
 
@@ -27,6 +28,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   const [description, setDescription] = useState('');
   const [logoTapCount, setLogoTapCount] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
+  const [showCamera, setShowCamera] = useState(false);
 
   // Effect to populate text from Static View return
   useEffect(() => {
@@ -42,6 +44,12 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
   const [dragActive, setDragActive] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+
+  const handleCapture = (blob: Blob) => {
+    const file = new File([blob], 'captured_image.jpg', { type: 'image/jpeg' });
+    setUploadedImage(file);
+    setShowCamera(false);
+  };
 
   const canSubmit = () => {
     if (mode === 'describe') return description.length > 5;
@@ -239,14 +247,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                   onDrop={handleDrop}
                   className={`relative w-full h-40 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive ? "border-[#00FFD1] bg-[#00FFD1]/5" : uploadedImage ? "border-emerald-400/50 bg-emerald-400/5" : "border-white/10 bg-white/5"}`}
                 >
-                  <input
-                    type="file"
-                    id="camera-upload"
-                    className="hidden"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])}
-                  />
                   {uploadedImage ? (
                     <div className="text-center">
                       <Check className="text-[#00FFD1] mx-auto mb-2" size={24} />
@@ -254,12 +254,15 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       <button onClick={() => setUploadedImage(null)} className="text-[10px] text-white/30 uppercase mt-2">Remove</button>
                     </div>
                   ) : (
-                    <label htmlFor="camera-upload" className="flex flex-col items-center gap-2 cursor-pointer group">
+                    <button
+                      onClick={() => setShowCamera(true)}
+                      className="flex flex-col items-center gap-2 cursor-pointer group"
+                    >
                       <div className="p-4 rounded-full bg-white/5 border border-white/10 group-hover:bg-[#00FFD1]/10 group-hover:border-[#00FFD1]/30 transition-all">
                         <Camera size={24} className="text-white/40 group-hover:text-[#00FFD1]" />
                       </div>
                       <span className="text-[10px] uppercase tracking-widest text-white/40">Capture Product Label</span>
-                    </label>
+                    </button>
                   )}
                 </div>
               )}
@@ -375,8 +378,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           onClick={handleSubmit}
           disabled={!canSubmit()}
           className={`w-full py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs transition-with-all duration-500 shadow-2xl ${canSubmit()
-            ? "bg-[#00FFD1] text-black shadow-[#00FFD1]/20 active:scale-95"
-            : "bg-white/5 text-white/10 cursor-not-allowed border border-white/5"
+              ? "bg-[#00FFD1] text-black shadow-[#00FFD1]/20 active:scale-95"
+              : "bg-white/5 text-white/10 cursor-not-allowed border border-white/5"
             }`}
         >
           Generate Recommendation
@@ -385,6 +388,15 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           Deterministic Engine v9.9 (DUAL-DISCOVERY) • Verified Lab Data Only
         </p>
       </div>
+
+      <AnimatePresence>
+        {showCamera && (
+          <CameraModal
+            onClose={() => setShowCamera(false)}
+            onCapture={handleCapture}
+          />
+        )}
+      </AnimatePresence>
 
     </div>
   );
