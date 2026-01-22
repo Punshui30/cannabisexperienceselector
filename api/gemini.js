@@ -9,7 +9,7 @@
 
 module.exports = async function handler(request, response) {
     try {
-        console.log('[GEMINI_API_V8.8] Request started');
+        console.log('[GEMINI_API_V9.0] Request started');
 
         // CORS Header Setup (Mirroring llm.js)
         response.setHeader('Access-Control-Allow-Credentials', true);
@@ -31,7 +31,7 @@ module.exports = async function handler(request, response) {
 
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            console.error('[GEMINI_API_V8.8] Missing GEMINI_API_KEY');
+            console.error('[GEMINI_API_V9.0] Missing GEMINI_API_KEY');
             return response.status(200).json({ ok: false, error: 'missing_key' });
         }
 
@@ -50,12 +50,12 @@ Facts: ${tier1Narrative.reasoning}`;
 
         const fetchFn = typeof fetch !== 'undefined' ? fetch : null;
         if (!fetchFn) {
-            console.error('[GEMINI_API_V8.8] fetch is not defined in this environment');
+            console.error('[GEMINI_API_V9.0] fetch is not defined in this environment');
             return response.status(200).json({ ok: false, error: 'env_error_no_fetch' });
         }
 
         const geminiRes = await fetchFn(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -69,7 +69,7 @@ Facts: ${tier1Narrative.reasoning}`;
         if (!geminiRes.ok) {
             const status = geminiRes.status;
             const errorText = await geminiRes.text().catch(() => 'Could not read error body');
-            console.error(`[GEMINI_API_V8.8] API Error ${status}:`, errorText);
+            console.error(`[GEMINI_API_V9.0] API Error ${status}:`, errorText);
             return response.status(200).json({
                 ok: false,
                 error: 'api_failed',
@@ -89,11 +89,11 @@ Facts: ${tier1Narrative.reasoning}`;
             return response.status(200).json({ ok: false, error: 'no_narrative' });
         }
 
-        console.log('[GEMINI_API_V8.8] Success');
+        console.log('[GEMINI_API_V9.0] Success');
         return response.status(200).json({ ok: true, narrative });
 
     } catch (err) {
-        console.error('[GEMINI_API_V8.8] Global Error:', err.message);
+        console.error('[GEMINI_API_V9.0] Global Error:', err.message);
         return response.status(200).json({
             ok: false,
             error: 'server_error',
