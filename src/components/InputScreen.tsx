@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, Camera, Search, Check, Upload } from 'lucide-react';
+import { Mic, Camera, Search, Check, Upload, Layers, ChevronRight } from 'lucide-react';
 import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
-import { SwipeDeck } from './SwipeDeck';
-import { PublicFeed } from './PublicFeed';
-import { PaginationDots } from './PaginationDots';
+import { PRESET_STACKS } from '../data/presetStacks';
 
 import logoImg from '../assets/logo.png';
 
@@ -30,11 +28,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   const [logoTapCount, setLogoTapCount] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
 
-  // DEBUG: Verify version
-  useEffect(() => {
-
-  }, []);
-
   // Effect to populate text from Static View return
   useEffect(() => {
     if (initialText) {
@@ -49,7 +42,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
   const [dragActive, setDragActive] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  const [scenarioIndex, setScenarioIndex] = useState(0);
 
   const canSubmit = () => {
     if (mode === 'describe') return description.length > 5;
@@ -71,7 +63,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     recognition.maxAlternatives = 1;
 
     recognition.start();
-    setIsListening(true); // Indicate that listening has started
+    setIsListening(true);
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
@@ -80,13 +72,14 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error", event.error);
-      setIsListening(false); // Stop listening on error
+      setIsListening(false);
     };
 
     recognition.onend = () => {
-      setIsListening(false); // Stop listening when recognition ends
+      setIsListening(false);
     };
   };
+
   const handleSubmit = () => {
     if (!canSubmit()) return;
 
@@ -125,61 +118,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     }
   };
 
-  /* SPEECH RECOGNITION IMPLEMENTATION */
-  const [recognition, setRecognition] = useState<any>(null);
-
-  useEffect(() => {
-    // Check for browser support
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const recog = new SpeechRecognition();
-      recog.continuous = true;
-      recog.interimResults = true;
-      recog.lang = 'en-US';
-
-      recog.onresult = (event: any) => {
-        let finalTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          }
-        }
-        if (finalTranscript) {
-          setDescription(prev => {
-            // Add space if needed
-            const spacer = prev && !prev.endsWith(' ') ? ' ' : '';
-            return prev + spacer + finalTranscript;
-          });
-        }
-      };
-
-      recog.onerror = (event: any) => {
-        console.error('Speech recognition error', event.error);
-        setIsListening(false);
-      };
-
-      recog.onend = () => {
-        if (isListening) {
-          // Optional logic
-        }
-      };
-
-      setRecognition(recog);
-    }
-  }, []);
-
-  const toggleListening = () => {
-    if (!recognition) {
-      alert("Voice input is not supported in this browser.");
-      return;
-    }
-
-    if (isListening) {
-      recognition.stop();
-      setIsListening(false);
-    }
-  };
-
   /* TYPEWRITER EFFECT */
   const [placeholderText, setPlaceholderText] = useState('');
 
@@ -201,296 +139,251 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
       } else {
         clearInterval(intervalId);
       }
-    }, 30);
+    }, 20);
 
     return () => clearInterval(intervalId);
   }, [mode]);
 
   return (
-    <div className="w-full flex flex-col relative z-10 bg-transparent">
+    <div className="w-full h-full flex flex-col relative z-10 bg-black text-white overflow-hidden">
 
-      {/* --- HEADER (Fixed) --- */}
-      <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/90 via-black/50 to-transparent z-20">
-        <div className="w-full flex flex-col items-center pt-4 pb-2 relative z-10">
+      {/* --- HEADER --- */}
+      <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/90 via-black/50 to-transparent">
+        <div className="w-full flex flex-col items-center pt-4 pb-2">
 
-          {/* --- BRANDING HEADER --- */}
-          <div className="w-full flex-shrink-0 px-6 max-[360px]:px-4 flex flex-col items-center">
-            {/* ... logo parts ... */}
-            <div className="mb-2">
-              <button
-                onClick={() => {
-                  const now = Date.now();
-                  // ... logic ...
-                  if (now - lastTapTime > 1000) {
-                    setLogoTapCount(1);
-                  } else {
-                    const newCount = logoTapCount + 1;
-                    setLogoTapCount(newCount);
-                    if (newCount >= 6) {
-                      onAdminModeToggle();
-                      setLogoTapCount(0);
-                    }
+          {/* Logo & Tap Gesture */}
+          <div className="mb-2">
+            <button
+              onClick={() => {
+                const now = Date.now();
+                if (now - lastTapTime > 1000) {
+                  setLogoTapCount(1);
+                } else {
+                  const newCount = logoTapCount + 1;
+                  setLogoTapCount(newCount);
+                  if (newCount >= 6) {
+                    onAdminModeToggle();
+                    setLogoTapCount(0);
                   }
-                  setLastTapTime(now);
-                }}
-                className="active:scale-95 transition-transform outline-none"
+                }
+                setLastTapTime(now);
+              }}
+              className="active:scale-95 transition-transform outline-none"
+            >
+              <img
+                src={logoImg}
+                alt="StrainMath Logo"
+                className="h-[32px] w-auto transition-all"
+                style={{ filter: 'brightness(0) saturate(100%) invert(83%) sepia(36%) saturate(1478%) hue-rotate(354deg) brightness(91%) contrast(93%)' }}
+              />
+            </button>
+          </div>
+
+          <div className="text-center px-6">
+            <h2 className="text-xl text-white font-light serif tracking-tight">How should you feel?</h2>
+            <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-medium mt-0.5">
+              Describe your goal or pick a curated path
+            </p>
+          </div>
+
+          {/* Tabs - Compact UI */}
+          <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10 mt-4 max-w-sm w-[90vw] mx-auto">
+            {(['describe', 'product', 'strain'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setMode(t)}
+                className={`flex-1 py-2 px-1 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ${mode === t ? TAB_ACTIVE : TAB_INACTIVE}`}
               >
-                <img
-                  src={logoImg}
-                  alt="StrainMath Logo"
-                  className="h-[40px] w-auto max-h-[48px] object-contain opacity-100"
-                  style={{ filter: 'brightness(0) saturate(100%) invert(83%) sepia(36%) saturate(1478%) hue-rotate(354deg) brightness(91%) contrast(93%)' }}
-                />
+                {t === 'describe' ? 'Describe' : t === 'product' ? 'Photo' : 'Strain'}
               </button>
-            </div>
-
-            <div className="text-center">
-              <h2 className="text-2xl text-white font-light serif tracking-tight">Describe Your Goal</h2>
-              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-medium mt-1">
-                Start with a scenario or describe usage
-              </p>
-              <div className="flex items-center justify-center gap-1.5 mt-1.5">
-                <span className="h-[1px] w-3 bg-white/10" />
-                <p className="text-[7px] text-[#C9A24D]/80 uppercase tracking-widest font-light">
-                  Powered by <span className="serif font-normal">StrainMath</span><span className="text-[6px] align-top">™</span>
-                </p>
-                <span className="h-[1px] w-3 bg-white/10" />
-              </div>
-            </div>
-            {/* Admin Toggle Removed - Use text Tap Gesture */}
-          </div>
-
-          {/* Tabs - Centered & Compact */}
-          <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10 mt-4 max-w-sm w-full mx-6 max-[360px]:mx-4 max-[360px]:max-w-[90vw]">
-            <button
-              onClick={() => setMode('describe')}
-              className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'describe' ? TAB_ACTIVE : TAB_INACTIVE}`}
-            >
-              Describe
-            </button>
-            <button
-              onClick={() => setMode('product')}
-              className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'product' ? TAB_ACTIVE : TAB_INACTIVE}`}
-            >
-              Photo
-            </button>
-            <button
-              onClick={() => setMode('strain')}
-              className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-all duration-300 ${mode === 'strain' ? TAB_ACTIVE : TAB_INACTIVE}`}
-            >
-              Strain
-            </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* --- BODY (Natural Flow) --- */}
-      <div className="flex-1 px-6 min-h-0 flex flex-col gap-4">
-        <AnimatePresence mode="wait">
-          {mode === 'describe' && (
+      {/* --- SCROLLABLE BODY --- */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-32">
+        <div className="px-6 space-y-8 py-4">
+
+          {/* INPUT AREA */}
+          <AnimatePresence mode="wait">
             <motion.div
-              // ... (omitted unchanging parts for brevity if tool supported it, but here full redraw of container structure isn't needed, just the top div class change)
-
-              // Actually, I must replace the exact lines. Let's target the BODY div opening and FOOTER area.
-
-              key="describe"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex-shrink-0" // Allow it to perform layout but not force grow excessively
+              key={mode}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className="w-full"
             >
-              <div className="relative">
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe how you want to feel, what you want to avoid, or a scenario..."
-                  className={`${GLASS_INPUT} h-32 resize-none transition-all placeholder:text-white/30 px-5 py-4 leading-relaxed text-base`} // Added padding and text-base
-                />
-                {/* NO CHIPS HERE */}
-                <button
-                  onClick={handleMicClick}
-                  className={`absolute bottom-4 right-4 p-3 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-white'}`}
+              {mode === 'describe' && (
+                <div className="relative">
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder={placeholderText}
+                    className={`${GLASS_INPUT} h-28 resize-none transition-all placeholder:text-white/20 px-5 py-4 leading-relaxed text-sm`}
+                  />
+                  <button
+                    onClick={handleMicClick}
+                    className={`absolute bottom-3 right-3 p-2.5 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                  >
+                    <Mic size={16} />
+                  </button>
+                </div>
+              )}
+
+              {mode === 'product' && (
+                <div
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  className={`relative w-full h-40 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive ? "border-[#00FFD1] bg-[#00FFD1]/5" : uploadedImage ? "border-emerald-400/50 bg-emerald-400/5" : "border-white/10 bg-white/5"}`}
                 >
-                  <Mic size={18} />
+                  <input
+                    type="file"
+                    id="camera-upload"
+                    className="hidden"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])}
+                  />
+                  {uploadedImage ? (
+                    <div className="text-center">
+                      <Check className="text-[#00FFD1] mx-auto mb-2" size={24} />
+                      <p className="text-xs text-white/60">Image Set</p>
+                      <button onClick={() => setUploadedImage(null)} className="text-[10px] text-white/30 uppercase mt-2">Remove</button>
+                    </div>
+                  ) : (
+                    <label htmlFor="camera-upload" className="flex flex-col items-center gap-2 cursor-pointer group">
+                      <div className="p-4 rounded-full bg-white/5 border border-white/10 group-hover:bg-[#00FFD1]/10 group-hover:border-[#00FFD1]/30 transition-all">
+                        <Camera size={24} className="text-white/40 group-hover:text-[#00FFD1]" />
+                      </div>
+                      <span className="text-[10px] uppercase tracking-widest text-white/40">Capture Product Label</span>
+                    </label>
+                  )}
+                </div>
+              )}
+
+              {mode === 'strain' && (
+                <div className="flex flex-col gap-3">
+                  <input
+                    type="text"
+                    value={strainName}
+                    onChange={(e) => setStrainName(e.target.value)}
+                    placeholder="Strain Name (e.g. Jack Herer)"
+                    className={GLASS_INPUT}
+                  />
+                  <input
+                    type="text"
+                    value={growerName}
+                    onChange={(e) => setGrowerName(e.target.value)}
+                    placeholder="Brand/Grower (Optional)"
+                    className={GLASS_INPUT}
+                  />
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* CURATED DISCOVERY SECTION */}
+          <div className="space-y-10">
+
+            {/* ROW 1: SCENARIOS */}
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center pr-2">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C9A24D]">Select Scenario</h3>
+                <span className="text-[8px] text-white/20 uppercase tracking-widest">Swipe Left</span>
+              </div>
+
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-6 px-6 no-scrollbar pb-2">
+                {BLEND_SCENARIOS.map((scenario) => (
+                  <button
+                    key={scenario.id}
+                    onClick={() => {
+                      setMode('describe');
+                      setDescription(scenario.inputText);
+                    }}
+                    className="snap-center shrink-0 w-[85%] rounded-2xl p-5 text-left bg-white/5 border border-white/10 relative overflow-hidden group transition-all"
+                    style={{ minHeight: '140px' }}
+                  >
+                    <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: scenario.visualProfile.color }} />
+                    <h4 className="text-base font-light serif text-white mb-0.5">{scenario.title}</h4>
+                    <p className="text-[9px] uppercase tracking-widest text-[#00FFD1] mb-3">{scenario.subtitle}</p>
+                    <p className="text-xs text-white/50 italic leading-relaxed line-clamp-2">"{scenario.inputText}"</p>
+
+                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ChevronRight size={16} className="text-[#00FFD1]" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ROW 2: PRESET STACKS (The "Novel Idea") */}
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center pr-2">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C9A24D]">Curated Stacks</h3>
+                <button
+                  onClick={onBrowsePresets}
+                  className="text-[8px] text-[#00FFD1] uppercase tracking-widest hover:underline"
+                >
+                  See All
                 </button>
               </div>
-            </motion.div>
-          )}
 
-          {/* Other modes simplified for similar anchoring */}
-          {mode === 'product' && (
-            // ... (Keeping logic, just ensuring layout fits)
-            <motion.div key="product" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-shrink-0">
-              <div
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-                className={`relative w-full h-64 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive ? "border-[#00FFD1] bg-[#00FFD1]/5" : uploadedImage ? "border-emerald-400/50 bg-emerald-400/5" : "border-white/10 bg-white/5"}`}
-              >
-                {/* Hidden Inputs */}
-                <input
-                  type="file"
-                  id="camera-upload"
-                  className="hidden"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])}
-                />
-                <input
-                  type="file"
-                  id="file-upload"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={(e) => e.target.files?.[0] && setUploadedImage(e.target.files[0])}
-                />
-
-                {uploadedImage ? (
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Check size={24} className="text-emerald-400" />
-                    </div>
-                    <p className="text-emerald-400 font-medium text-sm mb-1">Image Captured</p>
-                    <p className="text-white/40 text-xs max-w-[200px] truncate">{uploadedImage.name}</p>
-                    <button
-                      onClick={() => setUploadedImage(null)}
-                      className="mt-4 text-xs uppercase tracking-widest text-white/40 hover:text-white"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-6 w-full px-8">
-                    <p className="text-white/40 text-xs uppercase tracking-widest font-medium mb-2">Select capture method</p>
-
-                    <div className="flex gap-4 w-full">
-                      {/* Camera Button */}
-                      <label
-                        htmlFor="camera-upload"
-                        className="flex-1 h-32 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 cursor-pointer flex flex-col items-center justify-center gap-3 transition-all group"
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-6 px-6 no-scrollbar pb-2">
+                {PRESET_STACKS.slice(0, 4).map((stack) => (
+                  <button
+                    key={stack.id}
+                    onClick={() => onSelectPreset(stack)}
+                    className="snap-center shrink-0 w-[75%] rounded-2xl p-5 text-left bg-gradient-to-br from-white/10 to-transparent border border-white/5 relative overflow-hidden group transition-all"
+                    style={{ minHeight: '120px' }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${stack.visualProfile.color}20`, border: `1px solid ${stack.visualProfile.color}40` }}
                       >
-                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#00FFD1]/20 transition-colors">
-                          <Camera size={20} className="text-white/60 group-hover:text-[#00FFD1]" />
-                        </div>
-                        <span className="text-xs font-medium text-white/60 group-hover:text-white">Take Photo</span>
-                      </label>
-
-                      {/* Upload Button */}
-                      <label
-                        htmlFor="file-upload"
-                        className="flex-1 h-32 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 cursor-pointer flex flex-col items-center justify-center gap-3 transition-all group"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#00FFD1]/20 transition-colors">
-                          <Upload size={20} className="text-white/60 group-hover:text-[#00FFD1]" />
-                        </div>
-                        <span className="text-xs font-medium text-white/60 group-hover:text-white">Upload File</span>
-                      </label>
+                        <Layers size={18} style={{ color: stack.visualProfile.color }} />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-white mb-0.5 serif">{stack.title}</h4>
+                        <p className="text-[8px] text-white/40 leading-relaxed line-clamp-2">{stack.subtitle}</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+
+                    <div className="mt-4 flex items-center gap-2 overflow-hidden">
+                      <div className="flex -space-x-1.5 overflow-hidden">
+                        {[0, 1, 2].map(i => (
+                          <div key={i} className="w-4 h-4 rounded-full border border-black bg-white/10 shadow-sm" />
+                        ))}
+                      </div>
+                      <span className="text-[8px] uppercase tracking-widest text-white/30">Layered Protocol</span>
+                    </div>
+                  </button>
+                ))}
               </div>
-            </motion.div>
-          )}
+            </div>
 
-          {mode === 'strain' && (
-            <motion.div key="strain" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-shrink-0">
-              <input type="text" value={strainName} onChange={(e) => setStrainName(e.target.value)} placeholder="Enter a strain name or brand..." className={`${GLASS_INPUT} mb-4 placeholder:text-white/30`} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-      </div>
-
-      {/* --- SCENARIOS (Density Adjustment: Reduced height and padding) --- */}
-      <div className="w-full relative flex flex-col gap-2 shrink-0 px-6">
-        <div className="flex justify-between items-end mb-1 flex-shrink-0">
-          <div>
-            <h3 className="text-white text-base font-light serif">Start with a Scenario</h3>
-            <p className="text-white/40 text-[10px]">Tap to populate</p>
           </div>
         </div>
-
-        <div className="w-full relative h-56"> {/* Density adjustment: h-72 → h-56 (22% reduction) */}
-          <SwipeDeck
-            items={BLEND_SCENARIOS}
-            onSwipe={(idx) => setScenarioIndex(idx)}
-            renderItem={(scenario, isActive) => (
-              <div className="w-full h-full pr-4 pb-4">
-                <button
-                  onClick={() => {
-                    // PHASE 1: POPULATE ONLY
-                    setMode('describe');
-                    setDescription(scenario.inputText);
-                  }}
-                  className="w-full h-full text-left p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all flex flex-col justify-between group relative overflow-hidden" /* Density adjustment: p-6 → p-4 */
-                  style={{
-                    // Layer 2: Hairline perimeter (entire card)
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    boxShadow: `inset 0 0 0 1px ${scenario.visualProfile.color}30`
-                  }}
-                >
-                  {/* Layer 1: Top-weighted iridescent accent */}
-                  <div
-                    className="absolute top-0 left-0 right-0 h-[3px] opacity-80 group-hover:opacity-100 transition-opacity"
-                    style={{
-                      background: `linear-gradient(90deg, 
-                          transparent 0%, 
-                          ${scenario.visualProfile.color}80 20%, 
-                          ${scenario.visualProfile.color} 50%, 
-                          ${scenario.visualProfile.color}80 80%, 
-                          transparent 100%)`,
-                      filter: 'blur(0.5px)'
-                    }}
-                  />
-
-                  <div>
-                    <h4 className="text-lg font-light text-white mb-0.5 serif">{scenario.title}</h4> {/* Density adjustment: text-xl → text-lg, mb-1 → mb-0.5 */}
-                    <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2">{scenario.subtitle}</p> {/* Density adjustment: text-xs → text-[10px], mb-4 → mb-2 */}
-                    <p className="text-xs text-white/80 leading-snug font-light italic"> {/* Density adjustment: text-sm → text-xs, leading-relaxed → leading-snug */}
-                      "{scenario.inputText}"
-                    </p>
-                  </div>
-
-                  <div className="flex justify-between items-center mt-2"> {/* Density adjustment: mt-4 → mt-2 */}
-                    <span className="text-[10px] uppercase tracking-widest text-[#00FFD1] opacity-0 group-hover:opacity-100 transition-opacity">Set Intent</span>
-                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:text-white group-hover:bg-[#00FFD1] group-hover:text-black transition-all">
-                      <Search size={14} />
-                    </div>
-                  </div>
-                </button>
-              </div>
-            )}
-          />
-        </div>
-
-        {/* PAGINATION DOTS - Outside scenario cards */}
-        <div className="w-full relative mt-12 mb-6">
-          <PaginationDots
-            currentIndex={scenarioIndex}
-            totalItems={BLEND_SCENARIOS.length}
-          />
-        </div>
-
       </div>
-
-
 
       {/* --- FOOTER (Fixed) --- */}
-      <div className="flex-shrink-0 px-6 max-[360px]:px-4 pb-safe-footer pt-2 max-[360px]:pt-1 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3 max-[360px]:gap-2" style={{ marginBottom: '0' }}>
+      <div className="flex-shrink-0 px-6 pb-safe-footer bg-gradient-to-t from-black via-black/80 to-transparent pt-4">
         <button
           onClick={handleSubmit}
           disabled={!canSubmit()}
-          className={`w-full btn-neon-green py-5 max-[360px]:py-3 max-[360px]:text-xs ${!canSubmit() && 'opacity-20 cursor-not-allowed scale-100 shadow-none'}`}
+          className={`w-full py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs transition-with-all duration-500 shadow-2xl ${canSubmit()
+            ? "bg-[#00FFD1] text-black shadow-[#00FFD1]/20 active:scale-95"
+            : "bg-white/5 text-white/10 cursor-not-allowed border border-white/5"
+            }`}
         >
-          Generate Recommendations
+          Generate Recommendation
         </button>
-
-        <button
-          onClick={onBrowsePresets}
-          className="mx-auto py-2 max-[360px]:py-1 px-4 rounded-full bg-transparent text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-all hover:bg-white/5"
-        >
-          Explore Preset Stacks
-        </button>
+        <p className="text-center text-[7px] text-white/10 uppercase tracking-widest mt-4 pb-2">
+          Deterministic Engine v9.9 (DUAL-DISCOVERY) • Verified Lab Data Only
+        </p>
       </div>
 
     </div>
