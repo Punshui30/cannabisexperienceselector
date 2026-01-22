@@ -148,7 +148,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
             {/* CALCULATOR MODAL */}
             <AnimatePresence>
                 {isCalculating && (
-                    <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-end sm:items-center justify-center p-4 sm:p-6" onClick={() => setIsCalculating(false)}>
+                    <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-2xl flex items-end sm:items-center justify-center p-4 sm:p-6" onClick={() => setIsCalculating(false)}>
                         <motion.div
                             initial={{ y: "100%" }}
                             animate={{ y: 0 }}
