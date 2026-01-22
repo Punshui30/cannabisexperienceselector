@@ -30,7 +30,7 @@ export function OnboardingFlow({ onComplete }: Props) {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-dvh overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0 bg-black">
         <motion.div
@@ -56,7 +56,7 @@ export function OnboardingFlow({ onComplete }: Props) {
         className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-gradient-to-br from-emerald-400/20 to-[#b8975a]/20 blur-3xl"
       />
 
-      <div className="relative min-h-screen flex items-center justify-center p-8">
+      <div className="relative min-h-dvh flex items-center justify-center p-8 overflow-y-auto">
         <AnimatePresence mode="wait">
           {/* Screen 1: Fork */}
           {currentScreen === 'fork' && (

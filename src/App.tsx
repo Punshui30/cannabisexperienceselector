@@ -390,7 +390,7 @@ export default function App() {
                   />
                 )}
                 <div className="fixed bottom-2 right-2 text-[8px] text-white/20 pointer-events-none flex flex-col items-end gap-1">
-                  <span>v9.4 (UNIFIED-BRAIN)</span>
+                  <span>v9.4.1 (PAYLOAD-FIX)</span>
                   {debugLog.map((l, i) => <span key={i} className="opacity-50">{l}</span>)}
                 </div>
 

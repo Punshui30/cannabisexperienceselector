@@ -14,7 +14,7 @@ export function RemoteAccessPreview() {
     const [activeTab, setActiveTab] = useState<'menu' | 'blends'>('menu');
 
     return (
-        <div className="w-full min-h-screen bg-black text-white font-sans selection:bg-[#00FFD1] selection:text-black flex flex-col">
+        <div className="w-full min-h-dvh bg-black text-white font-sans selection:bg-[#00FFD1] selection:text-black flex flex-col">
 
             {/* --- GLOBAL BACKGROUND --- */}
             <div className="fixed inset-0 z-0 pointer-events-none">
