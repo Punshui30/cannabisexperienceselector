@@ -61,3 +61,37 @@ export async function generateNarrative(input: StrainMathNarrativeInput): Promis
         return null;
     }
 }
+
+/**
+ * ANALYZE IMAGE (Vision + Tavily Grounding)
+ * Returns a technical summary of the product in the image.
+ */
+export async function analyzeImage(imageBase64: string): Promise<string | null> {
+    try {
+        console.log("NARRATOR: Analyzing image via master gateway (Vision + Search)...");
+
+        const response = await fetch(STRAINMATH_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: imageBase64 })
+        });
+
+        if (!response.ok) {
+            console.warn(`NARRATOR: Image analysis HTTP failure: ${response.status}`);
+            return null;
+        }
+
+        const data = await response.json();
+
+        if (data.ok && data.data) {
+            console.log("NARRATOR: Image analysis successful ✓");
+            return data.data;
+        } else {
+            console.warn("NARRATOR: Image analysis returned no data", data.error);
+            return null;
+        }
+    } catch (e: any) {
+        console.error("NARRATOR: Image analysis client error:", e.message);
+        return null;
+    }
+}

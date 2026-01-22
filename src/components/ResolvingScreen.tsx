@@ -68,8 +68,8 @@ export function ResolvingScreen({ input, recommendation, onComplete, progress = 
             </div>
 
             <div className="mt-20 text-center space-y-12 relative z-50">
-                <div className="space-y-4 px-4">
-                    <h2 className="text-2xl font-extralight font-serif tracking-[0.3em] text-white/90 uppercase text-center">
+                <div className="space-y-4 px-6 max-w-full">
+                    <h2 className="text-xl font-extralight font-serif tracking-[0.25em] text-white/90 uppercase text-center break-keep">
                         Synthesizing
                     </h2>
                     <div className="h-[0.5px] w-12 bg-white/30 mx-auto" />

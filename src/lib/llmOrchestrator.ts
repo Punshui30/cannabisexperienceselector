@@ -5,7 +5,7 @@ import { analyzeIntent } from './semanticIntentAdapter';
 import { generateNarratives, generateConversationalResponse } from './llmNarrativeAdapter';
 import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
-import { generateNarrative, ToneMode, EnhancedNarrative } from './llm/strainmathNarrator';
+import { generateNarrative, ToneMode, EnhancedNarrative, analyzeImage } from './llm/strainmathNarrator';
 import { findSubstitute } from './engine/substitution';
 
 // Define OrchestratorResult locally

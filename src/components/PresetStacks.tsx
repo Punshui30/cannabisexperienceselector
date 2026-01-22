@@ -33,7 +33,7 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
 
       <div className="flex-shrink-0 px-8 py-6 text-center">
         <h1 className="text-4xl font-light text-white mb-2 serif tracking-tight">Curated Stacks</h1>
-        <p className="text-[#00FFD1] text-[10px] uppercase tracking-[0.3em] font-semibold">Intent Templates</p>
+        <p className="text-[#00FFD1] text-[10px] uppercase tracking-[0.3em] font-semibold text-neon-green">Intent Templates</p>
       </div>
 
       {/* Swipe Deck Area */}
