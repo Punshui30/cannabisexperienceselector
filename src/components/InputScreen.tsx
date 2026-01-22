@@ -58,7 +58,9 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     return false;
   };
 
-  const handleMicClick = () => {
+  const [listeningField, setListeningField] = useState<string | null>(null);
+
+  const startListening = (onResult: (t: string) => void, fieldKey: string) => {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       alert("Speech recognition not supported in this browser.");
       return;
@@ -72,19 +74,22 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
     recognition.start();
     setIsListening(true);
+    setListeningField(fieldKey);
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      setDescription(prev => prev ? `${prev} ${transcript}` : transcript);
+      onResult(transcript);
     };
 
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error", event.error);
       setIsListening(false);
+      setListeningField(null);
     };
 
     recognition.onend = () => {
       setIsListening(false);
+      setListeningField(null);
     };
   };
 
@@ -231,8 +236,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                     className={`${GLASS_INPUT} h-28 resize-none transition-all placeholder:text-white/20 px-5 py-4 leading-relaxed text-sm`}
                   />
                   <button
-                    onClick={handleMicClick}
-                    className={`absolute bottom-3 right-3 p-2.5 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                    onClick={() => startListening(t => setDescription(prev => prev ? `${prev} ${t}` : t), 'describe')}
+                    className={`absolute bottom-3 right-3 p-2.5 rounded-full transition-all ${isListening && listeningField === 'describe' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
                   >
                     <Mic size={16} />
                   </button>
@@ -269,20 +274,36 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
               {mode === 'strain' && (
                 <div className="flex flex-col gap-3">
-                  <input
-                    type="text"
-                    value={strainName}
-                    onChange={(e) => setStrainName(e.target.value)}
-                    placeholder="Strain Name (e.g. Jack Herer)"
-                    className={GLASS_INPUT}
-                  />
-                  <input
-                    type="text"
-                    value={growerName}
-                    onChange={(e) => setGrowerName(e.target.value)}
-                    placeholder="Brand/Grower (Optional)"
-                    className={GLASS_INPUT}
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={strainName}
+                      onChange={(e) => setStrainName(e.target.value)}
+                      placeholder="Strain Name (e.g. Jack Herer)"
+                      className={GLASS_INPUT}
+                    />
+                    <button
+                      onClick={() => startListening(t => setStrainName(t), 'strain')}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening && listeningField === 'strain' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                    >
+                      <Mic size={14} />
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={growerName}
+                      onChange={(e) => setGrowerName(e.target.value)}
+                      placeholder="Brand/Grower (Optional)"
+                      className={GLASS_INPUT}
+                    />
+                    <button
+                      onClick={() => startListening(t => setGrowerName(t), 'grower')}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening && listeningField === 'grower' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                    >
+                      <Mic size={14} />
+                    </button>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -378,8 +399,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           onClick={handleSubmit}
           disabled={!canSubmit()}
           className={`w-full py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs transition-with-all duration-500 shadow-2xl ${canSubmit()
-              ? "bg-[#00FFD1] text-black shadow-[#00FFD1]/20 active:scale-95"
-              : "bg-white/5 text-white/10 cursor-not-allowed border border-white/5"
+            ? "bg-[#00FFD1] text-black shadow-[#00FFD1]/20 active:scale-95"
+            : "bg-white/5 text-white/10 cursor-not-allowed border border-white/5"
             }`}
         >
           Generate Recommendation

@@ -27,7 +27,38 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     const [isLoading, setIsLoading] = useState(false);
     const [isRefactorComplete, setIsRefactorComplete] = useState(false);
     const [hasCommitted, setHasCommitted] = useState(false);
+    const [isListening, setIsListening] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const startListening = () => {
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            alert("Speech recognition not supported in this browser.");
+            return;
+        }
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.start();
+        setIsListening(true);
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setInputValue(prev => prev ? `${prev} ${transcript}` : transcript);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error("Speech recognition error", event.error);
+            setIsListening(false);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+    };
 
     // Initial Greeting (Context-Aware)
     useEffect(() => {
@@ -185,16 +216,25 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                 {/* INPUT LINE */}
                 <div className="p-3 border-t border-white/10 bg-white/5">
                     <div className="flex items-center gap-2">
-                        <input
-                            type="text"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white text-xs focus:outline-none focus:border-[#00FFD1]/50 placeholder-white/20"
-                            placeholder={isLoading ? "Processing..." : "Enter command..."}
-                            disabled={isLoading || isRefactorComplete}
-                            autoFocus
-                        />
+                        <div className="flex-1 relative">
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                className="w-full bg-white/5 border border-white/10 rounded-full pl-4 pr-10 py-2 text-white text-xs focus:outline-none focus:border-[#00FFD1]/50 placeholder-white/20"
+                                placeholder={isLoading ? "Processing..." : "Enter command..."}
+                                disabled={isLoading || isRefactorComplete}
+                                autoFocus
+                            />
+                            <button
+                                onClick={startListening}
+                                disabled={isLoading || isRefactorComplete}
+                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                            >
+                                <Mic size={14} />
+                            </button>
+                        </div>
                         <button
                             onClick={handleSendMessage}
                             disabled={!inputValue.trim() || isLoading || isRefactorComplete}

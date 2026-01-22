@@ -8,7 +8,7 @@
  * - NON-BLOCKING: silent failure, no user-visible errors
  */
 
-import { ToneMode } from './geminiNarrator';
+import { ToneMode } from './antigravityNarrator';
 
 export interface GptNarrativeInput {
     userIntentSummary: string;

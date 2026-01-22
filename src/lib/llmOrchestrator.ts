@@ -5,7 +5,7 @@ import { analyzeIntent } from './semanticIntentAdapter';
 import { generateNarratives, generateConversationalResponse } from './llmNarrativeAdapter';
 import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
-import { generateNarrative, ToneMode } from './llm/geminiNarrator';
+import { generateNarrative, ToneMode } from './llm/antigravityNarrator';
 import { findSubstitute } from './engine/substitution';
 
 // Define OrchestratorResult locally
@@ -431,21 +431,21 @@ export async function processIntent(
         // APPLY TIER-1 NARRATIVE TO ALL RESULTS
         const safePrimary = sanitizeBlend(engineResults[0]);
         if (engineResults[0] && safePrimary.length > 0) {
-            const t1 = generateDeterministicNarrative(engineResults[0], 'primary', intentSpec, seed.text || "");
+            const t1 = generateDeterministicNarrative(engineResults[0], 'primary', intentSpec, seed.text || "", isStrainMode);
             engineResults[0].name = t1.name;
             engineResults[0].reasoning = t1.reasoning;
             console.log("TIER-1 (Primary):", t1.reasoning);
         }
 
         if (engineResults[1]) {
-            const t1 = generateDeterministicNarrative(engineResults[1], 'alternative', intentSpec, seed.text || "");
+            const t1 = generateDeterministicNarrative(engineResults[1], 'alternative', intentSpec, seed.text || "", isStrainMode);
             engineResults[1].name = t1.name;
             engineResults[1].reasoning = t1.reasoning;
             console.log("TIER-1 (Alt):", t1.reasoning);
         }
 
         if (engineResults[2]) {
-            const t1 = generateDeterministicNarrative(engineResults[2], 'contextual', intentSpec, seed.text || "");
+            const t1 = generateDeterministicNarrative(engineResults[2], 'contextual', intentSpec, seed.text || "", isStrainMode);
             engineResults[2].name = t1.name;
             engineResults[2].reasoning = t1.reasoning;
             console.log("TIER-1 (Context):", t1.reasoning);
@@ -453,14 +453,14 @@ export async function processIntent(
 
 
         // -------------------------------------------------------------
-        // TIER-2: GEMINI ENHANCEMENT (Non-Blocking / Async)
+        // TIER-2: ANTIGRAVITY ENHANCEMENT (Non-Blocking / Async)
         // -------------------------------------------------------------
-        // CRITICAL: Gemini NEVER blocks UI readiness
+        // CRITICAL: Antigravity NEVER blocks UI readiness
         // We return Tier-1 results immediately.
         // Enhancement happens in the background.
 
         if (!isStack && engineResults.length > 0) {
-            console.log('ORCHESTRATOR: Initiating background Gemini Enhancement...');
+            console.log('ORCHESTRATOR: Initiating background Antigravity Enhancement...');
 
             try {
                 // Map Tone Mode
@@ -473,10 +473,10 @@ export async function processIntent(
                     default: toneMode = 'neutral';
                 }
 
-                // Prepare Input for Gemini Enhancement
+                // Prepare Input for Antigravity Enhancement
                 const primaryBlend = engineResults[0];
 
-                const geminiInput = {
+                const antigravityInput = {
                     tier1Narrative: {
                         name: primaryBlend.name || "Custom Blend",
                         reasoning: primaryBlend.reasoning || ""
@@ -491,17 +491,17 @@ export async function processIntent(
                 };
 
                 // NON-BLOCKING: Fire and forget
-                generateNarrative(geminiInput).then((enhancedText) => {
+                generateNarrative(antigravityInput).then((enhancedText) => {
                     if (enhancedText && engineResults[0]) {
-                        console.log(`[GEMINI_ASYNC_SUCCESS] Narrative enhancement ready ✓`);
+                        console.log(`[ANTIGRAVITY_ASYNC_SUCCESS] Narrative enhancement ready ✓`);
                         engineResults[0].reasoning = enhancedText;
                     }
                 }).catch(err => {
-                    console.warn("[GEMINI_ASYNC_FAILED]", err);
+                    console.warn("[ANTIGRAVITY_ASYNC_FAILED]", err);
                 });
 
             } catch (e) {
-                console.warn("[GEMINI_ENHANCEMENT_INIT_FAILED] (Non-fatal)", e);
+                console.warn("[ANTIGRAVITY_ENHANCEMENT_INIT_FAILED] (Non-fatal)", e);
             }
         }
 
@@ -522,7 +522,7 @@ export async function processIntent(
         }
 
         // CRITICAL PATH COMPLETE: Return results to UI
-        // Gemini enhancement is now truly backgrounded (non-blocking)
+        // ANTIGRAVITY enhancement is now truly backgrounded (non-blocking)
         console.log('[ORCHESTRATOR_V8_FINAL] Returning results to UI');
 
         // LOG TO LIVE NETWORK FEED (Non-blocking)
@@ -692,7 +692,8 @@ function generateDeterministicNarrative(
     blend: EngineResult,
     type: 'primary' | 'alternative' | 'contextual',
     intent: IntentSpec,
-    userInput: string
+    userInput: string,
+    isStrainMatch: boolean = false
 ): { name: string; reasoning: string } {
     if (!blend?.cultivars?.length) return { name: "Custom Blend", reasoning: "Analysis complete." };
 
@@ -700,7 +701,10 @@ function generateDeterministicNarrative(
     let name = '';
     let reasoning = '';
 
-    if (type === 'primary') {
+    if (isStrainMatch && type === 'primary') {
+        name = `${userInput} Experience Match`;
+        reasoning = `Based on the chemical markers of ${userInput}, I've engineered this blend to replicate its specific entourage effect using verified laboratory data.`;
+    } else if (type === 'primary') {
         name = `${blend.cultivars[0].name} Dominant Blend`;
         reasoning = `${blend.cultivars[0].name} anchors this blend for ${intent.targetEffects[0] || 'balanced effects'}.`;
     } else if (type === 'alternative') {

@@ -1,5 +1,5 @@
 /**
- * GEMINI NARRATOR (Primary Engine LLM)
+ * ANTIGRAVITY NARRATOR (Primary Engine LLM)
  * 
  * STRICT BOUNDARIES:
  * - ONLY used for blend narratives and engine explanations
@@ -10,7 +10,7 @@
 
 export type ToneMode = "neutral" | "supportive" | "curious" | "confident" | "calm_reassuring";
 
-export interface GeminiNarrativeInput {
+export interface AntigravityNarrativeInput {
     tier1Narrative: {
         name: string;
         reasoning: string;
@@ -24,9 +24,9 @@ export interface GeminiNarrativeInput {
     toneMode: ToneMode;
 }
 
-const GEMINI_ENDPOINT = '/api/llm'; // Proxying through the healthy OpenAI endpoint
+const ANTIGRAVITY_ENDPOINT = '/api/llm'; // Proxying through the healthy OpenAI endpoint
 
-export async function generateNarrative(input: GeminiNarrativeInput): Promise<string | null> {
+export async function generateNarrative(input: AntigravityNarrativeInput): Promise<string | null> {
     try {
         console.log("NARRATOR: Requesting narrative enhancement via OpenAI...");
 
@@ -43,7 +43,7 @@ User Intent: ${input.userIntentSummary}
 
 Enhance this into a brief, compelling narrative (2-3 sentences max).`.trim();
 
-        const response = await fetch(GEMINI_ENDPOINT, {
+        const response = await fetch(ANTIGRAVITY_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

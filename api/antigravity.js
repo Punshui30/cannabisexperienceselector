@@ -1,16 +1,15 @@
 /**
- * GEMINI VERTEX API PROXY (V9.2 - Vertex AI Transition)
+ * ANTIGRAVITY VERTEX API PROXY (V9.9 - Rebranded)
  * 
- * Path: /api/gemini.js
- * Uses Google Vertex AI (Enterprise) instead of AI Studio.
- * Requires: GCP_PROJECT_ID, GCP_SERVICE_ACCOUNT_KEY, GCP_REGION (optional)
+ * Path: /api/antigravity.js
+ * Uses Google Vertex AI (Enterprise) for high-fidelity narratives.
  */
 
 const { GoogleAuth } = require('google-auth-library');
 
 module.exports = async function handler(request, response) {
     try {
-        console.log('[GEMINI_VERTEX_V9.2] Request started');
+        console.log('[ANTIGRAVITY_VERTEX] Request started');
 
         // CORS Header Setup
         response.setHeader('Access-Control-Allow-Credentials', true);
@@ -36,7 +35,7 @@ module.exports = async function handler(request, response) {
         const region = process.env.GCP_REGION || 'us-central1';
 
         if (!projectId || !saKey) {
-            console.error('[GEMINI_VERTEX_V9.2] Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY');
+            console.error('[ANTIGRAVITY_VERTEX] Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY');
             return response.status(200).json({ ok: false, error: 'missing_gcp_config' });
         }
 
@@ -54,7 +53,7 @@ module.exports = async function handler(request, response) {
             });
             authClient = await auth.getClient();
         } catch (authErr) {
-            console.error('[GEMINI_VERTEX_V9.2] Auth Error:', authErr.message);
+            console.error('[ANTIGRAVITY_VERTEX] Auth Error:', authErr.message);
             return response.status(200).json({ ok: false, error: 'auth_failed', details: authErr.message });
         }
 
@@ -62,7 +61,7 @@ module.exports = async function handler(request, response) {
         const token = accessToken.token;
 
         // 3. Prepare Vertex Request
-        const promptText = `You are a premium cannabis experience narrator.
+        const promptText = `You are a premium cannabis experience narrator (Antigravity System).
 Role: Enhance Tier-1 technical narratives into compelling, natural language.
 Rule: No new facts, preserve all cultivars.
 Tone: ${toneMode || 'neutral'}
@@ -91,7 +90,7 @@ Facts: ${tier1Narrative.reasoning}`;
         if (!vertexRes.ok) {
             const status = vertexRes.status;
             const errorText = await vertexRes.text().catch(() => 'Could not read error body');
-            console.error(`[GEMINI_VERTEX_V9.2] API Error ${status}:`, errorText);
+            console.error(`[ANTIGRAVITY_VERTEX] API Error ${status}:`, errorText);
             return response.status(200).json({
                 ok: false,
                 error: 'vertex_api_failed',
@@ -111,11 +110,11 @@ Facts: ${tier1Narrative.reasoning}`;
             return response.status(200).json({ ok: false, error: 'no_narrative_extracted' });
         }
 
-        console.log('[GEMINI_VERTEX_V9.2] Success');
+        console.log('[ANTIGRAVITY_VERTEX] Success');
         return response.status(200).json({ ok: true, narrative });
 
     } catch (err) {
-        console.error('[GEMINI_VERTEX_V9.2] Global Error:', err.message);
+        console.error('[ANTIGRAVITY_VERTEX] Global Error:', err.message);
         return response.status(200).json({
             ok: false,
             error: 'server_error',

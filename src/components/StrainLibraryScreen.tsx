@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { resolveCultivarVisuals, resolveTerpeneVisuals } from '../lib/visuals';
 import { INVENTORY } from '../lib/inventory';
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, Droplet, X } from 'lucide-react';
+import { Activity, Droplet, X, Mic } from 'lucide-react';
 
 export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
     // SOURCE OF TRUTH: Iterate over the real Inventory/JSON data
@@ -10,6 +10,44 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
 
     // State
     const [selectedName, setSelectedName] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isListening, setIsListening] = useState(false);
+
+    const startListening = () => {
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            alert("Speech recognition not supported in this browser.");
+            return;
+        }
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.start();
+        setIsListening(true);
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setSearchQuery(transcript);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error("Speech recognition error", event.error);
+            setIsListening(false);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+    };
+
+    // Filtered Strains
+    const filteredStrains = strains.filter(s =>
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.type?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     // Helpers
     const getChemotype = (name: string) => {
@@ -40,10 +78,35 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                 </div>
             </div>
 
+            {/* Search Bar - Fixed at top */}
+            <div className="flex-shrink-0 px-6 py-4 bg-black/40 border-b border-white/5">
+                <div className="relative max-w-4xl mx-auto">
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search by name or type..."
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-4 text-white placeholder-white/20 focus:outline-none focus:border-[#00FFD1]/50 transition-all text-sm"
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="M21 21l-4.35-4.35" />
+                        </svg>
+                    </div>
+                    <button
+                        onClick={startListening}
+                        className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                    >
+                        <Mic size={18} />
+                    </button>
+                </div>
+            </div>
+
             {/* Grid Content */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-32">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
-                    {strains.map((strain, idx) => {
+                    {filteredStrains.map((strain, idx) => {
                         const isSelected = selectedName === strain.name;
                         const visuals = resolveCultivarVisuals(strain.name, strain.type || 'hybrid', {
                             isActive: isSelected,
