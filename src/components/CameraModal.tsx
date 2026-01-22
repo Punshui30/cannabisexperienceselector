@@ -15,6 +15,8 @@ export function CameraModal({ onClose, onCapture }: CameraModalProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
+        let activeStream: MediaStream | null = null;
+
         async function startCamera() {
             try {
                 const constraints = {
@@ -25,6 +27,7 @@ export function CameraModal({ onClose, onCapture }: CameraModalProps) {
                     }
                 };
                 const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+                activeStream = newStream;
                 setStream(newStream);
                 if (videoRef.current) {
                     videoRef.current.srcObject = newStream;
@@ -38,8 +41,11 @@ export function CameraModal({ onClose, onCapture }: CameraModalProps) {
         startCamera();
 
         return () => {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+            if (activeStream) {
+                activeStream.getTracks().forEach(track => {
+                    track.stop();
+                    console.log(`[CAMERA] Stopped track: ${track.label}`);
+                });
             }
         };
     }, []);
