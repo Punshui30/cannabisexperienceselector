@@ -147,6 +147,11 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   return (
     <div className="w-full h-full flex flex-col relative z-10 bg-black text-white overflow-hidden">
 
+      {/* TEST: Deployment verification - v3152e26 */}
+      <div className="absolute top-2 right-2 z-50 bg-red-500 text-white text-xs px-2 py-1 rounded">
+        BUILD: 3152e26
+      </div>
+
       {/* FLOATING BACKGROUND ORBS (Premium Glassmorphism Foundation) */}
       <motion.div
         className="absolute top-1/4 left-1/4 rounded-full pointer-events-none"
