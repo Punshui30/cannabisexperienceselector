@@ -525,6 +525,50 @@ export async function processIntent(
         // Gemini enhancement is now truly backgrounded (non-blocking)
         console.log('[ORCHESTRATOR_V8_FINAL] Returning results to UI');
 
+        // LOG TO LIVE NETWORK FEED (Non-blocking)
+        if (engineResults.length > 0) {
+            const primaryBlend = engineResults[0];
+
+            // Import Intelligence and Live Feed adapter
+            import('./merchantIntelligence').then(({ Intelligence }) => {
+                import('./llmLiveFeedAdapter').then(({ generateLiveFeedCommentary }) => {
+                    // Generate AI commentary for the feed
+                    generateLiveFeedCommentary({
+                        blendName: primaryBlend.name || 'Custom Blend',
+                        cultivars: (primaryBlend.cultivars || []).map(c => c.name),
+                        outcomeCategory: outcomeCategory,
+                        userInput: seed.text
+                    }).then(commentary => {
+                        // Log the event to the intelligence layer
+                        Intelligence.logResolution({
+                            inputMode: seed.mode === 'engine' ? 'freeform' : 'preset',
+                            inputText: seed.text,
+                            blendId: primaryBlend.id || `blend-${Date.now()}`,
+                            blendName: primaryBlend.name || 'Custom Blend',
+                            confidenceScore: (primaryBlend.matchScore || 85) / 100,
+                            componentSkus: (primaryBlend.cultivars || []).map(c => c.name),
+                            outcomeCategory: outcomeCategory,
+                            commentary: commentary || 'A unique blend crafted for your specific needs.'
+                        });
+                        console.log('[LIVE_FEED] Event logged successfully');
+                    }).catch(err => {
+                        console.warn('[LIVE_FEED] Commentary generation failed, using fallback', err);
+                        // Log without commentary as fallback
+                        Intelligence.logResolution({
+                            inputMode: seed.mode === 'engine' ? 'freeform' : 'preset',
+                            inputText: seed.text,
+                            blendId: primaryBlend.id || `blend-${Date.now()}`,
+                            blendName: primaryBlend.name || 'Custom Blend',
+                            confidenceScore: (primaryBlend.matchScore || 85) / 100,
+                            componentSkus: (primaryBlend.cultivars || []).map(c => c.name),
+                            outcomeCategory: outcomeCategory,
+                            commentary: `${primaryBlend.name} - ${(primaryBlend.cultivars || []).map(c => c.name).join(', ')}`
+                        });
+                    });
+                });
+            });
+        }
+
         return {
             success: true,
             data: engineResults,
