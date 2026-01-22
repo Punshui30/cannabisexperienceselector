@@ -123,19 +123,17 @@ Write the explanation now:`;
 
         if (!vertexRes.ok) {
             const status = vertexRes.status;
-            const errorText = await vertexRes.text().catch(() => 'Could not read error body');
-            // Log internally but don't fail the request
-            console.error(`[STRAINMATH_VERTEX] API Failed (Status ${status})`);
-            console.error(`[STRAINMATH_VERTEX] Error Body:`, errorText);
-            console.log(`[STRAINMATH_VERTEX] Endpoint:`, endpoint);
-            console.log(`[STRAINMATH_VERTEX] Prompt:`, contents[0]?.parts[0]?.text?.substring(0, 200));
+            const errorData = await vertexRes.json().catch(() => ({ error: { message: 'Failed to parse error body' } }));
+            const errorMessage = errorData.error?.message || 'Unknown Vertex Error';
 
-            // FALLBACK STRATEGY: Return the original deterministic text as if it were the result
-            // This ensures the UI never sees an red error state
+            console.error(`[STRAINMATH_VERTEX] API Failed (Status ${status}): ${errorMessage}`);
+
+            // Return failure but with the message included
             return response.status(200).json({
-                ok: true,
-                narrative: tier1Narrative?.reasoning || "Technical Match Found.",
-                data: tier1Narrative?.reasoning,
+                ok: false,
+                error: 'vertex_api_failure',
+                details: errorMessage,
+                narrative: tier1Narrative?.reasoning,
                 mode: 'deterministic_fallback'
             });
         }
