@@ -45,8 +45,13 @@ export function CultivarCard({
     return (
         <div
             onClick={() => openCultivar(name)}
-            className={`${paddingClass} rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group`}
+            className={`${paddingClass} rounded-xl bg-black/40 border border-white/5 hover:border-white/20 transition-all cursor-pointer group relative overflow-hidden`}
+            style={{
+                boxShadow: `inset 0 0 10px ${visuals.primaryColor}15`
+            }}
         >
+            {/* Iridescent hairline hint */}
+            <div className="absolute inset-0 pointer-events-none border border-white/5 rounded-xl opacity-20 group-hover:opacity-40 transition-opacity" />
             <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
                     {/* CANONICAL COLOR DOT */}

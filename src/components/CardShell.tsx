@@ -18,14 +18,24 @@ export function CardShell({
     noPadding = false,
     ...motionProps
 }: CardShellProps) {
+    const glassStyles = getGlassCardStyles(color, secondaryColor);
+
     return (
         <motion.div
-            className={`relative overflow-hidden shadow-2xl rounded-3xl group ${className}`}
-            style={getGlassCardStyles(color, secondaryColor)}
+            className={`relative overflow-hidden shadow-2xl rounded-[2rem] group ${className}`}
+            style={{
+                ...glassStyles,
+                border: 'none', // Use pseudo-border for higher fidelity
+            }}
             {...motionProps}
         >
-            {/* Standard Background Effect (Optional extra depth) */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-black/40 pointer-events-none" />
+            {/* High-Fidelity Masked Iridescent Border */}
+            <div className="absolute inset-0 p-[1px] rounded-[inherit] pointer-events-none z-0"
+                style={{
+                    background: `linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%, ${color}40 100%)`,
+                }}>
+                <div className="w-full h-full bg-black rounded-[inherit]" />
+            </div>
 
             {/* Content Container */}
             <div className={`relative z-10 h-full ${noPadding ? '' : 'p-6 sm:p-8'}`}>

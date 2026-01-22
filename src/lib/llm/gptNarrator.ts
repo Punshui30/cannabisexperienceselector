@@ -8,7 +8,7 @@
  * - NON-BLOCKING: silent failure, no user-visible errors
  */
 
-import { ToneMode } from './antigravityNarrator';
+import { ToneMode } from './strainmathNarrator';
 
 export interface GptNarrativeInput {
     userIntentSummary: string;

@@ -1,5 +1,5 @@
 /**
- * ANTIGRAVITY SEARCH API
+ * STRAINMATH SEARCH API
  * Path: /api/search
  * 
  * Uses Tavily for external grounding of unknown strains or consumer brands.
@@ -33,7 +33,7 @@ export default async function handler(request: any, response: any) {
     const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
     if (!TAVILY_API_KEY) {
-        console.error('[ANTIGRAVITY_SEARCH] Missing TAVILY_API_KEY');
+        console.error('[STRAINMATH_SEARCH] Missing TAVILY_API_KEY');
         return response.status(200).json({
             query,
             provider: 'tavily',
@@ -45,7 +45,7 @@ export default async function handler(request: any, response: any) {
     }
 
     try {
-        console.log(`[ANTIGRAVITY_SEARCH] Query: "${query}"`);
+        console.log(`[STRAINMATH_SEARCH] Query: "${query}"`);
 
         const tavilyRes = await fetch('https://api.tavily.com/search', {
             method: 'POST',
@@ -61,7 +61,7 @@ export default async function handler(request: any, response: any) {
         });
 
         if (!tavilyRes.ok) {
-            console.error(`[ANTIGRAVITY_SEARCH] Tavily status: ${tavilyRes.status}`);
+            console.error(`[STRAINMATH_SEARCH] Tavily status: ${tavilyRes.status}`);
             return response.status(200).json({
                 query,
                 provider: 'tavily',
@@ -89,7 +89,7 @@ export default async function handler(request: any, response: any) {
         });
 
     } catch (err: any) {
-        console.error('[ANTIGRAVITY_SEARCH] Exception:', err.message);
+        console.error('[STRAINMATH_SEARCH] Exception:', err.message);
         return response.status(200).json({
             query,
             provider: 'tavily',

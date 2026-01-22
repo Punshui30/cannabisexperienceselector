@@ -54,10 +54,10 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                     intro = "Accessing Strain Library. Looking for a specific chemotype?";
                     break;
                 case 'input':
-                    intro = "Hi, I'm your Antigravity Assistant. I can help you construct a query or explore presets.";
+                    intro = "Hi, I'm your StrainMath™ Assistant. I can help you construct a query or explore presets.";
                     break;
                 default:
-                    intro = "Hi, I'm your Antigravity Assistant. Adjust parameters or query logic.";
+                    intro = "Hi, I'm your StrainMath™ Assistant. Adjust parameters or query logic.";
             }
         }
         setMessages([{ role: 'assistant', content: intro }]);
@@ -112,7 +112,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
 
                 if (result.success) {
                     // SUCCESS STATE - Use Expert Rationale from Engine
-                    const script = `Antigravity Operator System: ${result.analysis?.consultationScript || "Changes applied. Updating results..."}`;
+                    const script = `StrainMath Operator System: ${result.analysis?.consultationScript || "Changes applied. Updating results..."}`;
 
                     setMessages(prev => [...prev, {
                         role: 'assistant',
@@ -161,7 +161,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
                     <div className="flex items-center gap-2 text-[#00FFD1]">
                         <Sparkles size={14} />
-                        <span className="text-[10px] font-bold tracking-widest uppercase">Antigravity Assistant</span>
+                        <span className="text-[10px] font-bold tracking-widest uppercase">StrainMath Assistant</span>
                     </div>
                     <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
                         <X size={16} />

@@ -241,6 +241,6 @@ chore: add authoritative architecture contract
 
 Push to main
 
-From now on, prepend this sentence to every Antigravity prompt:
+From now on, prepend this sentence to every StrainMath™ prompt:
 
 “This repo is governed by ARCHITECTURE.md. You must comply fully before making changes.”

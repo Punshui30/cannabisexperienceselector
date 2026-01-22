@@ -221,7 +221,7 @@ export function SplashScreen({ onComplete }: Props) {
             className="text-2xl font-light tracking-wide"
             style={{ color: COLORS.neutral.text.primary }}
           >
-            Antigravity System
+            Guided Outcomes Calculator
           </h1>
 
           {/* Underline */}

@@ -23,16 +23,43 @@ export function COAScanner({ onClose, onComplete }: Props) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
+  const processImageWithVision = async (base64Image: string) => {
+    setScanState('processing');
+    try {
+      const response = await fetch('/api/strainmath', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: base64Image,
+          promptOverride: "Extract the exact Product Name, Brand/Grower, and Product Type (Flower, vapes, etc) from this cannabis label. Format: Name: [name], Brand: [brand], Type: [type]. Keep it concise."
+        })
+      });
+
+      const data = await response.json();
+      if (data.ok && data.narrative) {
+        // Simple regex-based extraction from the AI's text response
+        const nameMatch = data.narrative.match(/Name:\s*(.*?)(?=\s*Brand:|$)/i);
+        const brandMatch = data.narrative.match(/Brand:\s*(.*?)(?=\s*Type:|$)/i);
+        const typeMatch = data.narrative.match(/Type:\s*(.*)/i);
+
+        if (nameMatch) setProductName(nameMatch[1].trim());
+        if (brandMatch) setBrand(brandMatch[1].trim());
+        if (typeMatch) setType(typeMatch[1].trim());
+      }
+    } catch (err) {
+      console.error("VISION_ERROR:", err);
+    } finally {
+      setScanState('confirming');
+    }
+  };
+
   const handleCapture = (blob: Blob) => {
     setScanState('capturing');
     const reader = new FileReader();
     reader.onload = (event) => {
-      setCapturedImage(event.target?.result as string);
-      setScanState('processing');
-      // Simulate processing
-      setTimeout(() => {
-        setScanState('confirming');
-      }, 2000);
+      const b64 = event.target?.result as string;
+      setCapturedImage(b64);
+      processImageWithVision(b64);
     };
     reader.readAsDataURL(blob);
     setShowCamera(false);
@@ -44,13 +71,9 @@ export function COAScanner({ onClose, onComplete }: Props) {
       setScanState('capturing');
       const reader = new FileReader();
       reader.onload = (event) => {
-        setCapturedImage(event.target?.result as string);
-        setScanState('processing');
-
-        // Simulate processing
-        setTimeout(() => {
-          setScanState('confirming');
-        }, 2000);
+        const b64 = event.target?.result as string;
+        setCapturedImage(b64);
+        processImageWithVision(b64);
       };
       reader.readAsDataURL(file);
     }

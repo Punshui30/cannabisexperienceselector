@@ -4,8 +4,20 @@ import { Mic, Camera, Search, Check, Upload, Layers, ChevronRight, X } from 'luc
 import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { PRESET_STACKS } from '../data/presetStacks';
+import { getGlassCardStyles } from '../lib/glassStyles';
 import { CameraModal } from './CameraModal';
 import { startListening } from '../lib/speech';
+
+interface InputScreenProps {
+  onSubmit: (input: UserInput) => void;
+  onBrowsePresets: () => void;
+  onSelectExemplar: (exemplar: OutcomeExemplar) => void;
+  onSelectPreset: (stack: any) => void;
+  onSelectScenario: (scenario: BlendScenario) => void;
+  onAdminModeToggle: () => void;
+  isAdminMode: boolean;
+  initialText?: string;
+}
 
 import logoImg from '../assets/logo.png';
 
@@ -145,7 +157,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   }, [mode]);
 
   return (
-    <div className="w-full h-full flex flex-col relative z-10 bg-transparent text-white overflow-hidden">
+    <div className="w-full h-full flex flex-col relative z-10 bg-black text-white overflow-hidden">
 
       {/* --- HEADER --- */}
       <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/60 via-black/20 to-transparent">
@@ -185,7 +197,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
             >
               <img
                 src={logoImg}
-                alt="StrainMath Logo"
+                alt="StrainMath™ Logo"
                 className="h-[32px] w-auto transition-all"
                 style={{ filter: 'brightness(0) saturate(100%) invert(83%) sepia(36%) saturate(1478%) hue-rotate(354deg) brightness(91%) contrast(93%)' }}
               />
@@ -274,7 +286,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
               )}
 
               {mode === 'strain' && (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 relative">
                   <div className="relative">
                     <input
                       type="text"
@@ -331,26 +343,60 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
               </div>
 
               <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-6 px-6 no-scrollbar pb-2">
-                {BLEND_SCENARIOS.map((scenario) => (
-                  <button
+                {BLEND_SCENARIOS.map((scenario: BlendScenario, idx: number) => (
+                  <motion.button
                     key={scenario.id}
                     onClick={() => {
                       setMode('describe');
                       setDescription(scenario.inputText);
                       scrollToBottom();
                     }}
-                    className="snap-center shrink-0 w-[85%] rounded-2xl p-5 text-left bg-white/5 border border-white/10 relative overflow-hidden group transition-all"
-                    style={{ minHeight: '140px' }}
+                    initial={{ opacity: 0, y: 15, boxShadow: `inset 0 0 0px ${scenario.visualProfile.color}00` }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      boxShadow: [
+                        `inset 0 0 0px ${scenario.visualProfile.color}00`,
+                        `inset 0 0 40px ${scenario.visualProfile.color}60`,
+                        `inset 0 0 10px ${scenario.visualProfile.color}20`
+                      ]
+                    }}
+                    transition={{
+                      delay: 0.1 + (idx * 0.1),
+                      duration: 0.8,
+                      boxShadow: { duration: 1.2, times: [0, 0.4, 1] }
+                    }}
+                    className={`snap-center shrink-0 w-[85%] rounded-2xl p-5 text-left relative overflow-hidden group transition-all`}
+                    style={{
+                      minHeight: '140px',
+                      ...getGlassCardStyles(scenario.visualProfile.color),
+                      border: 'none',
+                    }}
                   >
-                    <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: scenario.visualProfile.color }} />
-                    <h4 className="text-base font-light serif text-white mb-0.5">{scenario.title}</h4>
-                    <p className="text-[9px] uppercase tracking-widest text-[#00FFD1] mb-3">{scenario.subtitle}</p>
-                    <p className="text-xs text-white/50 italic leading-relaxed line-clamp-2">"{scenario.inputText}"</p>
-
-                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ChevronRight size={16} className="text-[#00FFD1]" />
+                    {/* High-Fidelity Masked Iridescent Border */}
+                    <div className="absolute inset-0 p-[1px] rounded-2xl pointer-events-none z-0" style={{ background: `linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, ${scenario.visualProfile.color}40 100%)` }}>
+                      <div className="w-full h-full bg-black rounded-[inherit]" />
                     </div>
-                  </button>
+
+                    <div className="relative z-10 w-full h-full">
+                      {/* Iridescent Accent Bar */}
+                      <div
+                        className="absolute top-0 left-0 right-0 h-[3px] opacity-100 z-20"
+                        style={{
+                          background: `linear-gradient(90deg, transparent 0%, ${scenario.visualProfile.color} 50%, transparent 100%)`,
+                          filter: 'blur(0.5px)'
+                        }}
+                      />
+
+                      <h4 className="text-base font-light serif text-white mb-0.5">{scenario.title}</h4>
+                      <p className="text-[9px] uppercase tracking-widest text-[#00FFD1] mb-3">{scenario.subtitle}</p>
+                      <p className="text-xs text-white/50 italic leading-relaxed line-clamp-2">"{scenario.inputText}"</p>
+
+                      <div className="absolute bottom-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ChevronRight size={16} className="text-[#00FFD1]" />
+                      </div>
+                    </div>
+                  </motion.button>
                 ))}
               </div>
             </div>
@@ -368,50 +414,92 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
               </div>
 
               <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-6 px-6 no-scrollbar pb-2">
-                {PRESET_STACKS.slice(0, 4).map((stack) => (
-                  <button
+                {PRESET_STACKS.slice(0, 4).map((stack: any, idx: number) => (
+                  <motion.button
                     key={stack.id}
                     onClick={() => {
                       onSelectPreset(stack);
                       scrollToBottom();
                     }}
-                    className="snap-center shrink-0 w-[75%] rounded-2xl p-5 text-left bg-gradient-to-br from-white/10 to-transparent border border-white/5 relative overflow-hidden group transition-all"
-                    style={{ minHeight: '120px' }}
+                    initial={{ opacity: 0, y: 15, boxShadow: `inset 0 0 0px ${stack.visualProfile.color}00` }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      boxShadow: [
+                        `inset 0 0 0px ${stack.visualProfile.color}00`,
+                        `inset 0 0 40px ${stack.visualProfile.color}60`,
+                        `inset 0 0 10px ${stack.visualProfile.color}20`
+                      ]
+                    }}
+                    transition={{
+                      delay: 0.2 + (idx * 0.1),
+                      duration: 0.8,
+                      boxShadow: { duration: 1.2, times: [0, 0.4, 1] }
+                    }}
+                    className="snap-center shrink-0 w-[75%] rounded-2xl p-5 text-left relative overflow-hidden group transition-all"
+                    style={{
+                      minHeight: '120px',
+                      ...getGlassCardStyles(stack.visualProfile.color),
+                      border: 'none'
+                    }}
                   >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${stack.visualProfile.color}20`, border: `1px solid ${stack.visualProfile.color}40` }}
-                      >
-                        <Layers size={18} style={{ color: stack.visualProfile.color }} />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-white mb-0.5 serif">{stack.title}</h4>
-                        <p className="text-[8px] text-white/40 leading-relaxed line-clamp-2">{stack.subtitle}</p>
-                      </div>
+                    {/* High-Fidelity Masked Iridescent Border */}
+                    <div className="absolute inset-0 p-[1px] rounded-2xl pointer-events-none z-0" style={{ background: `linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, ${stack.visualProfile.color}40 100%)` }}>
+                      <div className="w-full h-full bg-black rounded-[inherit]" />
                     </div>
 
-                    <div className="mt-4 flex items-center gap-2 overflow-hidden">
-                      <div className="flex -space-x-1.5 overflow-hidden">
-                        {[0, 1, 2].map(i => (
-                          <div key={i} className="w-4 h-4 rounded-full border border-black bg-white/10 shadow-sm" />
-                        ))}
+                    <div className="relative z-10 w-full h-full">
+                      {/* Iridescent Accent Bar */}
+                      <div
+                        className="absolute top-0 left-0 right-0 h-[3px] opacity-100 z-20"
+                        style={{
+                          background: `linear-gradient(90deg, transparent 0%, ${stack.visualProfile.color} 50%, transparent 100%)`,
+                          filter: 'blur(0.5px)'
+                        }}
+                      />
+
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: `${stack.visualProfile.color}20`, border: `1px solid ${stack.visualProfile.color}40` }}
+                        >
+                          <Layers size={18} style={{ color: stack.visualProfile.color }} />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-white mb-0.5 serif">{stack.title || stack.name}</h4>
+                          <p className="text-[8px] text-white/40 leading-relaxed line-clamp-2">{stack.subtitle || stack.description}</p>
+                        </div>
                       </div>
-                      <span className="text-[8px] uppercase tracking-widest text-white/30">Layered Protocol</span>
+
+                      <div className="mt-4 flex items-center gap-2 overflow-hidden">
+                        <div className="flex -space-x-1.5 overflow-hidden">
+                          {[0, 1, 2].map(i => (
+                            <div key={i} className="w-4 h-4 rounded-full border border-black bg-white/10 shadow-sm" />
+                          ))}
+                        </div>
+                        <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath™ Intellectual Property</p>
+                      </div>
                     </div>
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
-
           </div>
           <div ref={bottomRef} className="h-px w-full" />
         </div>
       </div>
 
       {/* --- FOOTER (Fixed) --- */}
-      <div className="flex-shrink-0 px-6 pb-safe-footer bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-4">
-        <button
+      <div className="flex-shrink-0 px-6 pb-safe-footer bg-gradient-to-t from-black via-black/80 to-transparent pt-4">
+        <motion.button
+          layout
+          initial={false}
+          animate={{
+            y: canSubmit() ? 0 : 80,
+            scale: canSubmit() ? 1 : 0.9,
+            opacity: canSubmit() ? 1 : 0
+          }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
           onClick={handleSubmit}
           disabled={!canSubmit()}
           className={`w-full py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs transition-all duration-500 shadow-2xl ${canSubmit()
@@ -420,7 +508,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
             }`}
         >
           Generate Recommendation
-        </button>
+        </motion.button>
         <p className="text-center text-[7px] text-white/10 uppercase tracking-widest mt-4 pb-2">
           Deterministic Engine v9.9 (DUAL-DISCOVERY) • Verified Lab Data Only
         </p>
@@ -434,7 +522,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           />
         )}
       </AnimatePresence>
-
     </div>
   );
 }

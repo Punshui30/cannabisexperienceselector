@@ -83,7 +83,7 @@ export function AdminPanel({
                     color: COLORS.neutral.text.tertiary,
                   }}
                 >
-                  Antigravity Operator System
+                  StrainMath™ Operator System
                 </div>
               </div>
             </div>

@@ -2,9 +2,9 @@ const fetch = require('node-fetch');
 require('dotenv').config();
 
 async function listModels() {
-    const apiKey = process.env.ANTIGRAVITY_API_KEY;
+    const apiKey = process.env.STRAINMATH_API_KEY;
     if (!apiKey) {
-        console.error('Missing ANTIGRAVITY_API_KEY in .env');
+        console.error('Missing STRAINMATH_API_KEY in .env');
         return;
     }
 

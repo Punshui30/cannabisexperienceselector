@@ -7,44 +7,53 @@ import { CSSProperties } from 'react';
  * Usage:
  * <div style={getGlassCardStyles(color1, color2)} className="rounded-2xl ..." />
  */
+/**
+ * Generates the "Swiss Luxury" Glass Border Style with premium iridescent treatment.
+ * 
+ * New "Iridescent Hairline" Logic:
+ * Uses a double-glow system to create that expensive, microscopic color-shift look
+ * without breaking the dark/black aesthetic.
+ */
 export function getGlassCardStyles(primaryColor: string = '#00FFD1', secondaryColor?: string): CSSProperties {
-    const gradientColor = secondaryColor || primaryColor;
+    const accent = primaryColor || '#00FFD1';
 
     return {
-        background: `
-            linear-gradient(135deg, 
-                rgba(255, 255, 255, 0.03) 0%, 
-                rgba(0, 0, 0, 0.4) 100%
-            )
-        `,
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        background: 'rgba(0,0,0,0.6)', // Darker, cleaner base
+        backdropFilter: 'blur(30px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+        position: 'relative',
 
-        // Layer 2: Hairline perimeter with subtle iridescent hint
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        // Layer 1: The true black core
+        backgroundColor: '#000000',
+
+        // Layer 2: Iridescent Hairline Border (using an inset shadow fix)
+        border: '1px solid rgba(255, 255, 255, 0.08)',
         boxShadow: `
-            inset 0 0 0 1px ${primaryColor}30,
-            0 8px 32px rgba(0, 0, 0, 0.4),
-            0 2px 8px rgba(0, 0, 0, 0.2)
+            inset 0 0 0 0.5px ${accent}30, 
+            inset 0 1px 1px 0 rgba(255, 255, 255, 0.1),
+            0 16px 48px -12px rgba(0, 0, 0, 0.9),
+            0 0 0px 1px rgba(255,255,255,0.03)
         `,
-
-        // Note: borderImage doesn't respect border-radius, removed for clean rounded corners
     };
 }
 
 /**
+ * Iridescent Overlay Component (React usage)
+ * Since borderImage doesn't respect border-radius, we use a 1px masked pseudo-border.
+ */
+export const IRIDESCENT_BORDER_CLASS = "before:absolute before:inset-0 before:p-[1px] before:bg-gradient-to-br before:from-white/20 before:via-transparent before:to-white/5 before:rounded-[inherit] before:content-[''] before:[mask-composite:exclude] before:[mask:linear-gradient(#fff_0_0)_content-box,_linear-gradient(#fff_0_0)]";
+
+/**
  * Returns the "Hover" state bloom styles.
- * Use via state or styled-components, or merge if using inline hover logic (difficult in plain React).
- * Ideally applied via a class that triggers vars, but here we provide the raw values for Framer Motion variants.
  */
 export function getGlassHoverStyles(primaryColor: string): CSSProperties {
     const c1 = primaryColor || '#ffffff';
     return {
-        // Outer Bloom on Hover
         boxShadow: `
-            0 8px 32px -8px ${c1}30,
-            inset 0 1px 1px 0 rgba(255, 255, 255, 0.1)
+            0 24px 64px -12px rgba(0, 0, 0, 0.9),
+            0 0 20px -5px ${c1}30,
+            inset 0 0 0 1px ${c1}40
         `,
-        borderColor: `${c1}60` // Slight border boost if using border-color fallback
+        borderColor: `${c1}80`
     };
 }

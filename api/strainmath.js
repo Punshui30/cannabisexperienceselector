@@ -1,15 +1,8 @@
-/**
- * ANTIGRAVITY VERTEX API PROXY (V9.9 - Rebranded)
- * 
- * Path: /api/antigravity.js
- * Uses Google Vertex AI (Enterprise) for high-fidelity narratives.
- */
-
 const { GoogleAuth } = require('google-auth-library');
 
 module.exports = async function handler(request, response) {
     try {
-        console.log('[ANTIGRAVITY_VERTEX] Request started');
+        console.log('[STRAINMATH_VERTEX] Request started');
 
         // CORS Header Setup
         response.setHeader('Access-Control-Allow-Credentials', true);
@@ -35,25 +28,23 @@ module.exports = async function handler(request, response) {
         const region = process.env.GCP_REGION || 'us-central1';
 
         if (!projectId || !saKey) {
-            console.error('[ANTIGRAVITY_VERTEX] Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY');
+            console.error('[STRAINMATH_VERTEX] Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY');
             return response.status(200).json({ ok: false, error: 'missing_gcp_config' });
         }
 
-        const { tier1Narrative, toneMode } = request.body || {};
-        if (!tier1Narrative || !tier1Narrative.reasoning) {
-            return response.status(200).json({ ok: false, error: 'Missing Input' });
-        }
+        const { tier1Narrative, toneMode, image, promptOverride } = request.body || {};
 
         // 2. Auth Flow (Get Bearer Token)
         let authClient;
         try {
+            const credentials = typeof saKey === 'string' ? JSON.parse(saKey) : saKey;
             const auth = new GoogleAuth({
-                credentials: JSON.parse(saKey),
+                credentials,
                 scopes: 'https://www.googleapis.com/auth/cloud-platform',
             });
             authClient = await auth.getClient();
         } catch (authErr) {
-            console.error('[ANTIGRAVITY_VERTEX] Auth Error:', authErr.message);
+            console.error('[STRAINMATH_VERTEX] Auth Error:', authErr.message);
             return response.status(200).json({ ok: false, error: 'auth_failed', details: authErr.message });
         }
 
@@ -61,14 +52,38 @@ module.exports = async function handler(request, response) {
         const token = accessToken.token;
 
         // 3. Prepare Vertex Request
-        const promptText = `You are a premium cannabis experience narrator (Antigravity System).
+        let contents = [];
+        let modelId = 'gemini-1.5-flash-001';
+
+        if (image) {
+            // VISION MODE
+            contents = [{
+                role: "user",
+                parts: [
+                    { text: promptOverride || "Extract every technical detail from this cannabis product label. Focus on Strains, Cannabinoids (THC, CBD, CBG), and Terpenes. Return as a clean data object if possible, or a detailed breakdown." },
+                    {
+                        inlineData: {
+                            mimeType: "image/jpeg",
+                            data: image.split(',')[1] || image // Handle data URL or raw base64
+                        }
+                    }
+                ]
+            }];
+        } else if (tier1Narrative) {
+            // NARRATIVE MODE
+            const promptText = `You are a premium cannabis experience narrator (StrainMath™ System).
 Role: Enhance Tier-1 technical narratives into compelling, natural language.
 Rule: No new facts, preserve all cultivars.
 Tone: ${toneMode || 'neutral'}
 Blend: ${tier1Narrative.name}
 Facts: ${tier1Narrative.reasoning}`;
 
-        const endpoint = `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models/gemini-1.5-flash-001:generateContent`;
+            contents = [{ role: "user", parts: [{ text: promptText }] }];
+        } else {
+            return response.status(200).json({ ok: false, error: 'Missing Input (Narrative or Image)' });
+        }
+
+        const endpoint = `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models/${modelId}:generateContent`;
 
         const vertexRes = await fetch(endpoint, {
             method: 'POST',
@@ -77,10 +92,10 @@ Facts: ${tier1Narrative.reasoning}`;
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                contents: [{ role: "user", parts: [{ text: promptText }] }],
+                contents,
                 generationConfig: {
                     temperature: 0.7,
-                    maxOutputTokens: 500,
+                    maxOutputTokens: 800,
                     topP: 0.8,
                     topK: 40
                 }
@@ -90,12 +105,12 @@ Facts: ${tier1Narrative.reasoning}`;
         if (!vertexRes.ok) {
             const status = vertexRes.status;
             const errorText = await vertexRes.text().catch(() => 'Could not read error body');
-            console.error(`[ANTIGRAVITY_VERTEX] API Error ${status}:`, errorText);
+            console.error(`[STRAINMATH_VERTEX] API Error ${status}:`, errorText);
             return response.status(200).json({
                 ok: false,
                 error: 'vertex_api_failed',
                 status,
-                details: errorText.substring(0, 200)
+                details: errorText.substring(0, 500)
             });
         }
 
@@ -104,17 +119,17 @@ Facts: ${tier1Narrative.reasoning}`;
         // 4. Extract Narrative
         const candidates = data.candidates || [];
         const parts = candidates[0]?.content?.parts || [];
-        const narrative = parts.map(p => p.text).join(' ').trim();
+        const resultText = parts.map(p => p.text).join(' ').trim();
 
-        if (!narrative) {
-            return response.status(200).json({ ok: false, error: 'no_narrative_extracted' });
+        if (!resultText) {
+            return response.status(200).json({ ok: false, error: 'no_content_generated', details: JSON.stringify(data) });
         }
 
-        console.log('[ANTIGRAVITY_VERTEX] Success');
-        return response.status(200).json({ ok: true, narrative });
+        console.log('[STRAINMATH_VERTEX] Success');
+        return response.status(200).json({ ok: true, narrative: resultText, data: resultText });
 
     } catch (err) {
-        console.error('[ANTIGRAVITY_VERTEX] Global Error:', err.message);
+        console.error('[STRAINMATH_VERTEX] Global Error:', err.message);
         return response.status(200).json({
             ok: false,
             error: 'server_error',

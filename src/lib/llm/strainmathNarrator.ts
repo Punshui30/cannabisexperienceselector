@@ -1,5 +1,5 @@
 /**
- * ANTIGRAVITY NARRATOR (Primary Engine LLM)
+ * STRAINMATH NARRATOR (Primary Engine LLM)
  * 
  * STRICT BOUNDARIES:
  * - ONLY used for blend narratives and engine explanations
@@ -10,7 +10,7 @@
 
 export type ToneMode = "neutral" | "supportive" | "curious" | "confident" | "calm_reassuring";
 
-export interface AntigravityNarrativeInput {
+export interface StrainMathNarrativeInput {
     tier1Narrative: {
         name: string;
         reasoning: string;
@@ -24,16 +24,16 @@ export interface AntigravityNarrativeInput {
     toneMode: ToneMode;
 }
 
-const ANTIGRAVITY_ENDPOINT = '/api/antigravity';
+const STRAINMATH_ENDPOINT = '/api/strainmath';
 
-export async function generateNarrative(input: AntigravityNarrativeInput): Promise<string | null> {
+export async function generateNarrative(input: StrainMathNarrativeInput): Promise<string | null> {
     try {
-        console.log("NARRATOR: Requesting narrative enhancement via Antigravity Vertex...");
+        console.log("NARRATOR: Requesting narrative enhancement via StrainMath™ Vertex...");
 
-        const response = await fetch(ANTIGRAVITY_ENDPOINT, {
+        const response = await fetch(STRAINMATH_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(input) // Pass the full input as expected by api/antigravity.js
+            body: JSON.stringify(input) // Pass the full input as expected by api/strainmath.js
         });
 
         if (!response.ok) {
