@@ -4,6 +4,8 @@ import { INVENTORY } from '../lib/inventory';
 import { motion, AnimatePresence } from 'motion/react';
 import { Activity, Droplet, X, Mic } from 'lucide-react';
 
+import { startListening } from '../lib/speech';
+
 export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
     // SOURCE OF TRUTH: Iterate over the real Inventory/JSON data
     const strains = INVENTORY.cultivars.sort((a, b) => a.name.localeCompare(b.name));
@@ -13,34 +15,8 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isListening, setIsListening] = useState(false);
 
-    const startListening = () => {
-        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-            alert("Speech recognition not supported in this browser.");
-            return;
-        }
-
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.start();
-        setIsListening(true);
-
-        recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setSearchQuery(transcript);
-        };
-
-        recognition.onerror = (event: any) => {
-            console.error("Speech recognition error", event.error);
-            setIsListening(false);
-        };
-
-        recognition.onend = () => {
-            setIsListening(false);
-        };
+    const handleMicClick = () => {
+        startListening(t => setSearchQuery(t), setIsListening);
     };
 
     // Filtered Strains
@@ -95,7 +71,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                         </svg>
                     </div>
                     <button
-                        onClick={startListening}
+                        onClick={handleMicClick}
                         className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
                     >
                         <Mic size={18} />

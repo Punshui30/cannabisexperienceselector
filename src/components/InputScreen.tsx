@@ -5,6 +5,7 @@ import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { PRESET_STACKS } from '../data/presetStacks';
 import { CameraModal } from './CameraModal';
+import { startListening } from '../lib/speech';
 
 import logoImg from '../assets/logo.png';
 
@@ -60,37 +61,11 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
   const [listeningField, setListeningField] = useState<string | null>(null);
 
-  const startListening = (onResult: (t: string) => void, fieldKey: string) => {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      alert("Speech recognition not supported in this browser.");
-      return;
-    }
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.start();
-    setIsListening(true);
-    setListeningField(fieldKey);
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      onResult(transcript);
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error("Speech recognition error", event.error);
-      setIsListening(false);
-      setListeningField(null);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      setListeningField(null);
-    };
+  const handleMicClick = () => {
+    startListening(t => setDescription(prev => prev ? `${prev} ${t}` : t), (listening) => {
+      setIsListening(listening);
+      setListeningField(listening ? 'describe' : null);
+    });
   };
 
   const handleSubmit = () => {
@@ -158,10 +133,23 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   }, [mode]);
 
   return (
-    <div className="w-full h-full flex flex-col relative z-10 bg-black text-white overflow-hidden">
+    <div className="w-full h-full flex flex-col relative z-10 bg-transparent text-white overflow-hidden">
 
       {/* --- HEADER --- */}
-      <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/90 via-black/50 to-transparent">
+      <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/60 via-black/20 to-transparent">
+        {/* Layer 1: Top-weighted iridescent accent */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[3px] opacity-80"
+          style={{
+            background: `linear-gradient(90deg, 
+                transparent 0%, 
+                #00FFD180 20%, 
+                #00FFD1 50%, 
+                #00FFD180 80%, 
+                transparent 100%)`,
+            filter: 'blur(0.5px)'
+          }}
+        />
         <div className="w-full flex flex-col items-center pt-4 pb-2">
 
           {/* Logo & Tap Gesture */}
@@ -236,7 +224,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                     className={`${GLASS_INPUT} h-28 resize-none transition-all placeholder:text-white/20 px-5 py-4 leading-relaxed text-sm`}
                   />
                   <button
-                    onClick={() => startListening(t => setDescription(prev => prev ? `${prev} ${t}` : t), 'describe')}
+                    onClick={handleMicClick}
                     className={`absolute bottom-3 right-3 p-2.5 rounded-full transition-all ${isListening && listeningField === 'describe' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
                   >
                     <Mic size={16} />
@@ -283,7 +271,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       className={GLASS_INPUT}
                     />
                     <button
-                      onClick={() => startListening(t => setStrainName(t), 'strain')}
+                      onClick={() => startListening(t => setStrainName(t), (l) => { setIsListening(l); setListeningField(l ? 'strain' : null); })}
                       className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening && listeningField === 'strain' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
                     >
                       <Mic size={14} />
@@ -298,7 +286,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       className={GLASS_INPUT}
                     />
                     <button
-                      onClick={() => startListening(t => setGrowerName(t), 'grower')}
+                      onClick={() => startListening(t => setGrowerName(t), (l) => { setIsListening(l); setListeningField(l ? 'grower' : null); })}
                       className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening && listeningField === 'grower' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
                     >
                       <Mic size={14} />
@@ -394,12 +382,12 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
       </div>
 
       {/* --- FOOTER (Fixed) --- */}
-      <div className="flex-shrink-0 px-6 pb-safe-footer bg-gradient-to-t from-black via-black/80 to-transparent pt-4">
+      <div className="flex-shrink-0 px-6 pb-safe-footer bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-4">
         <button
           onClick={handleSubmit}
           disabled={!canSubmit()}
-          className={`w-full py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs transition-with-all duration-500 shadow-2xl ${canSubmit()
-            ? "bg-[#00FFD1] text-black shadow-[#00FFD1]/20 active:scale-95"
+          className={`w-full py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs transition-all duration-500 shadow-2xl ${canSubmit()
+            ? "bg-gradient-to-r from-[#00FFD1] to-[#00E0B8] text-black shadow-[#00FFD1]/40 active:scale-95 hover:scale-[1.02]"
             : "bg-white/5 text-white/10 cursor-not-allowed border border-white/5"
             }`}
         >

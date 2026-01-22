@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CameraModal } from '../CameraModal';
+import { Mic } from 'lucide-react';
+import { startListening } from '../../lib/speech';
 
 type Props = {
   onClose: () => void;
@@ -13,6 +15,11 @@ export function COAScanner({ onClose, onComplete }: Props) {
   const [scanState, setScanState] = useState<ScanState>('ready');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [productName, setProductName] = useState('Blue Dream');
+  const [brand, setBrand] = useState('Coastal Cultivators');
+  const [type, setType] = useState('Flower');
+  const [isListening, setIsListening] = useState(false);
+
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,9 +60,9 @@ export function COAScanner({ onClose, onComplete }: Props) {
     setScanState('complete');
     setTimeout(() => {
       onComplete({
-        productName: 'New Product',
-        brand: 'Sample Brand',
-        type: 'Flower',
+        productName: productName,
+        brand: brand,
+        type: type,
         coaDate: new Date().toISOString(),
       });
       onClose();
@@ -255,31 +262,52 @@ export function COAScanner({ onClose, onComplete }: Props) {
                     )}
 
                     <div className="space-y-4">
-                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                      <div className="bg-white/5 rounded-xl p-4 border border-white/10 relative">
                         <label className="text-xs text-white/50 mb-1 block">Product Name</label>
                         <input
                           type="text"
-                          defaultValue="Blue Dream"
-                          className="w-full bg-transparent text-white outline-none"
+                          value={productName}
+                          onChange={(e) => setProductName(e.target.value)}
+                          className="w-full bg-transparent text-white outline-none pr-10"
                         />
+                        <button
+                          onClick={() => startListening(t => setProductName(t), setIsListening)}
+                          className={`absolute right-3 bottom-3 p-2 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                        >
+                          <Mic size={14} />
+                        </button>
                       </div>
 
-                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                      <div className="bg-white/5 rounded-xl p-4 border border-white/10 relative">
                         <label className="text-xs text-white/50 mb-1 block">Brand</label>
                         <input
                           type="text"
-                          defaultValue="Coastal Cultivators"
-                          className="w-full bg-transparent text-white outline-none"
+                          value={brand}
+                          onChange={(e) => setBrand(e.target.value)}
+                          className="w-full bg-transparent text-white outline-none pr-10"
                         />
+                        <button
+                          onClick={() => startListening(t => setBrand(t), setIsListening)}
+                          className={`absolute right-3 bottom-3 p-2 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                        >
+                          <Mic size={14} />
+                        </button>
                       </div>
 
-                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                      <div className="bg-white/5 rounded-xl p-4 border border-white/10 relative">
                         <label className="text-xs text-white/50 mb-1 block">Type</label>
                         <input
                           type="text"
-                          defaultValue="Flower"
-                          className="w-full bg-transparent text-white outline-none"
+                          value={type}
+                          onChange={(e) => setType(e.target.value)}
+                          className="w-full bg-transparent text-white outline-none pr-10"
                         />
+                        <button
+                          onClick={() => startListening(t => setType(t), setIsListening)}
+                          className={`absolute right-3 bottom-3 p-2 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                        >
+                          <Mic size={14} />
+                        </button>
                       </div>
 
                       <div className="bg-emerald-400/10 border border-emerald-400/20 rounded-xl p-4">

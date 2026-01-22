@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { Send, X, Mic, Sparkles, Check, Brain } from 'lucide-react';
 
+import { startListening } from '../lib/speech';
+
 interface LiveConsultantProps {
     consultantText?: string;
     context?: {
@@ -30,34 +32,8 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     const [isListening, setIsListening] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const startListening = () => {
-        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-            alert("Speech recognition not supported in this browser.");
-            return;
-        }
-
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.start();
-        setIsListening(true);
-
-        recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setInputValue(prev => prev ? `${prev} ${transcript}` : transcript);
-        };
-
-        recognition.onerror = (event: any) => {
-            console.error("Speech recognition error", event.error);
-            setIsListening(false);
-        };
-
-        recognition.onend = () => {
-            setIsListening(false);
-        };
+    const handleMicClick = () => {
+        startListening(t => setInputValue(prev => prev ? `${prev} ${t}` : t), setIsListening);
     };
 
     // Initial Greeting (Context-Aware)
@@ -228,7 +204,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                                 autoFocus
                             />
                             <button
-                                onClick={startListening}
+                                onClick={handleMicClick}
                                 disabled={isLoading || isRefactorComplete}
                                 className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
                             >
