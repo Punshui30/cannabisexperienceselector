@@ -209,7 +209,15 @@ export default function App() {
 
       const run = async () => {
         addLog('Invoking Orchestrator...');
-        setAnalysisProgress(40);
+        setAnalysisProgress(30);
+
+        // Simulated progress increments for better UX
+        const progressInterval = setInterval(() => {
+          setAnalysisProgress(prev => {
+            if (prev < 85) return prev + 2;
+            return prev;
+          });
+        }, 200);
 
         try {
           // HEARTBEAT TIMER
@@ -222,17 +230,19 @@ export default function App() {
             setTimeout(() => reject(new Error("Engine Hard Timeout (15s)")), 15000)
           );
 
-          setAnalysisProgress(60);
+          setAnalysisProgress(50);
           const result = (await Promise.race([
             processIntent(userInput),
             timeoutPromise
           ])) as OrchestratorResult;
 
           clearInterval(heartbeat);
+          clearInterval(progressInterval);
 
           if (result.success) {
             if (result.data.length > 0) {
               addLog('Success: Results Ready');
+              setAnalysisProgress(90);
               setBlendRecs(result.data.map((item: EngineResult) => adaptEngineResult(item)).filter(Boolean) as any);
               setAnalysisProgress(100);
               setIsAnalyzing(false);
@@ -259,12 +269,16 @@ export default function App() {
 
   // ResolvingScreen onComplete trigger
   const handleResolvingComplete = () => {
+    console.log('[App] handleResolvingComplete called', { blendRecsLength: blendRecs.length, hasStackRec: !!stackRec });
     if (blendRecs.length > 0) {
       setAnalysisProgress(100); // Milestone: Transition triggered
       setView('results');
     } else if (stackRec) {
       setAnalysisProgress(100);
       setView('stack-detail'); // Rare fallback
+    } else {
+      console.warn('[App] ResolvingComplete called but no results available - staying on resolving screen');
+      // Don't transition if we don't have results yet
     }
   };
 
