@@ -125,7 +125,10 @@ Write the explanation now:`;
             const status = vertexRes.status;
             const errorText = await vertexRes.text().catch(() => 'Could not read error body');
             // Log internally but don't fail the request
-            console.warn(`[STRAINMATH_VERTEX] API Skipped (Status ${status}). Returning deterministic fallback.`);
+            console.error(`[STRAINMATH_VERTEX] API Failed (Status ${status})`);
+            console.error(`[STRAINMATH_VERTEX] Error Body:`, errorText);
+            console.log(`[STRAINMATH_VERTEX] Endpoint:`, endpoint);
+            console.log(`[STRAINMATH_VERTEX] Prompt:`, contents[0]?.parts[0]?.text?.substring(0, 200));
 
             // FALLBACK STRATEGY: Return the original deterministic text as if it were the result
             // This ensures the UI never sees an red error state
@@ -149,6 +152,7 @@ Write the explanation now:`;
         }
 
         console.log('[STRAINMATH_VERTEX] Success');
+        console.log('[STRAINMATH_VERTEX] Generated Narrative:', resultText);
         return response.status(200).json({ ok: true, narrative: resultText, data: resultText });
 
     } catch (err) {
