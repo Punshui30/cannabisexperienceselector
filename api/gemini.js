@@ -69,7 +69,7 @@ Tone: ${toneMode || 'neutral'}
 Blend: ${tier1Narrative.name}
 Facts: ${tier1Narrative.reasoning}`;
 
-        const endpoint = `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models/gemini-1.5-flash:generateContent`;
+        const endpoint = `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models/gemini-1.5-flash-001:generateContent`;
 
         const vertexRes = await fetch(endpoint, {
             method: 'POST',
