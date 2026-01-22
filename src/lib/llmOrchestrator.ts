@@ -492,6 +492,8 @@ export async function processIntent(
 
                 // BLOCKING (TIMEOUT PROTECTED): Wait for narrative
                 try {
+                    console.log('[STRAINMATH_INPUT]', JSON.stringify(strainmathInput, null, 2));
+
                     const enhancedText = await Promise.race([
                         generateNarrative(strainmathInput),
                         new Promise<string | null>(resolve => setTimeout(() => resolve(null), 8000))
@@ -499,12 +501,15 @@ export async function processIntent(
 
                     if (enhancedText) {
                         console.log(`[STRAINMATH_SUCCESS] Narrative enhancement ready ✓`);
+                        console.log('[STRAINMATH_OUTPUT]', enhancedText);
                         engineResults[0].reasoning = enhancedText;
                     } else {
                         console.log(`[STRAINMATH] Timeout or null response, keeping Tier-1 narrative.`);
+                        console.log('[STRAINMATH_FALLBACK]', engineResults[0].reasoning);
                     }
                 } catch (err) {
                     console.warn("[STRAINMATH_FAILED]", err);
+                    console.log('[STRAINMATH_ERROR_FALLBACK]', engineResults[0].reasoning);
                 }
 
             } catch (e) {
