@@ -490,15 +490,22 @@ export async function processIntent(
                     toneMode: toneMode
                 };
 
-                // NON-BLOCKING: Fire and forget
-                generateNarrative(strainmathInput).then((enhancedText) => {
-                    if (enhancedText && engineResults[0]) {
-                        console.log(`[STRAINMATH_ASYNC_SUCCESS] Narrative enhancement ready ✓`);
+                // BLOCKING (TIMEOUT PROTECTED): Wait for narrative
+                try {
+                    const enhancedText = await Promise.race([
+                        generateNarrative(strainmathInput),
+                        new Promise<string | null>(resolve => setTimeout(() => resolve(null), 8000))
+                    ]);
+
+                    if (enhancedText) {
+                        console.log(`[STRAINMATH_SUCCESS] Narrative enhancement ready ✓`);
                         engineResults[0].reasoning = enhancedText;
+                    } else {
+                        console.log(`[STRAINMATH] Timeout or null response, keeping Tier-1 narrative.`);
                     }
-                }).catch(err => {
-                    console.warn("[STRAINMATH_ASYNC_FAILED]", err);
-                });
+                } catch (err) {
+                    console.warn("[STRAINMATH_FAILED]", err);
+                }
 
             } catch (e) {
                 console.warn("[STRAINMATH_ENHANCEMENT_INIT_FAILED] (Non-fatal)", e);
@@ -523,7 +530,7 @@ export async function processIntent(
 
         // CRITICAL PATH COMPLETE: Return results to UI
         // STRAINMATH™ enhancement is now truly backgrounded (non-blocking)
-        console.log('[ORCHESTRATOR_V8_FINAL] Returning results to UI');
+        console.log('[ORCHESTRATOR_V8.5_ASYNC] Returning results to UI');
 
         // LOG TO LIVE NETWORK FEED (Non-blocking)
         if (engineResults.length > 0) {
