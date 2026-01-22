@@ -24,7 +24,7 @@ export interface GeminiNarrativeInput {
     toneMode: ToneMode;
 }
 
-const GEMINI_ENDPOINT = '/api/gemini';
+const GEMINI_ENDPOINT = '/api/llm'; // Proxying through the healthy OpenAI endpoint
 
 export async function generateNarrative(input: GeminiNarrativeInput): Promise<string | null> {
     try {
