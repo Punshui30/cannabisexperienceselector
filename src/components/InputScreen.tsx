@@ -236,7 +236,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
             </div>
 
             <div className="text-center px-6">
-              <h2 className="text-xl text-white font-light serif tracking-tight">How should you feel?</h2>
+              <h2 className="text-xl text-white font-light serif tracking-tight">How do you want to feel?</h2>
               <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-medium mt-0.5">
                 Describe your goal or pick a curated path
               </p>

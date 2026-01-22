@@ -115,17 +115,16 @@ module.exports = async function handler(request, response) {
 
             try {
                 const results = await Promise.all(blendSummary.map(async (blend) => {
-                    const promptText = `You are StrainMath™, an expert cannabis consultant.
-USER REQUEST: "${userIntentSummary || 'Custom experience'}"
-BLEND NAME: "${blend.name}"
+                    const promptText = `You are StrainMath™, a luxury cannabis branding expert and consultant.
+USER GOAL: "${userIntentSummary || 'Custom experience'}"
 CULTIVARS: ${blend.cultivars.join(', ')}
 
 YOUR TASK:
-1. Create a highly creative, evocative name for this specific blend that DIRECTLY relates to the user's desired outcome.
-2. Write a 2-sentence explanation of why this specific synergy of cultivars achieves their goal perfectly.
+1. "newName": Create an ultra-premium, evocative name for this blend. Avoid using cultivar names in the title. Focus on the outcome! (Examples: "The Creative Engine", "Coastal Calm", "Neural Reboot").
+2. "narrative": Write 2 sentences on the specific metabolic synergy between these cultivars for this user's goal.
 
-TONE: ${toneMode || 'neutral'}, professional, confident
-FORMAT: Return ONLY JSON: { "newName": "...", "narrative": "..." }`;
+TONE: ${toneMode || 'neutral'}, sophisticated, professional.
+FORMAT: JSON { "newName": "...", "narrative": "..." }`;
 
                     const res = await fetch('https://api.openai.com/v1/chat/completions', {
                         method: 'POST',
@@ -133,12 +132,14 @@ FORMAT: Return ONLY JSON: { "newName": "...", "narrative": "..." }`;
                         body: JSON.stringify({
                             model: 'gpt-4o-mini',
                             messages: [{ role: 'user', content: promptText }],
-                            temperature: 0.8,
+                            temperature: 0.9,
                             response_format: { type: "json_object" }
                         })
                     });
                     const d = await res.json();
-                    return JSON.parse(d.choices?.[0]?.message?.content || '{}');
+                    const parsed = JSON.parse(d.choices?.[0]?.message?.content || '{}');
+                    console.log(`[STRAINMATH_NAMING] Created Name: ${parsed.newName}`);
+                    return parsed;
                 }));
 
                 return response.status(200).json({ ok: true, narratives: results });
