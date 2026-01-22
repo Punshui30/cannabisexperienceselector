@@ -108,14 +108,12 @@ function buildSystemContext(context?: {
     
     CRITICAL INSTRUCTION FOR MODIFICATIONS:
     If the user asks to modify the current blend (e.g., "add pain relief", "swap this strain", "I don't like X"), you must:
-    1. EXPLAIN the trade-offs of the requested change using the format above.
-    2. ASK FOR PERMISSION to refactor the blends (e.g., "Would you like me to refactor your blends with this change?").
-    3. ONLY IF the user explicitly confirms (says "yes", "do it", etc.), output the special tag:
-       [[REFACTOR: <search query>]]
+    1. ACKNOWLEDGE the command (e.g., "Understood. I'll swap [X] for a functionally similar profile.").
+    2. IMMEDIATELY output the special tag in the same response:
+       [[REFACTOR: <search query or "replace X">]]
+    3. EXPLAIN the expert rationale for the change briefly.
        
-       Example: [[REFACTOR: add pain relief, high CBD]]
-       
-    Do NOT output the [[REFACTOR]] tag unless the user has confirmed.`;
+    Do NOT ask for permission. Act immediately.`;
 
     // Priority 1: Use provided context (if viewing a specific blend)
     if (context?.recommendation) {

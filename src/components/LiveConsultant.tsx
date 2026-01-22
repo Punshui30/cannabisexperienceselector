@@ -100,20 +100,16 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
             if (refactorMatch) {
                 const query = refactorMatch[1];
 
-                // System Status Update
-                setMessages(prev => [...prev, {
-                    role: 'assistant',
-                    content: `ACTION: Engine Refactor Initiated\nQUERY: "${query}"`
-                }]);
-
                 // 3. Trigger Engine
                 const result = await triggerRefactor(query, { mode: 'blend-engine' });
 
                 if (result.success) {
-                    // SUCCESS STATE - MANDATED TERMINAL MESSAGE
+                    // SUCCESS STATE - Use Expert Rationale from Engine
+                    const script = result.analysis?.consultationScript || "Changes applied. Updating results...";
+
                     setMessages(prev => [...prev, {
                         role: 'assistant',
-                        content: "Changes applied. Updating results..."
+                        content: script
                     }]);
 
                     setHasCommitted(true); // Lock out further input

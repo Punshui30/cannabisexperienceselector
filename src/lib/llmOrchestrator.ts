@@ -166,23 +166,11 @@ export async function processIntent(
         // SMART SUBSTITUTION LOGIC (Deterministic)
         // ---------------------------------------------------------
         if (intentSpec.cultivarExclusions && intentSpec.cultivarExclusions.length > 0) {
-            console.log('ORCHESTRATOR: Processing Exclusions via Smart Substitution...');
-
-            // Try to find substitutes for excluded cultivars
-            // Map STRAIN_LIBRARY (Strain) to Inventory (Cultivar) format
-            const inventoryForSub: any[] = STRAIN_LIBRARY.map(s => ({
-                id: s.id,
-                name: s.name,
-                // Mocking COA data since it's not in the main library yet
-                thcPercent: 22.5,
-                cbdPercent: 0.1,
-                terpenes: ["Myrcene", "Caryophyllene", "Limonene"],
-                available: true
-            }));
+            const { INVENTORY } = await import('./inventory');
 
             for (const excludedId of intentSpec.cultivarExclusions) {
-                const subResult = findSubstitute(excludedId, inventoryForSub, {
-                    family: intentSpec.avoidEffects.find(e => ['berry', 'lemon', 'pine', 'cookie', 'kush'].includes(e)) // Heuristic family mapping
+                const subResult = findSubstitute(excludedId, INVENTORY.cultivars, {
+                    family: intentSpec.avoidEffects.find(e => ['berry', 'lemon', 'pine', 'cookie', 'kush'].includes(e))
                 });
 
                 if (subResult.success && subResult.replacement) {
@@ -541,8 +529,9 @@ export async function processIntent(
             success: true,
             data: engineResults,
             analysis: {
-                targetTerpenes: intentSpec.terpenePreferences.include,
-                reasoning: intentSpec.consultationScript || "Analysis complete.",
+                targetTerpenes: intentSpec.terpenePreferences.include || [],
+                reasoning: intentSpec.reasoning || "Analysis complete.",
+                consultationScript: intentSpec.consultationScript,
                 outcomeCategory: outcomeCategory
             }
         };

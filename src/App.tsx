@@ -390,7 +390,7 @@ export default function App() {
                   />
                 )}
                 <div className="fixed bottom-2 right-2 text-[8px] text-white/20 pointer-events-none flex flex-col items-end gap-1">
-                  <span>v9.4.1 (PAYLOAD-FIX)</span>
+                  <span>v9.5 (EXPERT-OVERLAY)</span>
                   {debugLog.map((l, i) => <span key={i} className="opacity-50">{l}</span>)}
                 </div>
 
@@ -463,57 +463,36 @@ export default function App() {
               </>
             )}
 
-            {/* LIVE CONSULTANT OVERLAY */}
+            {/* LIVE CONSULTANT OVERLAY (Ensured Top Layer) */}
             <AnimatePresence>
               {showConsultant && (
-                <LiveConsultant
-                  consultantText={consultantText}
-                  context={{
-                    screen: view,
-                    recommendation:
-                      // 1. If viewing explicit details, prioritize that
-                      (view === 'blend-detail' && activeBlend) ? activeBlend :
-                        (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || blendRecs[0]) :
-                          // 2. Fallback to primary result if in results view
-                          (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
-                    userInput: userInput?.text
-                  }}
-                  onApplyResult={(newResults: any[]) => {
-                    // Authoritative Update: Replace the ENTIRE set
-                    console.log("APP: Authoritative Update from Live Consultant...");
-                    const adaptedSet = newResults
-                      .map(r => adaptEngineResult(r))
-                      .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
+                <div className="relative z-[100]">
+                  <LiveConsultant
+                    consultantText={consultantText}
+                    context={{
+                      screen: view,
+                      recommendation:
+                        (view === 'blend-detail' && activeBlend) ? activeBlend :
+                          (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || blendRecs[1]) :
+                            (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
+                      userInput: userInput?.text
+                    }}
+                    onApplyResult={(newResults: any[]) => {
+                      addLog("Assistant: Reconfiguring Engine...");
+                      const adaptedSet = newResults
+                        .map(r => adaptEngineResult(r))
+                        .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
 
-                    if (adaptedSet.length > 0) {
-                      setBlendRecs(adaptedSet);
-
-                      // RE-SELECT ACTIVE BLEND FROM NEW RESULTS (prevents stale state)
-                      // If we were viewing a detail, select the corresponding new blend by index
-                      if (view === 'blend-detail' && selectedBlendId) {
-                        const oldIndex = blendRecs.findIndex(b => b.id === selectedBlendId);
-                        const newSelection = adaptedSet[oldIndex >= 0 ? oldIndex : 0];
-                        if (newSelection) {
-                          setSelectedBlendId(newSelection.id);
-                          console.log(`APP: Re-selected blend: ${newSelection.id}`);
-                        }
-                      } else {
-                        setView('results');
+                      if (adaptedSet.length > 0) {
+                        setBlendRecs(adaptedSet);
+                        setView('results'); // Force transition to see the new blends
+                        setShowConsultant(false); // Close assistant to show results
                       }
-
-                      // UPDATE SNAPSHOT so Facade knows about the new state
-                      updateEngineSnapshot({
-                        inputs: "Live Consultant Refactor",
-                        results: adaptedSet,
-                        summary: "Refactored via Live Consultant"
-                      });
-
-                      console.log(`APP: Successfully replaced ${adaptedSet.length} recommendations recursively.`);
-                    }
-                  }}
-                  onClose={() => setShowConsultant(false)}
-                  isGenerating={isAnalyzing}
-                />
+                    }}
+                    onClose={() => setShowConsultant(false)}
+                    isGenerating={isAnalyzing}
+                  />
+                </div>
               )}
             </AnimatePresence>
           </main>
@@ -535,15 +514,14 @@ export default function App() {
               </svg>
             </button>
 
-            {/* LIVE CONSULTANT TRIGGER FAB */}
+            {/* LIVE CONSULTANT TRIGGER FAB (Ensured Top Level) */}
             <button
               onClick={() => {
                 if (!isAnalyzing) setShowConsultant(true);
               }}
               disabled={isAnalyzing}
-              className={`fixed bottom-6 right-6 z-40 group flex items-center justify-center w-12 h-12 rounded-full bg-[#00FFD1] text-black shadow-[0_0_20px_rgba(0,255,209,0.3)] transition-all duration-300 
+              className={`fixed bottom-6 right-6 z-[101] group flex items-center justify-center w-12 h-12 rounded-full bg-[#00FFD1] text-black shadow-[0_0_20px_rgba(0,255,209,0.3)] transition-all duration-300 
                   ${isAnalyzing ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110 hover:shadow-[0_0_30px_rgba(0,255,209,0.5)]'}
-                  /* Mobile Safety Rule: Hide FAB on tight screens when busy/keyboard likely active to prevent overlap */
                   max-[360px]:bottom-20 max-[360px]:right-4
               `}
               title={isAnalyzing ? "System Processing..." : "Ask AI Consultant"}

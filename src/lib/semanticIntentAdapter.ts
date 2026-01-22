@@ -41,13 +41,17 @@ Output a strict JSON object matching this schema:
     "sensitivity": "low" | "medium" | "high" 
   },
   "confidenceScore": number, // 0.0 to 1.0
+  "cultivarExclusions": string[], // Names or IDs (e.g., "Bubba Kush") the user explicitly dislikes
+  "consultationScript": string, // Expert response following 'Acknowledge, Act, Then Explain' pattern
   "reasoning": string // Brief explanation of extraction (max 1 sentence)
 }
 
 RULES:
 - Map synonyms to standard effects (e.g., "racy" -> avoid: "anxiety", "uplifting" -> target: "mood").
-- Map "Affirmative Body Load" signals (e.g., "sink into the couch", "melt", "heavy", "physically relaxed") as targets for sedation/relaxation/body, NOT constraints.
-- **Correction Handling**: If the user text implies a correction (e.g., "I said I did want...", "No, actually..."), you must DISCARD the previous intent vector for that parameter and replace it with the new value. Do not average or soften the change.
+- **Consultation Script (Critical)**: Create a proactive, expert-level response. Use 'Acknowledge, Act, Then Explain'. 
+  Example for dislike: "I'll swap Bubba Kush for a functionally similar profile. I'm prioritizing clear mental states while keeping the physical relaxation you requested."
+- **Exclusion Extraction**: If the user dislikes a strain or wants to replace it, add that strain name to 'cultivarExclusions'.
+- **Correction Handling**: If the user text implies a correction, you must DISCARD the previous intent vector for that parameter and replace it with the new value.
 - Allow simultaneous cognitive targets (e.g., "clear mind", "focus") and physical sedation.
 - If input is vague, set confidenceScore low (< 0.6).
 - If specific terpenes are mentioned, map them to 'include'.
