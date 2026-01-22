@@ -20,7 +20,7 @@ import { LiveNetworkDrawer } from './components/LiveNetworkDrawer';
 import { Intelligence } from './lib/merchantIntelligence';
 import { GlobalCultivarProvider } from './context/GlobalCultivarContext';
 import { Brain, Sparkles, ArrowLeft } from 'lucide-react';
-import { processIntent } from './lib/llmOrchestrator';
+import { processIntent, OrchestratorResult } from './lib/llmOrchestrator';
 import { adaptEngineResult } from './lib/adaptEngineResult';
 import { SharedBlendService } from './services/SharedBlendService';
 import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
@@ -85,6 +85,12 @@ export default function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [consultantText, setConsultantText] = useState<string | undefined>(undefined);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
+
+  const addLog = (msg: string) => {
+    setDebugLog(prev => [...prev.slice(-5), `${new Date().toLocaleTimeString()}: ${msg}`]);
+    console.log(`[App_V8.3] ${msg}`);
+  };
 
   // Navigation Handlers
   const handleEnterUser = () => {
@@ -202,92 +208,45 @@ export default function App() {
       }
 
       const run = async () => {
-        console.log('APP: Invoking Orchestrator...');
-        setAnalysisProgress(40); // Milestone: Orchestrator started
+        addLog('Invoking Orchestrator...');
+        setAnalysisProgress(40);
+
         try {
-          setAnalysisProgress(60); // Milestone: Engine running
-          const result = await processIntent(userInput);
+          // HEARTBEAT TIMER
+          const heartbeat = setInterval(() => {
+            addLog('Waiting for Engine...');
+          }, 3000);
+
+          // TIMEOUT GUARD: 15 seconds max
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Engine Hard Timeout (15s)")), 15000)
+          );
+
+          setAnalysisProgress(60);
+          const result = (await Promise.race([
+            processIntent(userInput),
+            timeoutPromise
+          ])) as OrchestratorResult;
+
+          clearInterval(heartbeat);
 
           if (result.success) {
-            // Case A: Mutation occurred (New Data)
             if (result.data.length > 0) {
-              // Adapter Strategy: Adapt ALL results
-              console.log('DEBUG: Engine Results Raw', result.data);
-
-              const allAdapted = result.data
-                .map((item: EngineResult) => adaptEngineResult(item))
-                .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
-
-              if (allAdapted.length > 0) {
-                console.log('[App_V8] Analysis Successful, hydrating UI');
-                setBlendRecs(allAdapted);
-                setAnalysisProgress(100); // CRITICAL: This is the definitive signal for ResolvingScreen
-                setIsAnalyzing(false);
-
-                // UPDATE ENGINE SNAPSHOT for Live Assistant (read-only access)
-                updateEngineSnapshot({
-                  inputs: userInput.text,
-                  results: allAdapted,
-                  summary: result.analysis?.reasoning || null
-                });
-                console.log('[App] Engine snapshot updated for Live Assistant');
-
-                // MERCHANT INTELLIGENCE: Log the resolution
-                const primary = allAdapted[0];
-                if (primary.kind === 'blend') {
-                  generateLiveFeedCommentary({
-                    blendName: primary.name,
-                    cultivars: primary.cultivars.map(c => c.name),
-                    outcomeCategory: result.analysis?.outcomeCategory || 'Other',
-                    userInput: userInput.text
-                  }).then(commentary => {
-                    if (commentary) {
-                      Intelligence.logResolution({
-                        inputMode: userInput.mode as any,
-                        inputText: userInput.text,
-                        blendId: primary.id,
-                        blendName: primary.name,
-                        confidenceScore: primary.matchScore,
-                        componentSkus: primary.cultivars.map(c => c.name),
-                        outcomeCategory: (result.analysis?.outcomeCategory as any) || 'Other',
-                        commentary: commentary
-                      });
-                    }
-                  });
-                }
-              } else {
-                throw new Error("Adapter returned null result for all items");
-              }
-            }
-            // Case B: No Mutation (Conversation/Explain Only)
-            else {
-              console.log('APP: No engine mutation required. Preserving state.');
-              setIsAnalyzing(false);
+              addLog('Success: Results Ready');
+              setBlendRecs(result.data.map((item: EngineResult) => adaptEngineResult(item)).filter(Boolean) as any);
               setAnalysisProgress(100);
-              setView('input'); // Or stay where you are, but signal 100 to clear Resolving
-
-              // We still update the snapshot so the Live Consultant sees the response
-              if (result.analysis?.reasoning) {
-                updateEngineSnapshot({
-                  inputs: userInput.text,
-                  // Keep existing results if possible, or pass empty. 
-                  // Since updateEngineSnapshot merges partials? No, it defines full state.
-                  // IMPORTANT: We don't want to wipe the snapshot results.
-                  // We should ideally read current snapshot or pass null to indicate "no change".
-                  // For now, passing 'undefined' for results might work if updateEngineSnapshot supports it.
-                  // Looking at usage, updateEngineSnapshot takes { inputs, results, summary }.
-                  // If we pass empty results, it might wipe the context. 
-                  // But strictly speaking, the Assistant should just speak the summary.
-                  results: [],
-                  summary: result.analysis.reasoning
-                });
-              }
+              setIsAnalyzing(false);
+            } else {
+              addLog('Success: Chat Only');
+              setAnalysisProgress(100);
+              setIsAnalyzing(false);
+              setView('input');
             }
           } else {
             throw new Error(result.error || 'Orchestrator returned failure');
           }
         } catch (e: any) {
-          console.error('APP: Orchestrator Failed', e);
+          addLog(`ERROR: ${e.message}`);
           setIsAnalyzing(false);
           setErrorMessage(e.message || 'Analysis Failed');
           setView('error');
@@ -430,8 +389,10 @@ export default function App() {
                     onOpenConsultant={() => setShowConsultant(true)}
                   />
                 )}
-                {/* Deployment Marker */}
-                <div className="fixed bottom-2 right-2 text-[8px] text-white/10 pointer-events-none">v8.2</div>
+                <div className="fixed bottom-2 right-2 text-[8px] text-white/20 pointer-events-none flex flex-col items-end gap-1">
+                  <span>v8.3 (DEBUG)</span>
+                  {debugLog.map((l, i) => <span key={i} className="opacity-50">{l}</span>)}
+                </div>
 
 
                 {/* SHARED READ-ONLY VIEW */}

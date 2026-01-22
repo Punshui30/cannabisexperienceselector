@@ -48,8 +48,13 @@ Tone: ${toneMode || 'neutral'}
 Blend: ${tier1Narrative.name}
 Facts: ${tier1Narrative.reasoning}`;
 
-        // Node 18+ global fetch
-        const geminiRes = await fetch(
+        const fetchFn = typeof fetch !== 'undefined' ? fetch : null;
+        if (!fetchFn) {
+            console.error('[GEMINI_API_V8.1] fetch is not defined in this environment');
+            return response.status(200).json({ ok: false, error: 'env_error_no_fetch' });
+        }
+
+        const geminiRes = await fetchFn(
             `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
