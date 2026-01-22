@@ -106,11 +106,20 @@ Facts: ${tier1Narrative.reasoning}`;
             const status = vertexRes.status;
             const errorText = await vertexRes.text().catch(() => 'Could not read error body');
             console.error(`[STRAINMATH_VERTEX] API Error ${status}:`, errorText);
+            console.error(`[STRAINMATH_VERTEX] Request URL:`, vertexUrl);
+            console.error(`[STRAINMATH_VERTEX] Project ID:`, projectId);
+            console.error(`[STRAINMATH_VERTEX] Region:`, region);
             return response.status(200).json({
                 ok: false,
                 error: 'vertex_api_failed',
                 status,
-                details: errorText.substring(0, 500)
+                details: errorText.substring(0, 500),
+                debugInfo: {
+                    projectId,
+                    region,
+                    modelId,
+                    url: vertexUrl
+                }
             });
         }
 
