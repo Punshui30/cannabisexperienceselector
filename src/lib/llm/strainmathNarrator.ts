@@ -26,37 +26,38 @@ export interface StrainMathNarrativeInput {
 
 const STRAINMATH_ENDPOINT = '/api/strainmath';
 
-export async function generateNarrative(input: StrainMathNarrativeInput): Promise<string | null> {
+export interface EnhancedNarrative {
+    newName: string;
+    narrative: string;
+}
+
+export async function generateNarrative(input: StrainMathNarrativeInput): Promise<EnhancedNarrative[] | null> {
     try {
-        console.log("NARRATOR: Requesting narrative enhancement via StrainMath™ Vertex...");
+        console.log("NARRATOR: Requesting multi-narrative enhancement via master gateway...");
 
         const response = await fetch(STRAINMATH_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(input) // Pass the full input as expected by api/strainmath.js
+            body: JSON.stringify(input)
         });
 
         if (!response.ok) {
-            console.warn(`NARRATOR: HTTP ${response.status} - falling back to Tier-1`);
+            console.warn(`NARRATOR: HTTP ${response.status} - falling back`);
             return null;
         }
 
         const data = await response.json();
 
-        if (data.ok && data.narrative) {
+        if (data.ok && data.narratives) {
             console.log("NARRATOR: Enhancement successful ✓");
-            return data.narrative.trim();
+            return data.narratives;
         } else {
-            console.warn("NARRATOR: Vertex API call failed", {
-                error: data.error,
-                status: data.status,
-                details: data.details
-            });
+            console.warn("NARRATOR: Enhancement failed", data.error);
             return null;
         }
 
     } catch (e: any) {
-        console.warn(`NARRATOR: Client error: ${e.message} - falling back to Tier-1`);
+        console.warn(`NARRATOR: Client error: ${e.message}`);
         return null;
     }
 }

@@ -5,7 +5,7 @@ import { analyzeIntent } from './semanticIntentAdapter';
 import { generateNarratives, generateConversationalResponse } from './llmNarrativeAdapter';
 import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
-import { generateNarrative, ToneMode } from './llm/strainmathNarrator';
+import { generateNarrative, ToneMode, EnhancedNarrative } from './llm/strainmathNarrator';
 import { findSubstitute } from './engine/substitution';
 
 // Define OrchestratorResult locally
@@ -490,26 +490,28 @@ export async function processIntent(
                     toneMode: toneMode
                 };
 
-                // BLOCKING (TIMEOUT PROTECTED): Wait for narrative
+                // BLOCKING (TIMEOUT PROTECTED): Wait for narratives
                 try {
                     console.log('[STRAINMATH_INPUT]', JSON.stringify(strainmathInput, null, 2));
 
-                    const enhancedText = await Promise.race([
+                    const enhancedNarratives = await Promise.race([
                         generateNarrative(strainmathInput),
-                        new Promise<string | null>(resolve => setTimeout(() => resolve(null), 8000))
+                        new Promise<EnhancedNarrative[] | null>(resolve => setTimeout(() => resolve(null), 12000))
                     ]);
 
-                    if (enhancedText) {
-                        console.log(`[STRAINMATH_SUCCESS] Narrative enhancement ready ✓`);
-                        console.log('[STRAINMATH_OUTPUT]', enhancedText);
-                        engineResults[0].reasoning = enhancedText;
+                    if (enhancedNarratives && Array.isArray(enhancedNarratives)) {
+                        console.log(`[STRAINMATH_SUCCESS] Multi-narrative enhancement ready ✓`);
+                        enhancedNarratives.forEach((enhanced, idx) => {
+                            if (engineResults[idx]) {
+                                if (enhanced.newName) engineResults[idx].name = enhanced.newName;
+                                if (enhanced.narrative) engineResults[idx].reasoning = enhanced.narrative;
+                            }
+                        });
                     } else {
-                        console.log(`[STRAINMATH] Timeout or null response, keeping Tier-1 narrative.`);
-                        console.log('[STRAINMATH_FALLBACK]', engineResults[0].reasoning);
+                        console.log(`[STRAINMATH] Timeout or null response, keeping Tier-1 narratives.`);
                     }
                 } catch (err) {
                     console.warn("[STRAINMATH_FAILED]", err);
-                    console.log('[STRAINMATH_ERROR_FALLBACK]', engineResults[0].reasoning);
                 }
 
             } catch (e) {
