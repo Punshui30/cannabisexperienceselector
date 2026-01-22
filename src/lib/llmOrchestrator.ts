@@ -702,13 +702,13 @@ function generateDeterministicNarrative(
 
     if (type === 'primary') {
         name = `${blend.cultivars[0].name} Dominant Blend`;
-        reasoning = `Constructed to address your primary goal by selecting ${blend.cultivars[0].name} as a foundation. This blend focuses on ${intent.targetEffects.join(' and ')} through a precise combination of ${cultivarNames}.`;
+        reasoning = `${blend.cultivars[0].name} anchors this blend for ${intent.targetEffects[0] || 'balanced effects'}.`;
     } else if (type === 'alternative') {
         name = `${blend.cultivars[1]?.name || blend.cultivars[0].name} Offset`;
-        reasoning = `An alternative approach focusing on ${intent.targetEffects[1] || 'balance'}. While the primary blend relies on a different core, this shifts the focus toward a complementary profile using ${blend.cultivars[1]?.name || 'balanced components'}.`;
+        reasoning = `Alternative approach emphasizing ${intent.targetEffects[1] || intent.targetEffects[0] || 'complementary effects'}.`;
     } else {
         name = `Contextual ${blend.cultivars[0].name} Mix`;
-        reasoning = `Optimized for the context of your request, relying on ${blend.cultivars[0].name} and ${blend.cultivars[1]?.name || 'supporting strains'} for a consistent output profile.`;
+        reasoning = `Contextual variation using ${cultivarNames} for consistent results.`;
     }
 
     return { name, reasoning };

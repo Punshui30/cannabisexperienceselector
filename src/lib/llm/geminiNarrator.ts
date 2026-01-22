@@ -33,14 +33,15 @@ export async function generateNarrative(input: GeminiNarrativeInput): Promise<st
         const systemPrompt = `You are a premium cannabis experience narrator.
 Role: Enhance technical narratives into compelling, natural language.
 Rule: No new facts, preserve all cultivars.
-Tone: ${input.toneMode || 'neutral'}`;
+Tone: ${input.toneMode || 'neutral'}
+CRITICAL: Keep it brief - maximum 2-3 sentences. Be punchy and direct, not verbose.`;
 
         const userPrompt = `
 Blend: ${input.tier1Narrative.name}
 Technical Reasoning: ${input.tier1Narrative.reasoning}
 User Intent: ${input.userIntentSummary}
 
-Enhance this narrative for a premium experience.`.trim();
+Enhance this into a brief, compelling narrative (2-3 sentences max).`.trim();
 
         const response = await fetch(GEMINI_ENDPOINT, {
             method: 'POST',
