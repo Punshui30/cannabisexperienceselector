@@ -157,7 +157,17 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                             className="w-full max-w-sm bg-black border border-white/10 rounded-t-3xl sm:rounded-3xl p-6 relative overflow-hidden"
                             onClick={e => e.stopPropagation()}
                         >
-                            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'linear-gradient(90deg, transparent 0%, #00FFD1 50%, transparent 100%)' }} />
+                            {/* The Hairline Border (Rest of card) */}
+                            <div className="absolute inset-0 rounded-[inherit] border border-white/10 pointer-events-none z-10" />
+
+                            {/* The Front-Edge Iridescent Light (Top Highlight) */}
+                            <div
+                                className="absolute top-0 left-[5%] right-[5%] h-[1px] opacity-100 z-20"
+                                style={{
+                                    background: `linear-gradient(90deg, transparent 0%, #00FFD1 50%, transparent 100%)`,
+                                    boxShadow: `0 0 10px rgba(0, 255, 209, 0.4)`
+                                }}
+                            />
 
                             <div className="flex justify-between items-center mb-6 pt-2">
                                 <div className="flex flex-col">

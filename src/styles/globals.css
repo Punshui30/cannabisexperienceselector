@@ -206,3 +206,15 @@ body,
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
   }
 }
+
+/* HIDE SCROLLBAR UTILITY */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}

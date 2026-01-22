@@ -101,19 +101,6 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
             repeatDelay: 1.5
           }}
         >
-          {/* Layer 1: Top-weighted iridescent accent */}
-          <div
-            className="absolute top-0 left-0 right-0 h-[4px] opacity-80 group-hover:opacity-100 transition-opacity"
-            style={{
-              background: `linear-gradient(90deg, 
-                  transparent 0%, 
-                  ${accentColor}80 20%, 
-                  ${accentColor} 50%, 
-                  ${accentColor}80 80%, 
-                  transparent 100%)`,
-              filter: 'blur(0.5px)'
-            }}
-          />
 
           {/* HEADER */}
           <div className="flex justify-between items-start mb-3 relative z-10"> {/* Density: mb-6 -> mb-3 */}

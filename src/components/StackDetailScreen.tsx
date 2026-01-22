@@ -94,10 +94,16 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                         onClick={e => e.stopPropagation()}
                         style={{ boxShadow: '0 -20px 50px -10px rgba(0,0,0,0.5)' }}
                     >
-                        {/* Iridescent Accent Bar */}
+                        {/* The Hairline Border (Rest of card) */}
+                        <div className="absolute inset-0 rounded-[inherit] border border-white/10 pointer-events-none z-10" />
+
+                        {/* The Front-Edge Iridescent Light (Top Highlight) */}
                         <div
-                            className="absolute top-0 left-0 right-0 h-[2px] opacity-100"
-                            style={{ background: 'linear-gradient(90deg, transparent 0%, #00FFD1 50%, transparent 100%)' }}
+                            className="absolute top-0 left-[5%] right-[5%] h-[1px] opacity-100 z-20"
+                            style={{
+                                background: `linear-gradient(90deg, transparent 0%, #00FFD1 50%, transparent 100%)`,
+                                boxShadow: `0 0 10px rgba(0, 255, 209, 0.4)`
+                            }}
                         />
 
                         <div className="flex justify-between items-center mb-6 pt-2">

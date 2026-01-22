@@ -7,12 +7,13 @@ import { PRESET_STACKS } from '../data/presetStacks';
 import { getGlassCardStyles } from '../lib/glassStyles';
 import { CameraModal } from './CameraModal';
 import { startListening } from '../lib/speech';
+import { CardShell } from './CardShell';
 
 interface InputScreenProps {
   onSubmit: (input: UserInput) => void;
   onBrowsePresets: () => void;
-  onSelectExemplar: (exemplar: OutcomeExemplar) => void;
-  onSelectPreset: (stack: any) => void;
+  onSelectExemplar?: (exemplar: OutcomeExemplar) => void;
+  onSelectPreset: (exemplar: OutcomeExemplar | BlendScenario) => void;
   onSelectScenario: (scenario: BlendScenario) => void;
   onAdminModeToggle: () => void;
   isAdminMode: boolean;
@@ -25,16 +26,6 @@ import logoImg from '../assets/logo.png';
 const GLASS_INPUT = "w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:border-[#00FFD1]/50 transition-colors text-sm";
 const TAB_ACTIVE = "bg-[#00FFD1] text-black shadow-lg shadow-[#00FFD1]/10";
 const TAB_INACTIVE = "text-white/40 hover:text-white hover:bg-white/5";
-
-interface InputScreenProps {
-  onSubmit: (input: UserInput) => void;
-  onBrowsePresets: () => void;
-  onSelectExemplar?: (exemplar: OutcomeExemplar) => void;
-  onSelectPreset: (exemplar: OutcomeExemplar | BlendScenario) => void;
-  onAdminModeToggle: () => void;
-  isAdminMode: boolean;
-  initialText?: string;
-}
 
 export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSelectPreset, onAdminModeToggle, isAdminMode, initialText }: InputScreenProps) {
   const [mode, setMode] = useState<'describe' | 'product' | 'strain'>('describe');
@@ -80,8 +71,12 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
   // --- SYSTEM-WIDE AUTO-SCROLL (The "Jump" Logic) ---
   // Signals to the user that the engine is ready to fire by bringing the button into view.
+  // CRITICAL: Suppressed while typing to prevent the field from moving away from the user.
   useEffect(() => {
-    if (canSubmit()) {
+    const isFieldFocused = document.activeElement?.tagName === 'TEXTAREA' ||
+      document.activeElement?.tagName === 'INPUT';
+
+    if (canSubmit() && !isFieldFocused) {
       scrollToBottom();
     }
   }, [
@@ -237,7 +232,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
       {/* --- SCROLLABLE BODY --- */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-32">
-        <div className="px-6 space-y-8 py-4">
+        <div className="px-6 space-y-5 py-2">
 
           {/* INPUT AREA */}
           <AnimatePresence mode="wait">
@@ -339,7 +334,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           </AnimatePresence>
 
           {/* CURATED DISCOVERY SECTION */}
-          <div className="space-y-10">
+          <div className="space-y-6">
 
             {/* ROW 1: SCENARIOS */}
             <div className="flex flex-col gap-3">
@@ -348,61 +343,38 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 <span className="text-[8px] text-white/20 uppercase tracking-widest">Swipe Left</span>
               </div>
 
-              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-6 px-6 no-scrollbar pb-2">
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-6 px-6 no-scrollbar">
                 {BLEND_SCENARIOS.map((scenario: BlendScenario, idx: number) => (
-                  <motion.button
+                  <CardShell
+                    as="button"
                     key={scenario.id}
+                    color={scenario.visualProfile.color}
                     onClick={() => {
                       setMode('describe');
                       setDescription(scenario.inputText);
                       scrollToBottom();
                     }}
-                    initial={{ opacity: 0, y: 15, boxShadow: `inset 0 0 0px ${scenario.visualProfile.color}00` }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      boxShadow: [
-                        `inset 0 0 0px ${scenario.visualProfile.color}00`,
-                        `inset 0 0 40px ${scenario.visualProfile.color}60`,
-                        `inset 0 0 10px ${scenario.visualProfile.color}20`
-                      ]
-                    }}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{
                       delay: 0.1 + (idx * 0.1),
                       duration: 0.8,
-                      boxShadow: { duration: 1.2, times: [0, 0.4, 1] }
                     }}
-                    className={`snap-center shrink-0 w-[85%] rounded-2xl p-5 text-left relative overflow-hidden group transition-all`}
-                    style={{
-                      minHeight: '140px',
-                      ...getGlassCardStyles(scenario.visualProfile.color),
-                      border: 'none',
-                    }}
+                    className="snap-center shrink-0 w-[85%] !p-0"
+                    style={{ minHeight: '140px' }}
                   >
-                    {/* High-Fidelity Masked Iridescent Border */}
-                    <div className="absolute inset-0 p-[1px] rounded-2xl pointer-events-none z-0" style={{ background: `linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, ${scenario.visualProfile.color}40 100%)` }}>
-                      <div className="w-full h-full bg-black rounded-[inherit]" />
-                    </div>
+                    <div className="p-5 h-full flex flex-col justify-between">
+                      <div>
+                        <h4 className="text-base font-light serif text-white mb-0.5">{scenario.title}</h4>
+                        <p className="text-[9px] uppercase tracking-widest text-[#00FFD1] mb-3">{scenario.subtitle}</p>
+                        <p className="text-xs text-white/50 italic leading-relaxed line-clamp-2">"{scenario.inputText}"</p>
+                      </div>
 
-                    <div className="relative z-10 w-full h-full">
-                      {/* Iridescent Accent Bar */}
-                      <div
-                        className="absolute top-0 left-0 right-0 h-[3px] opacity-100 z-20"
-                        style={{
-                          background: `linear-gradient(90deg, transparent 0%, ${scenario.visualProfile.color} 50%, transparent 100%)`,
-                          filter: 'blur(0.5px)'
-                        }}
-                      />
-
-                      <h4 className="text-base font-light serif text-white mb-0.5">{scenario.title}</h4>
-                      <p className="text-[9px] uppercase tracking-widest text-[#00FFD1] mb-3">{scenario.subtitle}</p>
-                      <p className="text-xs text-white/50 italic leading-relaxed line-clamp-2">"{scenario.inputText}"</p>
-
-                      <div className="absolute bottom-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                         <ChevronRight size={16} className="text-[#00FFD1]" />
                       </div>
                     </div>
-                  </motion.button>
+                  </CardShell>
                 ))}
               </div>
             </div>
@@ -419,51 +391,26 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 </button>
               </div>
 
-              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-6 px-6 no-scrollbar pb-2">
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-6 px-6 no-scrollbar">
                 {PRESET_STACKS.slice(0, 4).map((stack: any, idx: number) => (
-                  <motion.button
+                  <CardShell
+                    as="button"
                     key={stack.id}
+                    color={stack.visualProfile.color}
                     onClick={() => {
                       onSelectPreset(stack);
                       scrollToBottom();
                     }}
-                    initial={{ opacity: 0, y: 15, boxShadow: `inset 0 0 0px ${stack.visualProfile.color}00` }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      boxShadow: [
-                        `inset 0 0 0px ${stack.visualProfile.color}00`,
-                        `inset 0 0 40px ${stack.visualProfile.color}60`,
-                        `inset 0 0 10px ${stack.visualProfile.color}20`
-                      ]
-                    }}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{
                       delay: 0.2 + (idx * 0.1),
                       duration: 0.8,
-                      boxShadow: { duration: 1.2, times: [0, 0.4, 1] }
                     }}
-                    className="snap-center shrink-0 w-[75%] rounded-2xl p-5 text-left relative overflow-hidden group transition-all"
-                    style={{
-                      minHeight: '120px',
-                      ...getGlassCardStyles(stack.visualProfile.color),
-                      border: 'none'
-                    }}
+                    className="snap-center shrink-0 w-[75%] !p-0"
+                    style={{ minHeight: '120px' }}
                   >
-                    {/* High-Fidelity Masked Iridescent Border */}
-                    <div className="absolute inset-0 p-[1px] rounded-2xl pointer-events-none z-0" style={{ background: `linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, ${stack.visualProfile.color}40 100%)` }}>
-                      <div className="w-full h-full bg-black rounded-[inherit]" />
-                    </div>
-
-                    <div className="relative z-10 w-full h-full">
-                      {/* Iridescent Accent Bar */}
-                      <div
-                        className="absolute top-0 left-0 right-0 h-[3px] opacity-100 z-20"
-                        style={{
-                          background: `linear-gradient(90deg, transparent 0%, ${stack.visualProfile.color} 50%, transparent 100%)`,
-                          filter: 'blur(0.5px)'
-                        }}
-                      />
-
+                    <div className="p-5 h-full flex flex-col justify-between">
                       <div className="flex items-start gap-3">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -483,10 +430,10 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                             <div key={i} className="w-4 h-4 rounded-full border border-black bg-white/10 shadow-sm" />
                           ))}
                         </div>
-                        <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath™ Intellectual Property</p>
+                        <span className="text-[8px] uppercase tracking-widest text-white/30">Layered Protocol</span>
                       </div>
                     </div>
-                  </motion.button>
+                  </CardShell>
                 ))}
               </div>
             </div>
