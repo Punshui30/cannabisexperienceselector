@@ -191,11 +191,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
       <div className="w-full h-full flex flex-col relative z-10 text-white overflow-hidden">
 
-        {/* TEST: Deployment verification - v3152e26 */}
-        <div className="absolute top-2 right-2 z-50 bg-red-500 text-white text-xs px-2 py-1 rounded">
-          BUILD: 497d579
-        </div>
-
         {/* --- HEADER --- */}
         <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/60 via-black/20 to-transparent">
           {/* Layer 1: Top-weighted iridescent accent */}
@@ -475,30 +470,25 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           </div>
         </div>
 
-        {/* --- FOOTER (Fixed) --- */}
-        <div className="flex-shrink-0 px-6 pb-safe-footer bg-gradient-to-t from-black via-black/80 to-transparent pt-4">
-          <motion.button
-            layout
-            initial={false}
-            animate={{
-              y: canSubmit() ? 0 : 80,
-              scale: canSubmit() ? 1 : 0.9,
-              opacity: canSubmit() ? 1 : 0
-            }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            onClick={handleSubmit}
-            disabled={!canSubmit()}
-            className={`w-full py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs transition-all duration-500 shadow-2xl ${canSubmit()
-              ? "bg-gradient-to-r from-[#00FFD1] to-[#00E0B8] text-black shadow-[#00FFD1]/40 active:scale-95 hover:scale-[1.02]"
-              : "bg-white/5 text-white/10 cursor-not-allowed border border-white/5"
-              }`}
-          >
-            Generate Recommendation
-          </motion.button>
-          <p className="text-center text-[7px] text-white/10 uppercase tracking-widest mt-4 pb-2">
-            Deterministic Engine v9.9 (DUAL-DISCOVERY) • Verified Lab Data Only
-          </p>
-        </div>
+        {/* FLOATING ACTION BUTTON - Always Visible */}
+        <motion.button
+          initial={false}
+          animate={{
+            scale: canSubmit() ? 1 : 0,
+            opacity: canSubmit() ? 1 : 0
+          }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          onClick={handleSubmit}
+          disabled={!canSubmit()}
+          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black shadow-[0_0_30px_rgba(0,255,209,0.4)] flex items-center justify-center font-bold text-xs uppercase tracking-widest hover:scale-110 active:scale-95 transition-transform"
+          style={{
+            boxShadow: '0 8px 32px rgba(0, 255, 209, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </motion.button>
 
         <AnimatePresence>
           {showCamera && (
