@@ -67,19 +67,26 @@ export function ResolvingScreen({ input, recommendation, onComplete, progress = 
                 </motion.div>
             </div>
 
-            <div className="mt-8 text-center space-y-4 relative z-50">
-                <h2 className="text-2xl font-light font-serif tracking-widest animate-pulse text-white">
-                    Synthesizing Experience
-                </h2>
-                <div className="flex flex-col items-center justify-center gap-1">
-                    <div className="text-[10px] text-white/80 uppercase tracking-[0.3em] font-sans">
-                        {progress < 30 ? "Analyzing Intention" :
-                            progress < 60 ? "Matching Cultivars" :
-                                progress < 90 ? "Calibrating Ratios" :
-                                    "Finalizing Blend"}
+            <div className="mt-16 text-center space-y-8 relative z-50">
+                <div className="space-y-2">
+                    <h2 className="text-3xl font-light font-serif tracking-[0.2em] text-white/90">
+                        Synthesizing
+                    </h2>
+                    <div className="h-[1px] w-12 bg-white/20 mx-auto" />
+                </div>
+
+                <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="text-5xl font-extralight font-serif text-white/95 tracking-tighter tabular-nums mb-2">
+                        {Math.round(progress || 0)}<span className="text-xl ml-1 text-white/40">%</span>
                     </div>
-                    <div className="text-4xl font-light font-serif text-white tabular-nums">
-                        {Math.round(progress || 0)}%
+
+                    <div className="px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
+                        <div className="text-[9px] text-white/70 uppercase tracking-[0.4em] font-sans font-light">
+                            {progress < 30 ? "Analyzing Intention" :
+                                progress < 60 ? "Matching Cultivars" :
+                                    progress < 90 ? "Calibrating Ratios" :
+                                        "Finalizing Blend"}
+                        </div>
                     </div>
                 </div>
             </div>

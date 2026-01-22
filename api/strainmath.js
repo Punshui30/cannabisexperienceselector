@@ -53,7 +53,7 @@ module.exports = async function handler(request, response) {
 
         // 3. Prepare Vertex Request
         let contents = [];
-        let modelId = 'gemini-1.5-flash-001';
+        let modelId = 'gemini-1.5-flash';
 
         if (image) {
             // VISION MODE
