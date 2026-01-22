@@ -49,6 +49,21 @@ export async function decideAction(
         return createFallbackDecision("Input too short");
     }
 
+    // 1. SPECIAL CASE: Image Input (Vision API)
+    // If user uploaded an image, ALWAYS trigger engine mutation
+    if (seed.image) {
+        console.log('[DECISION] Image input detected - forcing engine mutation');
+        return {
+            intent: 'generate_blend',
+            requires_engine_mutation: true,
+            requires_user_confirmation: false,
+            target_entities: [],
+            response_mode: 'action_then_explain',
+            confidence: 'high',
+            reasoning: 'Image input detected - extracting strain data from product label'
+        };
+    }
+
     try {
         const response = await fetch(LLM_ENDPOINT, {
             method: 'POST',
