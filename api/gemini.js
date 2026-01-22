@@ -68,7 +68,14 @@ Facts: ${tier1Narrative.reasoning}`;
 
         if (!geminiRes.ok) {
             const status = geminiRes.status;
-            return response.status(200).json({ ok: false, error: 'api_failed', status });
+            const errorText = await geminiRes.text().catch(() => 'Could not read error body');
+            console.error(`[GEMINI_API_V8.5] API Error ${status}:`, errorText);
+            return response.status(200).json({
+                ok: false,
+                error: 'api_failed',
+                status,
+                details: errorText.substring(0, 200) // First 200 chars of error
+            });
         }
 
         const data = await geminiRes.json();

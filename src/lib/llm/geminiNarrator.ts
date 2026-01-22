@@ -46,7 +46,14 @@ export async function generateNarrative(input: GeminiNarrativeInput): Promise<st
 
         // Handle graceful API failures (200 OK with error flag)
         if (!data.ok) {
-            console.warn(`GEMINI: API returned error: ${data.error} - falling back to Tier-1`);
+            console.warn(`GEMINI: API returned error: ${data.error}`);
+            if (data.details) {
+                console.warn(`GEMINI: Error details:`, data.details);
+            }
+            if (data.status) {
+                console.warn(`GEMINI: HTTP Status:`, data.status);
+            }
+            console.warn('GEMINI: Falling back to Tier-1');
             return null;
         }
 
