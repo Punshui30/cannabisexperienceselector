@@ -40,8 +40,8 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
   );
 
   return (
-    <div className="w-full h-full relative overflow-y-auto scrollbar-hide">
-      <div className="min-h-full w-full flex flex-col items-center justify-center px-4 py-12 max-[360px]:px-2 max-[360px]:py-6">
+    <div className="w-full min-h-dvh relative overflow-y-auto scrollbar-hide pb-[env(safe-area-inset-bottom,24px)]">
+      <div className="w-full flex flex-col items-center justify-start px-4 py-8 max-[360px]:px-2 max-[360px]:py-4">
 
         {/* Persistent Branding */}
         <div className="z-20 flex flex-col items-center mb-12 flex-shrink-0">
@@ -123,7 +123,7 @@ export function EntryGate({ onEnterUser, onEnterAdmin, onEnterFeed }: EntryGateP
                     Continue
                   </button>
 
-                  <p className="mt-8 text-[9px] text-white/30 leading-tight">
+                  <p className="mt-6 text-[9px] text-white/30 leading-tight pb-4">
                     By continuing, you acknowledge that cannabis products are for adults 21+ only. Use responsibly and in accordance with applicable laws.
                   </p>
                 </div>
