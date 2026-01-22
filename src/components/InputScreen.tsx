@@ -79,12 +79,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     if (canSubmit() && !isFieldFocused) {
       scrollToBottom();
     }
-  }, [
-    description.length > 5,
-    strainName.length > 2,
-    !!uploadedImage,
-    mode
-  ]);
+  }, [description, strainName, uploadedImage, mode]);
+
 
   const [listeningField, setListeningField] = useState<string | null>(null);
 
@@ -162,6 +158,49 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
   return (
     <div className="w-full h-full flex flex-col relative z-10 bg-black text-white overflow-hidden">
+
+      {/* FLOATING BACKGROUND ORBS (Premium Glassmorphism Foundation) */}
+      <motion.div
+        className="absolute top-1/4 left-1/4 rounded-full pointer-events-none"
+        style={{
+          width: '400px',
+          height: '400px',
+          background: 'radial-gradient(circle, rgba(0, 255, 209, 0.15) 0%, transparent 70%)',
+          filter: 'blur(100px)',
+        }}
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.25, 0.4, 0.25],
+          x: [0, 50, 0],
+          y: [0, -30, 0],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+      <motion.div
+        className="absolute bottom-1/3 right-1/4 rounded-full pointer-events-none"
+        style={{
+          width: '350px',
+          height: '350px',
+          background: 'radial-gradient(circle, rgba(212, 175, 106, 0.12) 0%, transparent 70%)',
+          filter: 'blur(100px)',
+        }}
+        animate={{
+          scale: [1, 1.15, 1],
+          opacity: [0.2, 0.35, 0.2],
+          x: [0, -40, 0],
+          y: [0, 40, 0],
+        }}
+        transition={{
+          duration: 15,
+          repeat: Infinity,
+          ease: 'easeInOut',
+          delay: 2,
+        }}
+      />
 
       {/* --- HEADER --- */}
       <div className="flex-shrink-0 pt-[env(safe-area-inset-top)] bg-gradient-to-b from-black/60 via-black/20 to-transparent">

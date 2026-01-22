@@ -29,7 +29,6 @@ export function CardShell({
             style={{
                 ...glassStyles,
                 border: 'none',
-                background: '#000000', // Deep black core
             }}
             {...motionProps}
         >
