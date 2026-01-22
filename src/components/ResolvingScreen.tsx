@@ -71,15 +71,15 @@ export function ResolvingScreen({ input, recommendation, onComplete, progress = 
                 <h2 className="text-xl font-light font-serif tracking-wide animate-pulse">
                     Synthesizing Experience
                 </h2>
-                <div className="flex items-center justify-center gap-2 text-xs text-white/40 uppercase tracking-widest">
-                    <span>
+                <div className="flex items-center justify-center gap-2 text-sm text-white/70 uppercase tracking-widest">
+                    <span className="font-medium">
                         {progress < 30 ? "Analyzing Intention" :
                             progress < 60 ? "Matching Cultivars" :
                                 progress < 90 ? "Calibrating Ratios" :
                                     "Finalizing Blend"}
                     </span>
-                    <span className="w-1 h-1 rounded-full bg-white/40" />
-                    <span>{Math.round(progress)}%</span>
+                    <span className="w-1 h-1 rounded-full bg-white/70" />
+                    <span className="font-mono font-bold text-[#00FFD1]">{Math.round(progress)}%</span>
                 </div>
             </div>
 

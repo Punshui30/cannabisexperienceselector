@@ -71,12 +71,31 @@ module.exports = async function handler(request, response) {
             }];
         } else if (tier1Narrative) {
             // NARRATIVE MODE
-            const promptText = `You are a premium cannabis experience narrator (StrainMath™ System).
-Role: Enhance Tier-1 technical narratives into compelling, natural language.
-Rule: No new facts, preserve all cultivars.
-Tone: ${toneMode || 'neutral'}
-Blend: ${tier1Narrative.name}
-Facts: ${tier1Narrative.reasoning}`;
+            const { userIntentSummary, blendSummary } = request.body;
+
+            // Extract cultivar details from blend summary
+            const primaryBlend = blendSummary?.[0] || {};
+            const cultivarList = primaryBlend.cultivars || [];
+            const cultivarCount = cultivarList.length;
+
+            const promptText = `You are StrainMath™, an expert cannabis consultant explaining a custom blend.
+
+USER REQUEST: "${userIntentSummary || 'Custom experience'}"
+
+BLEND COMPOSITION:
+${cultivarList.map((c, i) => `${i + 1}. ${c} (${Math.round(100 / cultivarCount)}%)`).join('\n')}
+
+YOUR TASK:
+Write a 2-3 sentence explanation that covers:
+1. WHY this specific combination was chosen for their request
+2. The ROLE each cultivar plays (anchor, complement, modifier)
+3. The SYNERGY between cultivars and expected experience
+
+TONE: ${toneMode || 'neutral'}, professional, confident
+STYLE: Natural, conversational, avoid marketing fluff
+LENGTH: 2-3 sentences maximum
+
+Write the explanation now:`;
 
             contents = [{ role: "user", parts: [{ text: promptText }] }];
         } else {
