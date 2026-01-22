@@ -1,17 +1,18 @@
 /**
- * GEMINI API PROXY (Hardened V8.1 - JS Standard)
+ * GEMINI VERTEX API PROXY (V9.2 - Vertex AI Transition)
  * 
  * Path: /api/gemini.js
- * Primary Engine LLM for blend narratives.
- * ALWAYS returns 200 OK Status.
- * No external dependencies.
+ * Uses Google Vertex AI (Enterprise) instead of AI Studio.
+ * Requires: GCP_PROJECT_ID, GCP_SERVICE_ACCOUNT_KEY, GCP_REGION (optional)
  */
+
+const { GoogleAuth } = require('google-auth-library');
 
 module.exports = async function handler(request, response) {
     try {
-        console.log('[GEMINI_API_V9.0] Request started');
+        console.log('[GEMINI_VERTEX_V9.2] Request started');
 
-        // CORS Header Setup (Mirroring llm.js)
+        // CORS Header Setup
         response.setHeader('Access-Control-Allow-Credentials', true);
         response.setHeader('Access-Control-Allow-Origin', '*');
         response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
@@ -29,18 +30,38 @@ module.exports = async function handler(request, response) {
             return response.status(200).json({ ok: false, error: 'Method Not Allowed' });
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            console.error('[GEMINI_API_V9.0] Missing GEMINI_API_KEY');
-            return response.status(200).json({ ok: false, error: 'missing_key' });
+        // 1. Validate Environment
+        const projectId = process.env.GCP_PROJECT_ID;
+        const saKey = process.env.GCP_SERVICE_ACCOUNT_KEY;
+        const region = process.env.GCP_REGION || 'us-central1';
+
+        if (!projectId || !saKey) {
+            console.error('[GEMINI_VERTEX_V9.2] Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY');
+            return response.status(200).json({ ok: false, error: 'missing_gcp_config' });
         }
 
         const { tier1Narrative, toneMode } = request.body || {};
-
         if (!tier1Narrative || !tier1Narrative.reasoning) {
             return response.status(200).json({ ok: false, error: 'Missing Input' });
         }
 
+        // 2. Auth Flow (Get Bearer Token)
+        let authClient;
+        try {
+            const auth = new GoogleAuth({
+                credentials: JSON.parse(saKey),
+                scopes: 'https://www.googleapis.com/auth/cloud-platform',
+            });
+            authClient = await auth.getClient();
+        } catch (authErr) {
+            console.error('[GEMINI_VERTEX_V9.2] Auth Error:', authErr.message);
+            return response.status(200).json({ ok: false, error: 'auth_failed', details: authErr.message });
+        }
+
+        const accessToken = await authClient.getAccessToken();
+        const token = accessToken.token;
+
+        // 3. Prepare Vertex Request
         const promptText = `You are a premium cannabis experience narrator.
 Role: Enhance Tier-1 technical narratives into compelling, natural language.
 Rule: No new facts, preserve all cultivars.
@@ -48,52 +69,53 @@ Tone: ${toneMode || 'neutral'}
 Blend: ${tier1Narrative.name}
 Facts: ${tier1Narrative.reasoning}`;
 
-        const fetchFn = typeof fetch !== 'undefined' ? fetch : null;
-        if (!fetchFn) {
-            console.error('[GEMINI_API_V9.0] fetch is not defined in this environment');
-            return response.status(200).json({ ok: false, error: 'env_error_no_fetch' });
-        }
+        const endpoint = `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models/gemini-1.5-flash:generateContent`;
 
-        const geminiRes = await fetchFn(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ role: "user", parts: [{ text: promptText }] }],
-                    generationConfig: { temperature: 0.7, maxOutputTokens: 500 }
-                })
-            }
-        );
+        const vertexRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: promptText }] }],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 500,
+                    topP: 0.8,
+                    topK: 40
+                }
+            })
+        });
 
-        if (!geminiRes.ok) {
-            const status = geminiRes.status;
-            const errorText = await geminiRes.text().catch(() => 'Could not read error body');
-            console.error(`[GEMINI_API_V9.0] API Error ${status}:`, errorText);
+        if (!vertexRes.ok) {
+            const status = vertexRes.status;
+            const errorText = await vertexRes.text().catch(() => 'Could not read error body');
+            console.error(`[GEMINI_VERTEX_V9.2] API Error ${status}:`, errorText);
             return response.status(200).json({
                 ok: false,
-                error: 'api_failed',
+                error: 'vertex_api_failed',
                 status,
-                details: errorText.substring(0, 200) // First 200 chars of error
+                details: errorText.substring(0, 200)
             });
         }
 
-        const data = await geminiRes.json();
+        const data = await vertexRes.json();
 
-        // Robust Extraction (Multi-part support)
+        // 4. Extract Narrative
         const candidates = data.candidates || [];
         const parts = candidates[0]?.content?.parts || [];
         const narrative = parts.map(p => p.text).join(' ').trim();
 
         if (!narrative) {
-            return response.status(200).json({ ok: false, error: 'no_narrative' });
+            return response.status(200).json({ ok: false, error: 'no_narrative_extracted' });
         }
 
-        console.log('[GEMINI_API_V9.0] Success');
+        console.log('[GEMINI_VERTEX_V9.2] Success');
         return response.status(200).json({ ok: true, narrative });
 
     } catch (err) {
-        console.error('[GEMINI_API_V9.0] Global Error:', err.message);
+        console.error('[GEMINI_VERTEX_V9.2] Global Error:', err.message);
         return response.status(200).json({
             ok: false,
             error: 'server_error',
