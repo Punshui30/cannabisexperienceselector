@@ -89,12 +89,12 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
         </div>
 
         {/* SWIPE DECK - Gestures & Animation */}
-        <div className="w-full relative z-10 flex-1 flex items-center justify-center pb-8 min-h-[400px]">
+        <div className="w-full relative z-10 flex-1 flex flex-col justify-center pb-8 min-h-[400px]">
           {recommendations.length > 0 ? (
             <SwipeDeck
               items={recommendations}
               onSwipe={(idx) => setActiveIndex(idx)}
-              className="max-w-md w-full mx-auto px-4"
+              className="max-w-md w-full h-full flex-1 mx-auto px-4"
               renderItem={(rec, isActive) => (
                 <div className="w-full h-full flex items-center justify-center p-4">
                   <BlendCard
