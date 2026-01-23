@@ -26,7 +26,6 @@ export const EngineQRCode: React.FC<EngineQRCodeProps> = ({
       try {
         await QRCode.toCanvas(canvasRef.current, url, {
           width: size,
-          height: size,
           color: {
             dark: '#000000', // High contrast for scannability
             light: '#FFFFFF'

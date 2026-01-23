@@ -481,12 +481,12 @@ export default function App() {
 
                 {/* CHECKOUT SCREEN (Staff Use) */}
                 {view === 'checkout' && (
-                  <CheckoutScreen sessionId={new URLSearchParams(window.location.search).get('checkout') || undefined} />
+                  <CheckoutScreen />
                 )}
 
                 {/* SHARE SCREEN (Public Sharing) */}
                 {view === 'share' && (
-                  <ShareScreen sessionId={new URLSearchParams(window.location.search).get('share') || undefined} />
+                  <ShareScreen />
                 )}
 
                 {/* REMOTE ACCESS PREVIEW (Customer Demo) */}

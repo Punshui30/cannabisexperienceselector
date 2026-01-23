@@ -1,4 +1,4 @@
-import { IntentSeed, IntentSpec, EngineResult } from '../types/domain';
+import { IntentSeed, IntentSpec, EngineResult, EnginePhase } from '../types/domain';
 import { interpretIntentFromSpec, generateRecommendations as engineGenerate } from './engineAdapter';
 import { getCultivarIdFromName, STRAIN_LIBRARY } from './strainLibrary';
 import { analyzeIntent } from './semanticIntentAdapter';
