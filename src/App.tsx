@@ -1,3 +1,14 @@
+/**
+ * NAVIGATION POLICY
+ * -----------------
+ * The app MUST NOT automatically navigate due to:
+ * - idle time
+ * - engine timeouts
+ * - empty state
+ * - errors
+ *
+ * Only explicit user actions may change views.
+ */
 // [BUILD-ID: 2026-01-22-v10.6]
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -19,7 +30,6 @@ import { ResolutionScreen } from './components/ResolutionScreen';
 import { StackCardView } from './components/StackCardView';
 import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { LiveConsultant } from './components/LiveConsultant';
-import { IdleScreen } from './components/IdleScreen';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { LiveExperienceFeed } from './components/LiveExperienceFeed';
 import { LiveNetworkDrawer } from './components/LiveNetworkDrawer';
@@ -94,10 +104,6 @@ export default function App() {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [enginePhase, setEnginePhase] = useState<EnginePhase>('idle');
   const [debugLog, setDebugLog] = useState<string[]>([]);
-
-  // Idle State Detection (Tablet/Kiosk Mode Only)
-  const [isIdle, setIsIdle] = useState(false);
-  const [idleTimer, setIdleTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Single-shot result handoff guard
   const [hasNavigatedToResult, setHasNavigatedToResult] = useState(false);
@@ -268,17 +274,13 @@ export default function App() {
 
           setAnalysisProgress(50);
 
-          // PHASE WATCHDOG: Development-only assertion that terminal phase is reached
-          if (process.env.NODE_ENV === 'development') {
-            setTimeout(() => {
-              if (enginePhase !== 'chat') {
-                console.warn('[PHASE_WATCHDOG] Non-terminal phase exceeded timeout');
-              }
-            }, 15000);
-          }
+          setAnalysisProgress(50);
 
           const result = (await Promise.race([
-            processIntent(userInput, { onPhaseChange: setEnginePhase }),
+            processIntent(userInput, {
+              ...createInvocationContext(),
+              onPhaseChange: setEnginePhase
+            }),
             timeoutPromise
           ])) as OrchestratorResult;
 
@@ -321,7 +323,8 @@ export default function App() {
           addLog(`ERROR: ${e.message}`);
           setIsAnalyzing(false);
           setErrorMessage(e.message || 'Analysis Failed');
-          setView('error');
+          // NEUTRALIZED: Never navigate on error
+          // setView('error');
         }
       };
 
@@ -367,76 +370,6 @@ export default function App() {
       setView('results');
     }
   }
-
-  // Idle State Detection (Tablet/Kiosk Mode Only)
-  useEffect(() => {
-    // Only activate idle detection on tablets (768px-1024px with coarse pointer)
-    const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1024px) and (pointer: coarse)').matches;
-
-    if (!isTablet) {
-      // Not a tablet, disable idle detection
-      if (idleTimer) {
-        clearTimeout(idleTimer);
-        setIdleTimer(null);
-      }
-      if (isIdle) {
-        setIsIdle(false);
-      }
-      return;
-    }
-
-    // Exit idle state immediately on any interaction
-    const resetIdleTimer = () => {
-      if (isIdle) {
-        setIsIdle(false);
-        setView('input'); // Return to last screen (input is safe default)
-      }
-
-      // Clear existing timer
-      if (idleTimer) {
-        clearTimeout(idleTimer);
-      }
-
-      // Start new idle timer (30 seconds for kiosk mode)
-      const newTimer = setTimeout(() => {
-        // Whitelist: Never go idle if viewing Library
-        if (view === 'library') return;
-
-        // Only go idle if we're on input screen (main entry point)
-        if (view === 'input' && !isAnalyzing && !calculatorOpen && !qrShareOpen) {
-          setIsIdle(true);
-          setView('idle');
-        }
-      }, 30000); // 30 seconds
-
-      setIdleTimer(newTimer);
-    };
-
-    // Set up event listeners for user interaction
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    events.forEach(event => {
-      document.addEventListener(event, resetIdleTimer, true);
-    });
-
-    // Start initial timer
-    resetIdleTimer();
-
-    // Cleanup
-    return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, resetIdleTimer, true);
-      });
-      if (idleTimer) {
-        clearTimeout(idleTimer);
-      }
-    };
-  }, [view, isIdle, idleTimer, isAnalyzing, calculatorOpen, qrShareOpen]);
-
-  // Exit idle state handler
-  const handleIdleInteraction = () => {
-    setIsIdle(false);
-    setView('input'); // Return to input screen
-  };
 
   // Resolution screen handlers
   const handleResolutionContinue = () => {
@@ -519,9 +452,6 @@ export default function App() {
       case 'presets':
         context.mode = 'create';
         break;
-      case 'admin':
-        context.mode = 'edit';
-        break;
       default:
         context.mode = 'browse';
     }
@@ -592,20 +522,13 @@ export default function App() {
                 }}
               />
             ) : mode === 'admin' ? (
-              <>
-                <AdminPanel
-                  onExitAdmin={() => setMode('user')}
-                  onEnterDemoMode={() => setView('input')}
-                />
-              </>
+              <AdminPanel
+                onExitAdmin={() => setMode('user')}
+                onEnterDemoMode={() => setView('input')}
+              />
             ) : (
               <>
-                {/* IDLE SCREEN - Takes precedence when active */}
-                {isIdle && (
-                  <IdleScreen onInteraction={handleIdleInteraction} />
-                )}
-
-                {view === 'input' && !isIdle && (
+                {view === 'input' && (
                   <InputScreen
                     onSubmit={handleSubmit}
                     onBrowsePresets={() => setView('presets')}
