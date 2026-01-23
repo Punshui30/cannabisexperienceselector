@@ -303,13 +303,16 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       </div>
                     ) : (
                       <button
-                        onClick={() => setShowCamera(true)}
-                        className="flex flex-col items-center gap-2 cursor-pointer group"
+                        onClick={() => {
+                          // setMode('product'); // Already in product mode
+                          alert("Camera recognition temporarily unavailable.");
+                        }}
+                        className="flex flex-col items-center gap-2 cursor-wait group opacity-60"
                       >
-                        <div className="p-4 rounded-full bg-white/5 border border-white/10 group-hover:bg-[#00FFD1]/10 group-hover:border-[#00FFD1]/30 transition-all">
-                          <Camera size={24} className="text-white/40 group-hover:text-[#00FFD1]" />
+                        <div className="p-4 rounded-full bg-white/5 border border-white/10 transition-all">
+                          <Camera size={24} className="text-white/40" />
                         </div>
-                        <span className="text-[10px] uppercase tracking-widest text-white/40">Capture Product Label</span>
+                        <span className="text-[10px] uppercase tracking-widest text-white/40">Camera recognition temporarily unavailable</span>
                       </button>
                     )}
                   </div>

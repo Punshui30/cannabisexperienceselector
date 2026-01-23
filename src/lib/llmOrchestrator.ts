@@ -2,11 +2,13 @@ import { IntentSeed, IntentSpec, EngineResult } from '../types/domain';
 import { interpretIntentFromSpec, generateRecommendations as engineGenerate } from './engineAdapter';
 import { getCultivarIdFromName, STRAIN_LIBRARY } from './strainLibrary';
 import { analyzeIntent } from './semanticIntentAdapter';
-import { generateNarratives, generateConversationalResponse } from './llmNarrativeAdapter';
+import { generateConversationalResponse } from './llmNarrativeAdapter';
 import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
 import { generateNarrative, ToneMode, EnhancedNarrative, analyzeImage } from './llm/strainmathNarrator';
 import { findSubstitute } from './engine/substitution';
+
+const VISION_ENABLED = false; // Feature Gate: Quarantine Vision Recognition
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -134,8 +136,8 @@ export async function processIntent(
 
         console.log('ORCHESTRATOR: Decision requires MUTATION. Proceeding to Engine...');
 
-        // 0.5. IMAGE ANALYSIS (Vision + Tavily Grounding)
-        if (seed.image) {
+        // 0.5. IMAGE ANALYSIS (Vision Gated)
+        if (seed.image && VISION_ENABLED) {
             console.log('ORCHESTRATOR: Image detected. Triggering Vision + Search synthesis...');
             const visionSummary = await analyzeImage(seed.image);
             if (visionSummary) {
@@ -143,6 +145,8 @@ export async function processIntent(
                 // Augment seed text with vision data for semantic analysis
                 seed.text = `${seed.text}\n\n[ENVIRONMENTAL EVIDENCE]: ${visionSummary}`;
             }
+        } else if (seed.image) {
+            console.log('ORCHESTRATOR: Image detected. Vision pipeline is currently DISABLED.');
         }
 
         // 1. LLM-DRIVEN INTENT ANALYSIS
@@ -565,8 +569,20 @@ export async function processIntent(
                         console.log(`[STRAINMATH_SUCCESS] Multi-narrative enhancement ready ✓`);
                         enhancedNarratives.forEach((enhanced, idx) => {
                             if (engineResults[idx]) {
-                                if (enhanced.newName) engineResults[idx].name = enhanced.newName;
-                                if (enhanced.narrative) engineResults[idx].reasoning = enhanced.narrative;
+                                // HARDENED PARSING: Extract JSON if stringified within response
+                                try {
+                                    let raw = typeof enhanced === 'string' ? enhanced : JSON.stringify(enhanced);
+                                    // Strip markdown fences
+                                    raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                                    const parsed = typeof enhanced === 'object' ? enhanced : JSON.parse(raw);
+
+                                    if (parsed.newName) engineResults[idx].name = parsed.newName;
+                                    if (parsed.narrative) engineResults[idx].reasoning = parsed.narrative;
+                                } catch (parseErr) {
+                                    console.warn(`[STRAINMATH_PARSE_FAIL] Failed to parse enhancement for index ${idx}. Falling back to Tier-1.`);
+                                    // Silent fallback: Keep Tier-1 narratives already applied above
+                                }
                             }
                         });
                     } else {
