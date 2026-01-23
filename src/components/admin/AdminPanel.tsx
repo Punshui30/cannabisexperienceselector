@@ -473,7 +473,11 @@ export function AdminPanel({
         {/* Operator Demo - Auto-playing presentation */}
         {showOperatorDemo && (
           <OperatorDemo
-            onClose={() => setShowOperatorDemo(false)}
+            onClose={() => {
+              // Minimal, safe exit: close demo and leave admin back to main app
+              setShowOperatorDemo(false);
+              onExitAdmin();
+            }}
           />
         )}
       </div>

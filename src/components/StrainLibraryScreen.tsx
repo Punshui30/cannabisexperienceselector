@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { resolveCultivarVisuals, resolveTerpeneVisuals } from '../lib/visuals';
 import { INVENTORY } from '../lib/inventory';
 import { motion, AnimatePresence } from 'motion/react';
@@ -7,10 +7,20 @@ import { Activity, Droplet, X, Mic } from 'lucide-react';
 import { startListening } from '../lib/speech';
 
 export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
-    // SOURCE OF TRUTH: Iterate over the real Inventory/JSON data
-    const strains = INVENTORY.cultivars.sort((a, b) => a.name.localeCompare(b.name));
+    // 1. HARD MOUNT GUARD (MANDATORY)
+    const hasMountedRef = useRef(false);
+    useEffect(() => {
+        if (hasMountedRef.current) return;
+        hasMountedRef.current = true;
+        // Read-only setup only, no state mutation or navigation here
+    }, []);
 
-    // State
+    // SOURCE OF TRUTH: Iterate over the real Inventory/JSON data
+    const strains = useMemo(() =>
+        [...INVENTORY.cultivars].sort((a, b) => a.name.localeCompare(b.name)),
+        []);
+
+    // State (Local Only)
     const [selectedName, setSelectedName] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isListening, setIsListening] = useState(false);
@@ -31,9 +41,11 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
     };
 
     const selectedChemotype = selectedName ? getChemotype(selectedName) : null;
-    const selectedVisuals = selectedName && selectedChemotype
-        ? resolveCultivarVisuals(selectedName, selectedChemotype.type || 'hybrid', { isActive: true })
-        : null;
+    // Pure Visuals for Selected Strain
+    const selectedVisuals = useMemo(() => {
+        if (!selectedName || !selectedChemotype) return null;
+        return resolveCultivarVisuals(selectedName, selectedChemotype.type || 'hybrid', { isActive: true });
+    }, [selectedName, selectedChemotype]);
 
     return (
         <div className="fixed inset-0 flex flex-col bg-transparent text-white font-sans overflow-hidden">
@@ -86,16 +98,20 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
                     {filteredStrains.map((strain, idx) => {
                         const isSelected = selectedName === strain.name;
-                        const visuals = resolveCultivarVisuals(strain.name, strain.type || 'hybrid', {
-                            isActive: isSelected,
-                            isHovered: false // We rely on CSS hover state typically, but we can pass it if we track hover
-                        });
 
-                        // Convert dict to array for terpenes if needed or use from record
-                        const topTerpenes = strain.terpenes ? Object.entries(strain.terpenes)
-                            .sort(([, a], [, b]) => (b as number) - (a as number))
-                            .slice(0, 3)
-                            .map(([k]) => k) : [];
+                        // Pure Visuals Resolution
+                        const visuals = useMemo(() => resolveCultivarVisuals(strain.name, strain.type || 'hybrid', {
+                            isActive: isSelected,
+                            isHovered: false
+                        }), [strain.name, strain.type, isSelected]);
+
+                        const topTerpenes = useMemo(() => {
+                            if (!strain.terpenes) return [];
+                            return Object.entries(strain.terpenes)
+                                .sort(([, a], [, b]) => (b as number) - (a as number))
+                                .slice(0, 3)
+                                .map(([k]) => k);
+                        }, [strain.terpenes]);
 
                         return (
                             <motion.div

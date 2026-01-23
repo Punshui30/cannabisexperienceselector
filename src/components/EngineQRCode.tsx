@@ -70,16 +70,16 @@ export const EngineQRCode: React.FC<EngineQRCodeProps> = ({
     >
       {/* Outer Glow Ring */}
       <div
-        className="absolute inset-0 rounded-full blur-xl opacity-60"
+        className="absolute inset-0 rounded-2xl blur-xl opacity-60"
         style={{
           background: `radial-gradient(circle, ${colors.glow} 0%, transparent 70%)`,
-          transform: 'scale(1.2)'
+          transform: 'scale(1.1)'
         }}
       />
 
-      {/* Main Container */}
+      {/* Main Container – square with subtle rounding */}
       <div
-        className="relative rounded-full border-2 overflow-hidden backdrop-blur-md"
+        className="relative rounded-md border-2 overflow-hidden backdrop-blur-md"
         style={{
           borderColor: colors.primary,
           background: `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)`,
@@ -92,7 +92,7 @@ export const EngineQRCode: React.FC<EngineQRCodeProps> = ({
       >
         {/* Inner metallic ring */}
         <div
-          className="absolute inset-2 rounded-full border border-white/20"
+          className="absolute inset-2 rounded-md border border-white/20"
           style={{
             background: `linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)`
           }}
@@ -114,36 +114,15 @@ export const EngineQRCode: React.FC<EngineQRCodeProps> = ({
               <motion.img
                 src={qrDataUrl}
                 alt={`${type} QR code`}
-                className="rounded-lg shadow-lg"
+                className="shadow-lg"
                 style={{ width: size, height: size }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
               />
             )}
-
-            {/* Subtle pulse animation */}
-            <motion.div
-              className="absolute inset-0 rounded-lg border-2 border-transparent"
-              style={{ borderColor: colors.primary }}
-              animate={{
-                opacity: [0.3, 0.6, 0.3],
-                scale: [1, 1.02, 1]
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
           </div>
         </div>
-
-        {/* Accent dots */}
-        <div className="absolute top-2 left-2 w-1 h-1 rounded-full bg-white/60" />
-        <div className="absolute top-2 right-2 w-1 h-1 rounded-full bg-white/60" />
-        <div className="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-white/60" />
-        <div className="absolute bottom-2 right-2 w-1 h-1 rounded-full bg-white/60" />
       </div>
 
       {/* Label */}

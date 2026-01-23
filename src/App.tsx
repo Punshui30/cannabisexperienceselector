@@ -225,12 +225,10 @@ export default function App() {
             setView('shared');
           } else {
             console.error('[App] Share ID not found/expired');
-            setView('input');
           }
         })
         .catch(err => {
           console.error('[App] Share Resolution Error', err);
-          setView('input');
         })
         .finally(() => setIsAnalyzing(false));
     }
@@ -291,12 +289,12 @@ export default function App() {
             if (result.data.length > 0) {
               addLog('Success: Results Ready');
               setAnalysisProgress(90);
-              
+
               // Separate stacks from blends
               const adaptedResults = result.data.map((item: EngineResult) => adaptEngineResult(item)).filter(Boolean);
               const stacks = adaptedResults.filter((r: any) => r.kind === 'stack') as UIStackRecommendation[];
               const blends = adaptedResults.filter((r: any) => r.kind === 'blend') as UIBlendRecommendation[];
-              
+
               // Set results - stacks go to stackRec, blends go to blendRecs
               if (stacks.length > 0) {
                 setStackRec(stacks[0]); // Take first stack
@@ -304,7 +302,7 @@ export default function App() {
               if (blends.length > 0) {
                 setBlendRecs(blends);
               }
-              
+
               setAnalysisProgress(100);
               setIsAnalyzing(false);
               // handleResolvingComplete will be called by V3SignalInterface when phase === 'chat'
@@ -360,17 +358,13 @@ export default function App() {
     setHasNavigatedToResult(true);
     setAnalysisProgress(100);
 
-    // 5. ROUTE DIRECTLY TO RESULT CARD (NO INTERMEDIATE UI)
+    // 5. ROUTE TO PREVIEW LAYER FIRST (NO DEEP AUTO-NAV)
     if (hasStackRec) {
-      // Existing stack detail navigation
+      // Engine-produced stack: go to stack detail (preview layer for stacks is handled by preset flows)
       setView('stack-detail');
     } else {
-      // Existing blend detail navigation - use first blend
-      const firstBlend = blendRecs[0] as UIBlendRecommendation;
-      if (firstBlend) {
-        setSelectedBlendId(firstBlend.id);
-        setView('blend-detail');
-      }
+      // Blend results from a user query: go to Results carousel screen
+      setView('results');
     }
   }
 
@@ -405,6 +399,9 @@ export default function App() {
 
       // Start new idle timer (30 seconds for kiosk mode)
       const newTimer = setTimeout(() => {
+        // Whitelist: Never go idle if viewing Library
+        if (view === 'library') return;
+
         // Only go idle if we're on input screen (main entry point)
         if (view === 'input' && !isAnalyzing && !calculatorOpen && !qrShareOpen) {
           setIsIdle(true);
