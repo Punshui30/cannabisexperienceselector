@@ -78,7 +78,7 @@ export async function processIntent(
 
                 // Construct textual context from evidence
                 evidenceContext = validEvidence.length > 0
-                    ? validEvidence.map(e => e ? `[SEARCH EVIDENCE for ${e.query}]: ${JSON.stringify(e.evidence)}` : "").filter(Boolean).join("\n")
+                    ? validEvidence.map(e => e ? `[SEARCH GROUNDING for ${e.query}]:\n${e.summary || JSON.stringify(e.evidence.slice(0, 2))}` : "").filter(Boolean).join("\n---\n")
                     : "";
 
                 // Check for Tavily degradation
@@ -395,17 +395,21 @@ export async function processIntent(
         while (r3Attempts < 3) {
             results3 = engineGenerate(seed, intent3, exclusions3);
             if (results3.length > 0) {
-                const isUnique = !results3[0].cultivars?.some(c => usedCultivarIds.has(getCultivarIdFromName(c.name) || ''));
+                if (validateCompliance(results3[0], `Contextual (Attempt ${r3Attempts + 1})`)) {
+                    const isUnique = !results3[0].cultivars?.some(c => usedCultivarIds.has(getCultivarIdFromName(c.name) || ''));
 
-                if (validateCompliance(results3[0], `Contextual (Attempt ${r3Attempts + 1})`) && isUnique) {
-                    break;
-                } else {
-                    console.warn(`Contextual Attempt ${r3Attempts + 1} failed validation/uniqueness.`);
-                    results3[0].cultivars?.forEach(c => {
-                        const id = getCultivarIdFromName(c.name);
-                        if (id) exclusions3.push(id);
-                    });
+                    // Try to be unique, but if we can't find anything unique after 2 tries, accept a duplicate
+                    if (isUnique || r3Attempts > 1) {
+                        break;
+                    }
                 }
+
+                // If not unique or invalid, exclude and try again
+                console.warn(`Contextual Attempt ${r3Attempts + 1} failed validation/uniqueness.`);
+                results3[0].cultivars?.forEach(c => {
+                    const id = getCultivarIdFromName(c.name);
+                    if (id) exclusions3.push(id);
+                });
             } else {
                 break;
             }
@@ -422,7 +426,14 @@ export async function processIntent(
 
         // FALLBACK: If engine returns nothing
         if (engineResults.length === 0) {
-            return { success: false, data: [], error: 'Engine returned no results.' };
+            console.error('ORCHESTRATOR: Engine failed to find ANY results. Returning fallback blend.');
+            // Add a hard fallback blend from inventory
+            const fallbackBlend = engineGenerate(seed, intent3, []);
+            if (fallbackBlend.length > 0) {
+                engineResults.push(fallbackBlend[0]);
+            } else {
+                return { success: false, data: [], error: 'Engine returned no results.' };
+            }
         }
 
         // DIVERSITY VALIDATION: Check for duplicate blends (ID-based)

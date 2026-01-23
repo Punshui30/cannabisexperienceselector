@@ -46,8 +46,10 @@ module.exports = async function handler(request, response) {
                 const accessToken = await authClient.getAccessToken();
                 const token = accessToken.token;
 
-                const modelId = 'gemini-1.5-flash';
+                const modelId = 'gemini-1.5-flash-001';
                 const endpoint = `https://${region}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT_ID}/locations/${region}/publishers/google/models/${modelId}:generateContent`;
+
+                console.log(`[STRAINMATH_VISION] Calling Vertex AI in region ${region} for project ${GCP_PROJECT_ID}`);
 
                 const contents = [{
                     role: "user",
@@ -63,7 +65,11 @@ module.exports = async function handler(request, response) {
                     body: JSON.stringify({ contents, generationConfig: { temperature: 0.1, maxOutputTokens: 1024 } })
                 });
 
-                if (!vertexRes.ok) throw new Error(`Vertex Vision Failed: ${await vertexRes.text()}`);
+                if (!vertexRes.ok) {
+                    const errorDetails = await vertexRes.text();
+                    console.error(`[STRAINMATH_VISION] Vertex API Error: ${vertexRes.status} - ${errorDetails}`);
+                    throw new Error(`Vertex API returned ${vertexRes.status}. Details: ${errorDetails}`);
+                }
                 const vertexData = await vertexRes.json();
                 const extractedText = vertexData.candidates?.[0]?.content?.parts?.[0]?.text;
 
