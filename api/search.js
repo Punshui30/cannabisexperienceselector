@@ -5,7 +5,7 @@
  * Uses Tavily for external grounding of unknown strains or consumer brands.
  */
 
-export default async function handler(request: any, response: any) {
+module.exports = async function handler(request, response) {
     // CORS Header Setup
     response.setHeader('Access-Control-Allow-Credentials', true);
     response.setHeader('Access-Control-Allow-Origin', '*');
@@ -73,7 +73,7 @@ export default async function handler(request: any, response: any) {
 
         const data = await tavilyRes.json();
 
-        const evidence = (data.results || []).map((r: any) => ({
+        const evidence = (data.results || []).map((r) => ({
             title: r.title,
             url: r.url,
             snippet: r.content,
@@ -88,7 +88,7 @@ export default async function handler(request: any, response: any) {
             summary: data.answer || undefined
         });
 
-    } catch (err: any) {
+    } catch (err) {
         console.error('[STRAINMATH_SEARCH] Exception:', err.message);
         return response.status(200).json({
             query,

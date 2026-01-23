@@ -66,6 +66,7 @@ export async function processIntent(
                 return !id || id.startsWith('unknown');
             });
 
+            let evidenceContext = "";
             if (unknownEntities.length > 0) {
                 console.log('ORCHESTRATOR: Unknown entities detected, initiating Search Grounding:', unknownEntities);
 
@@ -74,6 +75,11 @@ export async function processIntent(
                 );
 
                 const validEvidence = searchResults.filter(r => r && r.sourcesFound);
+
+                // Construct textual context from evidence
+                evidenceContext = validEvidence.length > 0
+                    ? validEvidence.map(e => e ? `[SEARCH EVIDENCE for ${e.query}]: ${JSON.stringify(e.evidence)}` : "").filter(Boolean).join("\n")
+                    : "";
 
                 // Check for Tavily degradation
                 if (searchResults.some((r: any) => r?.tavily_failed)) {
@@ -92,6 +98,9 @@ export async function processIntent(
                     console.warn('[SEARCH_FALLBACK_APPLIED] No external evidence found. Proceeding with internal heuristic inference.');
                 }
             }
+
+            // Store evidence for the analyzer
+            (seed as any)._evidenceContext = evidenceContext;
         }
 
         console.log('Final Decision:', decision);
@@ -138,6 +147,12 @@ export async function processIntent(
 
         // 1. LLM-DRIVEN INTENT ANALYSIS
         console.group('ORCHESTRATOR: New Intent Analysis (Authoritative)');
+
+        // Inject search grounding evidence if available
+        if ((seed as any)._evidenceContext) {
+            seed.text = `${seed.text}\n\n[SEARCH GROUNDING EVIDENCE]:\n${(seed as any)._evidenceContext}`;
+        }
+
         const intentSpec = await analyzeIntent(seed, {
             blendName: context?.blendName,
             originalQuery: context?.userInput || seed.text,

@@ -226,9 +226,9 @@ export default function App() {
             addLog('Waiting for Engine...');
           }, 3000);
 
-          // TIMEOUT GUARD: 15 seconds max
+          // TIMEOUT GUARD: 30 seconds max
           const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Engine Hard Timeout (15s)")), 15000)
+            setTimeout(() => reject(new Error("Engine Hard Timeout (30s)")), 30000)
           );
 
           setAnalysisProgress(50);
