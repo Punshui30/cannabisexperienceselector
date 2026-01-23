@@ -1,4 +1,5 @@
 import { IntentSeed, IntentSpec, EngineResult, EnginePhase } from '../types/domain';
+import { InvocationContext, createContextBoundFlags } from '../types/context';
 import { interpretIntentFromSpec, generateRecommendations as engineGenerate } from './engineAdapter';
 import { getCultivarIdFromName, STRAIN_LIBRARY } from './strainLibrary';
 import { analyzeIntent } from './semanticIntentAdapter';
@@ -33,12 +34,11 @@ export interface OrchestratorResult {
  */
 export async function processIntent(
     seed: IntentSeed,
-    context?: {
+    context?: InvocationContext & {
         screen?: string;
         blendName?: string;
         blendConfig?: any;
         cultivars?: string[];
-        userInput?: string;
         recommendation?: any;
         onPhaseChange?: (phase: EnginePhase) => void;
     },
@@ -57,6 +57,15 @@ export async function processIntent(
         console.log(`  Input: "${seed.text}"`);
         console.log(`  Context:`, context?.blendName ? `${context.blendName} (${context.screen})` : "General");
 
+        // GLOBAL ASSISTANT CONTEXT GUARD — AUTHORITATIVE
+        const contextFlags = createContextBoundFlags(context as InvocationContext, seed.text);
+        console.log(`[CONTEXT_GUARD] bound=${contextFlags.contextBound} scope=${contextFlags.mutationScope} stackMode=${contextFlags.stackMode || false}`);
+
+        // Apply context binding to orchestrator behavior
+        if (contextFlags.contextBound && contextFlags.stackMode) {
+            console.log(`[STACK_MODE] Activated for stack: ${contextFlags.activeStackId}`);
+            // Force stack mode - will be used in intent classification
+        }
 
         // 0. DECISION STEP (The Cognitive Choke Point)
         console.group('ORCHESTRATOR: Decision Matrix');
@@ -64,7 +73,10 @@ export async function processIntent(
         // A. Initial Classification & Entity Extraction
         let decision = await decideAction(seed, {
             screen: context?.screen,
-            currentBlendName: context?.blendName
+            currentBlendName: context?.blendName,
+            contextBound: contextFlags.contextBound,
+            stackMode: contextFlags.stackMode,
+            activeEntityId: contextFlags.activeStackId
         });
 
         // B. Search Grounding for Unknown Entities
@@ -146,6 +158,23 @@ export async function processIntent(
 
         console.log('ORCHESTRATOR: Decision requires MUTATION. Proceeding to Engine...');
 
+        // STACK AUGMENTATION MODE - Special handling for stack mutations
+        if (contextFlags.stackMode && contextFlags.activeStackId) {
+            console.log(`[STACK_AUGMENTATION] Processing stack modification for: ${contextFlags.activeStackId}`);
+
+            // Get the existing stack data from context
+            const existingStack = context?.recommendation;
+            if (!existingStack || existingStack.kind !== 'stack') {
+                throw new Error('Stack augmentation requested but no valid stack found in context');
+            }
+
+            // Force intent to stack augmentation mode
+            seed.text = `AUGMENT_STACK:${seed.text}`;
+            seed.kind = 'stack';
+
+            console.log('[STACK_AUGMENTATION] Forced stack augmentation mode');
+        }
+
         // 0.5. IMAGE ANALYSIS (Vision Gated)
         if (seed.image && VISION_ENABLED) {
             console.log('ORCHESTRATOR: Image detected. Triggering Vision + Search synthesis...');
@@ -203,7 +232,27 @@ export async function processIntent(
         console.log('ORCHESTRATOR: Anchor Constraints Established', anchorConstraints);
 
         updatePhase('engine');
-        // 2. ENGINE EXECUTION (Generate 3 Options with Diversity)
+
+        // STACK AUGMENTATION EXECUTION - Special handling for stack mutations
+        if (decision.intent === 'augment_stack' && contextFlags.stackMode && context?.recommendation) {
+            console.log('[STACK_AUGMENTATION] Executing stack augmentation');
+
+            const existingStack = context.recommendation;
+            if (existingStack.kind !== 'stack') {
+                throw new Error('Stack augmentation requested but existing entity is not a stack');
+            }
+
+            // Create augmented stack by adding new layer(s)
+            const augmentedStack = await createAugmentedStack(existingStack, intentSpec, seed.text);
+            engineResults.push(augmentedStack);
+
+            console.log('[STACK_AUGMENTATION] Stack augmented successfully');
+
+            // Skip normal engine execution for stack augmentation
+            return finalizeAugmentedStack(augmentedStack, intentSpec, outcomeCategory, context);
+        }
+
+        // 2. NORMAL ENGINE EXECUTION (Generate 3 Options with Diversity)
         const engineIntent = interpretIntentFromSpec(intentSpec);
         console.log('ORCHESTRATOR: Running Engine with Spec...');
 
@@ -787,6 +836,131 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
     return spec;
 }
 
+
+// STACK AUGMENTATION HELPERS
+
+async function createAugmentedStack(existingStack: any, intentSpec: IntentSpec, userQuery: string): Promise<EngineResult> {
+    console.log('[STACK_AUGMENTATION] Creating augmented stack');
+
+    // Parse user intent to determine what kind of augmentation is needed
+    const augmentationType = detectAugmentationType(userQuery);
+
+    // Generate new layer content based on the augmentation request
+    const newLayerIntent = interpretIntentFromSpec(intentSpec);
+
+    // Get existing cultivars to avoid duplicates
+    const existingCultivarIds = new Set<string>();
+    if (existingStack.layers) {
+        existingStack.layers.forEach((layer: any) => {
+            if (layer.cultivars) {
+                layer.cultivars.forEach((c: any) => {
+                    const id = getCultivarIdFromName(c.name) || (c as any).id;
+                    if (id) existingCultivarIds.add(id);
+                });
+            }
+        });
+    }
+
+    // Generate new layer with exclusion of existing cultivars
+    const exclusionArray = Array.from(existingCultivarIds);
+    const newLayerResults = engineGenerate({ text: userQuery, kind: 'blend' }, newLayerIntent, exclusionArray);
+
+    if (!newLayerResults || newLayerResults.length === 0) {
+        throw new Error('Failed to generate new layer for stack augmentation');
+    }
+
+    // Create augmented stack structure
+    const augmentedStack: EngineResult = {
+        ...existingStack,
+        id: `stack-augmented-${Date.now()}`,
+        name: generateAugmentedStackName(existingStack.name, augmentationType),
+        reasoning: `Stack augmented with new ${augmentationType} layer: ${newLayerResults[0].reasoning}`,
+        layers: [
+            ...(existingStack.layers || []),
+            {
+                type: 'cultivar',
+                layerName: generateLayerName(augmentationType),
+                cultivars: newLayerResults[0].cultivars || [],
+                purpose: intentSpec.reasoning || `Added ${augmentationType} phase`,
+                onsetEstimate: estimateTiming(augmentationType),
+                durationEstimate: '2-4 hours'
+            }
+        ]
+    };
+
+    return augmentedStack;
+}
+
+function detectAugmentationType(query: string): string {
+    const lowerQuery = query.toLowerCase();
+
+    if (lowerQuery.includes('morning') || lowerQuery.includes('wake') || lowerQuery.includes('energy')) {
+        return 'morning';
+    }
+    if (lowerQuery.includes('evening') || lowerQuery.includes('wind down') || lowerQuery.includes('relax')) {
+        return 'evening';
+    }
+    if (lowerQuery.includes('sleep') || lowerQuery.includes('night')) {
+        return 'sleep';
+    }
+    if (lowerQuery.includes('social') || lowerQuery.includes('party')) {
+        return 'social';
+    }
+
+    return 'additional'; // Generic fallback
+}
+
+function generateAugmentedStackName(originalName: string, augmentationType: string): string {
+    if (augmentationType === 'morning' && !originalName.toLowerCase().includes('wake')) {
+        return `${originalName} + Morning Wake`;
+    }
+    if (augmentationType === 'evening' && !originalName.toLowerCase().includes('evening')) {
+        return `${originalName} + Evening Wind`;
+    }
+    if (augmentationType === 'sleep' && !originalName.toLowerCase().includes('sleep')) {
+        return `${originalName} + Sleep Phase`;
+    }
+    if (augmentationType === 'social' && !originalName.toLowerCase().includes('social')) {
+        return `${originalName} + Social Boost`;
+    }
+
+    return `${originalName} (Enhanced)`;
+}
+
+function generateLayerName(augmentationType: string): string {
+    switch (augmentationType) {
+        case 'morning': return 'Morning Wake Layer';
+        case 'evening': return 'Evening Wind-Down';
+        case 'sleep': return 'Sleep Preparation';
+        case 'social': return 'Social Enhancement';
+        default: return 'Additional Phase';
+    }
+}
+
+function estimateTiming(augmentationType: string): string {
+    switch (augmentationType) {
+        case 'morning': return '6-8 AM';
+        case 'evening': return '6-8 PM';
+        case 'sleep': return '9-11 PM';
+        case 'social': return 'Evening';
+        default: return 'As needed';
+    }
+}
+
+function finalizeAugmentedStack(augmentedStack: EngineResult, intentSpec: IntentSpec, outcomeCategory: string, context?: any): Promise<OrchestratorResult> {
+    console.log('[STACK_AUGMENTATION] Finalizing augmented stack');
+
+    return Promise.resolve({
+        success: true,
+        data: [augmentedStack],
+        analysis: {
+            targetTerpenes: intentSpec.terpenePreferences.include || [],
+            reasoning: `Stack successfully augmented with new layer. Existing ${augmentedStack.layers?.length || 1} layers preserved.`,
+            consultationScript: `Added new phase to your existing stack. The original ${augmentedStack.layers?.length ? (augmentedStack.layers.length - 1) : 0} layers remain unchanged.`,
+            outcomeCategory: outcomeCategory as any
+        }
+    });
+}
 
 function sanitizeBlend(blend: EngineResult): string[] {
     if (!blend || !blend.cultivars) return [];

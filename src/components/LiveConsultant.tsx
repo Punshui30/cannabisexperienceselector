@@ -1,18 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
+import { InvocationContext } from '../types/context';
 import { Send, X, Mic, Sparkles, Check, Brain } from 'lucide-react';
 
 import { startListening } from '../lib/speech';
 
 interface LiveConsultantProps {
     consultantText?: string;
-    context?: {
-        screen?: string;
-        recommendation?: UIBlendRecommendation | UIStackRecommendation;
-        userInput?: string;
-        cardType?: 'primary' | 'secondary' | 'contextual';
-    };
+    context?: InvocationContext;
     onApplyResult?: (result: any) => void;
     onClose: () => void;
     isGenerating?: boolean;
@@ -38,17 +34,36 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
 
     // Initial Greeting (Context-Aware)
     useEffect(() => {
+        // Log context binding for debugging
+        if (context) {
+            console.log(`[ASSISTANT_CONTEXT_BOUND] view=${context.viewType} entity=${context.activeEntityType || 'none'} id=${context.activeEntityId || 'none'} mode=${context.mode}`);
+        }
+
         let intro = consultantText;
         if (!intro) {
-            switch (context?.screen) {
+            switch (context?.viewType) {
                 case 'results':
-                    intro = "I've analyzed these options. Would you like to refine the terpene profile or effect target?";
+                    intro = context.activeEntityType === 'stack'
+                        ? "Viewing stack results. I can modify layers, add phases, or adjust timing."
+                        : "I've analyzed these blend options. Would you like to refine the terpene profile or effect target?";
                     break;
                 case 'blend-detail':
                     intro = "Analyzing blend synergy. Ask about specific terpene effects or request adjustments.";
                     break;
                 case 'stack-detail':
-                    intro = "Viewing Stack architecture. I can explain the layer interactions.";
+                case 'stack-card':
+                    intro = context.activeEntityType === 'stack'
+                        ? "Stack Protocol Assistant: I can add layers, modify phases, or adjust timing. What would you like to change?"
+                        : "Viewing Stack architecture. I can explain the layer interactions.";
+                    break;
+                case 'resolution':
+                    intro = context.activeEntityType === 'stack'
+                        ? "Resolution Assistant: Modify this stack before generating session artifacts."
+                        : "Resolution Assistant: Refine this blend before generating session artifacts.";
+                    break;
+                case 'checkout':
+                case 'share':
+                    intro = "Session Review: This blend has been prepared for your records.";
                     break;
                 case 'library':
                     intro = "Accessing Strain Library. Looking for a specific chemotype?";
@@ -61,7 +76,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
             }
         }
         setMessages([{ role: 'assistant', content: intro }]);
-    }, [context?.recommendation?.id, context?.screen, consultantText]);
+    }, [context?.activeEntityId, context?.viewType, consultantText]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -107,8 +122,11 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
             if (refactorMatch) {
                 const query = refactorMatch[1];
 
-                // 3. Trigger Engine
-                const result = await triggerRefactor(query, { mode: 'blend-engine' });
+                // 3. Trigger Engine with full context
+                const result = await triggerRefactor(query, {
+                  ...context,
+                  mode: context?.activeEntityType === 'stack' ? 'stack-mutation' : 'blend-engine'
+                });
 
                 if (result.success) {
                     // SUCCESS STATE - Use Expert Rationale from Engine

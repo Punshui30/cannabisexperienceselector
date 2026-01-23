@@ -44,7 +44,14 @@ LOGIC RULES:
 
 export async function decideAction(
     seed: IntentSeed,
-    context?: { currentBlendName?: string, screen?: string, evidence?: any }
+    context?: {
+        currentBlendName?: string,
+        screen?: string,
+        evidence?: any,
+        contextBound?: boolean,
+        stackMode?: boolean,
+        activeEntityId?: string
+    }
 ): Promise<Decision> {
     const inputText = seed.text || "";
 
@@ -53,7 +60,34 @@ export async function decideAction(
         return createFallbackDecision("Input too short");
     }
 
-    // 1. SPECIAL CASE: Image Input (Vision API)
+    // 1. SPECIAL CASE: Stack Mode (Context-Bound Mutations)
+    // When assistant is opened in stack context, default to stack augmentation
+    if (context?.stackMode) {
+        console.log('[DECISION] Stack mode activated - prioritizing stack augmentation');
+
+        // Check if user wants to create something new (opt-out of context)
+        if (inputText.match(/(new|create|separate|different|another|from scratch)/i)) {
+            console.log('[DECISION] User opted out of stack context - proceeding with normal logic');
+        } else {
+            // Force stack augmentation for modification requests
+            const modificationKeywords = /(add|change|modify|adjust|extend|append|layer|phase|morning|wake|evening|night|sleep)/i;
+
+            if (modificationKeywords.test(inputText) || inputText.includes('AUGMENT_STACK:')) {
+                console.log('[DECISION] Stack augmentation detected');
+                return {
+                    intent: 'augment_stack',
+                    requires_engine_mutation: true,
+                    requires_user_confirmation: false,
+                    target_entities: [context.activeEntityId || ''],
+                    response_mode: 'action_then_explain',
+                    confidence: 'high',
+                    reasoning: `Stack augmentation requested for stack ${context.activeEntityId}`
+                };
+            }
+        }
+    }
+
+    // 2. SPECIAL CASE: Image Input (Vision API)
     // If user uploaded an image, ALWAYS trigger engine mutation
     if (seed.image) {
         console.log('[DECISION] Image input detected - forcing engine mutation');

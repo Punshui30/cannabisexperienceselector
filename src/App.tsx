@@ -30,6 +30,7 @@ import { adaptEngineResult } from './lib/adaptEngineResult';
 import { SharedBlendService } from './services/SharedBlendService';
 import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
 import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar, EngineResult, EnginePhase } from './types/domain';
+import { InvocationContext, createContextBoundFlags } from './types/context';
 import logoImg from './assets/logo.png';
 import { generateLiveFeedCommentary } from './lib/llmLiveFeedAdapter';
 import { updateEngineSnapshot } from './lib/engineSnapshot';
@@ -345,6 +346,81 @@ export default function App() {
     setView('input');
   };
 
+  // Create comprehensive invocation context for assistant
+  const createInvocationContext = (): InvocationContext => {
+    const context: InvocationContext = {
+      route: window.location.pathname,
+      viewType: view as any,
+      activeEntityType: null,
+      activeEntityId: null,
+      mode: 'live_assist',
+      screen: view, // Legacy compatibility
+      userInput: userInput?.text
+    };
+
+    // Determine active entity based on current view and state
+    switch (view) {
+      case 'stack-card':
+      case 'stack-detail':
+        if (stackRec) {
+          context.activeEntityType = 'stack';
+          context.activeEntityId = stackRec.id;
+          context.mode = view === 'stack-detail' ? 'protocol' : 'browse';
+        }
+        break;
+      case 'blend-detail':
+        if (activeBlend) {
+          context.activeEntityType = 'blend';
+          context.activeEntityId = activeBlend.id;
+          context.mode = 'protocol';
+        }
+        break;
+      case 'results':
+        if (blendRecs.length > 0) {
+          const primary = blendRecs[0];
+          context.activeEntityType = primary.kind === 'stack' ? 'stack' : 'blend';
+          context.activeEntityId = primary.id;
+          context.mode = 'browse';
+        }
+        break;
+      case 'resolution':
+        if (blendRecs.length > 0) {
+          const primary = blendRecs[0];
+          context.activeEntityType = primary.kind === 'stack' ? 'stack' : 'blend';
+          context.activeEntityId = primary.id;
+          context.mode = 'edit';
+        }
+        break;
+      case 'checkout':
+      case 'share':
+        // Session views - extract ID from URL
+        const sessionId = new URLSearchParams(window.location.search).get(view === 'checkout' ? 'checkout' : 'share');
+        if (sessionId) {
+          context.activeEntityType = 'preset'; // Session artifacts
+          context.activeEntityId = sessionId;
+          context.mode = 'browse';
+        }
+        break;
+      case 'input':
+      case 'presets':
+        context.mode = 'create';
+        break;
+      case 'admin':
+        context.mode = 'edit';
+        break;
+      default:
+        context.mode = 'browse';
+    }
+
+    // Set recommendation for legacy compatibility
+    context.recommendation =
+      (view === 'blend-detail' && activeBlend) ? activeBlend :
+        (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined)) :
+          (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined));
+
+    return context;
+  };
+
   const [calcTarget, setCalcTarget] = useState<UIBlendRecommendation | UIStackRecommendation | null>(null);
 
   const handleCalculate = (rec: any) => {
@@ -578,14 +654,7 @@ export default function App() {
                 <div className="relative z-[100]">
                   <LiveConsultant
                     consultantText={consultantText}
-                    context={{
-                      screen: view,
-                      recommendation:
-                        (view === 'blend-detail' && activeBlend) ? activeBlend :
-                          (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined)) :
-                            (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
-                      userInput: userInput?.text
-                    }}
+                    context={createInvocationContext()}
                     onApplyResult={(newResults: any[]) => {
                       addLog("Assistant: Reconfiguring Engine...");
                       const adaptedSet = newResults
