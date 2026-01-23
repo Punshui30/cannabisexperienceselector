@@ -76,14 +76,17 @@ export function CameraModal({ onClose, onCapture }: CameraModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-6">
-            <div className="relative w-full max-w-lg aspect-[3/4] bg-white/5 rounded-3xl border border-white/10 overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center p-4 sm:p-8">
+            <div className="relative w-full max-w-lg h-full max-h-[85vh] bg-black rounded-[2.5rem] border border-white/10 overflow-hidden flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.8)]">
                 {/* Header */}
-                <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">
-                    <h3 className="text-white font-light serif text-lg">Viewfinder</h3>
+                <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10 bg-gradient-to-b from-black/80 to-transparent">
+                    <div className="flex flex-col">
+                        <h3 className="text-white font-serif text-xl leading-tight">Viewfinder</h3>
+                        <span className="text-[10px] text-white/40 uppercase tracking-[0.2em]">Guided Outcomes™ Vision</span>
+                    </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"
+                        className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors backdrop-blur-md"
                     >
                         <X size={20} />
                     </button>
@@ -107,28 +110,30 @@ export function CameraModal({ onClose, onCapture }: CameraModalProps) {
                                 ref={videoRef}
                                 autoPlay
                                 playsInline
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover opacity-80"
                             />
                             {/* Guides */}
-                            <div className="absolute inset-0 pointer-events-none">
-                                <div className="absolute inset-8 border border-white/20 rounded-2xl" />
-                                <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-white/10" />
-                                <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-white/10" />
+                            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                                <div className="w-[80%] h-[60%] border border-white/30 rounded-3xl" />
+                                <div className="absolute top-[20%] bottom-[20%] left-1/2 w-[1px] bg-white/10" />
+                                <div className="absolute left-[10%] right-[10%] top-1/2 h-[1px] bg-white/10" />
                             </div>
                         </>
                     )}
                 </div>
 
                 {/* Controls */}
-                <div className="p-8 flex justify-center bg-black">
+                <div className="p-8 pb-10 flex justify-center bg-black/80 backdrop-blur-md border-t border-white/5">
                     {!error && (
                         <button
                             onClick={handleCapture}
-                            className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform"
+                            className="group relative w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95 transition-all"
                         >
-                            <div className="w-16 h-16 rounded-full border-4 border-black/5 flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-full border-2 border-black/10 flex items-center justify-center group-hover:scale-105 transition-transform">
                                 <Camera size={32} className="text-black" />
                             </div>
+                            {/* Inner Ring Glow */}
+                            <div className="absolute inset-[-4px] rounded-full border border-white/20 animate-pulse-slow" />
                         </button>
                     )}
                 </div>

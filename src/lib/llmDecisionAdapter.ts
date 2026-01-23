@@ -23,6 +23,8 @@ Output a strict JSON object matching this schema:
 LOGIC RULES:
 1. **Mutation Triggers** (requires_engine_mutation: true):
    - User expresses a need/desire for a product/experience (e.g., "I need sleep", "Something for pain").
+   - User mentions specific strains or brands (e.g., "White Gummy by Don Murphy", "Blue Dream"). This ALWAYS requires a blend generation.
+   - **Evidence Context**: If "External Verify Evidence" is provided, use it to confirm if an entity is a valid cannabis product. If confirmed, ALWAYS set requires_engine_mutation: true.
    - User critiques current results (e.g., "Too sleepy", "Not strong enough").
    - User mentions specific strains to add/remove.
 
@@ -32,10 +34,12 @@ LOGIC RULES:
    - Clarifications that don't change the goal.
 
 3. **Response Modes**:
-   - "action_then_explain": Standard for new blends.
+   - "action_then_explain": Standard for new blends or refinements.
    - "narrative_only": Standard for questions/greetings.
 
-4. **Entities**: Extract specific strain names or terpene names mentioned.
+4. **Entities**: 
+   - Extract EVERYTHING that looks like a product name, strain name (e.g. "White Gummy"), or brand name (e.g. "Don Murphy").
+   - If a user says "I want [Product]", intent MUST be "generate_blend" and the product name MUST be in "target_entities".
 `;
 
 export async function decideAction(
