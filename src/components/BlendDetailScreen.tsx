@@ -136,12 +136,16 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
             </div>
 
             {/* CALCULATE BUTTON */}
-            <div className="flex-shrink-0 pt-2 pb-6 flex justify-center sticky bottom-safe z-40 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none">
+            <div className="fixed bottom-6 left-6 z-50 pointer-events-auto">
                 <button
                     onClick={() => setIsCalculating(true)}
-                    className="pointer-events-auto shadow-[0_0_20px_rgba(0,255,209,0.3)] bg-white text-black font-bold uppercase tracking-widest text-xs px-10 py-4 rounded-full hover:scale-105 active:scale-95 transition-transform flex items-center gap-2"
+                    className="shadow-[0_0_20px_rgba(0,255,209,0.3)] bg-white text-black font-bold uppercase tracking-widest text-[10px] px-6 py-4 rounded-full hover:scale-105 active:scale-95 transition-transform flex items-center gap-2"
+                    style={{
+                        boxShadow: '0 8px 32px rgba(0, 255, 209, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                    }}
                 >
-                    <Zap size={14} fill="currentColor" /> Calculate Dose
+                    <Zap size={20} fill="currentColor" />
+                    <span>Calculate Dose</span>
                 </button>
             </div>
 

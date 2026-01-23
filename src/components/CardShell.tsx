@@ -25,7 +25,7 @@ export function CardShell({
 
     return (
         <Component
-            className={`relative shadow-2xl rounded-[2rem] group ${className} ${as === 'button' ? 'text-left focus:outline-none' : ''}`}
+            className={`relative shadow-2xl rounded-[2rem] group overflow-hidden ${className} ${as === 'button' ? 'text-left focus:outline-none' : ''}`}
             style={{
                 ...glassStyles,
                 border: 'none',

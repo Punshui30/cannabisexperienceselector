@@ -123,6 +123,17 @@ export async function processIntent(
 
         console.log('ORCHESTRATOR: Decision requires MUTATION. Proceeding to Engine...');
 
+        // 0.5. IMAGE ANALYSIS (Vision + Tavily Grounding)
+        if (seed.image) {
+            console.log('ORCHESTRATOR: Image detected. Triggering Vision + Search synthesis...');
+            const visionSummary = await analyzeImage(seed.image);
+            if (visionSummary) {
+                console.log('ORCHESTRATOR: Vision Summary extracted:', visionSummary);
+                // Augment seed text with vision data for semantic analysis
+                seed.text = `${seed.text}\n\n[ENVIRONMENTAL EVIDENCE]: ${visionSummary}`;
+            }
+        }
+
         // 1. LLM-DRIVEN INTENT ANALYSIS
         console.group('ORCHESTRATOR: New Intent Analysis (Authoritative)');
         const intentSpec = await analyzeIntent(seed);

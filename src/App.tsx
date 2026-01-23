@@ -1,4 +1,4 @@
-// [BUILD-ID: 2026-01-22-v9]
+// [BUILD-ID: 2026-01-22-v10.1]
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SplashScreen } from './components/SplashScreen';
@@ -283,7 +283,10 @@ export default function App() {
     }
   };
 
-  const handleCalculate = () => {
+  const [calcTarget, setCalcTarget] = useState<UIBlendRecommendation | UIStackRecommendation | null>(null);
+
+  const handleCalculate = (rec: any) => {
+    setCalcTarget(rec);
     setCalculatorOpen(true);
   };
 
@@ -452,9 +455,9 @@ export default function App() {
                 )}
 
                 {/* Components */}
-                {(calculatorOpen && (stackRec || (blendRecs.length > 0 ? blendRecs[0] : null))) && (
+                {calculatorOpen && calcTarget && (
                   <CalculatorModal
-                    recommendation={(stackRec || blendRecs[0])!}
+                    recommendation={calcTarget}
                     onClose={() => setCalculatorOpen(false)}
                   />
                 )}

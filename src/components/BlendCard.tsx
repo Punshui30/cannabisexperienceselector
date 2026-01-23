@@ -207,25 +207,13 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
           )}
 
           {/* ACTIONS */}
-          <div className="space-y-2 relative z-10"> {/* Density: space-y-3 -> space-y-2 */}
+          <div className="relative z-10 flex justify-center">
             <button
-              onClick={() => onCalculate?.(recommendation)}
-              className="w-full py-3 bg-white text-black font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2" // Density: py-4 -> py-3, text-xs -> text-[10px]
+              onClick={() => onViewDetail?.(recommendation)}
+              className="text-[9px] uppercase tracking-widest text-white/30 hover:text-white transition-colors py-1"
             >
-              <span>Calculate Dose</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M5 12h14M12 5v14" />
-              </svg>
+              Tap for Full Breakdown
             </button>
-
-            <div className="flex justify-center">
-              <button
-                onClick={() => onViewDetail?.(recommendation)}
-                className="text-[9px] uppercase tracking-widest text-white/30 hover:text-white transition-colors py-1"
-              >
-                Tap for Full Breakdown
-              </button>
-            </div>
           </div>
 
         </CardShell>

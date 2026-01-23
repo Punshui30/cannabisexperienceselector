@@ -73,8 +73,8 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                                     return (
                                         <div key={cIdx} className="relative">
                                             {/* Label Row */}
-                                            <div className="flex justify-between text-[10px] uppercase tracking-wider text-white/70 mb-1">
-                                                <span>{cultivar.name}</span>
+                                            <div className="flex justify-between text-[10px] uppercase tracking-wider text-white/70 mb-1 px-1">
+                                                <span className="line-clamp-1 max-w-[80%]">{cultivar.name}</span>
                                                 <span>{Math.round(cultivar.ratio * 100)}%</span>
                                             </div>
                                             {/* Bar Background */}
