@@ -19,6 +19,7 @@ import { ResolutionScreen } from './components/ResolutionScreen';
 import { StackCardView } from './components/StackCardView';
 import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { LiveConsultant } from './components/LiveConsultant';
+import { IdleScreen } from './components/IdleScreen';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { LiveExperienceFeed } from './components/LiveExperienceFeed';
 import { LiveNetworkDrawer } from './components/LiveNetworkDrawer';
@@ -37,7 +38,7 @@ import { updateEngineSnapshot } from './lib/engineSnapshot';
 import { ScrollStage } from './components/layout/ScrollStage';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'resolution' | 'results' | 'presets' | 'stack-detail' | 'stack-card' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed' | 'checkout' | 'share';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'resolution' | 'results' | 'presets' | 'stack-detail' | 'stack-card' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed' | 'checkout' | 'share' | 'idle';
 
 export default function App() {
   // Mobile layout contract:
@@ -93,6 +94,10 @@ export default function App() {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [enginePhase, setEnginePhase] = useState<EnginePhase>('idle');
   const [debugLog, setDebugLog] = useState<string[]>([]);
+
+  // Idle State Detection (Tablet/Kiosk Mode Only)
+  const [isIdle, setIsIdle] = useState(false);
+  const [idleTimer, setIdleTimer] = useState<NodeJS.Timeout | null>(null);
 
   const addLog = (msg: string) => {
     setDebugLog(prev => [...prev.slice(-5), `${new Date().toLocaleTimeString()}: ${msg}`]);
@@ -324,6 +329,73 @@ export default function App() {
     }
   };
 
+  // Idle State Detection (Tablet/Kiosk Mode Only)
+  useEffect(() => {
+    // Only activate idle detection on tablets (768px-1024px with coarse pointer)
+    const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1024px) and (pointer: coarse)').matches;
+
+    if (!isTablet) {
+      // Not a tablet, disable idle detection
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+        setIdleTimer(null);
+      }
+      if (isIdle) {
+        setIsIdle(false);
+      }
+      return;
+    }
+
+    // Exit idle state immediately on any interaction
+    const resetIdleTimer = () => {
+      if (isIdle) {
+        setIsIdle(false);
+        setView('input'); // Return to last screen (input is safe default)
+      }
+
+      // Clear existing timer
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
+
+      // Start new idle timer (30 seconds for kiosk mode)
+      const newTimer = setTimeout(() => {
+        // Only go idle if we're on input screen (main entry point)
+        if (view === 'input' && !isAnalyzing && !calculatorOpen && !qrShareOpen) {
+          setIsIdle(true);
+          setView('idle');
+        }
+      }, 30000); // 30 seconds
+
+      setIdleTimer(newTimer);
+    };
+
+    // Set up event listeners for user interaction
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      document.addEventListener(event, resetIdleTimer, true);
+    });
+
+    // Start initial timer
+    resetIdleTimer();
+
+    // Cleanup
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, resetIdleTimer, true);
+      });
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
+    };
+  }, [view, isIdle, idleTimer, isAnalyzing, calculatorOpen, qrShareOpen]);
+
+  // Exit idle state handler
+  const handleIdleInteraction = () => {
+    setIsIdle(false);
+    setView('input'); // Return to input screen
+  };
+
   // Resolution screen handlers
   const handleResolutionContinue = () => {
     console.log('[App] Resolution: Continue to results');
@@ -485,9 +557,12 @@ export default function App() {
               </>
             ) : (
               <>
+                {/* IDLE SCREEN - Takes precedence when active */}
+                {isIdle && (
+                  <IdleScreen onInteraction={handleIdleInteraction} />
+                )}
 
-
-                {view === 'input' && (
+                {view === 'input' && !isIdle && (
                   <InputScreen
                     onSubmit={handleSubmit}
                     onBrowsePresets={() => setView('presets')}

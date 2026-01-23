@@ -90,7 +90,32 @@ export function interpretIntentFromSpec(spec: IntentSpec): Intent {
     }
   };
 
-  // Map Normalized Effects to Vector
+  // STRAIN MODE: Use reference profile if available
+  if ((spec as any).referenceEffectProfile) {
+    console.log('[STRAIN_MODE] Using reference effect profile for engine intent');
+
+    // Map reference effects to intent vector
+    const refEffects = (spec as any).referenceEffectProfile;
+    refEffects.forEach((eff: string) => {
+      const e = eff.toLowerCase();
+      if (e === 'energy' || e === 'uplift') intent.targetEffects.energy += 0.8;
+      if (e === 'focus' || e === 'clarity') intent.targetEffects.focus += 0.9;
+      if (e === 'relaxation' || e === 'calm' || e === 'relax') intent.targetEffects.energy -= 0.4;
+      if (e === 'sleep' || e === 'sedation') intent.targetEffects.energy -= 0.7;
+      if (e === 'social' || e === 'fun') intent.targetEffects.mood += 0.8;
+      if (e === 'creative') intent.targetEffects.creativity += 0.9;
+      if (e === 'pain relief' || e === 'relief') intent.targetEffects.body += 0.9;
+    });
+
+    // Use reference timing if available
+    if ((spec as any).referenceTiming) {
+      intent.context.timeOfDay = (spec as any).referenceTiming;
+    }
+
+    return intent;
+  }
+
+  // DEFAULT: Map Normalized Effects to Vector
   spec.targetEffects.forEach(eff => {
     const e = eff.toLowerCase();
     if (e === 'energy' || e === 'uplift') intent.targetEffects.energy += 0.7;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Clock, Share2, Layers } from 'lucide-react';
+import { ArrowLeft, Clock, Share2, Layers, ChevronDown, Info } from 'lucide-react';
 import { UIStackRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { resolveCultivarVisuals } from '../lib/visuals';
@@ -13,6 +13,7 @@ interface StackDetailScreenProps {
 export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
     const [prerollSize, setPrerollSize] = useState<number>(0.7); // Grams - Default to 0.7g (standard cone)
+    const [showInstructions, setShowInstructions] = useState(false);
 
     if (!stack) return null;
 
@@ -56,6 +57,75 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                         <span>{stack.totalDuration} Protocol Duration</span>
                     </div>
                 </div>
+
+                {/* How Stacks Work */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    className="max-w-sm mx-auto"
+                >
+                    <div className="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden">
+                        <button
+                            onClick={() => setShowInstructions(!showInstructions)}
+                            className="w-full p-4 flex items-center justify-between hover:bg-white/[0.01] transition-colors"
+                        >
+                            <div className="flex items-center gap-2">
+                                <Info size={14} className="text-white/40" />
+                                <span className="text-sm font-medium text-white/80">How Stacks Work</span>
+                            </div>
+                            <ChevronDown
+                                size={14}
+                                className={`text-white/40 transition-transform ${showInstructions ? 'rotate-180' : ''}`}
+                            />
+                        </button>
+
+                        <AnimatePresence>
+                            {showInstructions && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="px-4 pb-4 border-t border-white/5">
+                                        <div className="space-y-3 text-left">
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] mt-2 flex-shrink-0" />
+                                                <p className="text-xs text-white/60 leading-relaxed">
+                                                    Stacks are layered sequences designed for different phases of your experience, not single strains.
+                                                </p>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] mt-2 flex-shrink-0" />
+                                                <p className="text-xs text-white/60 leading-relaxed">
+                                                    Each layer supports a different time or phase. Consumption order matters for optimal results.
+                                                </p>
+                                            </div>
+                                            {stack.layers && stack.layers.length > 1 && (
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] mt-2 flex-shrink-0" />
+                                                    <p className="text-xs text-white/60 leading-relaxed">
+                                                        Use layers in sequence as described in the protocol for the complete experience.
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {stack.layers && stack.layers.length === 1 && (
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] mt-2 flex-shrink-0" />
+                                                    <p className="text-xs text-white/60 leading-relaxed">
+                                                        Single-layer stacks can be extended or customized with additional phases as needed.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
 
                 {/* VISUALIZATION HERO - SpatialStack */}
                 <motion.div

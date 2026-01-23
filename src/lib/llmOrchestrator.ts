@@ -188,20 +188,70 @@ export async function processIntent(
             console.log('ORCHESTRATOR: Image detected. Vision pipeline is currently DISABLED.');
         }
 
-        // 1. LLM-DRIVEN INTENT ANALYSIS
-        console.group('ORCHESTRATOR: New Intent Analysis (Authoritative)');
+        // 1. STRAIN MODE: Tavily-Assisted Reference Lookup
+        let intentSpec: IntentSpec;
+        let strainProfile: any = null;
+        let strainLookupFailed = false;
 
-        // Inject search grounding evidence if available
-        if ((seed as any)._evidenceContext) {
-            seed.text = `${seed.text}\n\n[SEARCH GROUNDING EVIDENCE]:\n${(seed as any)._evidenceContext}`;
+        if (seed.mode === 'strain') {
+            console.log('[STRAIN_MODE] tavily_lookup strain="' + seed.strainName + '" producer="' + (seed.grower || '') + '"');
+
+            // Extract structured query from seed
+            const strainQuery = seed.strainName;
+            const producer = seed.grower;
+
+            // Perform Tavily research lookup
+            strainProfile = await performStrainLookup(strainQuery, producer);
+
+            if (strainProfile) {
+                // Convert Tavily results to internal structured data
+                intentSpec = convertStrainProfileToIntentSpec(strainProfile, strainQuery, producer);
+
+                console.log('[STRAIN_MODE] Successfully retrieved strain profile for:', strainQuery);
+            } else {
+                // Fallback: try without producer
+                if (producer) {
+                    console.log('[STRAIN_MODE] Retrying lookup without producer');
+                    strainProfile = await performStrainLookup(strainQuery, null);
+                    if (strainProfile) {
+                        intentSpec = convertStrainProfileToIntentSpec(strainProfile, strainQuery, null);
+                        console.log('[STRAIN_MODE] Success on retry without producer');
+                    }
+                }
+
+                if (!strainProfile) {
+                    // Could not find strain - mark as failed for proper handling
+                    console.warn('[STRAIN_MODE] Strain lookup completely failed for:', strainQuery);
+                    strainLookupFailed = true;
+
+                    // Create a fallback intent spec for unknown strains
+                    intentSpec = createFallbackStrainIntentSpec(strainQuery, producer);
+                }
+            }
         }
 
-        const intentSpec = await analyzeIntent(seed, {
-            blendName: context?.blendName,
-            originalQuery: context?.userInput || seed.text,
-            cultivars: context?.recommendation ?
-                (context.recommendation as any).cultivars?.map((c: any) => c.name) : []
-        });
+        // 2. LLM-DRIVEN INTENT ANALYSIS (for non-strain modes only)
+        console.group('ORCHESTRATOR: Intent Analysis');
+
+        if (!intentSpec && seed.mode !== 'strain') {
+            // Inject search grounding evidence if available
+            if ((seed as any)._evidenceContext) {
+                seed.text = `${seed.text}\n\n[SEARCH GROUNDING EVIDENCE]:\n${(seed as any)._evidenceContext}`;
+            }
+
+            intentSpec = await analyzeIntent(seed, {
+                blendName: context?.blendName,
+                originalQuery: context?.userInput || seed.text,
+                cultivars: context?.recommendation ?
+                    (context.recommendation as any).cultivars?.map((c: any) => c.name) : []
+            });
+        }
+
+        // Ensure we have an intentSpec for strain mode fallbacks
+        if (!intentSpec) {
+            console.error('[ORCHESTRATOR] No intent spec available for processing');
+            throw new Error('Failed to create intent specification');
+        }
         console.log('Intent Result:', intentSpec);
         console.groupEnd();
 
@@ -232,6 +282,16 @@ export async function processIntent(
         console.log('ORCHESTRATOR: Anchor Constraints Established', anchorConstraints);
 
         updatePhase('engine');
+
+        // STRAIN MODE: Pass reference profile to engine
+        if (seed.mode === 'strain' && strainProfile) {
+            console.log('[STRAIN_MODE] Feeding reference profile to engine');
+
+            // Add reference profile to intent for engine
+            (intentSpec as any).referenceEffectProfile = intentSpec.targetEffects;
+            (intentSpec as any).referenceEntourage = intentSpec.terpenePreferences.include;
+            (intentSpec as any).referenceTiming = intentSpec.constraints.timeOfDay;
+        }
 
         // STACK AUGMENTATION EXECUTION - Special handling for stack mutations
         if (decision.intent === 'augment_stack' && contextFlags.stackMode && context?.recommendation) {
@@ -837,6 +897,130 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
 }
 
 
+// STRAIN MODE HELPERS
+
+async function performStrainLookup(strainName: string, producer: string | null): Promise<any> {
+    try {
+        const query = producer
+            ? `${strainName} by ${producer} cannabis strain effects timing terpenes`
+            : `${strainName} cannabis strain effects timing terpenes`;
+
+        const searchResult = await performSearch(query);
+
+        if (!searchResult || !searchResult.sourcesFound) {
+            return null;
+        }
+
+        return searchResult;
+    } catch (error) {
+        console.error('[STRAIN_MODE] Tavily lookup failed:', error);
+        return null;
+    }
+}
+
+function convertStrainProfileToIntentSpec(searchResult: any, strainName: string, producer: string | null): IntentSpec {
+    // Extract structured data from Tavily results
+    // This is a simplified implementation - in practice you'd parse the search results more thoroughly
+
+    const intentSpec: IntentSpec = {
+        originalInput: strainName + (producer ? ` by ${producer}` : ''),
+        targetEffects: [], // Will be populated based on search results
+        avoidEffects: [],
+        terpenePreferences: { include: [], exclude: [] },
+        constraints: {
+            timeOfDay: "afternoon", // Default, will be overridden if found in search
+            experienceLevel: "regular",
+            sensitivity: "medium"
+        },
+        confidenceScore: 0.8, // High confidence for direct strain lookup
+        reasoning: `Strain profile lookup for ${strainName}${producer ? ` by ${producer}` : ''}`,
+        consultationScript: `This blend is designed to replicate the reported effects of ${strainName}${producer ? ` by ${producer}` : ''}.`
+    };
+
+    // Parse search results to extract effects, timing, terpenes
+    // This is a simplified implementation - you'd want more sophisticated parsing
+    const summary = searchResult.summary || '';
+    const lowerSummary = summary.toLowerCase();
+
+    // Extract effects
+    if (lowerSummary.includes('relax') || lowerSummary.includes('calm')) {
+        intentSpec.targetEffects.push('relaxation');
+    }
+    if (lowerSummary.includes('focus') || lowerSummary.includes('energy')) {
+        intentSpec.targetEffects.push('focus');
+    }
+    if (lowerSummary.includes('sleep') || lowerSummary.includes('sedat')) {
+        intentSpec.targetEffects.push('sleep');
+    }
+    if (lowerSummary.includes('pain') || lowerSummary.includes('relief')) {
+        intentSpec.targetEffects.push('pain relief');
+    }
+    if (lowerSummary.includes('social') || lowerSummary.includes('happy')) {
+        intentSpec.targetEffects.push('social');
+    }
+
+    // Extract timing
+    if (lowerSummary.includes('day') || lowerSummary.includes('morning')) {
+        intentSpec.constraints.timeOfDay = 'morning';
+    } else if (lowerSummary.includes('night') || lowerSummary.includes('evening')) {
+        intentSpec.constraints.timeOfDay = 'evening';
+    }
+
+    // Extract common terpenes (simplified)
+    if (lowerSummary.includes('limonene')) {
+        intentSpec.terpenePreferences.include.push('Limonene');
+    }
+    if (lowerSummary.includes('myrcene')) {
+        intentSpec.terpenePreferences.include.push('Myrcene');
+    }
+    if (lowerSummary.includes('caryophyllene')) {
+        intentSpec.terpenePreferences.include.push('Caryophyllene');
+    }
+    if (lowerSummary.includes('humulene')) {
+        intentSpec.terpenePreferences.include.push('Humulene');
+    }
+    if (lowerSummary.includes('pinene')) {
+        intentSpec.terpenePreferences.include.push('Pinene');
+    }
+    if (lowerSummary.includes('linalool')) {
+        intentSpec.terpenePreferences.include.push('Linalool');
+    }
+
+    // Set default effects if none found
+    if (intentSpec.targetEffects.length === 0) {
+        intentSpec.targetEffects = ['relaxation', 'focus'];
+    }
+
+    // Set default terpenes if none found
+    if (intentSpec.terpenePreferences.include.length === 0) {
+        intentSpec.terpenePreferences.include = ['Myrcene', 'Limonene'];
+    }
+
+    return intentSpec;
+}
+
+function createFallbackStrainIntentSpec(strainName: string, producer: string | null): IntentSpec {
+    console.log('[STRAIN_MODE] Creating fallback intent spec for unknown strain:', strainName);
+
+    return {
+        originalInput: strainName + (producer ? ` by ${producer}` : ''),
+        targetEffects: ['relaxation', 'focus'], // Default balanced effects
+        avoidEffects: ['anxiety'],
+        terpenePreferences: {
+            include: ['Myrcene', 'Limonene'], // Common terpenes
+            exclude: []
+        },
+        constraints: {
+            timeOfDay: 'afternoon',
+            experienceLevel: 'regular',
+            sensitivity: 'medium'
+        },
+        confidenceScore: 0.3, // Lower confidence for unknown strains
+        reasoning: `Limited information available for ${strainName}. Using balanced profile.`,
+        consultationScript: `I couldn't find specific information about ${strainName}. This blend uses common terpene patterns that may approximate its effects.`
+    };
+}
+
 // STACK AUGMENTATION HELPERS
 
 async function createAugmentedStack(existingStack: any, intentSpec: IntentSpec, userQuery: string): Promise<EngineResult> {
@@ -981,8 +1165,11 @@ function generateDeterministicNarrative(
     let reasoning = '';
 
     if (isStrainMatch && type === 'primary') {
-        name = `${userInput} Experience Match`;
-        reasoning = `Based on the chemical markers of ${userInput}, I've engineered this blend to replicate its specific entourage effect using verified laboratory data.`;
+        // For strain mode, use the actual strain name from the lookup
+        const strainName = intent.originalInput || userInput;
+        name = `${strainName} Inspired Blend`;
+        // Use consultation script if available (for fallbacks), otherwise default message
+        reasoning = intent.consultationScript || `This blend is designed to replicate the reported effects of ${strainName}.`;
     } else if (type === 'primary') {
         name = `${blend.cultivars[0].name} Dominant Blend`;
         reasoning = `${blend.cultivars[0].name} anchors this blend for ${intent.targetEffects[0] || 'balanced effects'}.`;
