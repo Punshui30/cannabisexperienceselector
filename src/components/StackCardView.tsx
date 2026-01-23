@@ -38,12 +38,12 @@ export function StackCardView({ stack, onBack, onViewDetails }: StackCardViewPro
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative h-20 flex items-center justify-center overflow-hidden"
+        className="relative min-h-[112px] pt-12 pb-4 flex flex-col justify-end"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
 
         {/* Back Button */}
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 z-20">
+        <div className="absolute left-6 bottom-4 z-20">
           <button
             onClick={onBack}
             className="w-10 h-10 rounded-full bg-white/5 backdrop-blur-xl flex items-center justify-center border border-white/10 hover:bg-white/10 transition-all active:scale-90"
@@ -53,11 +53,11 @@ export function StackCardView({ stack, onBack, onViewDetails }: StackCardViewPro
           </button>
         </div>
 
-        <div className="text-center px-6">
-          <h1 className="text-xl font-serif text-white tracking-tight">
+        <div className="text-center px-6 relative z-10">
+          <h1 className="text-xl font-serif text-white tracking-tight leading-none">
             Curated Stack
           </h1>
-          <p className="text-[10px] text-white/30 uppercase tracking-widest mt-1">
+          <p className="text-[10px] text-white/30 uppercase tracking-widest mt-2">
             Layered Protocol
           </p>
         </div>

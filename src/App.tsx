@@ -92,6 +92,8 @@ export default function App() {
   const [stackRec, setStackRec] = useState<UIStackRecommendation | null>(null);
   const [blendRecs, setBlendRecs] = useState<(UIBlendRecommendation | UIStackRecommendation)[]>([]); // Array logic
   const [selectedBlendId, setSelectedBlendId] = useState<string | null>(null);
+  const [focusedStackId, setFocusedStackId] = useState<string | null>(null);
+  const [activeStackId, setActiveStackId] = useState<string | null>(null);
 
   // DERIVED STATE: Active blend resolved from ID (Single Source of Truth)
   const activeBlend = (blendRecs.find(b => b.id === selectedBlendId) as UIBlendRecommendation) || null;
@@ -161,6 +163,8 @@ export default function App() {
 
     if (exemplar.kind === 'stack') {
       setStackRec(exemplar.data);
+      setFocusedStackId(exemplar.id);
+      setActiveStackId(null); // RULE: activeStackId must be null on entering Preview
       setBlendRecs([]);
       setView('stack-card');
     } else {
@@ -239,6 +243,19 @@ export default function App() {
         .finally(() => setIsAnalyzing(false));
     }
   }, []); // Run once on mount
+
+  // --- CONTEXT-AWARE URL HYDRATION ---
+  useEffect(() => {
+    if (view === 'stack-card') {
+      const focusParam = new URLSearchParams(window.location.search).get('focus');
+      if (focusParam) {
+        setFocusedStackId(focusParam);
+      }
+      // RULE: activeStackId must be null on entering Preview context
+      // This holds even on reloads to prevent auto-entry.
+      setActiveStackId(null);
+    }
+  }, [view]);
 
   // --- ENGINE ORCHESTRATION ---
   useEffect(() => {
@@ -363,6 +380,7 @@ export default function App() {
 
     // 5. ROUTE TO PREVIEW LAYER (STRICT INVARIANT: Stacks must show Preview first)
     if (hasStackRec) {
+      setActiveStackId(null); // Safety lock
       setView('stack-card');
     } else {
       setView('results');
@@ -382,8 +400,11 @@ export default function App() {
 
   // Stack card view handlers
   const handleViewStackDetails = () => {
-    console.log('[App] Stack Card: View Details');
-    setView('stack-detail');
+    console.log('[App] Stack Card: View Details (Entering Journey)');
+    if (stackRec) {
+      setActiveStackId(stackRec.id);
+      setView('stack-detail');
+    }
   };
 
   const handleStackCardBack = () => {
@@ -611,6 +632,8 @@ export default function App() {
                     onViewDetail={(item: any) => {
                       if (item.kind === 'stack') {
                         setStackRec(item as UIStackRecommendation);
+                        setFocusedStackId(item.id);
+                        setActiveStackId(null);
                         setView('stack-card');
                       } else {
                         setSelectedBlendId(item.id);
