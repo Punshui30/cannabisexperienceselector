@@ -284,9 +284,7 @@ export default function App() {
               setBlendRecs(adaptedResults);
               setAnalysisProgress(100);
               setIsAnalyzing(false);
-
-              // Transition to Resolution screen for terminal artifacts
-              setView('resolution');
+              // Let ResolvingScreen auto-complete and handle transition to resolution
             } else {
               addLog('Success: Chat Only');
               setAnalysisProgress(100);
@@ -313,7 +311,8 @@ export default function App() {
     console.log('[App] handleResolvingComplete called', { blendRecsLength: blendRecs.length, hasStackRec: !!stackRec });
     if (blendRecs.length > 0) {
       setAnalysisProgress(100); // Milestone: Transition triggered
-      setView('results');
+      // Transition to Resolution screen for terminal artifacts, not directly to results
+      setView('resolution');
     } else if (stackRec) {
       setAnalysisProgress(100);
       setView('stack-detail'); // Rare fallback

@@ -10,15 +10,24 @@ interface EngineCore3DProps {
 
 function CoreDisc({ phase }: { phase: EnginePhase }) {
     const meshRef = useRef<THREE.Mesh>(null!)
+    const initialRotationRef = useRef({ y: 0, z: 0 })
 
     useFrame((state) => {
         const t = state.clock.getElapsedTime()
-        // Slow non-linear rotation
-        meshRef.current.rotation.y = t * 0.2 + Math.sin(t * 0.5) * 0.1
-        meshRef.current.rotation.z = Math.cos(t * 0.3) * 0.05
 
-        // Subtle pulse
-        const pulse = phase === 'idle' ? 1 : 1 + Math.sin(t * 2) * 0.05
+        // Phase-aware rotation - stop continuous orbital motion
+        if (phase === 'idle') {
+            // Gentle idle rotation
+            meshRef.current.rotation.y = t * 0.1
+            meshRef.current.rotation.z = Math.sin(t * 0.2) * 0.02
+        } else {
+            // Fixed rotation during active phases - no continuous orbiting
+            meshRef.current.rotation.y = initialRotationRef.current.y
+            meshRef.current.rotation.z = initialRotationRef.current.z
+        }
+
+        // Subtle pulse during active phases
+        const pulse = phase === 'idle' ? 1 : 1 + Math.sin(t * 1.5) * 0.03
         meshRef.current.scale.set(pulse, pulse, pulse)
     })
 
@@ -46,17 +55,27 @@ function LogicRing({ radius, color, speed, phase, activePhase }: {
 }) {
     const ref = useRef<THREE.Group>(null!)
     const isActive = Array.isArray(activePhase) ? activePhase.includes(phase) : phase === activePhase
-    const globalSpeed = phase === 'idle' ? 0.3 : 1.2
+    const baseRotationRef = useRef({ x: 0, y: 0 })
 
     useFrame((state) => {
         const t = state.clock.getElapsedTime()
-        ref.current.rotation.x = t * speed * globalSpeed
-        ref.current.rotation.y = t * speed * 0.7 * globalSpeed
 
-        // Jitter for validation
-        if (phase === 'validation') {
-            ref.current.position.x = Math.sin(t * 50) * 0.02
-            ref.current.position.y = Math.cos(t * 50) * 0.02
+        // Controlled rotation - not continuous orbiting
+        if (isActive) {
+            // Smooth activation animation
+            const activationProgress = Math.min(t * 2, 1)
+            ref.current.rotation.x = baseRotationRef.current.x + t * speed * 0.5 * activationProgress
+            ref.current.rotation.y = baseRotationRef.current.y + t * speed * 0.3 * activationProgress
+        } else {
+            // Maintain base rotation when inactive
+            ref.current.rotation.x = baseRotationRef.current.x
+            ref.current.rotation.y = baseRotationRef.current.y
+        }
+
+        // Subtle jitter only during validation phase
+        if (phase === 'validation' && isActive) {
+            ref.current.position.x = Math.sin(t * 30) * 0.01
+            ref.current.position.y = Math.cos(t * 30) * 0.01
         } else {
             ref.current.position.set(0, 0, 0)
         }

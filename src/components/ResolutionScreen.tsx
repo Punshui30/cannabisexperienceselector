@@ -51,7 +51,7 @@ export function ResolutionScreen({ recommendations, onContinue, onShare }: Resol
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="fixed inset-0 z-50 bg-black text-white flex flex-col">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
