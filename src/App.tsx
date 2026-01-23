@@ -1,4 +1,4 @@
-// [BUILD-ID: 2026-01-22-v10.2]
+// [BUILD-ID: 2026-01-22-v10.3]
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SplashScreen } from './components/SplashScreen';
@@ -491,7 +491,7 @@ export default function App() {
                       screen: view,
                       recommendation:
                         (view === 'blend-detail' && activeBlend) ? activeBlend :
-                          (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || blendRecs[1]) :
+                          (view === 'stack-detail' && (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined))) ? (stackRec || (blendRecs[0]?.kind === 'stack' ? blendRecs[0] : undefined)) :
                             (blendRecs.length > 0 ? blendRecs[0] : (stackRec || undefined)),
                       userInput: userInput?.text
                     }}
@@ -502,9 +502,17 @@ export default function App() {
                         .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
 
                       if (adaptedSet.length > 0) {
-                        setBlendRecs(adaptedSet);
-                        setView('results'); // Force transition to see the new blends
-                        setShowConsultant(false); // Close assistant to show results
+                        const firstRec = adaptedSet[0];
+                        if (firstRec.kind === 'stack') {
+                          setStackRec(firstRec as UIStackRecommendation);
+                          setBlendRecs([]); // Clear blends to avoid confusion
+                          setView('stack-detail');
+                        } else {
+                          setBlendRecs(adaptedSet);
+                          setStackRec(null); // Clear active stack
+                          setView('results');
+                        }
+                        setShowConsultant(false);
                       }
                     }}
                     onClose={() => setShowConsultant(false)}

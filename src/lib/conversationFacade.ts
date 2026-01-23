@@ -41,13 +41,22 @@ export async function chat(
         const systemContext = buildSystemContext(context);
 
         // 3. Prepare messages for LLM
-        const llmMessages: ChatMessage[] = [
-            { role: 'system' as const, content: systemContext },
-            ...truncatedMessages.map(m => ({
-                role: m.role as 'user' | 'assistant' | 'system',
-                content: m.content
-            }))
-        ];
+        const hasSpecializedSystem = messages.some(m => m.role === 'system');
+
+        const llmMessages: ChatMessage[] = hasSpecializedSystem
+            ? [
+                ...truncatedMessages.map(m => ({
+                    role: m.role as 'user' | 'assistant' | 'system',
+                    content: m.role === 'system' ? `${m.content}\n\n[ENGINE CONTEXT]:\n${systemContext}` : m.content
+                }))
+            ]
+            : [
+                { role: 'system' as const, content: systemContext },
+                ...truncatedMessages.map(m => ({
+                    role: m.role as 'user' | 'assistant' | 'system',
+                    content: m.content
+                }))
+            ];
 
         console.log('[ConversationFacade] Calling LLM with', llmMessages.length, 'messages');
 

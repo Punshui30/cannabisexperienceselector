@@ -268,7 +268,7 @@ export function generateRecommendations(
   // Heuristic: Check for sequence keywords
   // ---------------------------------------------------------
   const text = (input.text || '').toLowerCase();
-  const temporalKeywords = ['then', 'after', 'followed by', 'later', 'secondly'];
+  const temporalKeywords = ['then', 'after', 'followed by', 'later', 'secondly', 'morning', 'night', 'evening', 'day', 'start', 'end'];
   const isStackMode = temporalKeywords.some(kw => text.includes(kw));
 
   console.log('LAYER 1: Intent', intent, 'Stack Mode:', isStackMode);
