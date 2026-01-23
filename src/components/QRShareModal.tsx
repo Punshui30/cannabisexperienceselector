@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Twitter, Facebook, Link as LinkIcon, X, Share2, Check } from 'lucide-react';
 import type { UIBlendRecommendation } from '../types/domain';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { ResolvedSessionService } from '../services/ResolvedSessionService';
+import { EngineQRCode } from './EngineQRCode';
 
 type Props = {
   recommendation: UIBlendRecommendation;
@@ -10,6 +12,38 @@ type Props = {
 
 export function QRShareModal({ recommendation, onClose }: Props) {
   const [copied, setCopied] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string>('');
+  const [shareUrl, setShareUrl] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const generateLinks = () => {
+      try {
+        // Create checkout session (staff-facing, expires in 24h)
+        const checkoutSession = ResolvedSessionService.createSession([recommendation], 'checkout');
+        const checkoutPath = `/session/checkout/${checkoutSession.sessionId}`;
+        setCheckoutUrl(`${window.location.origin}${checkoutPath}`);
+
+        // Create share session (public, no expiration)
+        const shareSession = ResolvedSessionService.createSession([recommendation], 'share');
+        const sharePath = `/session/share/${shareSession.sessionId}`;
+        setShareUrl(`${window.location.origin}${sharePath}`);
+
+        console.log('[QRShareModal] Created sessions:', {
+          checkout: checkoutSession.sessionId,
+          share: shareSession.sessionId
+        });
+      } catch (error) {
+        console.error('Failed to generate QR links:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (recommendation) {
+      generateLinks();
+    }
+  }, [recommendation]);
 
   if (!recommendation) return null;
 
@@ -33,7 +67,7 @@ export function QRShareModal({ recommendation, onClose }: Props) {
 
   const themeColor = categoryColors[category] || '#00FFD1';
 
-  const shareUrl = `https://guidedoutcomes.app/stack/${recommendation.id}`;
+  const publicShareUrl = shareUrl.split('&')[0]; // Remove share param for public sharing
   const shareText = `Check out this custom cannabis blend: ${recommendation.name}. Powered by StrainMath™.`;
 
   const handleCopyLink = () => {
@@ -159,58 +193,96 @@ export function QRShareModal({ recommendation, onClose }: Props) {
             ))}
           </div>
 
-          {/* Social Sharing */}
-          <div className="pt-2">
-            <div className="flex justify-between items-center gap-3">
-              {[
-                {
-                  id: 'twitter',
-                  icon: Twitter,
-                  label: 'Twitter',
-                  color: '#1DA1F2',
-                  onClick: () => handleSocialShare('twitter')
-                },
-                {
-                  id: 'facebook',
-                  icon: Facebook,
-                  label: 'Facebook',
-                  color: '#4267B2',
-                  onClick: () => handleSocialShare('facebook')
-                },
-                {
-                  id: 'copy',
-                  icon: copied ? Check : LinkIcon,
-                  label: copied ? 'Copied' : 'Copy Link',
-                  color: copied ? '#00FFD1' : '#ffffff',
-                  onClick: handleCopyLink
-                }
-              ].map((item, i) => (
+          {/* QR Codes */}
+          <div className="pt-2 space-y-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {/* Checkout QR */}
+                <div className="flex flex-col items-center space-y-3">
+                  <EngineQRCode
+                    url={checkoutUrl}
+                    type="checkout"
+                    recommendation={recommendation}
+                    size={120}
+                  />
+                </div>
+
+                {/* Share QR */}
+                <div className="flex flex-col items-center space-y-3">
+                  <EngineQRCode
+                    url={shareUrl}
+                    type="share"
+                    recommendation={recommendation}
+                    size={120}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Social Sharing Fallback */}
+            <div className="border-t border-white/10 pt-4">
+              <div className="text-center mb-3">
+                <span className="text-xs text-white/40 uppercase tracking-wider">Or share via</span>
+              </div>
+              <div className="flex justify-center gap-2">
+                {[
+                  {
+                    id: 'twitter',
+                    icon: Twitter,
+                    label: 'Twitter',
+                    color: '#1DA1F2',
+                    onClick: () => handleSocialShare('twitter')
+                  },
+                  {
+                    id: 'facebook',
+                    icon: Facebook,
+                    label: 'Facebook',
+                    color: '#4267B2',
+                    onClick: () => handleSocialShare('facebook')
+                  },
+                  {
+                    id: 'copy',
+                    icon: copied ? Check : LinkIcon,
+                    label: copied ? 'Copied' : 'Copy Link',
+                    color: copied ? '#00FFD1' : '#ffffff',
+                    onClick: handleCopyLink
+                  }
+                ].map((item, i) => (
                 <button
                   key={item.id}
                   onClick={item.onClick}
-                  className="flex-1 aspect-square rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center gap-2 text-white/40 hover:text-white transition-all active:scale-95 group relative overflow-hidden"
+                  className="flex-1 max-w-[80px] aspect-square rounded-xl bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-white transition-all active:scale-95 group relative overflow-hidden"
+                  aria-label={item.label}
+                  title={item.label}
                 >
-                  <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+                    <item.icon
+                      size={16}
+                      className="group-hover:scale-110 transition-transform duration-300 z-10"
+                      style={{
+                        color: item.id === 'copy' && copied ? '#00FFD1' : undefined,
+                        filter: `drop-shadow(0 0 6px ${item.color}40)`
+                      }}
+                    />
 
-                  <item.icon
-                    size={20}
-                    className="group-hover:scale-110 transition-transform duration-300 z-10"
-                    style={{
-                      color: item.id === 'copy' && copied ? '#00FFD1' : undefined,
-                      filter: `drop-shadow(0 0 8px ${item.color}40)`
-                    }}
-                  />
+                    <span className="text-[8px] uppercase tracking-wider font-medium opacity-50 group-hover:opacity-100 transition-opacity leading-tight">
+                      {item.label}
+                    </span>
 
-                  <span className="text-[9px] uppercase tracking-wider font-medium opacity-50 group-hover:opacity-100 transition-opacity">
-                    {item.label}
-                  </span>
-
-                  <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
-                    style={{ backgroundColor: item.color }}
-                  />
-                </button>
-              ))}
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity rounded-xl"
+                      style={{ backgroundColor: item.color }}
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

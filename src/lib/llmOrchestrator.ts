@@ -45,6 +45,7 @@ export async function processIntent(
     mode: string = 'blend-engine'
 ): Promise<OrchestratorResult> {
     const updatePhase = (phase: EnginePhase) => {
+        console.log(`[PHASE_CHANGE] ${phase}`);
         if (context?.onPhaseChange) {
             context.onPhaseChange(phase);
         }
@@ -119,7 +120,7 @@ export async function processIntent(
 
         // GATING: If no mutation required, skip engine entirely
         if (!decision.requires_engine_mutation) {
-            updatePhase('chat');
+            updatePhase('chat'); // terminal phase - UI must resolve immediately
             console.log('ORCHESTRATOR: Decision indicates NO ENGINE MUTATION. Switching to Conversational Mode.');
 
             // Generate conversational response without engine context
@@ -265,6 +266,7 @@ export async function processIntent(
             if (rawResult && (rawResult as any).kind === 'stack') {
                 console.log('ORCHESTRATOR: Engine returned a STACK. Bypassing blend iterations.');
                 engineResults.push(rawResult as any);
+                updatePhase('chat'); // terminal phase - UI must resolve immediately
                 return {
                     success: true,
                     data: engineResults,
@@ -459,11 +461,13 @@ export async function processIntent(
         // FALLBACK: If engine returns nothing
         if (engineResults.length === 0) {
             console.error('ORCHESTRATOR: Engine failed to find ANY results. Returning fallback blend.');
+            updatePhase('validation'); // Terminal phase for fallback
             // Add a hard fallback blend from inventory
             const fallbackBlend = engineGenerate(seed, intent3, []);
             if (fallbackBlend.length > 0) {
                 engineResults.push(fallbackBlend[0]);
             } else {
+                updatePhase('chat'); // terminal phase - UI must resolve immediately
                 return { success: false, data: [], error: 'Engine returned no results.' };
             }
         }
@@ -530,61 +534,60 @@ export async function processIntent(
 
 
         // -------------------------------------------------------------
-        // TIER-2: STRAINMATH™ ENHANCEMENT (Non-Blocking / Async)
+        // TIER-2: STRAINMATH™ ENHANCEMENT (Fire-and-Forget)
         // -------------------------------------------------------------
         // CRITICAL: StrainMath™ NEVER blocks UI readiness
-        // We return Tier-1 results immediately.
-        // Enhancement happens in the background.
+        // Enhancement happens in background, phase transitions immediately
 
         if (!isStack && engineResults.length > 0) {
             console.log('ORCHESTRATOR: Initiating background StrainMath™ Enhancement...');
             updatePhase('tier2');
 
-            try {
-                // Map Tone Mode
-                let toneMode: ToneMode = 'neutral';
-                switch (outcomeCategory) {
-                    case 'Sleep': case 'Relax': toneMode = 'calm_reassuring'; break;
-                    case 'Relief': toneMode = 'supportive'; break;
-                    case 'Focus': toneMode = 'confident'; break;
-                    case 'Social': toneMode = 'curious'; break;
-                    default: toneMode = 'neutral';
-                }
-
-                // Prepare Input for StrainMath™ Enhancement
-                const primaryBlend = engineResults[0];
-
-                const strainmathInput = {
-                    tier1Narrative: {
-                        name: primaryBlend.name || "Custom Blend",
-                        reasoning: primaryBlend.reasoning || ""
-                    },
-                    userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
-                    decisionSummary: `Engine decision: ${decision.reasoning}`,
-                    blendSummary: engineResults.map(b => ({
-                        name: b.name || "Blend",
-                        cultivars: (b.cultivars || []).map(c => c.name)
-                    })),
-                    toneMode: toneMode
-                };
-
-                // BLOCKING (TIMEOUT PROTECTED): Wait for narratives
+            // FIRE-AND-FORGET: Start enhancement in background
+            (async () => {
                 try {
+                    // Map Tone Mode
+                    let toneMode: ToneMode = 'neutral';
+                    switch (outcomeCategory) {
+                        case 'Sleep': case 'Relax': toneMode = 'calm_reassuring'; break;
+                        case 'Relief': toneMode = 'supportive'; break;
+                        case 'Focus': toneMode = 'confident'; break;
+                        case 'Social': toneMode = 'curious'; break;
+                        default: toneMode = 'neutral';
+                    }
+
+                    // Prepare Input for StrainMath™ Enhancement
+                    const primaryBlend = engineResults[0];
+
+                    const strainmathInput = {
+                        tier1Narrative: {
+                            name: primaryBlend.name || "Custom Blend",
+                            reasoning: primaryBlend.reasoning || ""
+                        },
+                        userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
+                        decisionSummary: `Engine decision: ${decision.reasoning}`,
+                        blendSummary: engineResults.map(b => ({
+                            name: b.name || "Blend",
+                            cultivars: (b.cultivars || []).map(c => c.name)
+                        })),
+                        toneMode: toneMode
+                    };
+
                     console.log('[STRAINMATH_INPUT]', JSON.stringify(strainmathInput, null, 2));
 
                     const enhancedNarratives = await Promise.race([
                         generateNarrative(strainmathInput),
-                        new Promise<EnhancedNarrative[] | null>(resolve => setTimeout(() => resolve(null), 12000))
+                        new Promise<EnhancedNarrative[] | null>((resolve) =>
+                            setTimeout(() => resolve(null), 12000)
+                        )
                     ]);
 
                     if (enhancedNarratives && Array.isArray(enhancedNarratives)) {
-                        console.log(`[STRAINMATH_SUCCESS] Multi-narrative enhancement ready ✓`);
+                        console.log(`[STRAINMATH_SUCCESS] Multi-narrative enhancement applied ✓`);
                         enhancedNarratives.forEach((enhanced, idx) => {
                             if (engineResults[idx]) {
-                                // HARDENED PARSING: Extract JSON if stringified within response
                                 try {
                                     let raw = typeof enhanced === 'string' ? enhanced : JSON.stringify(enhanced);
-                                    // Strip markdown fences
                                     raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();
 
                                     const parsed = typeof enhanced === 'object' ? enhanced : JSON.parse(raw);
@@ -592,21 +595,19 @@ export async function processIntent(
                                     if (parsed.newName) engineResults[idx].name = parsed.newName;
                                     if (parsed.narrative) engineResults[idx].reasoning = parsed.narrative;
                                 } catch (parseErr) {
-                                    console.warn(`[STRAINMATH_PARSE_FAIL] Failed to parse enhancement for index ${idx}. Falling back to Tier-1.`);
-                                    // Silent fallback: Keep Tier-1 narratives already applied above
+                                    console.warn(`[STRAINMATH_PARSE_FAIL] Failed to parse enhancement for index ${idx}`);
                                 }
                             }
                         });
                     } else {
-                        console.log(`[STRAINMATH] Timeout or null response, keeping Tier-1 narratives.`);
+                        console.log(`[STRAINMATH] Timeout or null response, keeping Tier-1 narratives`);
                     }
                 } catch (err) {
                     console.warn("[STRAINMATH_FAILED]", err);
                 }
-
-            } catch (e) {
-                console.warn("[STRAINMATH_ENHANCEMENT_INIT_FAILED] (Non-fatal)", e);
-            }
+            })().catch(err => {
+                console.warn("[STRAINMATH_BACKGROUND_ERROR]", err);
+            });
         }
 
 
@@ -629,48 +630,46 @@ export async function processIntent(
         // CRITICAL PATH COMPLETE: Return results to UI
         // STRAINMATH™ enhancement is now truly backgrounded (non-blocking)
         console.log('[ORCHESTRATOR_V8.5_ASYNC] Returning results to UI');
+        updatePhase('chat'); // terminal phase - UI must resolve immediately
 
-        // LOG TO LIVE NETWORK FEED (Non-blocking)
+        // LOG TO LIVE NETWORK FEED (Fire-and-Forget)
         if (engineResults.length > 0) {
             const primaryBlend = engineResults[0];
 
-            // Import Intelligence and Live Feed adapter
-            import('./merchantIntelligence').then(({ Intelligence }) => {
-                import('./llmLiveFeedAdapter').then(({ generateLiveFeedCommentary }) => {
-                    // Generate AI commentary for the feed
-                    generateLiveFeedCommentary({
+            // FIRE-AND-FORGET: Live feed logging never blocks main flow
+            (async () => {
+                try {
+                    const [{ Intelligence }, { generateLiveFeedCommentary }] = await Promise.all([
+                        import('./merchantIntelligence'),
+                        import('./llmLiveFeedAdapter')
+                    ]);
+
+                    const commentary = await generateLiveFeedCommentary({
                         blendName: primaryBlend.name || 'Custom Blend',
                         cultivars: (primaryBlend.cultivars || []).map(c => c.name),
                         outcomeCategory: outcomeCategory,
                         userInput: seed.text
-                    }).then(commentary => {
-                        // Log the event to the intelligence layer
-                        Intelligence.logResolution({
-                            inputMode: seed.mode === 'engine' ? 'freeform' : 'preset',
-                            inputText: seed.text,
-                            blendId: primaryBlend.id || `blend-${Date.now()}`,
-                            blendName: primaryBlend.name || 'Custom Blend',
-                            confidenceScore: (primaryBlend.matchScore || 85) / 100,
-                            componentSkus: (primaryBlend.cultivars || []).map(c => c.name),
-                            outcomeCategory: outcomeCategory,
-                            commentary: commentary || 'A unique blend crafted for your specific needs.'
-                        });
-                        console.log('[LIVE_FEED] Event logged successfully');
                     }).catch(err => {
                         console.warn('[LIVE_FEED] Commentary generation failed, using fallback', err);
-                        // Log without commentary as fallback
-                        Intelligence.logResolution({
-                            inputMode: seed.mode === 'engine' ? 'freeform' : 'preset',
-                            inputText: seed.text,
-                            blendId: primaryBlend.id || `blend-${Date.now()}`,
-                            blendName: primaryBlend.name || 'Custom Blend',
-                            confidenceScore: (primaryBlend.matchScore || 85) / 100,
-                            componentSkus: (primaryBlend.cultivars || []).map(c => c.name),
-                            outcomeCategory: outcomeCategory,
-                            commentary: `${primaryBlend.name} - ${(primaryBlend.cultivars || []).map(c => c.name).join(', ')}`
-                        });
+                        return null;
                     });
-                });
+
+                    Intelligence.logResolution({
+                        inputMode: seed.mode === 'engine' ? 'freeform' : 'preset',
+                        inputText: seed.text,
+                        blendId: primaryBlend.id || `blend-${Date.now()}`,
+                        blendName: primaryBlend.name || 'Custom Blend',
+                        confidenceScore: (primaryBlend.matchScore || 85) / 100,
+                        componentSkus: (primaryBlend.cultivars || []).map(c => c.name),
+                        outcomeCategory: outcomeCategory,
+                        commentary: commentary || `${primaryBlend.name} - ${(primaryBlend.cultivars || []).map(c => c.name).join(', ')}`
+                    });
+                    console.log('[LIVE_FEED] Event logged successfully');
+                } catch (err) {
+                    console.warn('[LIVE_FEED] Background logging failed', err);
+                }
+            })().catch(err => {
+                console.warn('[LIVE_FEED_BACKGROUND_ERROR]', err);
             });
         }
 
@@ -687,6 +686,7 @@ export async function processIntent(
 
     } catch (e: any) {
         console.error('ORCHESTRATOR: Orchestration Failed', e);
+        updatePhase('chat'); // terminal phase - UI must resolve immediately
         return {
             success: false,
             data: [],

@@ -13,6 +13,9 @@ import { BlendDetailScreen } from './components/BlendDetailScreen';
 import { CalculatorModal } from './components/CalculatorModal';
 import { QRShareModal } from './components/QRShareModal';
 import { RemoteAccessPreview } from './components/RemoteAccessPreview';
+import { CheckoutScreen } from './components/CheckoutScreen';
+import { ShareScreen } from './components/ShareScreen';
+import { ResolutionScreen } from './components/ResolutionScreen';
 import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { LiveConsultant } from './components/LiveConsultant';
 import { AdminPanel } from './components/admin/AdminPanel';
@@ -32,7 +35,7 @@ import { updateEngineSnapshot } from './lib/engineSnapshot';
 import { ScrollStage } from './components/layout/ScrollStage';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'resolution' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed' | 'checkout' | 'share';
 
 export default function App() {
   // Mobile layout contract:
@@ -167,29 +170,51 @@ export default function App() {
   // ASYNC ORCHESTRATION EFFECT
   // --- ROUTING / SHARING LOGIC ---
   useEffect(() => {
-    // 1. Check for Share ID
+    const pathname = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
-    const shareId = params.get('s');
 
-    // 2. Check for Remote Access Preview
-    const isRemotePreview = window.location.pathname.includes('/preview') || params.get('mode') === 'preview';
+    // Check for new session routes: /session/checkout/:id or /session/share/:id
+    const sessionCheckoutMatch = pathname.match(/^\/session\/checkout\/([A-Z0-9]+)$/);
+    const sessionShareMatch = pathname.match(/^\/session\/share\/([A-Z0-9]+)$/);
+
+    // Legacy routes (for backward compatibility)
+    const shareId = params.get('s');
+    const checkoutId = params.get('checkout');
+    const shareViewId = params.get('share');
+
+    // Remote Access Preview
+    const isRemotePreview = pathname.includes('/preview') || params.get('mode') === 'preview';
 
     if (isRemotePreview) {
       console.log('[App] Entering Remote Access Preview Mode');
       setView('remote-access');
+    } else if (sessionCheckoutMatch) {
+      const sessionId = sessionCheckoutMatch[1];
+      console.log(`[App] Session Checkout Route: ${sessionId}`);
+      setView('checkout');
+    } else if (sessionShareMatch) {
+      const sessionId = sessionShareMatch[1];
+      console.log(`[App] Session Share Route: ${sessionId}`);
+      setView('share');
+    } else if (checkoutId) {
+      console.log(`[App] Legacy Checkout Mode: ${checkoutId}`);
+      setView('checkout');
+    } else if (shareViewId) {
+      console.log(`[App] Legacy Share View Mode: ${shareViewId}`);
+      setView('share');
     } else if (shareId) {
       console.log(`[App] Detected Share ID: ${shareId}`);
-      setIsAnalyzing(true); // Re-use loading state momentarily
+      setIsAnalyzing(true);
 
       SharedBlendService.resolveShare(shareId)
         .then(record => {
           if (record) {
             console.log('[App] Resolved Share:', record);
-            setBlendRecs([record.blend]); // Wrap in array
-            setView('shared'); // New View State
+            setBlendRecs([record.blend]);
+            setView('shared');
           } else {
             console.error('[App] Share ID not found/expired');
-            setView('input'); // Fallback
+            setView('input');
           }
         })
         .catch(err => {
@@ -233,6 +258,16 @@ export default function App() {
           );
 
           setAnalysisProgress(50);
+
+          // PHASE WATCHDOG: Development-only assertion that terminal phase is reached
+          if (process.env.NODE_ENV === 'development') {
+            setTimeout(() => {
+              if (enginePhase !== 'chat') {
+                console.warn('[PHASE_WATCHDOG] Non-terminal phase exceeded timeout');
+              }
+            }, 15000);
+          }
+
           const result = (await Promise.race([
             processIntent(userInput, { onPhaseChange: setEnginePhase }),
             timeoutPromise
@@ -245,9 +280,13 @@ export default function App() {
             if (result.data.length > 0) {
               addLog('Success: Results Ready');
               setAnalysisProgress(90);
-              setBlendRecs(result.data.map((item: EngineResult) => adaptEngineResult(item)).filter(Boolean) as any);
+              const adaptedResults = result.data.map((item: EngineResult) => adaptEngineResult(item)).filter(Boolean) as UIBlendRecommendation[];
+              setBlendRecs(adaptedResults);
               setAnalysisProgress(100);
               setIsAnalyzing(false);
+
+              // Transition to Resolution screen for terminal artifacts
+              setView('resolution');
             } else {
               addLog('Success: Chat Only');
               setAnalysisProgress(100);
@@ -282,6 +321,17 @@ export default function App() {
       console.warn('[App] ResolvingComplete called but no results available - staying on resolving screen');
       // Don't transition if we don't have results yet
     }
+  };
+
+  // Resolution screen handlers
+  const handleResolutionContinue = () => {
+    console.log('[App] Resolution: Continue to results');
+    setView('results');
+  };
+
+  const handleResolutionShare = () => {
+    console.log('[App] Resolution: Open share modal');
+    setQRShareOpen(true);
   };
 
   const [calcTarget, setCalcTarget] = useState<UIBlendRecommendation | UIStackRecommendation | null>(null);
@@ -394,6 +444,15 @@ export default function App() {
                   />
                 )}
 
+                {/* RESOLUTION SCREEN - Terminal Artifacts */}
+                {view === 'resolution' && blendRecs.length > 0 && (
+                  <ResolutionScreen
+                    recommendations={blendRecs as UIBlendRecommendation[]}
+                    onContinue={handleResolutionContinue}
+                    onShare={handleResolutionShare}
+                  />
+                )}
+
                 {/* RESULTS SCREEN (Blends Only) */}
                 {view === 'results' && blendRecs.length > 0 && (
                   <ResultsScreen
@@ -418,6 +477,16 @@ export default function App() {
                 {/* SHARED READ-ONLY VIEW */}
                 {view === 'shared' && blendRecs.length > 0 && blendRecs[0].kind === 'blend' && (
                   <SharedResultScreen recommendation={blendRecs[0] as UIBlendRecommendation} />
+                )}
+
+                {/* CHECKOUT SCREEN (Staff Use) */}
+                {view === 'checkout' && (
+                  <CheckoutScreen sessionId={new URLSearchParams(window.location.search).get('checkout') || undefined} />
+                )}
+
+                {/* SHARE SCREEN (Public Sharing) */}
+                {view === 'share' && (
+                  <ShareScreen sessionId={new URLSearchParams(window.location.search).get('share') || undefined} />
                 )}
 
                 {/* REMOTE ACCESS PREVIEW (Customer Demo) */}
