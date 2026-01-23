@@ -99,6 +99,9 @@ export default function App() {
   const [isIdle, setIsIdle] = useState(false);
   const [idleTimer, setIdleTimer] = useState<NodeJS.Timeout | null>(null);
 
+  // Single-shot result handoff guard
+  const [hasNavigatedToResult, setHasNavigatedToResult] = useState(false);
+
   const addLog = (msg: string) => {
     setDebugLog(prev => [...prev.slice(-5), `${new Date().toLocaleTimeString()}: ${msg}`]);
     console.log(`[App_V8.3] ${msg}`);
@@ -121,6 +124,7 @@ export default function App() {
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
     setStackRec(null);
     setBlendRecs([]); // Clear previous
+    setHasNavigatedToResult(false); // Reset navigation guard for new session
     setUserInput(input);
     setIsAnalyzing(true);
     setAnalysisProgress(20); // Milestone: Intent received
@@ -287,16 +291,30 @@ export default function App() {
             if (result.data.length > 0) {
               addLog('Success: Results Ready');
               setAnalysisProgress(90);
-              const adaptedResults = result.data.map((item: EngineResult) => adaptEngineResult(item)).filter(Boolean) as UIBlendRecommendation[];
-              setBlendRecs(adaptedResults);
+              
+              // Separate stacks from blends
+              const adaptedResults = result.data.map((item: EngineResult) => adaptEngineResult(item)).filter(Boolean);
+              const stacks = adaptedResults.filter((r: any) => r.kind === 'stack') as UIStackRecommendation[];
+              const blends = adaptedResults.filter((r: any) => r.kind === 'blend') as UIBlendRecommendation[];
+              
+              // Set results - stacks go to stackRec, blends go to blendRecs
+              if (stacks.length > 0) {
+                setStackRec(stacks[0]); // Take first stack
+              }
+              if (blends.length > 0) {
+                setBlendRecs(blends);
+              }
+              
               setAnalysisProgress(100);
               setIsAnalyzing(false);
-              // Let ResolvingScreen auto-complete and handle transition to resolution
+              // handleResolvingComplete will be called by V3SignalInterface when phase === 'chat'
+              // It will check for results and route appropriately
             } else {
-              addLog('Success: Chat Only');
-              setAnalysisProgress(100);
+              // REMOVED: "Chat Only" terminal state - this is not an error
+              // If no results, stay in resolving and wait
+              // This is expected for Strain Mode + Tavily async latency
               setIsAnalyzing(false);
-              setView('input');
+              // Do not navigate - let handleResolvingComplete handle it when results arrive
             }
           } else {
             throw new Error(result.error || 'Orchestrator returned failure');
@@ -313,21 +331,48 @@ export default function App() {
     }
   }, [view, userInput, isAnalyzing]);
 
-  // ResolvingScreen onComplete trigger
-  const handleResolvingComplete = () => {
-    console.log('[App] handleResolvingComplete called', { blendRecsLength: blendRecs.length, hasStackRec: !!stackRec });
-    if (blendRecs.length > 0) {
-      setAnalysisProgress(100); // Milestone: Transition triggered
-      // Transition to Resolution screen for terminal artifacts, not directly to results
-      setView('resolution');
-    } else if (stackRec) {
-      setAnalysisProgress(100);
-      setView('stack-detail'); // Rare fallback
-    } else {
-      console.warn('[App] ResolvingComplete called but no results available - staying on resolving screen');
-      // Don't transition if we don't have results yet
+  // ResolvingScreen onComplete trigger (UI-only state machine)
+  function handleResolvingComplete({
+    blendRecsLength,
+    hasStackRec,
+    isStrainMode,
+  }: {
+    blendRecsLength: number;
+    hasStackRec: boolean;
+    isStrainMode: boolean;
+  }) {
+    // 1. SINGLE-SHOT GUARD
+    if (hasNavigatedToResult) return;
+
+    // 2. HARD BLOCK: NO RESULTS YET = WAIT
+    const hasResults = blendRecsLength > 0 || hasStackRec === true;
+    if (!hasResults) {
+      // Strain mode is async by design — silence is correct behavior
+      return;
     }
-  };
+
+    // 3. STRAIN MODE SAFETY (extra insurance)
+    if (isStrainMode && blendRecsLength === 0 && !hasStackRec) {
+      return;
+    }
+
+    // 4. LOCK BEFORE NAVIGATION (CRITICAL)
+    setHasNavigatedToResult(true);
+    setAnalysisProgress(100);
+
+    // 5. ROUTE DIRECTLY TO RESULT CARD (NO INTERMEDIATE UI)
+    if (hasStackRec) {
+      // Existing stack detail navigation
+      setView('stack-detail');
+    } else {
+      // Existing blend detail navigation - use first blend
+      const firstBlend = blendRecs[0] as UIBlendRecommendation;
+      if (firstBlend) {
+        setSelectedBlendId(firstBlend.id);
+        setView('blend-detail');
+      }
+    }
+  }
 
   // Idle State Detection (Tablet/Kiosk Mode Only)
   useEffect(() => {
@@ -504,6 +549,7 @@ export default function App() {
     setView('input');
     setStackRec(null);
     setBlendRecs([]); // Fixed
+    setHasNavigatedToResult(false); // Reset navigation guard
     setUserInput(null);
     setIsAnalyzing(false);
     setAnalysisProgress(0); // Reset progress
@@ -601,7 +647,14 @@ export default function App() {
                     consultantText={consultantText}
                     progress={analysisProgress}
                     phase={enginePhase}
-                    onComplete={handleResolvingComplete}
+                    hasResults={blendRecs.length > 0 || !!stackRec}
+                    onComplete={() =>
+                      handleResolvingComplete({
+                        blendRecsLength: blendRecs.length,
+                        hasStackRec: !!stackRec,
+                        isStrainMode: userInput.mode === 'strain',
+                      })
+                    }
                     onRecalculate={handleRecalculateWithFeedback}
                   />
                 )}

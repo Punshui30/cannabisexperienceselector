@@ -10,24 +10,33 @@ interface ResolvingScreenProps {
     onRecalculate?: (feedback: string) => void;
     progress?: number; // Controlled progress from parent
     phase?: EnginePhase;
+    hasResults?: boolean; // Guard: only complete when results exist
 }
 
-export function ResolvingScreen({ input, recommendation, consultantText, onComplete, onRecalculate, progress = 0, phase = 'idle' }: ResolvingScreenProps) {
-    // Auto-complete when progress reaches 100% (legacy compatibility)
+export function ResolvingScreen({ input, recommendation, consultantText, onComplete, onRecalculate, progress = 0, phase = 'idle', hasResults = false }: ResolvingScreenProps) {
+    // HARD BLOCK: Only complete when results exist AND phase is terminal
     useEffect(() => {
-        if (progress >= 100 && phase === 'chat') {
-            console.log('[ResolvingScreen_V9.0] Terminal phase detected, transitioning...');
+        if (phase === 'chat' && hasResults) {
+            // Small delay for visual completion
             const timeout = setTimeout(() => {
                 onComplete();
             }, 300);
             return () => clearTimeout(timeout);
         }
-    }, [progress, phase, onComplete]);
+        // If phase is 'chat' but no results, wait silently
+        // This is expected for Strain Mode + Tavily async latency
+    }, [phase, hasResults, onComplete]);
 
     return (
         <V3SignalInterface
             phase={phase || 'idle'}
-            onComplete={onComplete}
+            onComplete={() => {
+                // Guard: Only complete if results exist
+                if (hasResults) {
+                    onComplete();
+                }
+                // Otherwise, wait silently - V3SignalInterface will keep showing "Complete" status
+            }}
             inputText={input.text}
         />
     );
