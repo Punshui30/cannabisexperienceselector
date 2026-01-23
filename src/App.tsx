@@ -622,7 +622,16 @@ export default function App() {
                     recommendations={blendRecs as UIBlendRecommendation[]}
                     onCalculate={handleCalculate}
                     onBack={handleBack}
-                    onShare={(rec) => setQRShareOpen(true)}
+                    onConcludeSession={() => {
+                      // Only allow QR generation for user-initiated live sessions
+                      // NOT from presets or scenario cards
+                      if (userInput && userInput.kind === 'blend' && userInput.mode !== 'preset') {
+                        console.log('[App] User concluded session - generating QR artifact');
+                        setQRShareOpen(true);
+                      } else {
+                        console.warn('[App] QR generation blocked - not a user-initiated session');
+                      }
+                    }}
                     onViewDetail={(blend) => {
                       setSelectedBlendId(blend.id);
                       setView('blend-detail');

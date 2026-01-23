@@ -6,7 +6,6 @@ import { SpatialStack } from './SpatialStack';
 
 export interface BlendCardProps {
   recommendation: UIBlendRecommendation;
-  onShare?: (rec: UIBlendRecommendation) => void;
   onCalculate?: (rec: UIBlendRecommendation) => void;
   onViewDetail?: (blend: UIBlendRecommendation) => void;
   onOpenConsultant?: () => void; // Optional because SwipeDeck/Results logic
@@ -14,7 +13,7 @@ export interface BlendCardProps {
 }
 
 // State restoration for expand/collapse behavior
-export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, onOpenConsultant, index = 0 }: BlendCardProps) {
+export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenConsultant, index = 0 }: BlendCardProps) {
   // State restoration for expand/collapse behavior
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -137,20 +136,6 @@ export function BlendCard({ recommendation, onShare, onCalculate, onViewDetail, 
               </h2>
             </div>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onShare?.(recommendation);
-              }}
-              className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-colors" // Density: p-2 -> p-1.5
-              aria-label="Share Blend"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/60">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                <polyline points="16 6 12 2 8 6"></polyline>
-                <line x1="12" y1="2" x2="12" y2="15"></line>
-              </svg>
-            </button>
           </div>
 
           {/* VISUALIZATION */}

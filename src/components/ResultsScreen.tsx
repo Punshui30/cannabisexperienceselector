@@ -13,12 +13,12 @@ interface ResultsProps {
   recommendations: UIBlendRecommendation[]; // Array of UI Recs
   onCalculate: (rec: any) => void;
   onBack: () => void;
-  onShare?: (rec: any) => void;
+  onConcludeSession?: () => void; // New explicit session conclusion action
   onViewDetail?: (blend: UIBlendRecommendation) => void;
   onOpenConsultant: () => void;
 }
 
-export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, onViewDetail, onOpenConsultant }: ResultsProps) {
+export function ResultsScreen({ recommendations, onCalculate, onBack, onConcludeSession, onViewDetail, onOpenConsultant }: ResultsProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeRec = recommendations[activeIndex];
 
@@ -57,26 +57,11 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
               <span className="text-[9px] uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">Back</span>
             </button>
 
-            <div className="flex gap-4">
-              <div className="text-right">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/20 border border-white/10 backdrop-blur-md">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] shadow-[0_0_8px_#00FFD1]" />
-                  <span className="text-[9px] font-medium text-white/60 uppercase tracking-widest">Live v2.5</span>
-                </div>
+            <div className="flex justify-end">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/20 border border-white/10 backdrop-blur-md">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] shadow-[0_0_8px_#00FFD1]" />
+                <span className="text-[9px] font-medium text-white/60 uppercase tracking-widest">Live v2.5</span>
               </div>
-
-              {onShare && (
-                <button
-                  onClick={() => onShare(activeRec as any)}
-                  className="w-8 h-8 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-white/40 hover:text-[#00FFD1] transition-colors"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M16 6l-4-4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M12 2v13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              )}
             </div>
           </div>
 
@@ -99,7 +84,6 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
                 <div className="w-full h-full flex items-center justify-center p-4">
                   <BlendCard
                     recommendation={rec}
-                    onShare={onShare}
                     onCalculate={onCalculate}
                     onViewDetail={onViewDetail}
                     onOpenConsultant={onOpenConsultant}
@@ -120,6 +104,26 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
             totalItems={recommendations.length}
           />
         </div>
+
+        {/* CONCLUDE SESSION CTA */}
+        {onConcludeSession && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="w-full relative z-10 mb-8"
+          >
+            <div className="max-w-xs mx-auto">
+              <button
+                onClick={onConcludeSession}
+                className="w-full bg-gradient-to-r from-[#7C3AED]/80 to-[#6D28D9]/80 backdrop-blur-xl text-white rounded-xl py-4 px-6 flex items-center justify-center gap-3 font-medium hover:from-[#7C3AED] hover:to-[#6D28D9] transition-all active:scale-95 shadow-lg shadow-purple-500/25 border border-white/10"
+              >
+                <Share2 size={18} />
+                <span>Conclude Session</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         {/* FOOTER DISCLAIMER */}
         <div className="flex-shrink-0 py-4 text-center opacity-20 z-0">

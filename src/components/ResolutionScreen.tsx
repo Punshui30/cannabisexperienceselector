@@ -102,64 +102,22 @@ export function ResolutionScreen({ recommendations, onContinue, onShare }: Resol
             </div>
           </motion.div>
 
-          {/* QR Codes */}
+          {/* Session Complete Message */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="space-y-6"
+            className="text-center space-y-6"
           >
-            <div className="text-center">
-              <h3 className="text-sm font-medium uppercase tracking-wider text-white/80 mb-6">
-                Session Artifacts
-              </h3>
+            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <CheckCircle size={20} className="text-[#00FFD1]" />
+                <span className="text-sm font-medium text-white/80">Session Complete</span>
+              </div>
+              <p className="text-xs text-white/60 leading-relaxed">
+                Your personalized blend has been crafted with precision. Continue to explore or conclude your session.
+              </p>
             </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full"
-                />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-8">
-                {/* Primary: Checkout QR */}
-                <div className="flex flex-col items-center space-y-4">
-                  {checkoutUrl && (
-                    <EngineQRCode
-                      url={checkoutUrl}
-                      type="checkout"
-                      recommendation={primaryRecommendation}
-                      size={160}
-                    />
-                  )}
-                  <div className="text-center">
-                    <p className="text-xs text-white/40 uppercase tracking-widest">
-                      Present at checkout
-                    </p>
-                  </div>
-                </div>
-
-                {/* Secondary: Share QR */}
-                {shareUrl && (
-                  <div className="flex flex-col items-center space-y-4 border-t border-white/10 pt-8">
-                    <EngineQRCode
-                      url={shareUrl}
-                      type="share"
-                      recommendation={primaryRecommendation}
-                      size={120}
-                    />
-                    <div className="text-center">
-                      <p className="text-xs text-white/40 uppercase tracking-widest">
-                        Save or share this blend
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </motion.div>
 
           {/* Future Intelligence Preview (STAGED ONLY) */}

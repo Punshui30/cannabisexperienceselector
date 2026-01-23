@@ -4,6 +4,7 @@ import type { UIBlendRecommendation } from '../types/domain';
 import { useState, useEffect } from 'react';
 import { ResolvedSessionService } from '../services/ResolvedSessionService';
 import { EngineQRCode } from './EngineQRCode';
+import logoImg from '../assets/logo.png';
 
 type Props = {
   recommendation: UIBlendRecommendation;
@@ -144,10 +145,21 @@ export function QRShareModal({ recommendation, onClose }: Props) {
           <div className="absolute top-6 right-6 z-20">
             <button
               onClick={onClose}
+              title="Close"
+              aria-label="Close"
               className="w-8 h-8 rounded-full bg-white/5 backdrop-blur-xl flex items-center justify-center border border-white/10 hover:bg-white/10 transition-all active:scale-90"
             >
               <X size={16} className="text-white/70" />
             </button>
+          </div>
+
+          {/* GO Logo */}
+          <div className="relative z-10 flex justify-center mb-4">
+            <img
+              src={logoImg}
+              alt="GO"
+              className="w-8 h-8 object-contain opacity-60"
+            />
           </div>
 
           <div className="relative z-10 text-center px-6">
@@ -157,6 +169,13 @@ export function QRShareModal({ recommendation, onClose }: Props) {
             <h2 className="text-2xl font-serif text-white tracking-tight leading-tight">
               {recommendation.name}
             </h2>
+
+            {/* StrainMath Branding */}
+            <div className="mt-3">
+              <p className="text-xs text-white/40 font-light tracking-wider">
+                Powered by StrainMath™
+              </p>
+            </div>
           </div>
         </div>
 
@@ -207,22 +226,36 @@ export function QRShareModal({ recommendation, onClose }: Props) {
               <div className="grid grid-cols-2 gap-4">
                 {/* Checkout QR */}
                 <div className="flex flex-col items-center space-y-3">
-                  <EngineQRCode
-                    url={checkoutUrl}
-                    type="checkout"
-                    recommendation={recommendation}
-                    size={120}
-                  />
+                  <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 backdrop-blur-sm shadow-lg">
+                    <EngineQRCode
+                      url={checkoutUrl}
+                      type="checkout"
+                      recommendation={recommendation}
+                      size={120}
+                    />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-white/50 uppercase tracking-widest">
+                      Present at Checkout
+                    </p>
+                  </div>
                 </div>
 
                 {/* Share QR */}
                 <div className="flex flex-col items-center space-y-3">
-                  <EngineQRCode
-                    url={shareUrl}
-                    type="share"
-                    recommendation={recommendation}
-                    size={120}
-                  />
+                  <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 backdrop-blur-sm shadow-lg">
+                    <EngineQRCode
+                      url={shareUrl}
+                      type="share"
+                      recommendation={recommendation}
+                      size={120}
+                    />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-white/50 uppercase tracking-widest">
+                      Save or Share
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
