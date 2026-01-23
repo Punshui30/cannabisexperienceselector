@@ -36,6 +36,8 @@ export async function processIntent(
         blendName?: string;
         blendConfig?: any;
         cultivars?: string[];
+        userInput?: string;
+        recommendation?: any;
     },
     mode: string = 'blend-engine'
 ): Promise<OrchestratorResult> {
@@ -136,7 +138,12 @@ export async function processIntent(
 
         // 1. LLM-DRIVEN INTENT ANALYSIS
         console.group('ORCHESTRATOR: New Intent Analysis (Authoritative)');
-        const intentSpec = await analyzeIntent(seed);
+        const intentSpec = await analyzeIntent(seed, {
+            blendName: context?.blendName,
+            originalQuery: context?.userInput || seed.text,
+            cultivars: context?.recommendation ?
+                (context.recommendation as any).cultivars?.map((c: any) => c.name) : []
+        });
         console.log('Intent Result:', intentSpec);
         console.groupEnd();
 

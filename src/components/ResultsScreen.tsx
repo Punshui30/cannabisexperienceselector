@@ -126,14 +126,14 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onShare, o
           <p className="text-[8px] uppercase tracking-widest text-white">© 2026 StrainMath™ Intellectual Property</p>
         </div>
 
-        {/* FLOATING ACTION BUTTON - Calculate Dose (Bottom Left) */}
+        {/* FLOATING ACTION BUTTON - Calculate Dose (Bottom Right) */}
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => onCalculate(activeRec)}
-          className="fixed bottom-6 left-6 z-50 px-6 py-4 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black shadow-[0_0_30px_rgba(0,255,209,0.4)] flex items-center gap-2 font-bold text-xs uppercase tracking-widest"
+          className="fixed bottom-6 right-6 z-50 px-6 py-4 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black shadow-[0_0_30px_rgba(0,255,209,0.4)] flex items-center gap-2 font-bold text-xs uppercase tracking-widest"
           style={{
             boxShadow: '0 8px 32px rgba(0, 255, 209, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
           }}

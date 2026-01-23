@@ -1,4 +1,4 @@
-// [BUILD-ID: 2026-01-22-v10.1]
+// [BUILD-ID: 2026-01-22-v10.2]
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SplashScreen } from './components/SplashScreen';
@@ -532,15 +532,15 @@ export default function App() {
               </svg>
             </button>
 
-            {/* LIVE CONSULTANT TRIGGER FAB (Ensured Top Level) */}
+            {/* LIVE CONSULTANT TRIGGER FAB (Now on the Left) */}
             <button
               onClick={() => {
                 if (!isAnalyzing) setShowConsultant(true);
               }}
               disabled={isAnalyzing}
-              className={`fixed bottom-6 right-6 z-[101] group flex items-center justify-center w-12 h-12 rounded-full bg-[#00FFD1] text-black shadow-[0_0_20px_rgba(0,255,209,0.3)] transition-all duration-300 
+              className={`fixed bottom-6 left-6 z-[101] group flex items-center justify-center w-12 h-12 rounded-full bg-[#00FFD1] text-black shadow-[0_0_20px_rgba(0,255,209,0.3)] transition-all duration-300 
                   ${isAnalyzing ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110 hover:shadow-[0_0_30px_rgba(0,255,209,0.5)]'}
-                  max-[360px]:bottom-20 max-[360px]:right-4
+                  max-[360px]:bottom-20 max-[360px]:left-4
               `}
               title={isAnalyzing ? "System Processing..." : "Ask AI Consultant"}
             >
