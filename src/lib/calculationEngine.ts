@@ -1106,8 +1106,34 @@ export function calculateBlends(
     .slice(0, 12) // Top 12 strains
     .map(cS => cS.cultivar);
 
-  // 2. Generate 2-cultivar blends (DISABLED per constraint: Minimum 3)
-  // for (let i = 0; i < topCandidates.length; i++) { ... }
+  // 2. Generate 2-cultivar blends
+  for (let i = 0; i < topCandidates.length; i++) {
+    for (let j = i + 1; j < topCandidates.length; j++) {
+      for (const ratios of TWO_CULTIVAR_RATIOS) {
+        candidateCount++;
+        const c1 = topCandidates[i];
+        const c2 = topCandidates[j];
+
+        const blendEval = evaluateBlend([c1, c2], ratios, 0.7, validatedIntent);
+
+        if (blendEval.blendScore > 45) {
+          results.push({
+            cultivars: [
+              { id: c1.id, name: c1.name, ratio: ratios[0] },
+              { id: c2.id, name: c2.name, ratio: ratios[1] }
+            ],
+            predictedEffects: { energy: 0, focus: 0, mood: 0, body: 0, creativity: 0, anxiety: 0 },
+            cannabinoids: { thc: blendEval.profile.thc, cbd: blendEval.profile.cbd },
+            score: blendEval.blendScore,
+            confidence: 0.85,
+            blendScore: blendEval.blendScore,
+            blendEvaluation: blendEval,
+            metadata: { unknownTerpeneCount: 0, constraintsViolated: [] }
+          });
+        }
+      }
+    }
+  }
 
 
   // 3. Generate 3-cultivar blends
@@ -1122,7 +1148,7 @@ export function calculateBlends(
 
           const blendEval = evaluateBlend([c1, c2, c3], ratios, 0.8, validatedIntent);
 
-          if (blendEval.blendScore > 45) { // Relaxed from 65
+          if (blendEval.blendScore > 48) { // Slightly higher bar for 3-way
             results.push({
               cultivars: [
                 { id: c1.id, name: c1.name, ratio: ratios[0] },

@@ -265,11 +265,18 @@ export function generateRecommendations(
 
   // ---------------------------------------------------------
   // MODE GATE: Temporal Structure Detection
-  // Heuristic: Check for sequence keywords
+  // Heuristic: Check for sequence keywords in the USER INTENT ONLY
   // ---------------------------------------------------------
-  const text = (input.text || '').toLowerCase();
+  // Strip any augmented evidence context before checking for temporal keywords
+  const cleanInputText = (input.text || '').split('\n\n[')[0].toLowerCase();
+
   const temporalKeywords = ['then', 'after', 'followed by', 'later', 'secondly', 'morning', 'night', 'evening', 'day', 'start', 'end'];
-  const isStackMode = temporalKeywords.some(kw => text.includes(kw));
+
+  // Use word boundaries to avoid matching "recommend" or "blend"
+  const isStackMode = temporalKeywords.some(kw => {
+    const regex = new RegExp(`\\\\b${kw}\\\\b`, 'i');
+    return regex.test(cleanInputText);
+  });
 
   console.log('LAYER 1: Intent', intent, 'Stack Mode:', isStackMode);
 

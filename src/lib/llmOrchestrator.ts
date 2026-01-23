@@ -245,7 +245,25 @@ export async function processIntent(
         const r1Exclusions = Array.from(anchorConstraints.cultivarExclusions);
 
         while (r1Attempts < 3) {
-            results1 = engineGenerate(seed, engineIntent, r1Exclusions);
+            const rawResult = engineGenerate(seed, engineIntent, r1Exclusions);
+
+            // Handle Stack Type mismatch (Engine returns a single object if in Stack Mode)
+            if (rawResult && (rawResult as any).kind === 'stack') {
+                console.log('ORCHESTRATOR: Engine returned a STACK. Bypassing blend iterations.');
+                engineResults.push(rawResult as any);
+                return {
+                    success: true,
+                    data: engineResults,
+                    analysis: {
+                        targetTerpenes: intentSpec.terpenePreferences.include || [],
+                        reasoning: intentSpec.reasoning || "Balanced stack generated.",
+                        consultationScript: intentSpec.consultationScript,
+                        outcomeCategory: outcomeCategory
+                    }
+                };
+            }
+
+            results1 = rawResult as EngineResult[];
             if (results1.length > 0) {
                 if (validateCompliance(results1[0], `Primary (Attempt ${r1Attempts + 1})`)) {
                     break; // Success
@@ -457,7 +475,7 @@ export async function processIntent(
 
         // 3. UNIFIED NARRATIVE SYNERGY (Unified LLM Call)
         // GUARD: Stacks must NEVER use the Narrative Adapter (StrainMath™ Protocol)
-        const isStack = seed.kind === 'stack';
+        const isStack = engineResults.some(r => (r as any).kind === 'stack');
         const isStrainMode = seed.mode === 'strain';
 
         if (isStack) {
@@ -779,6 +797,7 @@ function generateDeterministicNarrative(
 function validateStrict(results: EngineResult[]): string | null {
     if (!results || results.length === 0) return "No results object";
     for (const r of results) {
+        if ((r as any).kind === 'stack') continue; // Stacks have an internal structure, bypass blend-specific check
         if (!r.cultivars || r.cultivars.length < 2) return "Blend has fewer than 2 cultivars";
     }
     return null;
