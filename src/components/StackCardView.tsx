@@ -1,8 +1,17 @@
+/**
+ * STACK CARD VIEW (PREVIEW)
+ * -------------------------
+ * This is a non-terminal visual preview screen.
+ * - NO protocol explanation
+ * - NO calculation or session terminal logic
+ * - Primary intent: Beauty + Visual Hierarchy
+ */
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Layers, ChevronRight, ChevronDown, Info } from 'lucide-react';
+import { motion } from 'motion/react';
+import { ArrowLeft, Layers, ChevronRight } from 'lucide-react';
 import type { UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
+import { SpatialStack } from './SpatialStack';
 
 interface StackCardViewProps {
   stack: UIStackRecommendation;
@@ -12,7 +21,6 @@ interface StackCardViewProps {
 
 export function StackCardView({ stack, onBack, onViewDetails }: StackCardViewProps) {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     // Simulate loading for smooth animation
@@ -111,32 +119,10 @@ export function StackCardView({ stack, onBack, onViewDetails }: StackCardViewPro
                   )}
                 </div>
 
-                {/* Layer Preview */}
-                {stack.layers && stack.layers.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-white/80 uppercase tracking-wider">
-                      Protocol Layers
-                    </h3>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                      {stack.layers.slice(0, 3).map((layer, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-2 bg-white/[0.02] rounded-lg">
-                          <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
-                            <span className="text-xs font-medium text-white/60">{idx + 1}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-white/90 truncate">{layer.layerName}</p>
-                            <p className="text-xs text-white/50 truncate">{layer.purpose}</p>
-                          </div>
-                        </div>
-                      ))}
-                      {stack.layers.length > 3 && (
-                        <p className="text-xs text-white/40 text-center">
-                          +{stack.layers.length - 3} more layers
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* Rich Visual Deck - SpatialStack (Restored) */}
+                <div className="flex-1 w-full flex items-center justify-center my-4 overflow-hidden">
+                  <SpatialStack data={stack} />
+                </div>
               </div>
             </CardShell>
           </motion.div>
@@ -154,102 +140,6 @@ export function StackCardView({ stack, onBack, onViewDetails }: StackCardViewPro
               <span>View Full Protocol</span>
               <ChevronRight size={18} />
             </button>
-          </motion.div>
-
-          {/* Additional Info */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isLoaded ? 1 : 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-center space-y-4"
-          >
-            <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-white/80 mb-2">
-                What You'll Get
-              </h3>
-              <div className="space-y-2 text-left">
-                <div className="flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] mt-2 flex-shrink-0" />
-                  <p className="text-xs text-white/60 leading-relaxed">
-                    Detailed timing and dosage instructions for each layer
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] mt-2 flex-shrink-0" />
-                  <p className="text-xs text-white/60 leading-relaxed">
-                    Expected effects and duration for the complete protocol
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] mt-2 flex-shrink-0" />
-                  <p className="text-xs text-white/60 leading-relaxed">
-                    StrainMath™ Engine optimization for maximum synergy
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* How Stacks Work */}
-            <div className="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden">
-              <button
-                onClick={() => setShowInstructions(!showInstructions)}
-                className="w-full p-4 flex items-center justify-between hover:bg-white/[0.01] transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Info size={14} className="text-white/40" />
-                  <span className="text-sm font-medium text-white/80">How Stacks Work</span>
-                </div>
-                <ChevronDown
-                  size={14}
-                  className={`text-white/40 transition-transform ${showInstructions ? 'rotate-180' : ''}`}
-                />
-              </button>
-
-              <AnimatePresence>
-                {showInstructions && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-4 pb-4 border-t border-white/5">
-                      <div className="space-y-3 text-left">
-                        <div className="flex items-start gap-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] mt-2 flex-shrink-0" />
-                          <p className="text-xs text-white/60 leading-relaxed">
-                            Stacks are layered sequences designed for different phases of your experience, not single strains.
-                          </p>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] mt-2 flex-shrink-0" />
-                          <p className="text-xs text-white/60 leading-relaxed">
-                            Each layer supports a different time or phase. Consumption order matters for optimal results.
-                          </p>
-                        </div>
-                        {stack.layers && stack.layers.length > 1 && (
-                          <div className="flex items-start gap-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] mt-2 flex-shrink-0" />
-                            <p className="text-xs text-white/60 leading-relaxed">
-                              Use layers in sequence as described in the protocol for the complete experience.
-                            </p>
-                          </div>
-                        )}
-                        {stack.layers && stack.layers.length === 1 && (
-                          <div className="flex items-start gap-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] mt-2 flex-shrink-0" />
-                            <p className="text-xs text-white/60 leading-relaxed">
-                              Single-layer stacks can be extended or customized with additional phases as needed.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </motion.div>
         </div>
       </div>

@@ -361,12 +361,10 @@ export default function App() {
     setHasNavigatedToResult(true);
     setAnalysisProgress(100);
 
-    // 5. ROUTE TO PREVIEW LAYER FIRST (NO DEEP AUTO-NAV)
+    // 5. ROUTE TO PREVIEW LAYER (STRICT INVARIANT: Stacks must show Preview first)
     if (hasStackRec) {
-      // Engine-produced stack: go to stack detail (preview layer for stacks is handled by preset flows)
-      setView('stack-detail');
+      setView('stack-card');
     } else {
-      // Blend results from a user query: go to Results carousel screen
       setView('results');
     }
   }
@@ -390,7 +388,12 @@ export default function App() {
 
   const handleStackCardBack = () => {
     console.log('[App] Stack Card: Go Back');
-    setView('input');
+    // Contextual Back: Return to Results if we have search results, otherwise Presets
+    if (blendRecs.length > 0) {
+      setView('results');
+    } else {
+      setView('presets');
+    }
   };
 
   // Create comprehensive invocation context for assistant
@@ -546,7 +549,7 @@ export default function App() {
                     onSelect={(exemplar) => {
                       if (exemplar.kind === 'stack') {
                         setStackRec(exemplar.data as UIStackRecommendation);
-                        setView('stack-detail');
+                        setView('stack-card');
                       } else {
                         console.log('Blend preset selected:', exemplar);
                       }
@@ -605,9 +608,14 @@ export default function App() {
                         console.warn('[App] QR generation blocked - not a user-initiated session');
                       }
                     }}
-                    onViewDetail={(blend) => {
-                      setSelectedBlendId(blend.id);
-                      setView('blend-detail');
+                    onViewDetail={(item: any) => {
+                      if (item.kind === 'stack') {
+                        setStackRec(item as UIStackRecommendation);
+                        setView('stack-card');
+                      } else {
+                        setSelectedBlendId(item.id);
+                        setView('blend-detail');
+                      }
                     }}
                     onOpenConsultant={() => setShowConsultant(true)}
                   />
@@ -647,16 +655,11 @@ export default function App() {
                   />
                 )}
 
-                {/* STACK DETAIL (Stacks Only) - Prompt D */}
-                {/* Logic: If explicitly in stack-detail view, OR if in results view but we have a stack result */}
-                {((view === 'stack-detail' && stackRec) || (view === 'results' && blendRecs.length > 0 && blendRecs[0].kind === 'stack')) && (
+                {/* STACK DETAIL (Stacks Only) */}
+                {view === 'stack-detail' && stackRec && (
                   <StackDetailScreen
-                    stack={(stackRec || blendRecs[0]) as UIStackRecommendation}
-                    onBack={() => {
-                      // Back logic
-                      if (view === 'results') setView('input');
-                      else setView('presets');
-                    }}
+                    stack={stackRec as UIStackRecommendation}
+                    onBack={() => setView('stack-card')}
                   />
                 )}
 
