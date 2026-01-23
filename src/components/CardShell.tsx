@@ -37,10 +37,10 @@ export function CardShell({
 
             {/* The "Front" Edge Iridescent Light (Top Highlight) */}
             <div
-                className="absolute top-0 left-[10%] right-[10%] h-[1px] opacity-100 z-20"
+                className="absolute top-[1px] left-[15%] right-[15%] h-[2px] opacity-100 z-20"
                 style={{
-                    background: `linear-gradient(90deg, transparent 0%, ${color} 50%, transparent 100%)`,
-                    boxShadow: `0 0 8px ${color}30`
+                    background: `linear-gradient(90deg, transparent 0%, ${color}CC 20%, #ffffff 50%, ${color}CC 80%, transparent 100%)`,
+                    boxShadow: `0 0 12px ${color}40`
                 }}
             />
 
@@ -49,7 +49,7 @@ export function CardShell({
                 className="absolute inset-0 rounded-[inherit] pointer-events-none z-10"
                 style={{
                     border: '1px solid transparent',
-                    background: `linear-gradient(135deg, ${color}20 0%, transparent 40%, transparent 60%, ${color}20 100%) border-box`,
+                    background: `linear-gradient(to bottom, ${color}40 0%, transparent 30%, transparent 70%, ${color}20 100%) border-box`,
                     WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
                     WebkitMaskComposite: 'destination-out',
                     maskComposite: 'exclude',

@@ -37,13 +37,13 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
       </div>
 
       {/* Swipe Deck Area */}
-      <div className="flex-1 w-full relative z-10 min-h-0 overflow-hidden pb-32">
+      <div className="flex-1 w-full relative z-10 min-h-0 overflow-hidden pb-4">
         <SwipeDeck
           items={PRESET_STACKS}
           renderItem={(exemplar, isActive) => (
-            <div className="w-full h-full flex items-center justify-center p-8">
+            <div className="w-full h-full flex items-center justify-center px-6 py-4">
               <CardShell
-                className="w-full max-w-sm aspect-[3/4] text-left cursor-pointer flex flex-col"
+                className="h-full max-h-[min(600px,95%)] aspect-[3/4] w-auto max-w-full text-left cursor-pointer flex flex-col overflow-hidden"
                 color={exemplar.visualProfile.color}
                 onClick={() => {
                   if (!exemplar || typeof exemplar !== 'object') {
@@ -56,23 +56,7 @@ export function PresetStacks({ onBack, onSelect }: { onBack: () => void, onSelec
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                {/* Layer 1: Top-weighted iridescent accent */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-[3px] opacity-90 group-hover:opacity-100 transition-opacity z-20"
-                  style={{
-                    background: `linear-gradient(90deg, 
-                      transparent 0%, 
-                      ${exemplar.visualProfile.color}80 15%, 
-                      ${exemplar.visualProfile.color} 40%, 
-                      #ffffff90 50%, 
-                      ${exemplar.visualProfile.color} 60%, 
-                      ${exemplar.visualProfile.color}80 85%, 
-                      transparent 100%)`,
-                    filter: 'blur(0.5px)'
-                  }}
-                />
-
-                <div className="relative z-10 flex flex-col flex-1 justify-end pt-12">
+                <div className="relative z-10 flex flex-col h-full justify-end pt-8">
                   {/* Title Block */}
                   <div className="mb-4">
                     <h3 className="text-3xl font-light text-white mb-2 leading-tight serif">{exemplar.title}</h3>
