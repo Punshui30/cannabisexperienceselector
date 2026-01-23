@@ -40,10 +40,18 @@ export async function processIntent(
         cultivars?: string[];
         userInput?: string;
         recommendation?: any;
+        onPhaseChange?: (phase: EnginePhase) => void;
     },
     mode: string = 'blend-engine'
 ): Promise<OrchestratorResult> {
+    const updatePhase = (phase: EnginePhase) => {
+        if (context?.onPhaseChange) {
+            context.onPhaseChange(phase);
+        }
+    };
+
     try {
+        updatePhase('intent');
         console.log(`ORCHESTRATOR: Starting Process`);
         console.log(`  Input: "${seed.text}"`);
         console.log(`  Context:`, context?.blendName ? `${context.blendName} (${context.screen})` : "General");
@@ -111,6 +119,7 @@ export async function processIntent(
 
         // GATING: If no mutation required, skip engine entirely
         if (!decision.requires_engine_mutation) {
+            updatePhase('chat');
             console.log('ORCHESTRATOR: Decision indicates NO ENGINE MUTATION. Switching to Conversational Mode.');
 
             // Generate conversational response without engine context
@@ -192,6 +201,7 @@ export async function processIntent(
 
         console.log('ORCHESTRATOR: Anchor Constraints Established', anchorConstraints);
 
+        updatePhase('engine');
         // 2. ENGINE EXECUTION (Generate 3 Options with Diversity)
         const engineIntent = interpretIntentFromSpec(intentSpec);
         console.log('ORCHESTRATOR: Running Engine with Spec...');
@@ -490,6 +500,7 @@ export async function processIntent(
         // DEFENSIVE NORMALIZATION (Prevent Crashes)
         // ---------------------------------------------------------
         console.log('ORCHESTRATOR: Generating Tier-1 Deterministic Narratives...');
+        updatePhase('tier1');
 
         // Helpers are now defined at global scope to avoid duplications
 
@@ -527,6 +538,7 @@ export async function processIntent(
 
         if (!isStack && engineResults.length > 0) {
             console.log('ORCHESTRATOR: Initiating background StrainMath™ Enhancement...');
+            updatePhase('tier2');
 
             try {
                 // Map Tone Mode
@@ -602,6 +614,7 @@ export async function processIntent(
         // 4. HARD VALIDATION (BLENDS ONLY)
         // GUARD: Stacks bypass strict blend validation (which requires >=2 cultivars)
         if (!isStack) {
+            updatePhase('validation');
             const validationError = validateStrict(engineResults);
             if (validationError) {
                 console.error(`ORCHESTRATOR VALIDATION FAILED: ${validationError}`);

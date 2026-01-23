@@ -25,7 +25,7 @@ import { processIntent, OrchestratorResult } from './lib/llmOrchestrator';
 import { adaptEngineResult } from './lib/adaptEngineResult';
 import { SharedBlendService } from './services/SharedBlendService';
 import { BLEND_SCENARIOS, BlendScenario } from './data/presetBlends';
-import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar, EngineResult } from './types/domain';
+import { IntentSeed, UIStackRecommendation, UIBlendRecommendation, OutcomeExemplar, EngineResult, EnginePhase } from './types/domain';
 import logoImg from './assets/logo.png';
 import { generateLiveFeedCommentary } from './lib/llmLiveFeedAdapter';
 import { updateEngineSnapshot } from './lib/engineSnapshot';
@@ -86,6 +86,7 @@ export default function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [consultantText, setConsultantText] = useState<string | undefined>(undefined);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [enginePhase, setEnginePhase] = useState<EnginePhase>('idle');
   const [debugLog, setDebugLog] = useState<string[]>([]);
 
   const addLog = (msg: string) => {
@@ -233,7 +234,7 @@ export default function App() {
 
           setAnalysisProgress(50);
           const result = (await Promise.race([
-            processIntent(userInput),
+            processIntent(userInput, { onPhaseChange: setEnginePhase }),
             timeoutPromise
           ])) as OrchestratorResult;
 
@@ -384,9 +385,10 @@ export default function App() {
                 {view === 'resolving' && userInput && (
                   <ResolvingScreen
                     input={userInput}
-                    recommendation={blendRecs[0] || stackRec as any}
+                    recommendation={blendRecs[0] || (stackRec as any)}
                     consultantText={consultantText}
                     progress={analysisProgress}
+                    phase={enginePhase}
                     onComplete={handleResolvingComplete}
                     onRecalculate={handleRecalculateWithFeedback}
                   />

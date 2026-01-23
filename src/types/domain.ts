@@ -40,6 +40,19 @@ export interface IntentSpec {
 }
 
 /**
+ * 1.7 EnginePhase (Real-time Execution State)
+ * Used to drive visual feedback (EngineCore3D)
+ */
+export type EnginePhase =
+    | "idle"
+    | "intent"
+    | "engine"
+    | "validation"
+    | "tier1"
+    | "tier2"
+    | "chat";
+
+/**
  * Preset Kinds
  */
 export type PresetKind = 'intent' | 'blend' | 'stack';
