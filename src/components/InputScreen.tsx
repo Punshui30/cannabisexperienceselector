@@ -7,6 +7,9 @@ import { PRESET_STACKS } from '../data/presetStacks';
 import { getGlassCardStyles } from '../lib/glassStyles';
 import { CameraModal } from './CameraModal';
 import { startListening } from '../lib/speech';
+
+// Feature gate for vision/camera functionality
+const VISION_ENABLED = false;
 import { CardShell } from './CardShell';
 
 interface InputScreenProps {
@@ -27,7 +30,11 @@ const TAB_ACTIVE = "bg-[#00FFD1] text-black shadow-lg shadow-[#00FFD1]/10";
 const TAB_INACTIVE = "text-white/40 hover:text-white hover:bg-white/5";
 
 export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSelectPreset, onAdminModeToggle, isAdminMode, initialText }: InputScreenProps) {
-  const [mode, setMode] = useState<'describe' | 'product' | 'strain'>('describe');
+  // Available input modes (filtered by feature flags)
+  const AVAILABLE_MODES = ['describe', 'strain', ...(VISION_ENABLED ? ['product'] : [])] as const;
+  type AvailableMode = typeof AVAILABLE_MODES[number];
+
+  const [mode, setMode] = useState<AvailableMode>('describe');
   const [description, setDescription] = useState('');
   const [logoTapCount, setLogoTapCount] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
@@ -244,7 +251,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
             {/* Tabs - Compact UI */}
             <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10 mt-4 max-w-sm w-[90vw] mx-auto">
-              {(['describe', 'product', 'strain'] as const).map((t) => (
+              {AVAILABLE_MODES.map((t) => (
                 <button
                   key={t}
                   onClick={() => setMode(t)}
@@ -490,14 +497,16 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           <span>Generate</span>
         </motion.button>
 
-        <AnimatePresence>
-          {showCamera && (
-            <CameraModal
-              onClose={() => setShowCamera(false)}
-              onCapture={handleCapture}
-            />
-          )}
-        </AnimatePresence>
+        {VISION_ENABLED && (
+          <AnimatePresence>
+            {showCamera && (
+              <CameraModal
+                onClose={() => setShowCamera(false)}
+                onCapture={handleCapture}
+              />
+            )}
+          </AnimatePresence>
+        )}
       </div>
     </>
   );
