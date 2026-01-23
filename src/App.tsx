@@ -16,6 +16,7 @@ import { RemoteAccessPreview } from './components/RemoteAccessPreview';
 import { CheckoutScreen } from './components/CheckoutScreen';
 import { ShareScreen } from './components/ShareScreen';
 import { ResolutionScreen } from './components/ResolutionScreen';
+import { StackCardView } from './components/StackCardView';
 import { StrainLibraryScreen } from './components/StrainLibraryScreen';
 import { LiveConsultant } from './components/LiveConsultant';
 import { AdminPanel } from './components/admin/AdminPanel';
@@ -35,7 +36,7 @@ import { updateEngineSnapshot } from './lib/engineSnapshot';
 import { ScrollStage } from './components/layout/ScrollStage';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'resolution' | 'results' | 'presets' | 'stack-detail' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed' | 'checkout' | 'share';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'resolution' | 'results' | 'presets' | 'stack-detail' | 'stack-card' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed' | 'checkout' | 'share';
 
 export default function App() {
   // Mobile layout contract:
@@ -137,15 +138,15 @@ export default function App() {
       return;
     }
 
-    // 2. STACK PRESET (Direct Flow - No Engine)
-    console.log(`TRANSITION: Stack Preset -> Detail`);
+    // 2. STACK PRESET (Intermediate Card View - No Engine)
+    console.log(`TRANSITION: Stack Preset -> Card View`);
     setUserInput(null);
     setBlendRecs([]);
 
     if (exemplar.kind === 'stack') {
       setStackRec(exemplar.data);
       setBlendRecs([]);
-      setView('stack-detail');
+      setView('stack-card');
     } else {
       // Fallback for static blends if exists
       setBlendRecs([exemplar.data]);
@@ -333,6 +334,17 @@ export default function App() {
     setQRShareOpen(true);
   };
 
+  // Stack card view handlers
+  const handleViewStackDetails = () => {
+    console.log('[App] Stack Card: View Details');
+    setView('stack-detail');
+  };
+
+  const handleStackCardBack = () => {
+    console.log('[App] Stack Card: Go Back');
+    setView('input');
+  };
+
   const [calcTarget, setCalcTarget] = useState<UIBlendRecommendation | UIStackRecommendation | null>(null);
 
   const handleCalculate = (rec: any) => {
@@ -491,6 +503,15 @@ export default function App() {
                 {/* REMOTE ACCESS PREVIEW (Customer Demo) */}
                 {view === 'remote-access' && (
                   <RemoteAccessPreview />
+                )}
+
+                {/* STACK CARD VIEW (Intermediate Stack Preview) */}
+                {view === 'stack-card' && stackRec && (
+                  <StackCardView
+                    stack={stackRec}
+                    onBack={handleStackCardBack}
+                    onViewDetails={handleViewStackDetails}
+                  />
                 )}
 
                 {/* STACK DETAIL (Stacks Only) - Prompt D */}
