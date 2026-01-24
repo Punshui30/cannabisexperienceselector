@@ -85,7 +85,7 @@ export default function App() {
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showConsultant, setShowConsultant] = useState(false);
-  const [consultantMode, setConsultantMode] = useState<'default' | 'accuracy_boost'>('default');
+  const [consultantMode, setConsultantMode] = useState<'default' | 'accuracy_enhancement' | 'clarification_required'>('default');
 
   // Input State
   const [userInput, setUserInput] = useState<IntentSeed | null>(null);
@@ -137,7 +137,7 @@ export default function App() {
     if (input.improveAccuracy) {
       console.log('INTERCEPT: Improve Accuracy Triggered -> Opening Assistant');
       setUserInput(input); // Store input but don't start engine
-      setConsultantMode('accuracy_boost'); // New State
+      setConsultantMode('accuracy_enhancement'); // Explicit Mode B
       setShowConsultant(true);
       return;
     }
@@ -323,7 +323,12 @@ export default function App() {
             if (result.decision?.requires_clarification && !userInput?.clarificationData) {
               addLog('Accuracy Safeguard Triggered: Awaiting Calibration');
               setIsAnalyzing(false);
-              setView('clarification-gate');
+
+              const clarificationReason = result.analysis?.reasoning || "I need a bit more detail to be precise.";
+              setConsultantText(clarificationReason);
+              setConsultantMode('clarification_required');
+              setShowConsultant(true);
+
               clearInterval(heartbeat);
               clearInterval(progressInterval);
               return;
@@ -790,9 +795,9 @@ export default function App() {
                     context={createInvocationContext()}
                     mode={consultantMode} // Pass mode
                     onApplyResult={(result: any) => {
-                      // SPECIAL PATH: ACCURACY BOOST SUBMISSION
-                      if (consultantMode === 'accuracy_boost') {
-                        console.log('[ACCURACY_BOOST] Received Calibration Payload:', result);
+                      // SPECIAL PATH: MODE-DRIVEN CALIBRATION (Accuracy or Clarification)
+                      if (consultantMode === 'accuracy_enhancement' || consultantMode === 'clarification_required') {
+                        console.log(`[${consultantMode}] Received Calibration Payload:`, result);
 
                         // 1. Merge Calibration Data into UserInput
                         // We rely on setUserInput having set the seed in handleSubmit
@@ -805,9 +810,10 @@ export default function App() {
                           // 2. Close Assistant
                           setShowConsultant(false);
                           setConsultantMode('default');
+                          setConsultantText(undefined); // Reset text
 
                           // 3. Start Engine (Standard Flow)
-                          console.log('TRANSITION: Accuracy Boost -> Resolving (Engine Start)');
+                          console.log('TRANSITION: Calibration -> Resolving (Engine Start)');
                           setStackRec(null);
                           setBlendRecs([]);
                           setHasNavigatedToResult(false);
@@ -819,7 +825,7 @@ export default function App() {
                         return;
                       }
 
-                      // STANDARD PATH: REFACTOR/EDIT
+                      // STANDARD PATH: REFACTOR/EDIT (Chat Mode)
                       addLog("Assistant: Reconfiguring Engine...");
                       const adaptedSet = Array.isArray(result) ? result
                         .map(r => adaptEngineResult(r, userInput?.text))
@@ -844,16 +850,24 @@ export default function App() {
                     }}
                     onClose={() => {
                       setShowConsultant(false);
-                      // If canceled during accuracy boost, do not proceed?
-                      // Or proceed without boost? "If user abandons... Proceed with default behavior"
-                      if (consultantMode === 'accuracy_boost') {
+                      // HANDLING ABANDONMENT
+                      // If user cancels during calibration, we proceed with "best effort" using current inputs
+                      // This prevents getting stuck in "Analyzing" state if they close the modal
+                      if (consultantMode === 'accuracy_enhancement' || consultantMode === 'clarification_required') {
                         setConsultantMode('default');
-                        // Trigger default generation if we have pending input
+                        setConsultantText(undefined);
+
+                        // Trigger default generation if we have pending input and aren't already running
                         if (userInput && !isAnalyzing) {
-                          console.log('[ACCURACY_BOOST] Abandoned -> Proceeding with Default Flow');
+                          console.log(`[${consultantMode}] Abandoned -> Proceeding with Default Flow`);
                           setStackRec(null);
                           setBlendRecs([]);
                           setHasNavigatedToResult(false);
+
+                          // Tag as skipped to avoid re-trigger loops
+                          const skippedInput = { ...userInput, clarificationData: { directionalIssue: 'None', stabilityContext: 'Skipped' } };
+                          setUserInput(skippedInput);
+
                           setIsAnalyzing(true);
                           setAnalysisProgress(20);
                           setView('resolving');

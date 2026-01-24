@@ -20,7 +20,7 @@ export interface BlendResolutionEvent {
     confidenceScore: number;
 
     // Components
-    componentSkus: string[]; // List of Cultivar Names/IDs
+    components: { name: string, ratio: number }[]; // Structured data with ratios
 
     // Abstracted Outcome Vector (Simplified for V1)
     outcomeCategory: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other';

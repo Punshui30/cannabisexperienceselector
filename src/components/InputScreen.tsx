@@ -363,10 +363,23 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                         <Mic size={14} />
                       </button>
                     </div>
+
+                    {/* IMPROVE ACCURACY TOGGLE (Inside Input) */}
+                    <div className="absolute bottom-3 left-4 z-20">
+                      <button
+                        onClick={() => setImproveAccuracy(!improveAccuracy)}
+                        className={`flex items-center gap-2 text-[10px] uppercase tracking-widest transition-colors ${improveAccuracy ? "text-[#00FFD1]" : "text-white/40 hover:text-white/60"}`}
+                      >
+                        <div className={`w-3 h-3 rounded-full border transition-colors ${improveAccuracy ? "bg-[#00FFD1] border-[#00FFD1]" : "border-white/40"}`} />
+                        Improve Accuracy
+                      </button>
+                    </div>
                   </div>
                 )}
               </motion.div>
             </AnimatePresence>
+
+
 
             {/* CURATED DISCOVERY SECTION */}
             <div className="space-y-6">
@@ -472,16 +485,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                   ))}
                 </div>
               </div>
-              {/* OPTION TOGGLES */}
-              <div className="flex items-center gap-4 px-6 pb-2">
-                <button
-                  onClick={() => setImproveAccuracy(!improveAccuracy)}
-                  className={`flex items-center gap-2 text-[10px] uppercase tracking-widest transition-colors ${improveAccuracy ? "text-[#00FFD1]" : "text-white/40 hover:text-white/60"}`}
-                >
-                  <div className={`w-3 h-3 rounded-full border transition-colors ${improveAccuracy ? "bg-[#00FFD1] border-[#00FFD1]" : "border-white/40"}`} />
-                  Improve Accuracy
-                </button>
-              </div>
+
 
               <div ref={bottomRef} className="h-px w-full" />
             </div>

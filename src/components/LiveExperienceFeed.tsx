@@ -194,15 +194,17 @@ export function LiveExperienceFeed({ onBack }: LiveExperienceFeedProps) {
                                                 </h4>
 
                                                 <div className="flex flex-wrap gap-1.5 mb-3">
-                                                    {event.componentSkus.map((sku, i) => {
-                                                        const visuals = resolveCultivarVisuals(sku);
+                                                    {/* Compatibility for V1/V2 Event Structures */}
+                                                    {(event.components || (event as any).componentSkus?.map((s: string) => ({ name: s, ratio: 0 })) || []).map((comp, i) => {
+                                                        const visuals = resolveCultivarVisuals(comp.name);
                                                         return (
                                                             <span key={i} className="flex items-center gap-1.5 text-[9px] text-white/80 bg-white/5 px-2 py-1 rounded border border-white/10">
                                                                 <div
                                                                     className="w-1.5 h-1.5 rounded-full"
                                                                     style={{ backgroundColor: visuals.primaryColor }}
                                                                 />
-                                                                {sku}
+                                                                {comp.name}
+                                                                {comp.ratio > 0 && <span className="opacity-50 ml-0.5">{Math.round(comp.ratio * 100)}%</span>}
                                                             </span>
                                                         );
                                                     })}

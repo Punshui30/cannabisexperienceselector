@@ -27,7 +27,7 @@ interface AccuracyState {
     detail: string;
 }
 
-export function LiveConsultant({ consultantText, context, onApplyResult, onClose, isGenerating = false, mode = 'default' }: LiveConsultantProps & { mode?: 'default' | 'accuracy_boost' }) {
+export function LiveConsultant({ consultantText, context, onApplyResult, onClose, isGenerating = false, mode = 'default' }: LiveConsultantProps & { mode?: 'default' | 'accuracy_enhancement' | 'clarification_required' }) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +51,17 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
 
     // Initial Greeting (Context-Aware)
     useEffect(() => {
-        if (mode === 'accuracy_boost') {
+        // MODE 1: CLARIFICATION REQUIRED (Engine-Triggered Ambiguity)
+        if (mode === 'clarification_required') {
+            setMessages([{
+                role: 'assistant',
+                content: consultantText || "I need a bit more clarity to resolve that consistently. Could you be more specific?"
+            }]);
+            return;
+        }
+
+        // MODE 2: ACCURACY ENHANCEMENT (User-Triggered Optimization)
+        if (mode === 'accuracy_enhancement') {
             setMessages([{
                 role: 'assistant',
                 content: "Let's dial this in. To get it strictly right, I need to know: what's usually \"not hitting\" for you?"
@@ -59,6 +69,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
             return;
         }
 
+        // MODE 3: DEFAULT (Chat Assistant)
         // Log context binding for debugging
         if (context) {
             console.log(`[ASSISTANT_CONTEXT_BOUND] view=${context.viewType} entity=${context.activeEntityType || 'none'} id=${context.activeEntityId || 'none'} mode=${context.mode}`);
@@ -67,7 +78,6 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         let intro = consultantText;
         if (!intro) {
             switch (context?.viewType) {
-                // ... (Existing switch cases preserved) ...
                 case 'results':
                     intro = context.activeEntityType === 'stack'
                         ? "Viewing stack results. I can modify layers, add phases, or adjust timing."
@@ -149,7 +159,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     const submitAccuracy = (finalDetail: string) => {
         const payload = {
             directionalIssue: accuracyState.issue,
-            stabilityContext: accuracyState.sensitivity, // mapping naming for consistency
+            stabilityContext: accuracyState.sensitivity,
             targetGoal: accuracyState.goal,
             additionalDetail: finalDetail
         };
@@ -166,6 +176,27 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         }
     };
 
+    // --- CLARIFICATION LOGIC ---
+    const submitClarification = (clarification: string) => {
+        // Simple payload for clarification: Issue resolved by text
+        const payload = {
+            directionalIssue: 'Clarified', // Internal signal
+            stabilityContext: 'None',
+            targetGoal: 'None',
+            additionalDetail: clarification
+        };
+
+        setMessages(prev => [...prev, { role: 'user', content: clarification }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: "Understood. Adjusting search..." }]);
+
+        setHasCommitted(true);
+        setIsRefactorComplete(true);
+
+        if (onApplyResult) {
+            onApplyResult(payload);
+        }
+    };
+
     const handleSendMessage = async () => {
         if (hasCommitted) return;
         if (isGenerating || isRefactorComplete || !inputValue.trim() || isLoading) return;
@@ -173,15 +204,21 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         const userMessage = inputValue.trim();
         setInputValue('');
 
-        // ACCURACY MODE OVERRIDE
-        if (mode === 'accuracy_boost') {
+        // MODE: ACCURACY ENHANCEMENT
+        if (mode === 'accuracy_enhancement') {
             if (accuracyState.step === 3) {
                 submitAccuracy(userMessage);
             }
             return;
         }
 
-        // --- STANDARD CHAT LOGIC ---
+        // MODE: CLARIFICATION REQUIRED
+        if (mode === 'clarification_required') {
+            submitClarification(userMessage);
+            return;
+        }
+
+        // MODE: DEFAULT (Standard Chat Logic)
         const newUserMessage: Message = { role: 'user', content: `> ${userMessage}` };
         const updatedHistory = [...messages, newUserMessage];
 
@@ -259,9 +296,9 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                 {/* SYSTEM HEADER */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
                     <div className="flex items-center gap-2 text-[#00FFD1]">
-                        {mode === 'accuracy_boost' ? <Brain size={14} /> : <Sparkles size={14} />}
+                        {mode === 'accuracy_enhancement' ? <Brain size={14} /> : <Sparkles size={14} />}
                         <span className="text-[10px] font-bold tracking-widest uppercase">
-                            {mode === 'accuracy_boost' ? "Calibration Mode" : "StrainMath Assistant"}
+                            {mode === 'accuracy_enhancement' ? "Calibration Mode" : (mode === 'clarification_required' ? "Clarification Required" : "StrainMath Assistant")}
                         </span>
                     </div>
                     <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
@@ -283,7 +320,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                     ))}
 
                     {/* ACCURACY OPTIONS RENDERING */}
-                    {mode === 'accuracy_boost' && !hasCommitted && (
+                    {mode === 'accuracy_enhancement' && !hasCommitted && (
                         <div className="flex flex-col items-end gap-2 mt-2">
                             {accuracyState.step === 0 && (
                                 <div className="flex flex-wrap justify-end gap-2">
@@ -315,6 +352,9 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                         </div>
                     )}
 
+                    {/* CLARIFICATION MODE RENDERING (Optional Prompt Chips? Prompt says 'must reference user phrasing' - done in init) */}
+                    {/* Just text response for now */}
+
                     {isLoading && (
                         <div className="text-white/40 animate-pulse">
                             Processing...
@@ -333,8 +373,8 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 className="w-full bg-white/5 border border-white/10 rounded-full pl-4 pr-10 py-2 text-white text-xs focus:outline-none focus:border-[#00FFD1]/50 placeholder-white/20"
-                                placeholder={mode === 'accuracy_boost' && accuracyState.step < 3 ? "Select an option above..." : (isLoading ? "Processing..." : "Enter command...")}
-                                disabled={isLoading || isRefactorComplete || (mode === 'accuracy_boost' && accuracyState.step < 3)}
+                                placeholder={mode === 'accuracy_enhancement' && accuracyState.step < 3 ? "Select an option above..." : (isLoading ? "Processing..." : "Enter response...")}
+                                disabled={isLoading || isRefactorComplete || (mode === 'accuracy_enhancement' && accuracyState.step < 3)}
                                 autoFocus
                             />
                             <button

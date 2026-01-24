@@ -35,33 +35,13 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
     const [shuffledCopy, setShuffledCopy] = useState<string[]>([]);
     const [index, setIndex] = useState(0);
 
-    // Initialize randomized set on mount
+    // Initialize randomized text on mount (Static per session)
     useEffect(() => {
-        setShuffledCopy(shuffleArray(INFO_COPY));
+        setShuffledCopy([INFO_COPY[Math.floor(Math.random() * INFO_COPY.length)]]);
     }, []);
 
-    // Info copy rotation with randomized interval
-    useEffect(() => {
-        if (shuffledCopy.length === 0) return;
-
-        let timeoutId: ReturnType<typeof setTimeout>;
-
-        const rotate = () => {
-            setIndex((prev) => (prev + 1) % shuffledCopy.length);
-
-            // Random interval between 2.5 and 3.5 seconds
-            const nextInterval = 2500 + Math.random() * 1000;
-            timeoutId = setTimeout(rotate, nextInterval);
-        };
-
-        const initialInterval = 2500 + Math.random() * 1000;
-        timeoutId = setTimeout(rotate, initialInterval);
-
-        return () => clearTimeout(timeoutId);
-    }, [shuffledCopy]);
-
     // Fallback display logic
-    const currentText = shuffledCopy[index] || INFO_COPY[6];
+    const currentText = shuffledCopy[0] || INFO_COPY[0];
 
     return (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-white overflow-hidden bg-black/60 backdrop-blur-sm">
