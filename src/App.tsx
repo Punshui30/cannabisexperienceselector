@@ -33,6 +33,7 @@ import { LiveConsultant } from './components/LiveConsultant';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { LiveExperienceFeed } from './components/LiveExperienceFeed';
 import { LiveNetworkDrawer } from './components/LiveNetworkDrawer';
+import { CinematicBackground } from './components/CinematicBackground';
 import { Intelligence } from './lib/merchantIntelligence';
 import { GlobalCultivarProvider } from './context/GlobalCultivarContext';
 import { Brain, Sparkles, ArrowLeft } from 'lucide-react';
@@ -106,6 +107,7 @@ export default function App() {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [enginePhase, setEnginePhase] = useState<EnginePhase>('idle');
   const [debugLog, setDebugLog] = useState<string[]>([]);
+  const [isResolved, setIsResolved] = useState(false);
 
   // Single-shot result handoff guard
   const [hasNavigatedToResult, setHasNavigatedToResult] = useState(false);
@@ -325,6 +327,8 @@ export default function App() {
 
               setAnalysisProgress(100);
               setIsAnalyzing(false);
+              setIsResolved(true);
+              setTimeout(() => setIsResolved(false), 500);
               // handleResolvingComplete will be called by V3SignalInterface when phase === 'chat'
               // It will check for results and route appropriately
             } else {
@@ -523,11 +527,7 @@ export default function App() {
       {/* STRICT APP SHELL ROOT: h-[100dvh], overflow-hidden */}
       <div className="dark h-[100dvh] bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
 
-        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[0%] left-[-20%] w-[100%] h-[70%] bg-[#7C3AED]/40 rounded-full blur-[140px] animate-pulse-slow" />
-          <div className="absolute bottom-[0%] right-[-20%] w-[100%] h-[70%] bg-[#059669]/40 rounded-full blur-[140px] animate-pulse-slow delay-700" />
-          <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
-        </div>
+        <CinematicBackground isAnalyzing={isAnalyzing} isResolved={isResolved} />
 
         {/* SCROLL STAGE - The Single Scroll Authority */}
         <ScrollStage>
