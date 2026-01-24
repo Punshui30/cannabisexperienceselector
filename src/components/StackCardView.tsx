@@ -37,7 +37,7 @@ export function StackCardView({ stack, onBack, onViewDetails, setActiveStackId }
   const themeColor = '#8B5CF6'; // Default violet for stacks
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="relative flex flex-col pt-4">
       {/* Header Wrapper (NO overflow hidden to prevent clipping) */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
