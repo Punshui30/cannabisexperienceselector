@@ -39,6 +39,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   const [logoTapCount, setLogoTapCount] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
   const [showCamera, setShowCamera] = useState(false);
+  const [improveAccuracy, setImproveAccuracy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -99,7 +100,8 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           : "Product Image Input",
       image: mode === 'product' && uploadedImage ? URL.createObjectURL(uploadedImage) : undefined,
       strainName: mode === 'strain' ? strainName : undefined,
-      grower: mode === 'strain' ? growerName : undefined
+      grower: mode === 'strain' ? growerName : undefined,
+      improveAccuracy // Pass flag
     };
 
     onSubmit(input);
@@ -470,43 +472,54 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                   ))}
                 </div>
               </div>
+              {/* OPTION TOGGLES */}
+              <div className="flex items-center gap-4 px-6 pb-2">
+                <button
+                  onClick={() => setImproveAccuracy(!improveAccuracy)}
+                  className={`flex items-center gap-2 text-[10px] uppercase tracking-widest transition-colors ${improveAccuracy ? "text-[#00FFD1]" : "text-white/40 hover:text-white/60"}`}
+                >
+                  <div className={`w-3 h-3 rounded-full border transition-colors ${improveAccuracy ? "bg-[#00FFD1] border-[#00FFD1]" : "border-white/40"}`} />
+                  Improve Accuracy
+                </button>
+              </div>
+
+              <div ref={bottomRef} className="h-px w-full" />
             </div>
-            <div ref={bottomRef} className="h-px w-full" />
           </div>
+
+          {/* FLOATING ACTION BUTTON - Always Visible (Bottom Right) */}
+          <motion.button
+            initial={false}
+            animate={{
+              scale: canSubmit() ? 1 : 0,
+              opacity: canSubmit() ? 1 : 0,
+              pointerEvents: canSubmit() ? 'auto' : 'none' as any
+            }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            onClick={handleSubmit}
+            disabled={!canSubmit()}
+            className="fixed bottom-6 right-6 z-50 px-6 py-4 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black shadow-[0_0_30px_rgba(0,255,209,0.4)] flex items-center gap-2 font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-transform"
+            style={{
+              boxShadow: '0 8px 32px rgba(0, 255, 209, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+            <span>Generate</span>
+          </motion.button>
+
+          {VISION_ENABLED && (
+            <AnimatePresence>
+              {showCamera && (
+                <CameraModal
+                  onClose={() => setShowCamera(false)}
+                  onCapture={handleCapture}
+                />
+              )}
+            </AnimatePresence>
+          )}
         </div>
-
-        {/* FLOATING ACTION BUTTON - Always Visible (Bottom Right) */}
-        <motion.button
-          initial={false}
-          animate={{
-            scale: canSubmit() ? 1 : 0,
-            opacity: canSubmit() ? 1 : 0,
-            pointerEvents: canSubmit() ? 'auto' : 'none' as any
-          }}
-          transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          onClick={handleSubmit}
-          disabled={!canSubmit()}
-          className="fixed bottom-6 right-6 z-50 px-6 py-4 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black shadow-[0_0_30px_rgba(0,255,209,0.4)] flex items-center gap-2 font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-transform"
-          style={{
-            boxShadow: '0 8px 32px rgba(0, 255, 209, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-          <span>Generate</span>
-        </motion.button>
-
-        {VISION_ENABLED && (
-          <AnimatePresence>
-            {showCamera && (
-              <CameraModal
-                onClose={() => setShowCamera(false)}
-                onCapture={handleCapture}
-              />
-            )}
-          </AnimatePresence>
-        )}
       </div>
     </>
   );

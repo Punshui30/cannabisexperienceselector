@@ -55,11 +55,23 @@ STRICT NAMING PROTOCOL:
    - EXAMPLES: "Easygoing Focus", "Chill but Clear", "Social, Not Spaced", "Relaxed with a Backbone", "Calm, Still Alert".
    - LENGTH: 2-4 words max. Title Case.
 
+   **CRITICAL CONTEXT RULE:**
+   - IF the user mentions a specific strain (e.g., "Bubba Kush") OR a specific problem (e.g., "not hitting"):
+     - You MUST name it as a **custom reinterpretation**.
+     - FORMAT: "[Strain] Dialed In", "[Strain] (Reliable)", "Better [Strain]", "The [Strain] Fix".
+     - IGNORE generic examples. Use the USER'S CONTEXT.
+
 STRICT NARRATIVE PROTOCOL:
 2. "narrative": Write exactly 2 sentences in plain, human language.
    - Tone: Grounded, clear, and reassuring.
    - Explain *how it feels*, not the science behind it.
    - Avoid "synergy", "mechanisms", "modulates". Say "mixes", "feels like", "helps you".
+
+   **CRITICAL CONTEXT RULE:**
+   - IF the user mentions a specific strain or issue:
+     - You MUST explicitly reference it.
+     - Example: "This is built to keep what you like about Bubba Kush, but smooth out the times it doesn’t quite hit the same."
+     - DO NOT write generic lifestyle copy if specific context exists.
 
 FORMAT: JSON { "newName": "...", "narrative": "..." }`;
 

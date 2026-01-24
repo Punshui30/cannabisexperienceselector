@@ -85,6 +85,7 @@ export default function App() {
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showConsultant, setShowConsultant] = useState(false);
+  const [consultantMode, setConsultantMode] = useState<'default' | 'accuracy_boost'>('default');
 
   // Input State
   const [userInput, setUserInput] = useState<IntentSeed | null>(null);
@@ -132,6 +133,15 @@ export default function App() {
   };
 
   const handleSubmit = (input: IntentSeed) => {
+    // 0. IMPROVE ACCURACY INTERCEPTION
+    if (input.improveAccuracy) {
+      console.log('INTERCEPT: Improve Accuracy Triggered -> Opening Assistant');
+      setUserInput(input); // Store input but don't start engine
+      setConsultantMode('accuracy_boost'); // New State
+      setShowConsultant(true);
+      return;
+    }
+
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
     setStackRec(null);
     setBlendRecs([]); // Clear previous
@@ -778,11 +788,42 @@ export default function App() {
                   <LiveConsultant
                     consultantText={consultantText}
                     context={createInvocationContext()}
-                    onApplyResult={(newResults: any[]) => {
+                    mode={consultantMode} // Pass mode
+                    onApplyResult={(result: any) => {
+                      // SPECIAL PATH: ACCURACY BOOST SUBMISSION
+                      if (consultantMode === 'accuracy_boost') {
+                        console.log('[ACCURACY_BOOST] Received Calibration Payload:', result);
+
+                        // 1. Merge Calibration Data into UserInput
+                        // We rely on setUserInput having set the seed in handleSubmit
+                        if (userInput) {
+                          const enhancedInput: IntentSeed = {
+                            ...userInput,
+                            clarificationData: result // Inject structured calibration
+                          };
+
+                          // 2. Close Assistant
+                          setShowConsultant(false);
+                          setConsultantMode('default');
+
+                          // 3. Start Engine (Standard Flow)
+                          console.log('TRANSITION: Accuracy Boost -> Resolving (Engine Start)');
+                          setStackRec(null);
+                          setBlendRecs([]);
+                          setHasNavigatedToResult(false);
+                          setUserInput(enhancedInput);
+                          setIsAnalyzing(true);
+                          setAnalysisProgress(20);
+                          setView('resolving');
+                        }
+                        return;
+                      }
+
+                      // STANDARD PATH: REFACTOR/EDIT
                       addLog("Assistant: Reconfiguring Engine...");
-                      const adaptedSet = newResults
+                      const adaptedSet = Array.isArray(result) ? result
                         .map(r => adaptEngineResult(r, userInput?.text))
-                        .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
+                        .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[] : [];
 
                       if (adaptedSet.length > 0) {
                         const firstRec = adaptedSet[0];
@@ -801,7 +842,24 @@ export default function App() {
                         setShowConsultant(false);
                       }
                     }}
-                    onClose={() => setShowConsultant(false)}
+                    onClose={() => {
+                      setShowConsultant(false);
+                      // If canceled during accuracy boost, do not proceed?
+                      // Or proceed without boost? "If user abandons... Proceed with default behavior"
+                      if (consultantMode === 'accuracy_boost') {
+                        setConsultantMode('default');
+                        // Trigger default generation if we have pending input
+                        if (userInput && !isAnalyzing) {
+                          console.log('[ACCURACY_BOOST] Abandoned -> Proceeding with Default Flow');
+                          setStackRec(null);
+                          setBlendRecs([]);
+                          setHasNavigatedToResult(false);
+                          setIsAnalyzing(true);
+                          setAnalysisProgress(20);
+                          setView('resolving');
+                        }
+                      }
+                    }}
                     isGenerating={isAnalyzing}
                   />
                 </div>

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ChevronRight, AlertCircle, RefreshCcw, Shield } from 'lucide-react';
 
 interface ClarificationGateProps {
+    inputText?: string; // Add input text for context awareness
     onComplete: (data: {
         directionalIssue: string;
         stabilityContext: string;
@@ -27,12 +28,23 @@ const Q2_OPTIONS = [
     "Not sure"
 ];
 
-export function ClarificationGate({ onComplete, onSkip }: ClarificationGateProps) {
+export function ClarificationGate({ inputText = '', onComplete, onSkip }: ClarificationGateProps) {
     const [q1Action, setQ1Action] = useState<string | null>(null);
     const [q2Action, setQ2Action] = useState<string | null>(null);
     const [detail, setDetail] = useState('');
 
     const isComplete = !!(q1Action && q2Action);
+
+    // Context-Aware Header Logic
+    const isNotHitting = /not hitting|ain.?t hitting|don.?t be hitting/i.test(inputText);
+    const headline = isNotHitting
+        ? "When it's 'not hitting', what's not hitting about it?"
+        : "Calibration Required";
+
+    // Optional subtext adjustment
+    const subtext = isNotHitting
+        ? "Help us calibrate to your specific tolerance."
+        : "\"We need one more signal to avoid guessing and improve accuracy.\"";
 
     const handleSubmit = () => {
         if (!isComplete) return;
@@ -56,11 +68,11 @@ export function ClarificationGate({ onComplete, onSkip }: ClarificationGateProps
                         <Shield size={12} />
                         Accuracy Safeguard
                     </div>
-                    <h2 className="text-2xl font-light tracking-tight text-white/90 uppercase font-sans">
-                        Calibration Required
+                    <h2 className="text-xl sm:text-2xl font-light tracking-tight text-white/90 uppercase font-sans">
+                        {headline}
                     </h2>
                     <p className="text-sm text-white/50 leading-relaxed font-light font-sans italic">
-                        "We need one more signal to avoid guessing and improve accuracy."
+                        {subtext}
                     </p>
                 </div>
 
@@ -77,8 +89,8 @@ export function ClarificationGate({ onComplete, onSkip }: ClarificationGateProps
                                     key={opt}
                                     onClick={() => setQ1Action(opt)}
                                     className={`px-4 py-2 rounded-full border text-[11px] transition-all duration-300 font-sans tracking-wide ${q1Action === opt
-                                            ? "border-[#00FFD1] bg-[#00FFD1]/10 text-white shadow-[0_0_15px_rgba(0,255,209,0.2)]"
-                                            : "border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white"
+                                        ? "border-[#00FFD1] bg-[#00FFD1]/10 text-white shadow-[0_0_15px_rgba(0,255,209,0.2)]"
+                                        : "border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white"
                                         }`}
                                 >
                                     {opt}
@@ -99,8 +111,8 @@ export function ClarificationGate({ onComplete, onSkip }: ClarificationGateProps
                                     key={opt}
                                     onClick={() => setQ2Action(opt)}
                                     className={`px-4 py-2 rounded-full border text-[11px] transition-all duration-300 font-sans tracking-wide ${q2Action === opt
-                                            ? "border-[#ffaa00] bg-[#ffaa00]/10 text-white shadow-[0_0_15px_rgba(255,170,0,0.2)]"
-                                            : "border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white"
+                                        ? "border-[#ffaa00] bg-[#ffaa00]/10 text-white shadow-[0_0_15px_rgba(255,170,0,0.2)]"
+                                        : "border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white"
                                         }`}
                                 >
                                     {opt}
@@ -136,8 +148,8 @@ export function ClarificationGate({ onComplete, onSkip }: ClarificationGateProps
                         onClick={handleSubmit}
                         disabled={!isComplete}
                         className={`group relative flex items-center gap-3 px-8 py-4 rounded-full font-mono text-xs tracking-widest uppercase transition-all duration-500 ${isComplete
-                                ? "bg-white text-black hover:scale-105"
-                                : "bg-white/5 text-white/10 cursor-not-allowed border border-white/5"
+                            ? "bg-white text-black hover:scale-105"
+                            : "bg-white/5 text-white/10 cursor-not-allowed border border-white/5"
                             }`}
                     >
                         Resume Resolution

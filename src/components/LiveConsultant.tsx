@@ -19,7 +19,15 @@ interface Message {
     content: string;
 }
 
-export function LiveConsultant({ consultantText, context, onApplyResult, onClose, isGenerating = false }: LiveConsultantProps) {
+interface AccuracyState {
+    step: number;
+    issue: string;
+    sensitivity: string;
+    goal: string;
+    detail: string;
+}
+
+export function LiveConsultant({ consultantText, context, onApplyResult, onClose, isGenerating = false, mode = 'default' }: LiveConsultantProps & { mode?: 'default' | 'accuracy_boost' }) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -28,12 +36,29 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     const [isListening, setIsListening] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Accuracy Mode State
+    const [accuracyState, setAccuracyState] = useState<AccuracyState>({
+        step: 0,
+        issue: '',
+        sensitivity: '',
+        goal: '',
+        detail: ''
+    });
+
     const handleMicClick = () => {
         startListening(t => setInputValue(prev => prev ? `${prev} ${t}` : t), setIsListening);
     };
 
     // Initial Greeting (Context-Aware)
     useEffect(() => {
+        if (mode === 'accuracy_boost') {
+            setMessages([{
+                role: 'assistant',
+                content: "Let's dial this in. To get it strictly right, I need to know: what's usually \"not hitting\" for you?"
+            }]);
+            return;
+        }
+
         // Log context binding for debugging
         if (context) {
             console.log(`[ASSISTANT_CONTEXT_BOUND] view=${context.viewType} entity=${context.activeEntityType || 'none'} id=${context.activeEntityId || 'none'} mode=${context.mode}`);
@@ -42,6 +67,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         let intro = consultantText;
         if (!intro) {
             switch (context?.viewType) {
+                // ... (Existing switch cases preserved) ...
                 case 'results':
                     intro = context.activeEntityType === 'stack'
                         ? "Viewing stack results. I can modify layers, add phases, or adjust timing."
@@ -76,12 +102,12 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
             }
         }
         setMessages([{ role: 'assistant', content: intro }]);
-    }, [context?.activeEntityId, context?.viewType, consultantText]);
+    }, [context?.activeEntityId, context?.viewType, consultantText, mode]);
 
     // Auto-scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isLoading]);
+    }, [messages, isLoading, accuracyState.step]);
 
     // TRANSACTIONAL EXIT: Auto-close after success
     useEffect(() => {
@@ -93,14 +119,69 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         }
     }, [isRefactorComplete, onClose]);
 
+    // --- ACCURACY LOGIC ---
+    const handleAccuracyResponse = (value: string) => {
+        const nextState = { ...accuracyState };
+        let nextMessage = "";
+
+        if (accuracyState.step === 0) {
+            nextState.issue = value;
+            nextState.step = 1;
+            nextMessage = "Got it. How's your sensitivity lately? (Tolerance level)";
+        } else if (accuracyState.step === 1) {
+            nextState.sensitivity = value;
+            nextState.step = 2;
+            nextMessage = "Understood. Ideally, what are we aiming for right now?";
+        } else if (accuracyState.step === 2) {
+            nextState.goal = value;
+            nextState.step = 3;
+            nextMessage = "Last thing: Anything else specific that helps get this right? (Or just send to finish)";
+        }
+
+        setAccuracyState(nextState);
+        setMessages(prev => [
+            ...prev,
+            { role: 'user', content: value },
+            { role: 'assistant', content: nextMessage }
+        ]);
+    };
+
+    const submitAccuracy = (finalDetail: string) => {
+        const payload = {
+            directionalIssue: accuracyState.issue,
+            stabilityContext: accuracyState.sensitivity, // mapping naming for consistency
+            targetGoal: accuracyState.goal,
+            additionalDetail: finalDetail
+        };
+
+        // Final message
+        setMessages(prev => [...prev, { role: 'user', content: finalDetail || "Detailed enough." }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: "Calibrating engine with strict constraints..." }]);
+
+        setHasCommitted(true);
+        setIsRefactorComplete(true);
+
+        if (onApplyResult) {
+            onApplyResult(payload);
+        }
+    };
+
     const handleSendMessage = async () => {
-        if (hasCommitted) return; // Prevent re-entry after commit
+        if (hasCommitted) return;
         if (isGenerating || isRefactorComplete || !inputValue.trim() || isLoading) return;
 
         const userMessage = inputValue.trim();
-        setInputValue(''); // Hide input immediately
+        setInputValue('');
 
-        // Log user command
+        // ACCURACY MODE OVERRIDE
+        if (mode === 'accuracy_boost') {
+            if (accuracyState.step === 3) {
+                submitAccuracy(userMessage);
+            }
+            return;
+        }
+
+        // --- STANDARD CHAT LOGIC ---
         const newUserMessage: Message = { role: 'user', content: `> ${userMessage}` };
         const updatedHistory = [...messages, newUserMessage];
 
@@ -124,8 +205,8 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
 
                 // 3. Trigger Engine with full context
                 const result = await triggerRefactor(query, {
-                  ...context,
-                  mode: context?.activeEntityType === 'stack' ? 'stack-mutation' : 'blend-engine'
+                    ...context,
+                    mode: context?.activeEntityType === 'stack' ? 'stack-mutation' : 'blend-engine'
                 });
 
                 if (result.success) {
@@ -178,8 +259,10 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                 {/* SYSTEM HEADER */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
                     <div className="flex items-center gap-2 text-[#00FFD1]">
-                        <Sparkles size={14} />
-                        <span className="text-[10px] font-bold tracking-widest uppercase">StrainMath Assistant</span>
+                        {mode === 'accuracy_boost' ? <Brain size={14} /> : <Sparkles size={14} />}
+                        <span className="text-[10px] font-bold tracking-widest uppercase">
+                            {mode === 'accuracy_boost' ? "Calibration Mode" : "StrainMath Assistant"}
+                        </span>
                     </div>
                     <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
                         <X size={16} />
@@ -199,6 +282,39 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                         </div>
                     ))}
 
+                    {/* ACCURACY OPTIONS RENDERING */}
+                    {mode === 'accuracy_boost' && !hasCommitted && (
+                        <div className="flex flex-col items-end gap-2 mt-2">
+                            {accuracyState.step === 0 && (
+                                <div className="flex flex-wrap justify-end gap-2">
+                                    {["Too Weak", "Too Strong", "Anxiety", "Inconsistent"].map(opt => (
+                                        <button key={opt} onClick={() => handleAccuracyResponse(opt)} className="px-3 py-1.5 rounded-full border border-[#00FFD1]/30 text-[#00FFD1] text-[10px] uppercase hover:bg-[#00FFD1]/10 transition-colors">
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {accuracyState.step === 1 && (
+                                <div className="flex flex-wrap justify-end gap-2">
+                                    {["Low (Sensitive)", "Normal", "High (Tank)"].map(opt => (
+                                        <button key={opt} onClick={() => handleAccuracyResponse(opt)} className="px-3 py-1.5 rounded-full border border-[#00FFD1]/30 text-[#00FFD1] text-[10px] uppercase hover:bg-[#00FFD1]/10 transition-colors">
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {accuracyState.step === 2 && (
+                                <div className="flex flex-wrap justify-end gap-2">
+                                    {["Focus / Work", "Social / Fun", "Sleep / Rest", "Pain Relief"].map(opt => (
+                                        <button key={opt} onClick={() => handleAccuracyResponse(opt)} className="px-3 py-1.5 rounded-full border border-[#00FFD1]/30 text-[#00FFD1] text-[10px] uppercase hover:bg-[#00FFD1]/10 transition-colors">
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {isLoading && (
                         <div className="text-white/40 animate-pulse">
                             Processing...
@@ -217,8 +333,8 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 className="w-full bg-white/5 border border-white/10 rounded-full pl-4 pr-10 py-2 text-white text-xs focus:outline-none focus:border-[#00FFD1]/50 placeholder-white/20"
-                                placeholder={isLoading ? "Processing..." : "Enter command..."}
-                                disabled={isLoading || isRefactorComplete}
+                                placeholder={mode === 'accuracy_boost' && accuracyState.step < 3 ? "Select an option above..." : (isLoading ? "Processing..." : "Enter command...")}
+                                disabled={isLoading || isRefactorComplete || (mode === 'accuracy_boost' && accuracyState.step < 3)}
                                 autoFocus
                             />
                             <button
@@ -242,3 +358,4 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         </div>
     );
 }
+

@@ -19,6 +19,7 @@ export interface IntentSeed {
         stabilityContext?: string;
         additionalDetail?: string;
     };
+    improveAccuracy?: boolean;
 }
 
 /**
@@ -37,6 +38,11 @@ export interface IntentSpec {
         timeOfDay?: "morning" | "afternoon" | "evening" | "night";
         experienceLevel?: "new" | "regular" | "experienced";
         sensitivity?: "low" | "medium" | "high";
+        maxAnxiety?: number;
+        minTHC?: number;
+        maxTHC?: number;
+        minCBD?: number;
+        maxCBD?: number;
     };
     clarified?: boolean; // Tag for accuracy safeguard
     confidenceScore: number;

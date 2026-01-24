@@ -275,14 +275,50 @@ export async function processIntent(
         if (seed.clarificationData && intentSpec) {
             console.log('ORCHESTRATOR: Merging Clarification Data into Intent Spec');
             intentSpec.clarified = true;
+
+            // 1. INJECT REASONING
             intentSpec.reasoning = `${intentSpec.reasoning}\n\n[CALIBRATION SIGNAL]: Issue: ${seed.clarificationData.directionalIssue} | Context: ${seed.clarificationData.stabilityContext}`;
             if (seed.clarificationData.additionalDetail) {
                 intentSpec.reasoning += ` | Detail: ${seed.clarificationData.additionalDetail}`;
             }
 
-            // Adjust confidence weighting based on clarification
+            // 2. ADJUST CONFIDENCE
             if (seed.clarificationData.directionalIssue !== 'None') {
                 intentSpec.confidenceScore = Math.min(0.95, (intentSpec.confidenceScore || 0.7) + 0.15);
+            }
+
+            // 3. AUTHORITATIVE CONSTRAINTS (Engine Override)
+            const issue = seed.clarificationData.directionalIssue?.toLowerCase() || '';
+            const sensitivity = seed.clarificationData.stabilityContext?.toLowerCase() || '';
+
+            // CASE A: ANXIETY (Strict Safety)
+            if (issue.includes('anxiety') || issue.includes('panic')) {
+                console.log('[ACCURACY_BOOST] Enforcing Anti-Anxiety Protocol');
+                intentSpec.constraints.maxAnxiety = 0.1; // Hard clamp
+                intentSpec.avoidEffects = [...(intentSpec.avoidEffects || []), 'anxiety', 'paranoia'];
+                intentSpec.targetEffects.push('calm'); // Force calm
+            }
+
+            // CASE B: TOO STRONG (Potency Cap)
+            if (issue.includes('strong') || issue.includes('overwhelming')) {
+                console.log('[ACCURACY_BOOST] Enforcing Potency Cap');
+                intentSpec.constraints.maxTHC = 18; // Soft cap heuristic
+                intentSpec.constraints.minCBD = 1;  // Encourage buffer
+                intentSpec.targetEffects = intentSpec.targetEffects.filter(e => e !== 'intensity');
+            }
+
+            // CASE C: TOO WEAK (Potency Boost)
+            if (issue.includes('weak') || issue.includes('nothing') || sensitivity.includes('increased')) {
+                console.log('[ACCURACY_BOOST] Enforcing Potency Boost');
+                if (!intentSpec.constraints.maxTHC) intentSpec.constraints.minTHC = 20;
+            }
+
+            // CASE D: INCONSISTENCY (Consistency over Novelty)
+            if (issue.includes('inconsistent')) {
+                console.log('[ACCURACY_BOOST] Favoring Stability/Consistency');
+                // We simulate this by stripping "exotic" targets or enforcing fewer, stronger terpenes
+                // For now, increasing confidence requirement effectively filters marginal options
+                intentSpec.confidenceScore = 0.98;
             }
         } else if (!seed.clarificationData && intentSpec && decision.requires_clarification === false) {
             // If not triggered and not clarifying, we can still mark as natively clear if confidence is high
