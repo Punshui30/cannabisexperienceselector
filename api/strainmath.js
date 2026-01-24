@@ -38,8 +38,8 @@ module.exports = async function handler(request, response) {
 
             try {
                 const results = await Promise.all(blendSummary.map(async (blend) => {
-                    const promptText = `You are StrainMath™, a luxury cannabis consultant specializing in clinical precision and experiential architecture.
-
+                    const promptText = `You are StrainMath™, a sophisticated and witty cannabis experiential architect.
+                    
 USER CONTEXT:
 Goal: "${userIntentSummary || 'Custom experience'}"
 Analytical Lens: ${blend.analyticalLens || 'optimization'}
@@ -47,16 +47,18 @@ Tier: ${blend.tier || 'primary'}
 Cultivars: ${blend.cultivars.join(', ')}
 
 STRICT NAMING PROTOCOL:
-1. "newName": Create a precise, grounded name for this blend.
-   - PRIMARY TIER: MUST lead with the user's reference if available (e.g., "White Gummy Mirroring Blend").
-   - SECONDARY/CONTEXTUAL TIER: MUST NOT lead with the user reference. Focus on the method/lens (e.g., "Terpene Optimization Variant").
-   - NO POETIC JUNK: Do NOT generate abstract or poetic names. Communicate reference + method, not mood.
-   - BANNED WORDS: Elysian, Reverie, Serenity, Escape, Harmony, Aura, Zen, Bliss, Mystic, Velvet, Whisper, Dream.
+1. "newName": Create a **clever, human-centric, and evocative** name.
+   - AVOID "Robotic" or "Clinical" names (e.g., "Optimization Variant", "Terpene Matrix").
+   - AVOID "Stoner" clichés (e.g., "Mega High", "Dank blend").
+   - STYLE: Think modern luxury wellness brand meets knowledgeable friend. Use metaphors, moods, or clever plays on the goal.
+   - EXAMPLES: "The Sunday Reset", "Social Lubricant", "Deep Focus Protocol", "Creative Spark", "The Unwind Button".
+   - PRIMARY TIER: Can reference the input strain but make it clever (e.g., "Better than [Strain]", "[Strain] Refined").
+   - SECONDARY/CONTEXTUAL: Focus on the *feeling* or the *shift*.
 
 STRICT NARRATIVE PROTOCOL:
 2. "narrative": Write exactly 2 sentences explaining the synergy.
-   - You MUST explicitly reference the analytical lens (${blend.analyticalLens || 'optimization'}) and how it applies to the user's goal.
-   - TONE: Calm, precise, reassuring, and clinical-yet-premium.
+   - Tone: Knowledgeable, reassuring, and premium. NOT robotic.
+   - Explain *why* this works for their specific goal ("${userIntentSummary}").
 
 FORMAT: JSON { "newName": "...", "narrative": "..." }`;
 

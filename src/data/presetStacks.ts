@@ -10,7 +10,7 @@ import { StackOutcomeExemplar } from '../types/domain';
 export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
     kind: 'stack',
     id: 'stack_focus_01',
-    title: 'Deep Work Protocol',
+    title: 'Cognitive Flow Engine',
     subtitle: 'High-Stability Focus',
     description: 'A layered chemical protocol for sustained cognitive output.',
     source: 'preset',
@@ -23,7 +23,7 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
         // New Required Fields
         stackId: 'stack_focus_01',
         id: 'stack_focus_01',
-        name: 'Deep Work Protocol',
+        name: 'Cognitive Flow Engine',
         description: 'A scientifically layered sequence for sustained cognitive output.',
 
         matchScore: 0.98,
@@ -100,7 +100,7 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
 export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
     kind: 'stack',
     id: 'stack_sleep_01',
-    title: 'Circadian Induction',
+    title: 'The Sleep Architect',
     subtitle: 'Restorative Sleep Sequence',
     description: 'Optimized onset and duration for sleep cycle support.',
     source: 'preset',
@@ -112,7 +112,7 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
         kind: 'stack',
         stackId: 'stack_sleep_01',
         id: 'stack_sleep_01',
-        name: 'Circadian Induction Sequence',
+        name: 'The Sleep Architect',
         description: 'Multi-stage metabolic release for onset and duration.',
 
         matchScore: 0.95,
@@ -183,7 +183,7 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
 export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
     kind: 'stack',
     id: 'stack_social_01',
-    title: 'Social Lubrication',
+    title: 'The Conversation Starter',
     subtitle: 'Interpersonal Optimization',
     description: 'Facilitates engagement and verbal fluidity.',
     source: 'preset',
@@ -195,7 +195,7 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
         kind: 'stack',
         stackId: 'stack_social_01',
         id: 'stack_social_01',
-        name: 'Social Lubrication Protocol',
+        name: 'The Conversation Starter',
         description: 'Limonene + Caryophyllene for optimized social outcomes.',
 
         matchScore: 0.92,
@@ -266,7 +266,7 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
 export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
     kind: 'stack',
     id: 'stack_creative_01',
-    title: 'Divergent Thought',
+    title: 'Creative Unblocker',
     subtitle: 'Creative Flow Protocol',
     description: 'Bypass cognitive blocks for novel idea generation.',
     source: 'preset',
@@ -278,7 +278,7 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
         kind: 'stack',
         stackId: 'stack_creative_01',
         id: 'stack_creative_01',
-        name: 'Divergent Thought Protocol',
+        name: 'Creative Unblocker',
         description: 'Terpinolene-led sequence for divergent association.',
 
         matchScore: 0.96,

@@ -400,7 +400,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                         <div>
                           <h4 className="text-base font-light serif text-white mb-0.5">{scenario.title}</h4>
                           <p className="text-[9px] uppercase tracking-widest text-[#00FFD1] mb-3">{scenario.subtitle}</p>
-                          <p className="text-xs text-white/50 italic leading-relaxed line-clamp-2">"{scenario.inputText}"</p>
+                          <p className="text-xs text-white/50 italic leading-relaxed line-clamp-3">"{scenario.inputText}"</p>
                         </div>
 
                         <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -453,7 +453,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                           </div>
                           <div>
                             <h4 className="text-sm font-medium text-white mb-0.5 serif">{stack.title || stack.name}</h4>
-                            <p className="text-[8px] text-white/40 leading-relaxed line-clamp-2">{stack.subtitle || stack.description}</p>
+                            <p className="text-[8px] text-white/40 leading-relaxed line-clamp-3">{stack.subtitle || stack.description}</p>
                           </div>
                         </div>
 

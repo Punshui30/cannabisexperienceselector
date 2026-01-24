@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EnginePhase } from '../types/domain';
 import { EngineCore3D } from './EngineCore3D';
+import { OutcomeSignature } from './OutcomeSignature';
 
 interface V3SignalInterfaceProps {
     phase: EnginePhase;
@@ -76,15 +77,28 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
             {/* GO / StrainMath ethos */}
             <div className="relative z-10 flex flex-col items-center px-8 text-center max-w-xl">
 
-                {/* HEARTBEAT: Engine Core 3D Visualization */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 1.2, ease: "easeOut" }}
-                    className="w-full h-[240px] flex items-center justify-center mb-4 relative"
-                >
-                    <EngineCore3D phase={phase} />
-                </motion.div>
+                {/* HEARTBEAT & SIGNATURE */}
+                <div className="w-full h-[320px] flex items-center justify-center mb-6 relative">
+                    {/* Visual Layer 1: The Signature (Identity) */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.6 }}
+                        transition={{ duration: 2, delay: 0.5 }}
+                        className="absolute inset-0 flex items-center justify-center mix-blend-screen scale-110"
+                    >
+                        <OutcomeSignature />
+                    </motion.div>
+
+                    {/* Visual Layer 2: The Core (Activity) */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 1.2, ease: "easeOut" }}
+                        className="relative z-10 scale-90"
+                    >
+                        <EngineCore3D phase={phase} />
+                    </motion.div>
+                </div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
