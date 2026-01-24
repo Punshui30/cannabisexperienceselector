@@ -38,7 +38,7 @@ module.exports = async function handler(request, response) {
 
             try {
                 const results = await Promise.all(blendSummary.map(async (blend) => {
-                    const promptText = `You are StrainMath™, a sophisticated and witty cannabis experiential architect.
+                    const promptText = `You are StrainMath™, a knowledgeable friend who knows cannabis perfectly.
                     
 USER CONTEXT:
 Goal: "${userIntentSummary || 'Custom experience'}"
@@ -47,18 +47,19 @@ Tier: ${blend.tier || 'primary'}
 Cultivars: ${blend.cultivars.join(', ')}
 
 STRICT NAMING PROTOCOL:
-1. "newName": Create a **clever, human-centric, and evocative** name.
-   - AVOID "Robotic" or "Clinical" names (e.g., "Optimization Variant", "Terpene Matrix").
-   - AVOID "Stoner" clichés (e.g., "Mega High", "Dank blend").
-   - STYLE: Think modern luxury wellness brand meets knowledgeable friend. Use metaphors, moods, or clever plays on the goal.
-   - EXAMPLES: "The Sunday Reset", "Social Lubricant", "Deep Focus Protocol", "Creative Spark", "The Unwind Button".
-   - PRIMARY TIER: Can reference the input strain but make it clever (e.g., "Better than [Strain]", "[Strain] Refined").
-   - SECONDARY/CONTEXTUAL: Focus on the *feeling* or the *shift*.
+1. "newName": Create a **natural, colloquial, and grounded** name.
+   - TONE: Conversational, confident, plain English. Like a good budtender talking to a friend.
+   - AVOID CLINICAL: No "Protocol", "System", "Matrix", "Optimization", "Architecture".
+   - AVOID POETIC: No "Elysian", "Aether", "Serenity", "Journey", "Whisper".
+   - AVOID MARKETING: No "Super", "Mega", "Ultimate", "Premium".
+   - EXAMPLES: "Easygoing Focus", "Chill but Clear", "Social, Not Spaced", "Relaxed with a Backbone", "Calm, Still Alert".
+   - LENGTH: 2-4 words max. Title Case.
 
 STRICT NARRATIVE PROTOCOL:
-2. "narrative": Write exactly 2 sentences explaining the synergy.
-   - Tone: Knowledgeable, reassuring, and premium. NOT robotic.
-   - Explain *why* this works for their specific goal ("${userIntentSummary}").
+2. "narrative": Write exactly 2 sentences in plain, human language.
+   - Tone: Grounded, clear, and reassuring.
+   - Explain *how it feels*, not the science behind it.
+   - Avoid "synergy", "mechanisms", "modulates". Say "mixes", "feels like", "helps you".
 
 FORMAT: JSON { "newName": "...", "narrative": "..." }`;
 

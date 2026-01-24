@@ -10,7 +10,7 @@ import { StackOutcomeExemplar } from '../types/domain';
 export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
     kind: 'stack',
     id: 'stack_focus_01',
-    title: 'Cognitive Flow Engine',
+    title: 'Locked In',
     subtitle: 'High-Stability Focus',
     description: 'A layered chemical protocol for sustained cognitive output.',
     source: 'preset',
@@ -23,7 +23,7 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
         // New Required Fields
         stackId: 'stack_focus_01',
         id: 'stack_focus_01',
-        name: 'Cognitive Flow Engine',
+        name: 'Locked In',
         description: 'A scientifically layered sequence for sustained cognitive output.',
 
         matchScore: 0.98,
@@ -100,7 +100,7 @@ export const FOCUS_STACK_EXEMPLAR: StackOutcomeExemplar = {
 export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
     kind: 'stack',
     id: 'stack_sleep_01',
-    title: 'The Sleep Architect',
+    title: 'Out Cold',
     subtitle: 'Restorative Sleep Sequence',
     description: 'Optimized onset and duration for sleep cycle support.',
     source: 'preset',
@@ -112,7 +112,7 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
         kind: 'stack',
         stackId: 'stack_sleep_01',
         id: 'stack_sleep_01',
-        name: 'The Sleep Architect',
+        name: 'Out Cold',
         description: 'Multi-stage metabolic release for onset and duration.',
 
         matchScore: 0.95,
@@ -183,7 +183,7 @@ export const SLEEP_STACK_EXEMPLAR: StackOutcomeExemplar = {
 export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
     kind: 'stack',
     id: 'stack_social_01',
-    title: 'The Conversation Starter',
+    title: 'Good Vibes Only',
     subtitle: 'Interpersonal Optimization',
     description: 'Facilitates engagement and verbal fluidity.',
     source: 'preset',
@@ -195,7 +195,7 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
         kind: 'stack',
         stackId: 'stack_social_01',
         id: 'stack_social_01',
-        name: 'The Conversation Starter',
+        name: 'Good Vibes Only',
         description: 'Limonene + Caryophyllene for optimized social outcomes.',
 
         matchScore: 0.92,
@@ -266,7 +266,7 @@ export const SOCIAL_STACK_EXEMPLAR: StackOutcomeExemplar = {
 export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
     kind: 'stack',
     id: 'stack_creative_01',
-    title: 'Creative Unblocker',
+    title: 'Flow State',
     subtitle: 'Creative Flow Protocol',
     description: 'Bypass cognitive blocks for novel idea generation.',
     source: 'preset',
@@ -278,7 +278,7 @@ export const CREATIVE_STACK_EXEMPLAR: StackOutcomeExemplar = {
         kind: 'stack',
         stackId: 'stack_creative_01',
         id: 'stack_creative_01',
-        name: 'Creative Unblocker',
+        name: 'Flow State',
         description: 'Terpinolene-led sequence for divergent association.',
 
         matchScore: 0.96,

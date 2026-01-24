@@ -79,24 +79,13 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
 
                 {/* HEARTBEAT & SIGNATURE */}
                 <div className="w-full h-[320px] flex items-center justify-center mb-6 relative">
-                    {/* Visual Layer 1: The Signature (Identity) */}
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.6 }}
-                        transition={{ duration: 2, delay: 0.5 }}
-                        className="absolute inset-0 flex items-center justify-center mix-blend-screen scale-110"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className="w-full h-full flex items-center justify-center"
                     >
                         <OutcomeSignature />
-                    </motion.div>
-
-                    {/* Visual Layer 2: The Core (Activity) */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 1.2, ease: "easeOut" }}
-                        className="relative z-10 scale-90"
-                    >
-                        <EngineCore3D phase={phase} />
                     </motion.div>
                 </div>
 
