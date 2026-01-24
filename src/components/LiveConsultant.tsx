@@ -67,7 +67,7 @@ export function LiveConsultant(props: LiveConsultantProps) {
         if (consultantMode === 'accuracy_enhancement') {
             setMessages([{
                 role: 'assistant',
-                content: "I'd like to ask 3 quick questions to better understand your physiology and preferences. Ready?"
+                content: "I'd like to ask 3 quick questions. First: Which of these challenges do you encounter most often?"
             }]);
             return;
         }
