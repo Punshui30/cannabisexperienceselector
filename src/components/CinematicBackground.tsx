@@ -69,7 +69,7 @@ export function CinematicBackground({ isAnalyzing = false, isResolved = false }:
                             height: field.size,
                             top: field.top,
                             left: field.left,
-                            background: `radial-gradient(circle, ${field.color}22 0%, ${field.color}00 70%)`,
+                            background: `radial-gradient(circle, ${field.color}44 0%, ${field.color}00 70%)`,
                             filter: 'blur(100px)',
                             mixBlendMode: 'screen',
                         }}

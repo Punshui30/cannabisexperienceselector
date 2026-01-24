@@ -60,16 +60,16 @@ export function StackCardView({ stack, onBack, onViewDetails, setActiveStackId }
         </div>
 
         {/* Text Layer (Relative, with real padding) */}
-        <div className="text-center px-10 relative z-10 mt-6 h-full flex flex-col justify-center">
-          <h1 className="text-2xl font-serif text-white tracking-tight leading-tight line-clamp-2">
+        <div className="px-10 relative z-10 pb-2">
+          <h1 className="text-2xl font-serif text-white tracking-tight leading-tight text-center">
             {stack.name}
           </h1>
-          <div className="flex items-center justify-center gap-2 mt-3">
-            <span className="h-px w-4 bg-[#00FFD1] opacity-30" />
-            <p className="text-[9px] text-[#00FFD1] uppercase tracking-[0.2em] font-bold opacity-80">
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <span className="h-px w-3 bg-[#00FFD1] opacity-40" />
+            <p className="text-[9px] text-[#00FFD1] uppercase tracking-[0.2em] font-bold opacity-90">
               Protocol Preview
             </p>
-            <span className="h-px w-4 bg-[#00FFD1] opacity-30" />
+            <span className="h-px w-3 bg-[#00FFD1] opacity-40" />
           </div>
         </div>
       </motion.div>
