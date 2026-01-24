@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EnginePhase } from '../types/domain';
 import { EngineCore3D } from './EngineCore3D';
-import { SignalAlignmentVisual } from './SignalAlignmentVisual';
+// import { SignalAlignmentVisual } from './SignalAlignmentVisual'; // Removed
+import analyzeLoop from '../assets/analyze_loop.mp4'; // New Asset
 
 interface V3SignalInterfaceProps {
     phase: EnginePhase;
@@ -58,14 +59,26 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
             <div className="relative z-10 flex flex-col items-center px-8 text-center max-w-xl">
 
                 {/* HEARTBEAT & SIGNATURE */}
-                <div className="w-full h-[260px] flex items-center justify-center mb-6 relative">
+                <div className="w-full h-[320px] flex items-center justify-center mb-6 relative">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
                         className="w-full h-full flex items-center justify-center"
                     >
-                        <SignalAlignmentVisual />
+                        {/* VIDEO REPLACEMENT */}
+                        <div className="relative w-[320px] h-[320px] rounded-full overflow-hidden border border-white/5 shadow-2xl shadow-[#00FFD1]/20">
+                            <video
+                                src={analyzeLoop}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover opacity-90 scale-110"
+                            />
+                            {/* Overlay Vignette for integration */}
+                            <div className="absolute inset-0 bg-radial-gradient from-transparent to-black/40 pointer-events-none" />
+                        </div>
                     </motion.div>
                 </div>
 

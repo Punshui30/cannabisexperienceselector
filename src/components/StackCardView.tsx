@@ -61,7 +61,7 @@ export function StackCardView({ stack, onBack, onViewDetails, setActiveStackId }
 
         {/* Text Layer (Relative, with real padding) */}
         <div className="px-10 relative z-10 pb-2">
-          <h1 className="text-2xl font-serif text-white tracking-tight leading-tight text-center">
+          <h1 className="text-3xl font-serif text-white tracking-normal leading-tight text-center">
             {stack.name}
           </h1>
           <div className="flex items-center justify-center gap-2 mt-2">
