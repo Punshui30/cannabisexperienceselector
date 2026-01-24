@@ -39,7 +39,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter="url(#blur-back)"
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -49,7 +49,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                     <g style={{ transform: 'scale(1.01)', transformOrigin: 'center center' }}>
@@ -61,7 +61,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter="url(#blur-back)"
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -71,7 +71,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                     <g style={{ transform: 'scale(1.01)', transformOrigin: 'center center' }}>
@@ -83,7 +83,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter="url(#blur-back)"
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -93,7 +93,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                     <g style={{ transform: 'scale(1.01)', transformOrigin: 'center center' }}>
@@ -105,7 +105,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter="url(#blur-back)"
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -115,7 +115,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                 </g>
@@ -129,7 +129,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter="url(#blur-mid)"
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -139,7 +139,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                     <g style={{ transform: 'scale(1)', transformOrigin: 'center center' }}>
@@ -151,7 +151,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter="url(#blur-mid)"
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -161,7 +161,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                     <g style={{ transform: 'scale(1)', transformOrigin: 'center center' }}>
@@ -173,7 +173,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter="url(#blur-mid)"
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -183,7 +183,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                     <g style={{ transform: 'scale(1)', transformOrigin: 'center center' }}>
@@ -195,7 +195,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter="url(#blur-mid)"
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -205,7 +205,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                 </g>
@@ -219,7 +219,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter=""
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -229,7 +229,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                     <g style={{ transform: 'scale(0.995)', transformOrigin: 'center center' }}>
@@ -241,7 +241,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter=""
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -251,7 +251,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                     <g style={{ transform: 'scale(0.995)', transformOrigin: 'center center' }}>
@@ -263,7 +263,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter=""
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -273,7 +273,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                     <g style={{ transform: 'scale(0.995)', transformOrigin: 'center center' }}>
@@ -285,7 +285,7 @@ export function OutcomeSignature() {
                             strokeLinejoin="round"
                             fill="none"
                             filter=""
-                            variants={
+                            variants={{
                                 hidden: { pathLength: 0, opacity: 0 },
                                 visible: { 
                                     pathLength: 1, 
@@ -295,7 +295,7 @@ export function OutcomeSignature() {
                                         opacity: { duration: 0.5 }
                                     }
                                 }
-                            }
+                            }}
                         />
                     </g>
                 </g>
