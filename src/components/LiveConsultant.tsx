@@ -144,7 +144,7 @@ export function LiveConsultant(props: LiveConsultantProps) {
         } else if (accuracyState.step === 1) {
             nextState.sensitivity = value;
             nextState.step = 2;
-            nextMessage = "Understood. Ideally, what are we aiming for right now?";
+            nextMessage = "Final check: What is a priority nuance for this specific session?";
         } else if (accuracyState.step === 2) {
             nextState.goal = value;
             nextState.step = 3;
@@ -345,11 +345,18 @@ export function LiveConsultant(props: LiveConsultantProps) {
                             )}
                             {accuracyState.step === 2 && (
                                 <div className="flex flex-wrap justify-end gap-2">
-                                    {["Focus / Work", "Social / Fun", "Sleep / Rest", "Pain Relief"].map(opt => (
+                                    {["Instant Onset", "Long Duration", "Max Potency", "Rich Flavor"].map(opt => (
                                         <button key={opt} onClick={() => handleAccuracyResponse(opt)} className="px-3 py-1.5 rounded-full border border-[#00FFD1]/30 text-[#00FFD1] text-[10px] uppercase hover:bg-[#00FFD1]/10 transition-colors">
                                             {opt}
                                         </button>
                                     ))}
+                                </div>
+                            )}
+                            {accuracyState.step === 3 && (
+                                <div className="flex flex-wrap justify-end gap-2">
+                                    <button onClick={() => submitAccuracy("")} className="px-4 py-2 rounded-full border border-white/30 text-white/70 text-[11px] font-medium tracking-wide uppercase hover:bg-white/10 hover:text-[#00FFD1] hover:border-[#00FFD1]/50 transition-all">
+                                        Finish & Apply
+                                    </button>
                                 </div>
                             )}
                         </div>
