@@ -58,7 +58,7 @@ export function LiveConsultant(props: LiveConsultantProps) {
         if (consultantMode === 'clarification_required') {
             setMessages([{
                 role: 'assistant',
-                content: consultantText || "I need a bit more clarity to resolve that consistently. Could you be more specific?"
+                content: consultantText || "Let's dial this in. To get it strictly right, I need to know: what's usually \"not hitting\" for you?"
             }]);
             return;
         }
@@ -67,7 +67,7 @@ export function LiveConsultant(props: LiveConsultantProps) {
         if (consultantMode === 'accuracy_enhancement') {
             setMessages([{
                 role: 'assistant',
-                content: "Let's dial this in. To get it strictly right, I need to know: what's usually \"not hitting\" for you?"
+                content: "I'd like to ask 3 quick questions to better understand your physiology and preferences. Ready?"
             }]);
             return;
         }
@@ -80,47 +80,38 @@ export function LiveConsultant(props: LiveConsultantProps) {
 
         let intro = consultantText || "";
         if (!intro) {
-            if (consultantMode === 'clarification_required') {
-                const questions = [
-                    "What usually isn’t hitting right about the strains you’ve tried?",
-                    "Is it missing the feeling you want, or having side effects?",
-                    "Does it feel too weak, or just the wrong 'kind' of high?"
-                ];
-                intro = consultantText || questions[Math.floor(Math.random() * questions.length)];
-            } else {
-                switch (context?.viewType) {
-                    case 'results':
-                        intro = context.activeEntityType === 'stack'
-                            ? "Viewing stack results. I can modify layers, add phases, or adjust timing."
-                            : "I've analyzed these blend options. Would you like to refine the terpene profile or effect target?";
-                        break;
-                    case 'blend-detail':
-                        intro = "Analyzing blend synergy. Ask about specific terpene effects or request adjustments.";
-                        break;
-                    case 'stack-detail':
-                    case 'stack-card':
-                        intro = context.activeEntityType === 'stack'
-                            ? "Stack Protocol Assistant: I can add layers, modify phases, or adjust timing. What would you like to change?"
-                            : "Viewing Stack architecture. I can explain the layer interactions.";
-                        break;
-                    case 'resolution':
-                        intro = context.activeEntityType === 'stack'
-                            ? "Resolution Assistant: Modify this stack before generating session artifacts."
-                            : "Resolution Assistant: Refine this blend before generating session artifacts.";
-                        break;
-                    case 'checkout':
-                    case 'share':
-                        intro = "Session Review: This blend has been prepared for your records.";
-                        break;
-                    case 'library':
-                        intro = "Accessing Strain Library. Looking for a specific chemotype?";
-                        break;
-                    case 'input':
-                        intro = "Hi, I'm your StrainMath™ Assistant. I can help you construct a query or explore presets.";
-                        break;
-                    default:
-                        intro = "Hi, I'm your StrainMath™ Assistant. Adjust parameters or query logic.";
-                }
+            switch (context?.viewType) {
+                case 'results':
+                    intro = context.activeEntityType === 'stack'
+                        ? "Viewing stack results. I can modify layers, add phases, or adjust timing."
+                        : "I've analyzed these blend options. Would you like to refine the terpene profile or effect target?";
+                    break;
+                case 'blend-detail':
+                    intro = "Analyzing blend synergy. Ask about specific terpene effects or request adjustments.";
+                    break;
+                case 'stack-detail':
+                case 'stack-card':
+                    intro = context.activeEntityType === 'stack'
+                        ? "Stack Protocol Assistant: I can add layers, modify phases, or adjust timing. What would you like to change?"
+                        : "Viewing Stack architecture. I can explain the layer interactions.";
+                    break;
+                case 'resolution':
+                    intro = context.activeEntityType === 'stack'
+                        ? "Resolution Assistant: Modify this stack before generating session artifacts."
+                        : "Resolution Assistant: Refine this blend before generating session artifacts.";
+                    break;
+                case 'checkout':
+                case 'share':
+                    intro = "Session Review: This blend has been prepared for your records.";
+                    break;
+                case 'library':
+                    intro = "Accessing Strain Library. Looking for a specific chemotype?";
+                    break;
+                case 'input':
+                    intro = "Hi, I'm your StrainMath™ Assistant. I can help you construct a query or explore presets.";
+                    break;
+                default:
+                    intro = "Hi, I'm your StrainMath™ Assistant. Adjust parameters or query logic.";
             }
         }
         setMessages([{ role: 'assistant', content: intro }]);
