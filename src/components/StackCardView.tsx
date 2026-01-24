@@ -60,13 +60,17 @@ export function StackCardView({ stack, onBack, onViewDetails, setActiveStackId }
         </div>
 
         {/* Text Layer (Relative, with real padding) */}
-        <div className="text-center px-6 relative z-10 mt-4">
-          <h1 className="text-xl font-serif text-white tracking-tight leading-[1.2]">
-            Curated Stack
+        <div className="text-center px-10 relative z-10 mt-6 h-full flex flex-col justify-center">
+          <h1 className="text-2xl font-serif text-white tracking-tight leading-tight line-clamp-2">
+            {stack.name}
           </h1>
-          <p className="text-[10px] text-white/30 uppercase tracking-widest mt-2">
-            Layered Protocol
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-3">
+            <span className="h-px w-4 bg-[#00FFD1] opacity-30" />
+            <p className="text-[9px] text-[#00FFD1] uppercase tracking-[0.2em] font-bold opacity-80">
+              Protocol Preview
+            </p>
+            <span className="h-px w-4 bg-[#00FFD1] opacity-30" />
+          </div>
         </div>
       </motion.div>
 
@@ -87,22 +91,19 @@ export function StackCardView({ stack, onBack, onViewDetails, setActiveStackId }
               style={{ minHeight: '200px' }}
             >
               <div className="p-6 h-full flex flex-col">
-                {/* Header */}
-                <div className="flex items-start gap-4 mb-4">
+                {/* Header (Secondary/Contextual) */}
+                <div className="flex items-center gap-4 mb-8 pt-6">
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                     style={{
                       backgroundColor: `${themeColor}20`,
                       border: `1px solid ${themeColor}40`
                     }}
                   >
-                    <Layers size={24} style={{ color: themeColor }} />
+                    <Layers size={20} style={{ color: themeColor }} />
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-xl font-serif text-white mb-1">
-                      {stack.name}
-                    </h2>
-                    <p className="text-sm text-white/70 leading-relaxed">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white/50 leading-relaxed font-light line-clamp-2 italic">
                       {stack.description}
                     </p>
                   </div>
