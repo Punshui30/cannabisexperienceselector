@@ -1173,11 +1173,12 @@ function generateDeterministicNarrative(
 
     if (isStrainMatch && type === 'primary') {
         const strainName = intent.originalInput || userInput;
-        name = `${strainName} Reference Blend`;
-        reasoning = `I've engineered this profile to specifically mirror the ${strainName} experience you're looking for, focusing on its distinct synergy.`;
+        const producer = (intent as any).grower ? ` by ${(intent as any).grower}` : "";
+        name = `${strainName}${producer} Interpretation`;
+        reasoning = `This blend was engineered by interpreting your request for "${strainName}" through a contextual lens, preserving its defining effects while adjusting for balance and stability.`;
     } else if (type === 'primary') {
-        name = `${blend.cultivars[0].name} Selective Blend`;
-        reasoning = `Matched to your "${userInput}" intent: prioritizing ${blend.cultivars[0].name} to anchor the ${intent.targetEffects[0] || 'requested'} results.`;
+        name = `${blend.cultivars[0].name} Strategic Blend`;
+        reasoning = `Developed to anchor your request for "${userInput}" with ${blend.cultivars[0].name}, prioritizing the ${intent.targetEffects[0] || 'primary'} results while maintaining a calm and stable profile.`;
     } else if (type === 'alternative') {
         name = `Optimized Alternative`;
         reasoning = `A different approach to your "${userInput}" goal, shifting focus to ${intent.targetEffects[1] || 'secondary effects'} for verification.`;

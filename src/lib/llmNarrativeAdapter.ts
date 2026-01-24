@@ -37,7 +37,7 @@ INVALID: "Whispered Amethyst", "Velvet Dream", "Serene Sunrise", "Mystic Haze"
 CONTENT VISUALIZATION
 - Literal Nuance: Reference specific concepts from the user's raw query (e.g., "first date", "verbal creativity", "nature walk") in the EXPLANATION, not the name.
 - Variant Distinction (STRICT):
-    - Primary: THE ANSWER. Frame this as the definitive recommendation. It satisfies the user's intent most directly.
+    - Primary: THE ANSWER. Frame this as the definitive recommendation. It satisfies the user's intent most directly. **MANDATORY**: Include 1–2 sentences tying the blend back to the user's specific reference (e.g., "White Gummy") and the contextual lens applied (mirroring, reinterpretation, or optimization). Example: "This blend was engineered by interpreting your request for [reference] through a contextual lens, preserving its defining effects while adjusting for balance and stability."
     - Secondary: THE OPTION. Frame this as "If you prefer..." or "A different approach...".
     - Contextual: THE SITUATIONAL ALTERNATIVE. Frame this as "For later..." or "If the setting changes...".
 - Tone: Premium, clinical-yet-vibrant, authoritative but empathetic.
