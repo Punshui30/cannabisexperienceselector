@@ -189,7 +189,7 @@ export async function processIntent(
         }
 
         // 1. STRAIN MODE: Tavily-Assisted Reference Lookup
-        let intentSpec: IntentSpec;
+        let intentSpec: IntentSpec | null = null;
         let strainProfile: any = null;
         let strainLookupFailed = false;
 
@@ -197,11 +197,11 @@ export async function processIntent(
             console.log('[STRAIN_MODE] tavily_lookup strain="' + seed.strainName + '" producer="' + (seed.grower || '') + '"');
 
             // Extract structured query from seed
-            const strainQuery = seed.strainName;
-            const producer = seed.grower;
+            const strainQuery = seed.strainName || "";
+            const producer = seed.grower || null;
 
             // Perform Tavily research lookup
-            strainProfile = await performStrainLookup(strainQuery, producer);
+            strainProfile = await performStrainLookup(strainQuery || "", producer || null);
 
             if (strainProfile) {
                 // Convert Tavily results to internal structured data
@@ -212,7 +212,7 @@ export async function processIntent(
                 // Fallback: try without producer
                 if (producer) {
                     console.log('[STRAIN_MODE] Retrying lookup without producer');
-                    strainProfile = await performStrainLookup(strainQuery, null);
+                    strainProfile = await performStrainLookup(strainQuery || "", null);
                     if (strainProfile) {
                         intentSpec = convertStrainProfileToIntentSpec(strainProfile, strainQuery, null);
                         console.log('[STRAIN_MODE] Success on retry without producer');
@@ -267,6 +267,8 @@ export async function processIntent(
         else if (['social', 'party', 'fun', 'conversation', 'friends'].some(k => searchPool.includes(k))) outcomeCategory = 'Social';
         else if (['relax', 'calm', 'chill', 'unwind', 'stress'].some(k => searchPool.includes(k))) outcomeCategory = 'Relax';
 
+        const engineResults: EngineResult[] = [];
+
         // ---------------------------------------------------------
         // ANCHOR CONSTRAINT DEFINITION (The "Iron Laws")
         // ---------------------------------------------------------
@@ -293,8 +295,7 @@ export async function processIntent(
             (intentSpec as any).referenceTiming = intentSpec.constraints.timeOfDay;
         }
 
-        // STACK AUGMENTATION EXECUTION - Special handling for stack mutations
-        if (decision.intent === 'augment_stack' && contextFlags.stackMode && context?.recommendation) {
+        if (decision.intent === ('augment_stack' as any) && contextFlags.stackMode && context?.recommendation && intentSpec) {
             console.log('[STACK_AUGMENTATION] Executing stack augmentation');
 
             const existingStack = context.recommendation;
@@ -313,10 +314,10 @@ export async function processIntent(
         }
 
         // 2. NORMAL ENGINE EXECUTION (Generate 3 Options with Diversity)
+        if (!intentSpec) throw new Error('Intent specification generation failed');
         const engineIntent = interpretIntentFromSpec(intentSpec);
         console.log('ORCHESTRATOR: Running Engine with Spec...');
 
-        const engineResults: EngineResult[] = [];
         const usedCultivarIds = new Set<string>(intentSpec.cultivarExclusions || []);
 
         // ---------------------------------------------------------
@@ -332,8 +333,9 @@ export async function processIntent(
 
                 if (subResult.success && subResult.replacement) {
                     console.log(`ORCHESTRATOR: Substitution Found: ${subResult.replacement.name} (Score: ${subResult.similarityScore})`);
-                    if (!context) context = {};
-                    context.cultivars = [...(context.cultivars || []), subResult.replacement.name];
+                    if (context) {
+                        context.cultivars = [...(context.cultivars || []), subResult.replacement.name];
+                    }
                 }
             }
         }
@@ -381,7 +383,7 @@ export async function processIntent(
                     data: engineResults,
                     analysis: {
                         targetTerpenes: intentSpec.terpenePreferences.include || [],
-                        reasoning: intentSpec.reasoning || "Balanced stack generated.",
+                        reasoning: intentSpec.reasoning || `Assembled this protocol in response to your focus on: "${seed.text}"`,
                         consultationScript: intentSpec.consultationScript,
                         outcomeCategory: outcomeCategory
                     }
@@ -787,7 +789,7 @@ export async function processIntent(
             data: engineResults,
             analysis: {
                 targetTerpenes: intentSpec.terpenePreferences.include || [],
-                reasoning: intentSpec.reasoning || "Analysis complete.",
+                reasoning: intentSpec.reasoning || `Direct analysis complete for your inquiry: "${seed.text}"`,
                 consultationScript: intentSpec.consultationScript,
                 outcomeCategory: outcomeCategory
             }
@@ -837,21 +839,21 @@ function parseIntentLocally(seed: IntentSeed): IntentSpec {
         }
     }
 
-    // 3. GENERATE NON-MIRRORED CONSULTATION SCRIPT
+    // 3. GENERATE NON-MIRRORED USER-AWARE CONSULTATION SCRIPT
     let script = "";
     if (exclusions.length > 0) {
         const strainObj = STRAIN_LIBRARY.find(s => s.id === exclusions[0]);
-        script = `Understood. I've removed ${strainObj?.name} from the active formulation parameters. Finding a cleaner outcome that maintains your intended profile without any unwanted variables.`;
+        script = `I've acknowledged your preference to avoid ${strainObj?.name || 'that specific profile'}. I'm filtering the engine to find a cleaner solution for your session that removes those variables while still targeting your goal.`;
     } else if (topic === 'pain' || topic === 'relief') {
-        script = "Got it. I'm focusing on physical comfort and systemic relief. Re-balancing the terpene ratios to prioritize a smoothing effect on the body.";
+        script = `Acknowledging your request for ${topic}. I'm prioritizing physical comfort and systemic relief to address your specific concern, re-balancing the terpene ratios for a smoothing effect.`;
     } else if (topic === 'focus' || topic === 'energy') {
-        script = "Understood. Prioritizing mental clarity and sustained energy. Selecting chemotypes with sharp, stimulating profiles for daytime endurance.";
+        script = `Understood, targeting your goal of ${topic}. I'm isolating high-clarity chemotypes with stimulating profiles to give you the mental edge and endurance you're looking for.`;
     } else if (topic === 'sleep' || topic === 'relax') {
-        script = "Understood. Calibrating for deep relaxation and a quiet transition. Emphasizing heavier sedating terpenes for a restorative finish.";
+        script = `Understood. Calibrating specifically for your ${topic} intent. I'm emphasizes heavy, sedating terpene clusters to ensure the quiet transition you've requested.`;
     } else if (topic) {
-        script = `I've adjusted the engine logic to emphasize those characteristic ${topic} notes while ensuring the final blend stays aligned with your stated primary goal.`;
+        script = `I've adjusted the engine parameters to specifically prioritize those ${topic} characteristics you mentioned, ensuring the final synergy is uniquely aligned with your input.`;
     } else {
-        script = "I'm re-balancing the active logic layer based on your feedback. Fine-tuning the synergy for a smoother, more effective result.";
+        script = `I've analyzed your input: "${rawText}". I'm fine-tuning the active logic layer to find the most synergetic outcome that responds directly to your distinct goal.`;
     }
 
     // 4. CONSTRUCT SPEC
@@ -933,9 +935,10 @@ function convertStrainProfileToIntentSpec(searchResult: any, strainName: string,
             sensitivity: "medium"
         },
         confidenceScore: 0.8, // High confidence for direct strain lookup
-        reasoning: `Strain profile lookup for ${strainName}${producer ? ` by ${producer}` : ''}`,
-        consultationScript: `This blend is designed to replicate the reported effects of ${strainName}${producer ? ` by ${producer}` : ''}.`
+        reasoning: `Direct profile replication for ${strainName}, responding to your specific search for its unique effect signature.`,
+        consultationScript: `I've mapped out a blend that specifically replicates the reported profile of ${strainName}${producer ? ` as grown by ${producer}` : ''}, as per your request.`
     };
+    // Note: effect list removed from script to avoid self-reference lint error
 
     // Parse search results to extract effects, timing, terpenes
     // This is a simplified implementation - you'd want more sophisticated parsing
@@ -1016,8 +1019,8 @@ function createFallbackStrainIntentSpec(strainName: string, producer: string | n
             sensitivity: 'medium'
         },
         confidenceScore: 0.3, // Lower confidence for unknown strains
-        reasoning: `Limited information available for ${strainName}. Using balanced profile.`,
-        consultationScript: `I couldn't find specific information about ${strainName}. This blend uses common terpene patterns that may approximate its effects.`
+        reasoning: `Acknowledging your interest in ${strainName}. Since specific data is sparse, I've engineered a balanced profile that targets your likely intent.`,
+        consultationScript: `I couldn't find a direct match for "${strainName}", but I've assembled a blend using terpene patterns that best capture the intent behind your search.`
     };
 }
 
@@ -1047,7 +1050,7 @@ async function createAugmentedStack(existingStack: any, intentSpec: IntentSpec, 
 
     // Generate new layer with exclusion of existing cultivars
     const exclusionArray = Array.from(existingCultivarIds);
-    const newLayerResults = engineGenerate({ text: userQuery, kind: 'blend' }, newLayerIntent, exclusionArray);
+    const newLayerResults = engineGenerate({ text: userQuery, kind: 'blend', mode: 'engine' }, newLayerIntent, exclusionArray);
 
     if (!newLayerResults || newLayerResults.length === 0) {
         throw new Error('Failed to generate new layer for stack augmentation');
@@ -1058,14 +1061,14 @@ async function createAugmentedStack(existingStack: any, intentSpec: IntentSpec, 
         ...existingStack,
         id: `stack-augmented-${Date.now()}`,
         name: generateAugmentedStackName(existingStack.name, augmentationType),
-        reasoning: `Stack augmented with new ${augmentationType} layer: ${newLayerResults[0].reasoning}`,
+        reasoning: `Responding to your request for ${augmentationType}: augmented with a specialized layer to match your "${userQuery}" intent.`,
         layers: [
             ...(existingStack.layers || []),
             {
                 type: 'cultivar',
                 layerName: generateLayerName(augmentationType),
                 cultivars: newLayerResults[0].cultivars || [],
-                purpose: intentSpec.reasoning || `Added ${augmentationType} phase`,
+                purpose: `Specifically added to address your ${augmentationType} requirement from: "${userQuery}"`,
                 onsetEstimate: estimateTiming(augmentationType),
                 durationEstimate: '2-4 hours'
             }
@@ -1134,13 +1137,17 @@ function estimateTiming(augmentationType: string): string {
 function finalizeAugmentedStack(augmentedStack: EngineResult, intentSpec: IntentSpec, outcomeCategory: string, context?: any): Promise<OrchestratorResult> {
     console.log('[STACK_AUGMENTATION] Finalizing augmented stack');
 
+    // Extract augmentationType from userQuery for the narrative if needed
+    const userQuery = context?.userInput || 'augmentation';
+    const augmentationType = detectAugmentationType(userQuery);
+
     return Promise.resolve({
         success: true,
         data: [augmentedStack],
         analysis: {
             targetTerpenes: intentSpec.terpenePreferences.include || [],
-            reasoning: `Stack successfully augmented with new layer. Existing ${augmentedStack.layers?.length || 1} layers preserved.`,
-            consultationScript: `Added new phase to your existing stack. The original ${augmentedStack.layers?.length ? (augmentedStack.layers.length - 1) : 0} layers remain unchanged.`,
+            reasoning: `Stack successfully augmented to include the ${augmentationType} phase you requested in: "${context.userInput || 'your last command'}".`,
+            consultationScript: `I've expanded your stack with a new ${augmentationType} phase to better match your updated goal. The original protocol remains intact beneath this new layer.`,
             outcomeCategory: outcomeCategory as any
         }
     });
@@ -1158,27 +1165,25 @@ function generateDeterministicNarrative(
     userInput: string,
     isStrainMatch: boolean = false
 ): { name: string; reasoning: string } {
-    if (!blend?.cultivars?.length) return { name: "Custom Blend", reasoning: "Analysis complete." };
+    if (!blend?.cultivars?.length) return { name: "Tailored Blend", reasoning: `I've analyzed your "${userInput}" goal and am assembling a profile that best matches your target.` };
 
     const cultivarNames = blend.cultivars.map(c => c.name).join(' & ');
     let name = '';
     let reasoning = '';
 
     if (isStrainMatch && type === 'primary') {
-        // For strain mode, use the actual strain name from the lookup
         const strainName = intent.originalInput || userInput;
-        name = `${strainName} Inspired Blend`;
-        // Use consultation script if available (for fallbacks), otherwise default message
-        reasoning = intent.consultationScript || `This blend is designed to replicate the reported effects of ${strainName}.`;
+        name = `${strainName} Reference Blend`;
+        reasoning = `I've engineered this profile to specifically mirror the ${strainName} experience you're looking for, focusing on its distinct synergy.`;
     } else if (type === 'primary') {
-        name = `${blend.cultivars[0].name} Dominant Blend`;
-        reasoning = `${blend.cultivars[0].name} anchors this blend for ${intent.targetEffects[0] || 'balanced effects'}.`;
+        name = `${blend.cultivars[0].name} Selective Blend`;
+        reasoning = `Matched to your "${userInput}" intent: prioritizing ${blend.cultivars[0].name} to anchor the ${intent.targetEffects[0] || 'requested'} results.`;
     } else if (type === 'alternative') {
-        name = `${blend.cultivars[1]?.name || blend.cultivars[0].name} Offset`;
-        reasoning = `Alternative approach emphasizing ${intent.targetEffects[1] || intent.targetEffects[0] || 'complementary effects'}.`;
+        name = `Optimized Alternative`;
+        reasoning = `A different approach to your "${userInput}" goal, shifting focus to ${intent.targetEffects[1] || 'secondary effects'} for verification.`;
     } else {
-        name = `Contextual ${blend.cultivars[0].name} Mix`;
-        reasoning = `Contextual variation using ${cultivarNames} for consistent results.`;
+        name = `Contextual Interpretation`;
+        reasoning = `Re-interpreting your query "${userInput}" through a contextual lens, utilizing ${cultivarNames} for synergistic stability.`;
     }
 
     return { name, reasoning };

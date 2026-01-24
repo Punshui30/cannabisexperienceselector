@@ -48,6 +48,7 @@ CRITICAL OUTPUT RULES
 - DO NOT use markdown code blocks (no \`\`\`).
 - DO NOT use headings or intro text.
 - JUST THE JSON OBJECT.
+- **USER-AWARENESS CONTRACT (NON-NEGOTIABLE)**: Every word in the 'explanation' must be explicitly aware of the user's specific input. Reference their actual wording, specific lifestyle setting (e.g., "first date", "back ache"), or unique preferences. Generic templates are forbidden. If any generated text could apply to a different user with different input, it is a failure of the contract.
 `.trim();
 
 export interface NarrativeResult {
@@ -164,6 +165,7 @@ CONSULTANT PROTOCOL:
 3. Social Impact: This text is shared to a live feedback stream. It must be interesting, authoritative, and "share-worthy".
 4. Length: Exactly 3-4 detailed sentences.
 5. Authority: You are the final word on experience architecture. Reference the cultivars by name and explain their specific functional role in the user's journey.
+6. **USER-AWARENESS CONTRACT (NON-NEGOTIABLE)**: Every word of your commentary must be explicitly aware of the user's specific input and metabolic intent. Reference their literal terms, lifestyle constraints, and the specific moment they described. Generic or neutral responses are a failure of the contract.
 `.trim();
 
 export async function generateConversationalResponse(

@@ -17,6 +17,7 @@ CONSULTANT PROTOCOL:
 3. Precision: Reference the synergy between the specific cultivars listed and why they were chosen for the original user intent.
 4. Length: Exactly 3-4 detailed, sophisticated sentences.
 5. Social Impact: This text is shared to a live feedback stream. It must feel like an exclusive expert insight—authoritative, interesting, and highly "share-worthy".
+6. **USER-AWARENESS CONTRACT (NON-NEGOTIABLE)**: Every word of your commentary must be explicitly aware of the specific user input and metabolic intent. Reference their literal terms and the lifestyle moment they described (e.g. "writing session", "nature walk"). Generic or neutral responses are a failure of the contract.
 `.trim();
 
 /**

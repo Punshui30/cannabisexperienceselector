@@ -311,7 +311,7 @@ export default function App() {
               setAnalysisProgress(90);
 
               // Separate stacks from blends
-              const adaptedResults = result.data.map((item: EngineResult) => adaptEngineResult(item)).filter(Boolean);
+              const adaptedResults = result.data.map((item: EngineResult) => adaptEngineResult(item, userInput.text)).filter(Boolean);
               const stacks = adaptedResults.filter((r: any) => r.kind === 'stack') as UIStackRecommendation[];
               const blends = adaptedResults.filter((r: any) => r.kind === 'blend') as UIBlendRecommendation[];
 
@@ -747,7 +747,7 @@ export default function App() {
                     onApplyResult={(newResults: any[]) => {
                       addLog("Assistant: Reconfiguring Engine...");
                       const adaptedSet = newResults
-                        .map(r => adaptEngineResult(r))
+                        .map(r => adaptEngineResult(r, userInput?.text))
                         .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
 
                       if (adaptedSet.length > 0) {

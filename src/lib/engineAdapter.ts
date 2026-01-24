@@ -108,7 +108,7 @@ export function interpretIntentFromSpec(spec: IntentSpec): Intent {
     });
 
     // Use reference timing if available
-    if ((spec as any).referenceTiming) {
+    if ((spec as any).referenceTiming && intent.context) {
       intent.context.timeOfDay = (spec as any).referenceTiming;
     }
 
@@ -183,12 +183,13 @@ function generateProfile(strainId: string): string {
 /**
  * Generate reasoning from engine output
  */
-function generateReasoning(blend: EngineBlend, intent: Intent): string {
+function generateReasoning(blend: EngineBlend, intent: Intent, userInput?: string): string {
   const cultivarNames = blend.cultivars.map(c => c.name);
   const thc = blend.cannabinoids.thc.toFixed(1);
   const cbd = blend.cannabinoids.cbd.toFixed(1);
 
-  let reasoning = `This blend combines ${cultivarNames.join(', ')} for `;
+  const inputRef = userInput ? ` to match your "${userInput}" intent` : " for balanced synergy";
+  let reasoning = `Assembled ${cultivarNames.join(' & ')}${inputRef}, prioritizing `;
 
   if (intent.targetEffects.energy > 0.5) {
     reasoning += 'energizing effects ';
@@ -327,9 +328,9 @@ export function generateRecommendations(
         stackId: `stack_gen_${Date.now()}`,
         id: `stack_${Date.now()}`,
         name: generateBlendName(rec1).replace('Blend', 'Journey'), // "Creative Flow Journey"
-        description: 'A dynamically generated multi-phase experience based on your intent.',
+        description: `A multi-phase protocol engineered for your "${cleanInputText}" goal.`,
         matchScore: Math.round((rec1.blendScore + rec2.blendScore) / 2),
-        reasoning: `A multi-phase experience. Starts with ${rec1.cultivars[0].name} for immediate effect, then transitions into ${rec2.cultivars[0].name}.`,
+        reasoning: `Layered experience targeting ${cleanInputText}. Starts with ${rec1.cultivars[0].name} for onset, transitioning into ${rec2.cultivars[0].name} for depth.`,
         totalDuration: '3-4 hours',
         layers: [
           {
@@ -341,12 +342,12 @@ export function generateRecommendations(
               profile: generateProfile(rec1.cultivars[0].id),
               characteristics: ['Immediate', 'Potent']
             }],
-            phaseIntent: 'Initial Elevation',
-            whyThisPhase: `Leverages ${rec1.cultivars[0].name} for rapid onset.`,
+            phaseIntent: `Primary ${cleanInputText} Onset`,
+            whyThisPhase: `Leverages ${rec1.cultivars[0].name} for rapid alignment with: "${cleanInputText}".`,
             onsetEstimate: '0-10 min',
             durationEstimate: '45 min',
             consumptionGuidance: 'Inhale deeply',
-            purpose: 'Initial elevation and mood setting',
+            purpose: `Targeting your ${cleanInputText} goal`,
             timing: '0-45 mins'
           },
           {
@@ -358,12 +359,12 @@ export function generateRecommendations(
               profile: generateProfile(rec2.cultivars[0].id),
               characteristics: ['Long-lasting', 'Stable']
             }],
-            phaseIntent: 'Prolonged Effect',
-            whyThisPhase: `Transition to ${rec2.cultivars[0].name} for stability.`,
+            phaseIntent: `Sustained ${cleanInputText} Finish`,
+            whyThisPhase: `Transition to ${rec2.cultivars[0].name} for steady support of: "${cleanInputText}".`,
             onsetEstimate: '45 min',
             durationEstimate: '2 hrs',
             consumptionGuidance: 'Sip slowly',
-            purpose: 'Prolonged beneficial effects',
+            purpose: `Maintaining requested ${cleanInputText} results`,
             timing: '45-120 mins'
           }
         ]
@@ -435,7 +436,7 @@ export function generateRecommendations(
       cultivars: strainData,
       matchScore: normalizedScore,
       confidence: blend.confidence,
-      reasoning: generateReasoning(blend, intent),
+      reasoning: generateReasoning(blend, intent, input.text),
       effects: {
         onset: '5-12 minutes',
         peak: '25-80 minutes',

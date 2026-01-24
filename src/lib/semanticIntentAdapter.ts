@@ -56,6 +56,7 @@ RULES:
 - If input is vague, set confidenceScore low (< 0.6).
 - If specific terpenes are mentioned, map them to 'include'.
 - infer 'timeOfDay' if implied ("wake and bake" -> morning, "unwind" -> night).
+- **USER-AWARENESS CONTRACT (NON-NEGOTIABLE)**: Every word in the 'consultationScript' and 'reasoning' must be explicitly aware of and responsive to the user's specific input. Reference their actual wording, specific preferences, or unique constraints. Generic or neutral templates are forbidden. If any generated text could apply to a different user with different input, it is a failure of the contract.
 `;
 
 export async function analyzeIntent(seed: IntentSeed, context?: { blendName?: string, cultivars?: string[], originalQuery?: string, variantType?: string }): Promise<IntentSpec> {

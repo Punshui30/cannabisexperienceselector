@@ -1,26 +1,28 @@
 import { EngineResult, UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { getCultivarVisuals } from './cultivarData';
 
-function adaptToStack(result: EngineResult): UIStackRecommendation {
+function adaptToStack(result: EngineResult, userInput?: string): UIStackRecommendation {
     // Generate Layers if missing (fallback logic)
     const layers = result.layers || (result.cultivars ? [{
         type: 'blend',
         layerName: 'Core Blend',
         cultivars: result.cultivars,
-        description: 'Primary effect driver.',
+        description: `Primary effect driver for your "${userInput || 'requested'}" goal.`,
         timing: '0-2h'
     }] : []);
+
+    const inputRef = userInput ? ` responding directly to: "${userInput}"` : "";
 
     const recommendation: UIStackRecommendation = {
         kind: 'stack',
         stackId: result.id || `stack_${Date.now()}`,
         id: result.id || `stack_${Date.now()}`,
-        name: result.name || 'Custom Stack',
-        description: result.description || 'optimized protocol',
+        name: result.name || 'Tailored Stack',
+        description: result.description || `Optimized protocol for your goal.${inputRef}`,
         matchScore: result.matchScore || 0.9,
         totalDuration: result.totalDuration || result.effects?.duration || '2-3h',
         confidence: 0.9,
-        reasoning: result.reasoning || 'Layered for optimal effect.',
+        reasoning: result.reasoning || `Layered specifically to address your stated intent${inputRef}.`,
         effects: {
             onset: "5-10m",
             peak: "30-45m",
@@ -44,12 +46,13 @@ function adaptToStack(result: EngineResult): UIStackRecommendation {
 }
 
 export function adaptEngineResult(
-    result: EngineResult
+    result: EngineResult,
+    userInput?: string
 ): UIBlendRecommendation | UIStackRecommendation {
 
     // Determine Kind
     if (result.kind === 'stack' || result.layers) {
-        return adaptToStack(result);
+        return adaptToStack(result, userInput);
     }
 
     // PASSTHROUGH: If already adapted (has visuals), return as-is
@@ -62,15 +65,16 @@ export function adaptEngineResult(
 
     // Deterministic Confidence
     const confidence = result.matchScore ? Math.max(0.1, Math.min(1.0, result.matchScore)) : 0.85;
+    const inputRef = userInput ? ` based on: "${userInput}"` : "";
 
     return {
         id: result.id || `blend_${Date.now()}`,
-        name: result.name || 'Custom Blend',
-        description: result.description || 'Optimized for your intent.',
+        name: result.name || 'Tailored Blend',
+        description: result.description || `Specifically optimized for your intent${inputRef}.`,
         matchScore: result.matchScore || confidence,
         kind: 'blend',
         confidence: confidence,
-        reasoning: result.reasoning || "Optimized based on your distinct preferences.",
+        reasoning: result.reasoning || `Synergy assembled to match your distinct goal${inputRef}.`,
         effects: {
             onset: "5-10m",
             peak: "30-45m",
