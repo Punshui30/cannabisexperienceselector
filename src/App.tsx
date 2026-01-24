@@ -162,9 +162,10 @@ export default function App() {
     setBlendRecs([]);
 
     if (exemplar.kind === 'stack') {
+      console.log('[CLICK]', 'handleSelectPreset: STACK PRESET clicked', { id: exemplar.id });
       setStackRec(exemplar.data);
       setFocusedStackId(exemplar.id);
-      setActiveStackId(null); // RULE: activeStackId must be null on entering Preview
+      setActiveStackId(null); // Rule: activeStackId remains null on entry
       setBlendRecs([]);
       setView('stack-card');
     } else {
@@ -400,7 +401,7 @@ export default function App() {
 
   // Stack card view handlers
   const handleViewStackDetails = () => {
-    console.log('[App] Stack Card: View Details (Entering Journey)');
+    console.log('[CLICK]', 'handleViewStackDetails: CTA clicked (intentional)', { id: stackRec?.id });
     if (stackRec) {
       setActiveStackId(stackRec.id);
       setView('stack-detail');
@@ -569,7 +570,10 @@ export default function App() {
                     onBack={() => setView('input')}
                     onSelect={(exemplar) => {
                       if (exemplar.kind === 'stack') {
+                        console.log('[CLICK]', 'PresetStacks: onSelect (STACK) triggered', { id: exemplar.id });
                         setStackRec(exemplar.data as UIStackRecommendation);
+                        setFocusedStackId(exemplar.id);
+                        setActiveStackId(null);
                         setView('stack-card');
                       } else {
                         console.log('Blend preset selected:', exemplar);
@@ -631,6 +635,7 @@ export default function App() {
                     }}
                     onViewDetail={(item: any) => {
                       if (item.kind === 'stack') {
+                        console.log('[CLICK]', 'ResultsScreen: onViewDetail called (STACK)', { id: item.id });
                         setStackRec(item as UIStackRecommendation);
                         setFocusedStackId(item.id);
                         setActiveStackId(null);
@@ -675,6 +680,7 @@ export default function App() {
                     stack={stackRec}
                     onBack={handleStackCardBack}
                     onViewDetails={handleViewStackDetails}
+                    setActiveStackId={setActiveStackId}
                   />
                 )}
 
@@ -747,9 +753,12 @@ export default function App() {
                       if (adaptedSet.length > 0) {
                         const firstRec = adaptedSet[0];
                         if (firstRec.kind === 'stack') {
+                          console.log('[CLICK]', 'LiveConsultant: onApplyResult (STACK)', { id: firstRec.id });
                           setStackRec(firstRec as UIStackRecommendation);
-                          setBlendRecs([]); // Clear blends to avoid confusion
-                          setView('stack-detail');
+                          setFocusedStackId(firstRec.id);
+                          setActiveStackId(null);
+                          setBlendRecs([]);
+                          setView('stack-card');
                         } else {
                           setBlendRecs(adaptedSet);
                           setStackRec(null); // Clear active stack

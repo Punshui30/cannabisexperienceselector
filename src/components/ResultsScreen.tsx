@@ -116,7 +116,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onConclude
             <div className="max-w-xs mx-auto">
               <button
                 onClick={onConcludeSession}
-                className="w-full bg-gradient-to-r from-[#7C3AED]/80 to-[#6D28D9]/80 backdrop-blur-xl text-white rounded-xl py-4 px-6 flex items-center justify-center gap-3 font-medium hover:from-[#7C3AED] hover:to-[#6D28D9] transition-all active:scale-95 shadow-lg shadow-purple-500/25 border border-white/10"
+                className="w-full bg-white/5 backdrop-blur-xl text-white rounded-xl py-4 px-6 flex items-center justify-center gap-3 font-medium hover:bg-white/10 transition-all active:scale-95 shadow-lg border border-white/10"
               >
                 <Share2 size={18} />
                 <span>Save This Blend</span>

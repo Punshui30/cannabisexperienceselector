@@ -17,30 +17,36 @@ interface StackCardViewProps {
   stack: UIStackRecommendation;
   onBack: () => void;
   onViewDetails: () => void;
+  setActiveStackId: (id: string | null) => void;
 }
 
-export function StackCardView({ stack, onBack, onViewDetails }: StackCardViewProps) {
+export function StackCardView({ stack, onBack, onViewDetails, setActiveStackId }: StackCardViewProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    // HARD RESET: Prevent auto-entry into detail view from leftover state
+    console.log('[MOUNT]', 'StackCardView: Resetting activeStackId');
+    setActiveStackId(null);
+
     // Simulate loading for smooth animation
     const timer = setTimeout(() => setIsLoaded(true), 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [setActiveStackId]);
 
   // Determine theme color based on stack content
   const themeColor = '#8B5CF6'; // Default violet for stacks
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
+      {/* Header Wrapper (NO overflow hidden to prevent clipping) */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative min-h-[112px] pt-12 pb-4 flex flex-col justify-end"
+        className="relative min-h-[120px] pt-12 pb-4 flex flex-col justify-end"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
+        {/* Gradient Mask (Absolute child, allows text to breathe in parent) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none overflow-hidden" />
 
         {/* Back Button */}
         <div className="absolute left-6 bottom-4 z-20">
@@ -53,8 +59,9 @@ export function StackCardView({ stack, onBack, onViewDetails }: StackCardViewPro
           </button>
         </div>
 
-        <div className="text-center px-6 relative z-10">
-          <h1 className="text-xl font-serif text-white tracking-tight leading-none">
+        {/* Text Layer (Relative, with real padding) */}
+        <div className="text-center px-6 relative z-10 mt-4">
+          <h1 className="text-xl font-serif text-white tracking-tight leading-[1.2]">
             Curated Stack
           </h1>
           <p className="text-[10px] text-white/30 uppercase tracking-widest mt-2">
@@ -135,10 +142,10 @@ export function StackCardView({ stack, onBack, onViewDetails }: StackCardViewPro
           >
             <button
               onClick={onViewDetails}
-              className="w-full bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] text-white rounded-xl py-4 px-6 flex items-center justify-center gap-3 font-medium hover:from-[#7C3AED] hover:to-[#6D28D9] transition-all active:scale-95 shadow-lg shadow-purple-500/25"
+              className="w-full bg-white/5 backdrop-blur-md border border-white/10 text-white/90 rounded-xl py-4 px-6 flex items-center justify-center gap-3 font-medium hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 shadow-lg group"
             >
-              <span>View Full Protocol</span>
-              <ChevronRight size={18} />
+              <span className="text-sm">View Full Protocol</span>
+              <ChevronRight size={18} className="text-white/40 group-hover:text-white transition-colors" />
             </button>
           </motion.div>
         </div>
