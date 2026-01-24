@@ -8,25 +8,56 @@ interface V3SignalInterfaceProps {
     inputText?: string;
 }
 
-const ETHOS_LINES = [
-    "Strain names aren't stable. Experiences are.",
-    "Consistency is engineered, not guessed.",
-    "You're not choosing a strain. You're choosing an outcome.",
-    "Real inputs. Real chemistry. Real repeatability.",
-    "Guided Outcomes, not trial and error.",
-    "The math is doing the work."
+const INFO_COPY = [
+    "Single strains aren’t stable. Outcomes should be.",
+    "Indica and sativa aren’t science. Composition is.",
+    "Effects come from chemistry, not strain names.",
+    "Consistency requires calculation, not guessing.",
+    "Blending stabilizes what single strains can’t.",
+    "Real outcomes come from ratios, not labels.",
+    "Terpenes interact. Cannabinoids compound."
 ];
 
+function shuffleArray<T>(array: T[]): T[] {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
 export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps) {
+    const [shuffledCopy, setShuffledCopy] = useState<string[]>([]);
     const [index, setIndex] = useState(0);
 
-    // Ethos copy rotation
+    // Initialize randomized set on mount
     useEffect(() => {
-        const id = setInterval(() => {
-            setIndex((prev) => (prev + 1) % ETHOS_LINES.length);
-        }, 8000);
-        return () => clearInterval(id);
+        setShuffledCopy(shuffleArray(INFO_COPY));
     }, []);
+
+    // Info copy rotation with randomized interval
+    useEffect(() => {
+        if (shuffledCopy.length === 0) return;
+
+        let timeoutId: ReturnType<typeof setTimeout>;
+
+        const rotate = () => {
+            setIndex((prev) => (prev + 1) % shuffledCopy.length);
+
+            // Random interval between 2.5 and 3.5 seconds
+            const nextInterval = 2500 + Math.random() * 1000;
+            timeoutId = setTimeout(rotate, nextInterval);
+        };
+
+        const initialInterval = 2500 + Math.random() * 1000;
+        timeoutId = setTimeout(rotate, initialInterval);
+
+        return () => clearTimeout(timeoutId);
+    }, [shuffledCopy]);
+
+    // Fallback display logic
+    const currentText = shuffledCopy[index] || INFO_COPY[6];
 
     return (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black text-white overflow-hidden">
@@ -59,9 +90,9 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
                         transition={{ duration: 0.7, ease: "easeInOut" }}
-                        className="text-xl sm:text-2xl font-light leading-snug text-white/90 serif"
+                        className="text-xl sm:text-2xl font-light leading-snug text-white/90 serif min-h-[4em] flex items-center justify-center"
                     >
-                        {ETHOS_LINES[index]}
+                        {currentText}
                     </motion.p>
                 </AnimatePresence>
 
