@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { EnginePhase } from '../types/domain';
 import { EngineCore3D } from './EngineCore3D';
 // import { SignalAlignmentVisual } from './SignalAlignmentVisual'; // Removed
-import analyzeLoop from '../assets/analyze_loop.mp4'; // New Asset
+// import analyzeLoop from '../assets/analyze_loop.mp4'; // REMOVED - Using public path
 
 interface V3SignalInterfaceProps {
     phase: EnginePhase;
@@ -69,7 +69,7 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
                         {/* VIDEO REPLACEMENT */}
                         <div className="relative w-[320px] h-[320px] rounded-full overflow-hidden border border-white/5 shadow-2xl shadow-[#00FFD1]/20">
                             <video
-                                src={analyzeLoop}
+                                src="/analyze_loop.mp4"
                                 autoPlay
                                 loop
                                 muted
