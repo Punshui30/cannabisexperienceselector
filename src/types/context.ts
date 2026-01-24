@@ -2,7 +2,7 @@
 
 export interface InvocationContext {
   route: string;                    // Current URL path
-  viewType: 'dashboard' | 'stack_card' | 'stack_detail' | 'blend_card' | 'blend_detail' | 'resolution' | 'results' | 'checkout' | 'share' | 'library' | 'admin' | 'remote_access' | 'live_feed' | 'input' | 'presets' | 'resolving' | 'error';
+  viewType: 'dashboard' | 'stack-card' | 'stack-detail' | 'blend-card' | 'blend-detail' | 'resolution' | 'results' | 'checkout' | 'share' | 'library' | 'admin' | 'remote-access' | 'live-feed' | 'input' | 'presets' | 'resolving' | 'error';
   activeEntityType: 'stack' | 'blend' | 'cultivar' | 'preset' | null;
   activeEntityId: string | null;
   mode: 'browse' | 'edit' | 'protocol' | 'live_assist' | 'create';

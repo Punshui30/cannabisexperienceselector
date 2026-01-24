@@ -12,6 +12,7 @@ interface LiveConsultantProps {
     onApplyResult?: (result: any) => void;
     onClose: () => void;
     isGenerating?: boolean;
+    consultantMode?: 'default' | 'accuracy_enhancement' | 'clarification_required';
 }
 
 interface Message {
@@ -27,7 +28,9 @@ interface AccuracyState {
     detail: string;
 }
 
-export function LiveConsultant({ consultantText, context, onApplyResult, onClose, isGenerating = false, mode = 'default' }: LiveConsultantProps & { mode?: 'default' | 'accuracy_enhancement' | 'clarification_required' }) {
+export function LiveConsultant(props: LiveConsultantProps) {
+    const { consultantText, context, onApplyResult, onClose, isGenerating = false } = props;
+    const consultantMode: 'default' | 'accuracy_enhancement' | 'clarification_required' = props.consultantMode || 'default';
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +55,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
     // Initial Greeting (Context-Aware)
     useEffect(() => {
         // MODE 1: CLARIFICATION REQUIRED (Engine-Triggered Ambiguity)
-        if (mode === 'clarification_required') {
+        if (consultantMode === 'clarification_required') {
             setMessages([{
                 role: 'assistant',
                 content: consultantText || "I need a bit more clarity to resolve that consistently. Could you be more specific?"
@@ -61,7 +64,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         }
 
         // MODE 2: ACCURACY ENHANCEMENT (User-Triggered Optimization)
-        if (mode === 'accuracy_enhancement') {
+        if (consultantMode === 'accuracy_enhancement') {
             setMessages([{
                 role: 'assistant',
                 content: "Let's dial this in. To get it strictly right, I need to know: what's usually \"not hitting\" for you?"
@@ -72,47 +75,56 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         // MODE 3: DEFAULT (Chat Assistant)
         // Log context binding for debugging
         if (context) {
-            console.log(`[ASSISTANT_CONTEXT_BOUND] view=${context.viewType} entity=${context.activeEntityType || 'none'} id=${context.activeEntityId || 'none'} mode=${context.mode}`);
+            console.log(`[ASSISTANT_CONTEXT_BOUND] view=${context.viewType} entity=${context.activeEntityType || 'none'} id=${context.activeEntityId || 'none'} mode=${consultantMode}`);
         }
 
-        let intro = consultantText;
+        let intro = consultantText || "";
         if (!intro) {
-            switch (context?.viewType) {
-                case 'results':
-                    intro = context.activeEntityType === 'stack'
-                        ? "Viewing stack results. I can modify layers, add phases, or adjust timing."
-                        : "I've analyzed these blend options. Would you like to refine the terpene profile or effect target?";
-                    break;
-                case 'blend-detail':
-                    intro = "Analyzing blend synergy. Ask about specific terpene effects or request adjustments.";
-                    break;
-                case 'stack-detail':
-                case 'stack-card':
-                    intro = context.activeEntityType === 'stack'
-                        ? "Stack Protocol Assistant: I can add layers, modify phases, or adjust timing. What would you like to change?"
-                        : "Viewing Stack architecture. I can explain the layer interactions.";
-                    break;
-                case 'resolution':
-                    intro = context.activeEntityType === 'stack'
-                        ? "Resolution Assistant: Modify this stack before generating session artifacts."
-                        : "Resolution Assistant: Refine this blend before generating session artifacts.";
-                    break;
-                case 'checkout':
-                case 'share':
-                    intro = "Session Review: This blend has been prepared for your records.";
-                    break;
-                case 'library':
-                    intro = "Accessing Strain Library. Looking for a specific chemotype?";
-                    break;
-                case 'input':
-                    intro = "Hi, I'm your StrainMath™ Assistant. I can help you construct a query or explore presets.";
-                    break;
-                default:
-                    intro = "Hi, I'm your StrainMath™ Assistant. Adjust parameters or query logic.";
+            if (consultantMode === 'clarification_required') {
+                const questions = [
+                    "What usually isn’t hitting right about the strains you’ve tried?",
+                    "Is it missing the feeling you want, or having side effects?",
+                    "Does it feel too weak, or just the wrong 'kind' of high?"
+                ];
+                intro = consultantText || questions[Math.floor(Math.random() * questions.length)];
+            } else {
+                switch (context?.viewType) {
+                    case 'results':
+                        intro = context.activeEntityType === 'stack'
+                            ? "Viewing stack results. I can modify layers, add phases, or adjust timing."
+                            : "I've analyzed these blend options. Would you like to refine the terpene profile or effect target?";
+                        break;
+                    case 'blend-detail':
+                        intro = "Analyzing blend synergy. Ask about specific terpene effects or request adjustments.";
+                        break;
+                    case 'stack-detail':
+                    case 'stack-card':
+                        intro = context.activeEntityType === 'stack'
+                            ? "Stack Protocol Assistant: I can add layers, modify phases, or adjust timing. What would you like to change?"
+                            : "Viewing Stack architecture. I can explain the layer interactions.";
+                        break;
+                    case 'resolution':
+                        intro = context.activeEntityType === 'stack'
+                            ? "Resolution Assistant: Modify this stack before generating session artifacts."
+                            : "Resolution Assistant: Refine this blend before generating session artifacts.";
+                        break;
+                    case 'checkout':
+                    case 'share':
+                        intro = "Session Review: This blend has been prepared for your records.";
+                        break;
+                    case 'library':
+                        intro = "Accessing Strain Library. Looking for a specific chemotype?";
+                        break;
+                    case 'input':
+                        intro = "Hi, I'm your StrainMath™ Assistant. I can help you construct a query or explore presets.";
+                        break;
+                    default:
+                        intro = "Hi, I'm your StrainMath™ Assistant. Adjust parameters or query logic.";
+                }
             }
         }
         setMessages([{ role: 'assistant', content: intro }]);
-    }, [context?.activeEntityId, context?.viewType, consultantText, mode]);
+    }, [context?.activeEntityId, context?.viewType, consultantText, consultantMode]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -205,7 +217,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         setInputValue('');
 
         // MODE: ACCURACY ENHANCEMENT
-        if (mode === 'accuracy_enhancement') {
+        if (consultantMode === 'accuracy_enhancement') {
             if (accuracyState.step === 3) {
                 submitAccuracy(userMessage);
             }
@@ -213,7 +225,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
         }
 
         // MODE: CLARIFICATION REQUIRED
-        if (mode === 'clarification_required') {
+        if (consultantMode === 'clarification_required') {
             submitClarification(userMessage);
             return;
         }
@@ -296,9 +308,9 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                 {/* SYSTEM HEADER */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
                     <div className="flex items-center gap-2 text-[#00FFD1]">
-                        {mode === 'accuracy_enhancement' ? <Brain size={14} /> : <Sparkles size={14} />}
+                        {consultantMode === 'accuracy_enhancement' ? <Brain size={14} /> : <Sparkles size={14} />}
                         <span className="text-[10px] font-bold tracking-widest uppercase">
-                            {mode === 'accuracy_enhancement' ? "Calibration Mode" : (mode === 'clarification_required' ? "Clarification Required" : "StrainMath Assistant")}
+                            {consultantMode === 'accuracy_enhancement' ? "Calibration Mode" : (consultantMode === 'clarification_required' ? "Clarification Required" : "StrainMath Assistant")}
                         </span>
                     </div>
                     <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
@@ -320,7 +332,7 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                     ))}
 
                     {/* ACCURACY OPTIONS RENDERING */}
-                    {mode === 'accuracy_enhancement' && !hasCommitted && (
+                    {consultantMode === 'accuracy_enhancement' && !hasCommitted && (
                         <div className="flex flex-col items-end gap-2 mt-2">
                             {accuracyState.step === 0 && (
                                 <div className="flex flex-wrap justify-end gap-2">
@@ -352,8 +364,26 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                         </div>
                     )}
 
-                    {/* CLARIFICATION MODE RENDERING (Optional Prompt Chips? Prompt says 'must reference user phrasing' - done in init) */}
-                    {/* Just text response for now */}
+                    {/* CLARIFICATION MODE RENDERING */}
+                    {consultantMode === 'clarification_required' && !hasCommitted && (
+                        <div className="flex flex-col items-end gap-2 mt-2">
+                            <div className="text-[10px] text-white/40 uppercase tracking-widest mr-2">Quick Responses</div>
+                            <div className="flex flex-wrap justify-end gap-2">
+                                {["It's usually too weak", "I get anxious", "Just doesn't feel right"].map(opt => (
+                                    <button
+                                        key={opt}
+                                        onClick={() => {
+                                            setInputValue(opt);
+                                            // Optional: auto-send? Let's populate input for now.
+                                        }}
+                                        className="px-3 py-1.5 rounded-full border border-[#00FFD1]/30 text-[#00FFD1] text-[10px] uppercase hover:bg-[#00FFD1]/10 transition-colors"
+                                    >
+                                        {opt}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {isLoading && (
                         <div className="text-white/40 animate-pulse">
@@ -373,8 +403,8 @@ export function LiveConsultant({ consultantText, context, onApplyResult, onClose
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 className="w-full bg-white/5 border border-white/10 rounded-full pl-4 pr-10 py-2 text-white text-xs focus:outline-none focus:border-[#00FFD1]/50 placeholder-white/20"
-                                placeholder={mode === 'accuracy_enhancement' && accuracyState.step < 3 ? "Select an option above..." : (isLoading ? "Processing..." : "Enter response...")}
-                                disabled={isLoading || isRefactorComplete || (mode === 'accuracy_enhancement' && accuracyState.step < 3)}
+                                placeholder={consultantMode === 'accuracy_enhancement' && accuracyState.step < 3 ? "Select an option above..." : (isLoading ? "Processing..." : "Enter response...")}
+                                disabled={isLoading || isRefactorComplete || (consultantMode === 'accuracy_enhancement' && accuracyState.step < 3)}
                                 autoFocus
                             />
                             <button

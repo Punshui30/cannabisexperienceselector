@@ -293,6 +293,16 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                     >
                       <Mic size={16} />
                     </button>
+                    {/* IMPROVE ACCURACY TOGGLE (Inside Text Area) */}
+                    <div className="absolute bottom-3 left-4 z-20">
+                      <button
+                        onClick={() => setImproveAccuracy(!improveAccuracy)}
+                        className={`flex items-center gap-2 text-[10px] uppercase tracking-widest transition-colors ${improveAccuracy ? "text-[#00FFD1]" : "text-white/40 hover:text-white/60"}`}
+                      >
+                        <div className={`w-3 h-3 rounded-full border transition-colors ${improveAccuracy ? "bg-[#00FFD1] border-[#00FFD1]" : "border-white/40"}`} />
+                        Improve Accuracy
+                      </button>
+                    </div>
                   </div>
                 )}
 

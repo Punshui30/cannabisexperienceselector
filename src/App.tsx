@@ -793,7 +793,7 @@ export default function App() {
                   <LiveConsultant
                     consultantText={consultantText}
                     context={createInvocationContext()}
-                    mode={consultantMode} // Pass mode
+                    consultantMode={consultantMode} // Pass consultantMode
                     onApplyResult={(result: any) => {
                       // SPECIAL PATH: MODE-DRIVEN CALIBRATION (Accuracy or Clarification)
                       if (consultantMode === 'accuracy_enhancement' || consultantMode === 'clarification_required') {

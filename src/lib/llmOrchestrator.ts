@@ -850,7 +850,10 @@ export async function processIntent(
                         blendId: primaryBlend.id || `blend-${Date.now()}`,
                         blendName: primaryBlend.name || 'Custom Blend',
                         confidenceScore: (primaryBlend.matchScore || 85) / 100,
-                        componentSkus: (primaryBlend.cultivars || []).map(c => c.name),
+                        components: (primaryBlend.cultivars || []).map(c => ({
+                            name: c.name,
+                            ratio: (c as any).ratio || 0.33 // Default to equal split if missing
+                        })),
                         outcomeCategory: outcomeCategory,
                         commentary: commentary || `${primaryBlend.name} - ${(primaryBlend.cultivars || []).map(c => c.name).join(', ')}`
                     });
