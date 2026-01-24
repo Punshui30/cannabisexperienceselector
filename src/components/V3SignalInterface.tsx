@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EnginePhase } from '../types/domain';
 import { EngineCore3D } from './EngineCore3D';
-import { OutcomeSignature } from './OutcomeSignature';
+import { SignalAlignmentVisual } from './SignalAlignmentVisual';
 
 interface V3SignalInterfaceProps {
     phase: EnginePhase;
@@ -78,14 +78,14 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
             <div className="relative z-10 flex flex-col items-center px-8 text-center max-w-xl">
 
                 {/* HEARTBEAT & SIGNATURE */}
-                <div className="w-full h-[320px] flex items-center justify-center mb-6 relative">
+                <div className="w-full h-[260px] flex items-center justify-center mb-6 relative">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
                         className="w-full h-full flex items-center justify-center"
                     >
-                        <OutcomeSignature />
+                        <SignalAlignmentVisual />
                     </motion.div>
                 </div>
 
