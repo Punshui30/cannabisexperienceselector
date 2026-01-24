@@ -14,6 +14,11 @@ export interface IntentSeed {
     // Legacy optional fields if cleaning up elsewhere
     strainName?: string;
     grower?: string;
+    clarificationData?: {
+        directionalIssue?: string;
+        stabilityContext?: string;
+        additionalDetail?: string;
+    };
 }
 
 /**
@@ -33,6 +38,7 @@ export interface IntentSpec {
         experienceLevel?: "new" | "regular" | "experienced";
         sensitivity?: "low" | "medium" | "high";
     };
+    clarified?: boolean; // Tag for accuracy safeguard
     confidenceScore: number;
     reasoning: string;
     consultationScript?: string;

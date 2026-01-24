@@ -38,15 +38,26 @@ module.exports = async function handler(request, response) {
 
             try {
                 const results = await Promise.all(blendSummary.map(async (blend) => {
-                    const promptText = `You are StrainMath™, a luxury cannabis branding expert and consultant.
-USER GOAL: "${userIntentSummary || 'Custom experience'}"
-CULTIVARS: ${blend.cultivars.join(', ')}
+                    const promptText = `You are StrainMath™, a luxury cannabis consultant specializing in clinical precision and experiential architecture.
 
-YOUR TASK:
-1. "newName": Create an ultra-premium, evocative name for this blend. Avoid using cultivar names in the title. Focus on the outcome! (Examples: "The Creative Engine", "Coastal Calm", "Neural Reboot").
-2. "narrative": Write 2 sentences on the specific metabolic synergy between these cultivars for this user's goal.
+USER CONTEXT:
+Goal: "${userIntentSummary || 'Custom experience'}"
+Analytical Lens: ${blend.analyticalLens || 'optimization'}
+Tier: ${blend.tier || 'primary'}
+Cultivars: ${blend.cultivars.join(', ')}
 
-TONE: ${toneMode || 'neutral'}, sophisticated, professional.
+STRICT NAMING PROTOCOL:
+1. "newName": Create a precise, grounded name for this blend.
+   - PRIMARY TIER: MUST lead with the user's reference if available (e.g., "White Gummy Mirroring Blend").
+   - SECONDARY/CONTEXTUAL TIER: MUST NOT lead with the user reference. Focus on the method/lens (e.g., "Terpene Optimization Variant").
+   - NO POETIC JUNK: Do NOT generate abstract or poetic names. Communicate reference + method, not mood.
+   - BANNED WORDS: Elysian, Reverie, Serenity, Escape, Harmony, Aura, Zen, Bliss, Mystic, Velvet, Whisper, Dream.
+
+STRICT NARRATIVE PROTOCOL:
+2. "narrative": Write exactly 2 sentences explaining the synergy.
+   - You MUST explicitly reference the analytical lens (${blend.analyticalLens || 'optimization'}) and how it applies to the user's goal.
+   - TONE: Calm, precise, reassuring, and clinical-yet-premium.
+
 FORMAT: JSON { "newName": "...", "narrative": "..." }`;
 
                     const res = await fetch('https://api.openai.com/v1/chat/completions', {

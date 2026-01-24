@@ -130,7 +130,24 @@ export async function processIntent(
         console.groupEnd();
 
 
-        // GATING: If no mutation required, skip engine entirely
+        // GATING 1: Clarification Gate (Accuracy Safeguard)
+        if (decision.requires_clarification && !seed.clarificationData) {
+            console.log('ORCHESTRATOR: Clarification Gate Triggered. Awaiting User Signal.');
+            updatePhase('idle'); // Pause state
+            return {
+                success: true,
+                data: [], // Empty data signals "Wait for user clarification"
+                analysis: {
+                    targetTerpenes: [],
+                    reasoning: "Ambiguity detected in specific cultivar reference. Initializing Calibration Gate for match accuracy.",
+                    consultationScript: "One more signal is needed to ensure accuracy. Please complete the calibration step.",
+                    outcomeCategory: 'Other'
+                },
+                decision // Pass decision with requires_clarification: true
+            };
+        }
+
+        // GATING 2: If no mutation required, skip engine entirely
         if (!decision.requires_engine_mutation) {
             updatePhase('chat'); // terminal phase - UI must resolve immediately
             console.log('ORCHESTRATOR: Decision indicates NO ENGINE MUTATION. Switching to Conversational Mode.');
@@ -253,6 +270,24 @@ export async function processIntent(
             throw new Error('Failed to create intent specification');
         }
         console.log('Intent Result:', intentSpec);
+
+        // DATA INTEGRATION: Merge Clarification Gate responses
+        if (seed.clarificationData && intentSpec) {
+            console.log('ORCHESTRATOR: Merging Clarification Data into Intent Spec');
+            intentSpec.clarified = true;
+            intentSpec.reasoning = `${intentSpec.reasoning}\n\n[CALIBRATION SIGNAL]: Issue: ${seed.clarificationData.directionalIssue} | Context: ${seed.clarificationData.stabilityContext}`;
+            if (seed.clarificationData.additionalDetail) {
+                intentSpec.reasoning += ` | Detail: ${seed.clarificationData.additionalDetail}`;
+            }
+
+            // Adjust confidence weighting based on clarification
+            if (seed.clarificationData.directionalIssue !== 'None') {
+                intentSpec.confidenceScore = Math.min(0.95, (intentSpec.confidenceScore || 0.7) + 0.15);
+            }
+        } else if (!seed.clarificationData && intentSpec && decision.requires_clarification === false) {
+            // If not triggered and not clarifying, we can still mark as natively clear if confidence is high
+        }
+
         console.groupEnd();
 
         console.log('ORCHESTRATOR: New Engine Run (Authoritative)');
@@ -677,10 +712,18 @@ export async function processIntent(
                         },
                         userIntentSummary: `${seed.text} (Intent: ${intentSpec.originalInput || 'Inferred'})`,
                         decisionSummary: `Engine decision: ${decision.reasoning}`,
-                        blendSummary: engineResults.map(b => ({
-                            name: b.name || "Blend",
-                            cultivars: (b.cultivars || []).map(c => c.name)
-                        })),
+                        blendSummary: engineResults.map((b, idx) => {
+                            const tier = idx === 0 ? 'primary' : (idx === 1 ? 'secondary' : 'contextual');
+                            const lens = (isStrainMode && idx === 0) ? 'mirroring' :
+                                (idx === 0 ? 'optimization' : 'reinterpretation');
+
+                            return {
+                                name: b.name || "Blend",
+                                cultivars: (b.cultivars || []).map(c => c.name),
+                                tier,
+                                analyticalLens: lens
+                            };
+                        }),
                         toneMode: toneMode
                     };
 
@@ -1171,17 +1214,22 @@ function generateDeterministicNarrative(
     let name = '';
     let reasoning = '';
 
+    // Confidence-based prefix for narratives
+    const isHighConfidence = (intent.confidenceScore || 0) > 0.8;
+    const isSkipped = intent.clarified && intent.reasoning.includes('Issue: None | Context: None');
+    const confidencePrefix = isSkipped ? "Conservative Interpretation: " : (isHighConfidence ? "Calibrated Result: " : "Preliminary Analysis: ");
+
     if (isStrainMatch && type === 'primary') {
         const strainName = intent.originalInput || userInput;
         const producer = (intent as any).grower ? ` by ${(intent as any).grower}` : "";
         name = `${strainName}${producer} Interpretation`;
-        reasoning = `This blend was engineered by interpreting your request for "${strainName}" through a contextual lens, preserving its defining effects while adjusting for balance and stability.`;
+        reasoning = `${confidencePrefix}This blend was engineered by interpreting your request for "${strainName}" through a contextual lens, preserving its defining effects while adjusting for balance and stability.`;
     } else if (type === 'primary') {
         name = `${blend.cultivars[0].name} Strategic Blend`;
-        reasoning = `Developed to anchor your request for "${userInput}" with ${blend.cultivars[0].name}, prioritizing the ${intent.targetEffects[0] || 'primary'} results while maintaining a calm and stable profile.`;
+        reasoning = `${confidencePrefix}Developed to anchor your request for "${userInput}" with ${blend.cultivars[0].name}, prioritizing the ${intent.targetEffects[0] || 'primary'} results while maintaining a calm and stable profile.`;
     } else if (type === 'alternative') {
         name = `Optimized Alternative`;
-        reasoning = `A different approach to your "${userInput}" goal, shifting focus to ${intent.targetEffects[1] || 'secondary effects'} for verification.`;
+        reasoning = `A different approach to your "${userInput}" goal${isSkipped ? " (Conservative Model)" : ""}, shifting focus to ${intent.targetEffects[1] || 'secondary effects'} for verification.`;
     } else {
         name = `Contextual Interpretation`;
         reasoning = `Re-interpreting your query "${userInput}" through a contextual lens, utilizing ${cultivarNames} for synergistic stability.`;

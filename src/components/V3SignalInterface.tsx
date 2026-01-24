@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EnginePhase } from '../types/domain';
+import { EngineCore3D } from './EngineCore3D';
 
 interface V3SignalInterfaceProps {
     phase: EnginePhase;
@@ -9,13 +10,15 @@ interface V3SignalInterfaceProps {
 }
 
 const INFO_COPY = [
-    "Single strains aren’t stable. Outcomes should be.",
-    "Indica and sativa aren’t science. Composition is.",
-    "Effects come from chemistry, not strain names.",
-    "Consistency requires calculation, not guessing.",
-    "Blending stabilizes what single strains can’t.",
-    "Real outcomes come from ratios, not labels.",
-    "Terpenes interact. Cannabinoids compound."
+    "Compositional stability preserves session intent.",
+    "Indica and sativa are placeholders. Ratios are results.",
+    "Effects emerge from chemistry, not names.",
+    "Consistency requires calculation, not categorization.",
+    "Blending stabilizes what single strains cannot.",
+    "Engineered outcomes depend on ratios, not labels.",
+    "Terpenes interact. Cannabinoids compound.",
+    "Inventory-aware resolution for precise results.",
+    "Systemic balance over singular emphasis."
 ];
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -60,18 +63,29 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
     const currentText = shuffledCopy[index] || INFO_COPY[6];
 
     return (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black text-white overflow-hidden">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-white overflow-hidden bg-black/60 backdrop-blur-sm">
             {/* Subtle vignette background */}
-            <div className="absolute inset-0 bg-gradient-radial from-black via-black/95 to-black/80" />
+            <div className="absolute inset-0 bg-gradient-radial from-transparent via-black/40 to-black/80" />
 
-            {/* Ambient brand glow (reusing existing gradients) */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {/* Ambient brand glow (Reduced for better CinematicBackground visibility) */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
                 <div className="absolute top-[-10%] left-[-20%] w-[80%] h-[60%] bg-[#7C3AED]/30 rounded-full blur-[120px] animate-pulse-slow" />
                 <div className="absolute bottom-[-10%] right-[-20%] w-[80%] h-[60%] bg-[#059669]/25 rounded-full blur-[120px] animate-pulse-slow" />
             </div>
 
             {/* GO / StrainMath ethos */}
             <div className="relative z-10 flex flex-col items-center px-8 text-center max-w-xl">
+
+                {/* HEARTBEAT: Engine Core 3D Visualization */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 1.2, ease: "easeOut" }}
+                    className="w-full h-[240px] flex items-center justify-center mb-4 relative"
+                >
+                    <EngineCore3D phase={phase} />
+                </motion.div>
+
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 0.9, y: 0 }}

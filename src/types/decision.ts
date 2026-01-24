@@ -5,6 +5,7 @@ export type DecisionIntent =
     | 'answer_question'         // General QA
     | 'handle_greeting'         // Hello/Hi
     | 'handle_error'            // Confusion/Unclear
+    | 'augment_stack'           // Modification of existing stack
     | 'unknown';
 
 export type ResponseMode =
@@ -17,6 +18,7 @@ export interface Decision {
     requires_engine_mutation: boolean;
     requires_user_confirmation: boolean;
     target_entities?: string[]; // e.g., ["Blue Dream", "Sleep"]
+    requires_clarification?: boolean; // TRIGGER: Specific reference + ambiguity
     response_mode: ResponseMode;
     confidence: 'high' | 'medium' | 'low';
     reasoning: string;          // Internal chain-of-thought for the decision

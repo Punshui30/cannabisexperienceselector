@@ -14,11 +14,22 @@ Output a strict JSON object matching this schema:
   "intent": "generate_blend" | "refine_blend" | "explain_concept" | "answer_question" | "handle_greeting" | "handle_error" | "unknown",
   "requires_engine_mutation": boolean,
   "requires_user_confirmation": boolean,
+  "requires_clarification": boolean,
   "target_entities": string[],
   "response_mode": "action_then_explain" | "narrative_only" | "silent_action",
   "confidence": "high" | "medium" | "low",
   "reasoning": "Brief chain of thought why this decision was made"
 }
+
+CLARIFICATION GATE LOGIC (STRICT):
+Set "requires_clarification": true ONLY if ALL these conditions are met:
+1. User input references a specific strain, experience, or past usage.
+2. Language implies inconsistency, variability, or unreliability (e.g., "sometimes", "batch to batch", "hit or miss", "inconsistent").
+3. Directional signal is MISSING or INSUFFICIENT.
+   - Directional signal examples: "too strong", "too weak", "want more energy", "less anxiety".
+   - If user says "I want [X] but [Y] is too strong", directional signal is PRESENT -> requires_clarification: false.
+   - If user says "I use [X] but it's inconsistent" (without saying HOW it's inconsistent or what they want instead) -> requires_clarification: true.
+4. "requires_engine_mutation" must also be true.
 
 LOGIC RULES:
 1. **Mutation Triggers** (requires_engine_mutation: true):

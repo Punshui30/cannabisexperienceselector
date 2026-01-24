@@ -29,6 +29,7 @@ import { ShareScreen } from './components/ShareScreen';
 import { ResolutionScreen } from './components/ResolutionScreen';
 import { StackCardView } from './components/StackCardView';
 import { StrainLibraryScreen } from './components/StrainLibraryScreen';
+import { ClarificationGate } from './components/ClarificationGate';
 import { LiveConsultant } from './components/LiveConsultant';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { LiveExperienceFeed } from './components/LiveExperienceFeed';
@@ -49,7 +50,7 @@ import { updateEngineSnapshot } from './lib/engineSnapshot';
 import { ScrollStage } from './components/layout/ScrollStage';
 import './index.css';
 
-export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'resolution' | 'results' | 'presets' | 'stack-detail' | 'stack-card' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed' | 'checkout' | 'share' | 'idle';
+export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'resolution' | 'results' | 'presets' | 'stack-detail' | 'stack-card' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed' | 'checkout' | 'share' | 'idle' | 'clarification-gate';
 
 export default function App() {
   // Mobile layout contract:
@@ -308,6 +309,16 @@ export default function App() {
           clearInterval(progressInterval);
 
           if (result.success) {
+            // CHECK FOR CLARIFICATION GATE TRIGGER
+            if (result.decision?.requires_clarification && !userInput?.clarificationData) {
+              addLog('Accuracy Safeguard Triggered: Awaiting Calibration');
+              setIsAnalyzing(false);
+              setView('clarification-gate');
+              clearInterval(heartbeat);
+              clearInterval(progressInterval);
+              return;
+            }
+
             if (result.data.length > 0) {
               addLog('Success: Results Ready');
               setAnalysisProgress(90);
@@ -604,6 +615,29 @@ export default function App() {
                       })
                     }
                     onRecalculate={handleRecalculateWithFeedback}
+                  />
+                )}
+
+                {/* CLARIFICATION GATE - Accuracy Safeguard */}
+                {view === 'clarification-gate' && (
+                  <ClarificationGate
+                    onComplete={(data) => {
+                      if (userInput) {
+                        console.log('[CLARIFICATION] Calibration Signal Received:', data);
+                        setUserInput({ ...userInput, clarificationData: data });
+                        setIsAnalyzing(true);
+                        setView('resolving');
+                      }
+                    }}
+                    onSkip={() => {
+                      if (userInput) {
+                        console.log('[CLARIFICATION] Use skipped - proceeding with conservative defaults');
+                        // Tag as clarified to avoid re-trigger
+                        setUserInput({ ...userInput, clarificationData: { directionalIssue: 'None', stabilityContext: 'None' } });
+                        setIsAnalyzing(true);
+                        setView('resolving');
+                      }
+                    }}
                   />
                 )}
 
