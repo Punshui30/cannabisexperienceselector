@@ -60,15 +60,15 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 </div>
 
                 {/* Stack Header Block */}
-                <div className={`shrink-0 pt-4 text-center transition-all duration-500 ${isSigActive ? 'scale-[1.05] translate-y-2' : ''}`}>
+                <div className={`shrink-0 pt-4 text-center transition-all duration-700 ${isSigActive ? 'scale-[1.08] translate-y-4 z-20 drop-shadow-[0_0_20px_rgba(0,255,209,0.4)]' : ''}`}>
                     <div className="flex items-center justify-center gap-2 mb-2">
-                        <Layers size={14} className="text-[#00FFD1]" />
-                        <span className="text-[#00FFD1] text-[10px] uppercase tracking-widest font-bold">Protocol</span>
+                        <Layers size={14} className={`transition-colors duration-500 ${isSigActive ? 'text-white' : 'text-[#00FFD1]'}`} />
+                        <span className={`text-[10px] uppercase tracking-widest font-bold transition-colors duration-500 ${isSigActive ? 'text-white' : 'text-[#00FFD1]'}`}>Protocol</span>
                     </div>
-                    <h1 className="text-3xl max-[360px]:text-2xl font-serif text-white mb-2 leading-tight">
+                    <h1 className={`text-3xl max-[360px]:text-2xl font-serif text-white mb-2 leading-tight transition-all duration-500 ${isSigActive ? 'tracking-wider' : ''}`}>
                         {stack.name}
                     </h1>
-                    <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto text-clamp-2-mobile">
+                    <p className={`text-sm leading-relaxed max-w-xs mx-auto text-clamp-2-mobile transition-colors duration-500 ${isSigActive ? 'text-white/90' : 'text-white/60'}`}>
                         {stack.description}
                     </p>
                     <div className="flex items-center justify-center gap-1.5 text-[10px] text-white/40 mt-3">

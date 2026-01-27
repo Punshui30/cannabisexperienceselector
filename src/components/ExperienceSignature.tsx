@@ -55,8 +55,8 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
     if (polarization > 0.6) shapeType = 'faceted';
     if (data.confidence < 0.5) shapeType = 'irregular';
 
-    // Vertex count derived from dominant clusters
-    const vertexCount = Math.max(3, Math.min(12, effectCount + (seed % 3)));
+    // Vertex count derived from dominant clusters - Minimum 5 to avoid "Play Button" / Triangle look
+    const vertexCount = Math.max(5, Math.min(12, effectCount + (seed % 5)));
 
     const points = useMemo(() => {
         const pts: [number, number][] = [];
@@ -68,14 +68,11 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
             let r = radius;
 
             if (shapeType === 'faceted') {
-                // Sharper variations
-                r = radius * (0.8 + seededRandom(i) * 0.4);
+                r = radius * (0.7 + seededRandom(i) * 0.5);
             } else if (shapeType === 'irregular') {
-                // High noise
-                r = radius * (0.6 + seededRandom(i) * 0.6);
+                r = radius * (0.5 + seededRandom(i) * 0.7);
             } else {
-                // Soft variations
-                r = radius * (0.95 + seededRandom(i) * 0.1);
+                r = radius * (0.9 + seededRandom(i) * 0.2);
             }
 
             pts.push([
@@ -98,14 +95,11 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
         'Other': '#ffffff'
     };
 
-    // Infer dominant effect from name/reasoning or profile
     const dominantEffect = data.targetEffects?.[0] || 'Other';
     const primaryHue = outcomeColors[dominantEffect] || outcomeColors['Other'];
     const secondaryHue = outcomeColors[data.targetEffects?.[1] || 'Other'] || '#ffffff';
 
-    const saturation = 40 + (data.confidence * 60); // 40-100%
     const intensity = (data.matchScore / 100);
-    const luminance = 30 + (intensity * 40); // 30-70% (Don't wash out)
 
     // 4. MOTION LOGIC
     const parseTime = (timeStr?: string) => {
@@ -114,18 +108,16 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
         return match ? parseInt(match[1]) : 5;
     };
 
-    const onsetValue = parseTime(data.effects?.onset); // min
-    const peakValue = parseTime(data.effects?.peak); // min
-    const durationValue = parseTime(data.effects?.duration); // hrs
+    const onsetValue = parseTime(data.effects?.onset);
+    const peakValue = parseTime(data.effects?.peak);
 
-    // Normalize for animation
-    const expansionDuration = Math.max(1, Math.min(10, (1 / (onsetValue || 1)) * 50)); // Faster onset = faster expansion
-    const pulseAmplitude = 0.9 + (intensity * 0.1);
-    const pulseDuration = Math.max(2, Math.min(8, (1 / (peakValue || 1)) * 100));
+    const expansionDuration = Math.max(1, Math.min(10, (1 / (onsetValue || 1)) * 50));
+    const pulseAmplitude = active ? 1.1 : (0.9 + (intensity * 0.1));
+    const pulseDuration = active ? 1.5 : Math.max(2, Math.min(8, (1 / (peakValue || 1)) * 100));
 
     return (
         <div
-            className={`flex flex-col items-center justify-center p-2 select-none group cursor-pointer transition-all duration-500 ${active ? 'scale-110 bg-white/5 rounded-2xl' : 'hover:scale-105'}`}
+            className={`flex flex-col items-center justify-center p-2 select-none group cursor-pointer transition-all duration-700 ${active ? 'scale-125 bg-[#00FFD1]/5 rounded-3xl border border-[#00FFD1]/20 shadow-[0_0_30px_rgba(0,255,209,0.2)]' : 'hover:scale-105'}`}
             onClick={(e) => {
                 e.stopPropagation();
                 onClick?.();
@@ -134,11 +126,11 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
             <div className="relative" style={{ width: size, height: size }}>
                 {/* GLOW LAYER */}
                 <motion.div
-                    className="absolute inset-0 rounded-full blur-2xl opacity-20 pointer-events-none"
+                    className="absolute inset-0 rounded-full blur-2xl pointer-events-none"
                     style={{ backgroundColor: primaryHue }}
                     animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.1, 0.3, 0.1]
+                        scale: active ? [1.2, 1.5, 1.2] : [1, 1.2, 1],
+                        opacity: active ? [0.3, 0.6, 0.3] : [0.1, 0.3, 0.1]
                     }}
                     transition={{
                         duration: pulseDuration,
@@ -147,7 +139,7 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
                     }}
                 />
 
-                {/* SVG ARTIFACt */}
+                {/* SVG ARTIFACT */}
                 <svg
                     width={size}
                     height={size}
@@ -160,7 +152,6 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
                             <stop offset="100%" stopColor={secondaryHue} />
                         </linearGradient>
 
-                        {/* Noise filter for low confidence */}
                         {data.confidence < 0.6 && (
                             <filter id={`noise-${seed}`}>
                                 <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="noise" />
@@ -172,16 +163,16 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
                     <motion.path
                         d={pathData}
                         fill={`url(#grad-${seed})`}
-                        fillOpacity={0.6}
+                        fillOpacity={active ? 0.9 : 0.6}
                         stroke={primaryHue}
-                        strokeWidth={2}
-                        strokeOpacity={0.8}
+                        strokeWidth={active ? 3 : 2}
+                        strokeOpacity={active ? 1 : 0.8}
                         filter={data.confidence < 0.6 ? `url(#noise-${seed})` : undefined}
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{
                             scale: [1, pulseAmplitude, 1],
                             opacity: 1,
-                            rotate: shapeType === 'irregular' ? [0, 5, 0, -5, 0] : 0
+                            rotate: active ? [0, 15, 0, -15, 0] : (shapeType === 'irregular' ? [0, 5, 0, -5, 0] : 0)
                         }}
                         transition={{
                             scale: {
@@ -190,11 +181,11 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
                                 ease: "linear"
                             },
                             rotate: {
-                                duration: 10,
+                                duration: active ? 2 : 10,
                                 repeat: Infinity,
                                 ease: "easeInOut"
                             },
-                            initial: {
+                            opacity: {
                                 duration: expansionDuration / 10,
                                 ease: "easeOut"
                             }
@@ -203,23 +194,23 @@ export const ExperienceSignature: React.FC<ExperienceSignatureProps> = ({ data, 
                     />
 
                     {/* Confidence Orbitals */}
-                    {data.confidence > 0.8 && (
+                    {(data.confidence > 0.8 || active) && (
                         <motion.circle
                             cx={size / 2}
                             cy={size / 2}
                             r={size * 0.45}
                             fill="none"
                             stroke={primaryHue}
-                            strokeWidth={0.5}
+                            strokeWidth={active ? 1 : 0.5}
                             strokeDasharray="4 8"
                             animate={{ rotate: 360 }}
-                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                            transition={{ duration: active ? 10 : 20, repeat: Infinity, ease: "linear" }}
                         />
                     )}
                 </svg>
             </div>
 
-            <span className="text-[8px] uppercase tracking-[0.3em] text-white/40 mt-2 font-black italic">
+            <span className={`text-[8px] uppercase tracking-[0.3em] mt-2 font-black italic transition-colors duration-500 ${active ? 'text-[#00FFD1]' : 'text-white/40'}`}>
                 Experience Signature
             </span>
         </div>

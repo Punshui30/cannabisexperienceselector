@@ -183,13 +183,13 @@ export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenCon
 
           {/* WHY THIS BLEND - UNIFIED EXPANSION (No Inline) */}
           {recommendation.reasoning && (
-            <div className={`mb-3 transition-all duration-700 ${isSigActive ? 'shadow-[0_0_20px_-5px_rgba(0,255,209,0.3)] scale-[1.02]' : ''}`}> {/* Density: mb-4 -> mb-3 */}
+            <div className={`mb-3 transition-all duration-700 ${isSigActive ? 'shadow-[0_0_40px_-5px_rgba(0,255,209,0.5)] scale-[1.05] z-20' : ''}`}> {/* Density: mb-4 -> mb-3 */}
               <div
-                className={`relative p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer group/reasoning overflow-hidden hover:bg-white/10 transition-all ${isSigActive ? 'border-[#00FFD1]/50 bg-[#00FFD1]/5' : ''}`} // Density: p-4 -> p-3
+                className={`relative p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer group/reasoning overflow-hidden hover:bg-white/10 transition-all ${isSigActive ? 'border-[#00FFD1] bg-[#00FFD1]/10' : ''}`} // Density: p-4 -> p-3
                 onClick={() => onViewDetail?.(recommendation)} // UNIFIED CARD EXPANSION
               >
                 <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-[9px] font-bold uppercase tracking-widest text-[#00FFD1]">
+                  <h3 className={`text-[9px] font-bold uppercase tracking-widest transition-colors duration-500 ${isSigActive ? 'text-white' : 'text-[#00FFD1]'}`}>
                     Why This Blend
                   </h3>
                   <motion.span
