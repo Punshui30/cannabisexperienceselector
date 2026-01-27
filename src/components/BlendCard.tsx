@@ -11,10 +11,11 @@ export interface BlendCardProps {
   onViewDetail?: (blend: UIBlendRecommendation) => void;
   onOpenConsultant?: () => void; // Optional because SwipeDeck/Results logic
   index?: number;
+  total?: number;
 }
 
 // State restoration for expand/collapse behavior
-export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenConsultant, index = 0 }: BlendCardProps) {
+export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenConsultant, index = 0, total = 1 }: BlendCardProps) {
   // State restoration for expand/collapse behavior
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSigActive, setIsSigActive] = useState(false);
@@ -102,8 +103,15 @@ export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenCon
             repeatDelay: 1.5
           }}
         >
+          {/* META HEADER (Internal relative to card) */}
+          <div className="px-6 pt-6 pb-2 flex justify-between items-center opacity-60">
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00FFD1]">
+              Result {index + 1} <span className="text-white/20">/</span> {total}
+            </span>
+            <span className="text-[8px] text-white/40 font-mono">ID: {recommendation.id.slice(-6)}</span>
+          </div>
 
-          {/* EXPERIENCE SIGNATURE - Centered Top */}
+          {/* EXPERIENCE SIGNATURE - Centered Layout */}
           <div className="flex justify-center mb-2 mt-2">
             <ExperienceSignature
               data={{
