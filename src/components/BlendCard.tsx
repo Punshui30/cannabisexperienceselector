@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
 import { SpatialStack } from './SpatialStack';
-import { ExperienceSignature } from './ExperienceSignature';
 
 export interface BlendCardProps {
   recommendation: UIBlendRecommendation;
@@ -18,7 +17,6 @@ export interface BlendCardProps {
 export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenConsultant, index = 0, total = 1 }: BlendCardProps) {
   // State restoration for expand/collapse behavior
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isSigActive, setIsSigActive] = useState(false);
 
   // Derive accent color from outcome category
   const outcomeColors = {
@@ -111,26 +109,9 @@ export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenCon
             <span className="text-[8px] text-white/40 font-mono">ID: {recommendation.id.slice(-6)}</span>
           </div>
 
-          {/* EXPERIENCE SIGNATURE - Centered Layout */}
-          <div className="flex justify-center mb-2 mt-2">
-            <ExperienceSignature
-              data={{
-                id: recommendation.id,
-                name: recommendation.name,
-                matchScore: recommendation.matchScore,
-                confidence: recommendation.confidence || 0.9,
-                targetEffects: [category], // Using inferred category
-                terpeneProfile: recommendation.terpeneProfile,
-                effects: recommendation.effects
-              }}
-              size={80}
-              active={isSigActive}
-              onClick={() => setIsSigActive(!isSigActive)}
-            />
-          </div>
 
           {/* HEADER */}
-          <div className={`flex justify-between items-start mb-3 relative z-10 transition-all duration-500 ${isSigActive ? 'scale-[1.02] translate-y-1' : ''}`}> {/* Density: mb-6 -> mb-3 */}
+          <div className="flex justify-between items-start mb-3 relative z-10"> {/* Density: mb-6 -> mb-3 */}
             <div>
               <div className="flex items-center gap-2 mb-0.5"> {/* Density: mb-1 -> mb-0.5 */}
                 <span className="text-[9px] font-bold uppercase tracking-widest text-[#00FFD1] bg-[#00FFD1]/10 px-1.5 py-px rounded-full border border-[#00FFD1]/20 shadow-[0_0_10px_-2px_rgba(0,255,209,0.3)]">
@@ -183,13 +164,13 @@ export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenCon
 
           {/* WHY THIS BLEND - UNIFIED EXPANSION (No Inline) */}
           {recommendation.reasoning && (
-            <div className={`mb-3 transition-all duration-700 ${isSigActive ? 'shadow-[0_0_40px_-5px_rgba(0,255,209,0.5)] scale-[1.05] z-20' : ''}`}> {/* Density: mb-4 -> mb-3 */}
+            <div className="mb-3"> {/* Density: mb-4 -> mb-3 */}
               <div
-                className={`relative p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer group/reasoning overflow-hidden hover:bg-white/10 transition-all ${isSigActive ? 'border-[#00FFD1] bg-[#00FFD1]/10' : ''}`} // Density: p-4 -> p-3
+                className="relative p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer group/reasoning overflow-hidden hover:bg-white/10 transition-all font-light" // Density: p-4 -> p-3
                 onClick={() => onViewDetail?.(recommendation)} // UNIFIED CARD EXPANSION
               >
                 <div className="flex justify-between items-center mb-1">
-                  <h3 className={`text-[9px] font-bold uppercase tracking-widest transition-colors duration-500 ${isSigActive ? 'text-white' : 'text-[#00FFD1]'}`}>
+                  <h3 className="text-[9px] font-bold uppercase tracking-widest text-[#00FFD1]">
                     Why This Blend
                   </h3>
                   <motion.span

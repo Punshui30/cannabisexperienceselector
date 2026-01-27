@@ -4,7 +4,6 @@ import { ArrowLeft, Clock, Share2, Layers, ChevronDown, Info } from 'lucide-reac
 import { UIStackRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { resolveCultivarVisuals } from '../lib/visuals';
-import { ExperienceSignature } from './ExperienceSignature';
 
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
@@ -15,7 +14,6 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
     const [prerollSize, setPrerollSize] = useState<number>(0.7); // Grams - Default to 0.7g (standard cone)
     const [showInstructions, setShowInstructions] = useState(false);
-    const [isSigActive, setIsSigActive] = useState(false);
 
     if (!stack) return null;
 
@@ -42,33 +40,17 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
 
             <div className="flex flex-col gap-6 h-full relative z-10 pb-32 px-4">
 
-                {/* EXPERIENCE SIGNATURE - Centered Top */}
-                <div className="flex justify-center py-4">
-                    <ExperienceSignature
-                        data={{
-                            id: stack.stackId || stack.id,
-                            name: stack.name,
-                            matchScore: stack.matchScore,
-                            confidence: stack.confidence || 0.9,
-                            targetEffects: [], // Stacks might not have these directly, signature will infer
-                            effects: stack.effects || { onset: '10m', peak: '45m', duration: stack.totalDuration }
-                        }}
-                        size={120}
-                        active={isSigActive}
-                        onClick={() => setIsSigActive(!isSigActive)}
-                    />
-                </div>
 
                 {/* Stack Header Block */}
-                <div className={`shrink-0 pt-4 text-center transition-all duration-700 ${isSigActive ? 'scale-[1.08] translate-y-4 z-20 drop-shadow-[0_0_20px_rgba(0,255,209,0.4)]' : ''}`}>
+                <div className="shrink-0 pt-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
-                        <Layers size={14} className={`transition-colors duration-500 ${isSigActive ? 'text-white' : 'text-[#00FFD1]'}`} />
-                        <span className={`text-[10px] uppercase tracking-widest font-bold transition-colors duration-500 ${isSigActive ? 'text-white' : 'text-[#00FFD1]'}`}>Protocol</span>
+                        <Layers size={14} className="text-[#00FFD1]" />
+                        <span className="text-[#00FFD1] text-[10px] uppercase tracking-widest font-bold">Protocol</span>
                     </div>
-                    <h1 className={`text-3xl max-[360px]:text-2xl font-serif text-white mb-2 leading-tight transition-all duration-500 ${isSigActive ? 'tracking-wider' : ''}`}>
+                    <h1 className="text-3xl max-[360px]:text-2xl font-serif text-white mb-2 leading-tight">
                         {stack.name}
                     </h1>
-                    <p className={`text-sm leading-relaxed max-w-xs mx-auto text-clamp-2-mobile transition-colors duration-500 ${isSigActive ? 'text-white/90' : 'text-white/60'}`}>
+                    <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto text-clamp-2-mobile">
                         {stack.description}
                     </p>
                     <div className="flex items-center justify-center gap-1.5 text-[10px] text-white/40 mt-3">
