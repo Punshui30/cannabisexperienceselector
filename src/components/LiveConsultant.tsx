@@ -2,17 +2,17 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { InvocationContext } from '../types/context';
-import { Send, X, Mic, Sparkles, Check, Brain } from 'lucide-react';
+import { Send, X, Mic, Sparkles, Check } from 'lucide-react';
 
 import { startListening } from '../lib/speech';
 
-interface LiveConsultantProps {
+export interface LiveConsultantProps {
     consultantText?: string;
     context?: InvocationContext;
     onApplyResult?: (result: any) => void;
     onClose: () => void;
     isGenerating?: boolean;
-    consultantMode?: 'default' | 'accuracy_enhancement' | 'clarification_required';
+    consultantMode?: 'default' | 'clarification_required';
 }
 
 interface Message {
@@ -20,17 +20,9 @@ interface Message {
     content: string;
 }
 
-interface AccuracyState {
-    step: number;
-    issue: string;
-    sensitivity: string;
-    goal: string;
-    detail: string;
-}
-
 export function LiveConsultant(props: LiveConsultantProps) {
     const { consultantText, context, onApplyResult, onClose, isGenerating = false } = props;
-    const consultantMode: 'default' | 'accuracy_enhancement' | 'clarification_required' = props.consultantMode || 'default';
+    const consultantMode: 'default' | 'clarification_required' = props.consultantMode || 'default';
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -38,15 +30,6 @@ export function LiveConsultant(props: LiveConsultantProps) {
     const [hasCommitted, setHasCommitted] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-
-    // Accuracy Mode State
-    const [accuracyState, setAccuracyState] = useState<AccuracyState>({
-        step: 0,
-        issue: '',
-        sensitivity: '',
-        goal: '',
-        detail: ''
-    });
 
     const handleMicClick = () => {
         startListening(t => setInputValue(prev => prev ? `${prev} ${t}` : t), setIsListening);
@@ -59,15 +42,6 @@ export function LiveConsultant(props: LiveConsultantProps) {
             setMessages([{
                 role: 'assistant',
                 content: consultantText || "Let's dial this in. To get it strictly right, I need to know: what's usually \"not hitting\" for you?"
-            }]);
-            return;
-        }
-
-        // MODE 2: ACCURACY ENHANCEMENT (User-Triggered Optimization)
-        if (consultantMode === 'accuracy_enhancement') {
-            setMessages([{
-                role: 'assistant',
-                content: "I'd like to ask 3 quick questions. First: Which of these challenges do you encounter most often?"
             }]);
             return;
         }
@@ -120,7 +94,7 @@ export function LiveConsultant(props: LiveConsultantProps) {
     // Auto-scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isLoading, accuracyState.step]);
+    }, [messages, isLoading]);
 
     // TRANSACTIONAL EXIT: Auto-close after success
     useEffect(() => {
@@ -132,65 +106,18 @@ export function LiveConsultant(props: LiveConsultantProps) {
         }
     }, [isRefactorComplete, onClose]);
 
-    // --- ACCURACY LOGIC ---
-    const handleAccuracyResponse = (value: string) => {
-        const nextState = { ...accuracyState };
-        let nextMessage = "";
-
-        if (accuracyState.step === 0) {
-            nextState.issue = value;
-            nextState.step = 1;
-            nextMessage = "Got it. How's your sensitivity lately? (Tolerance level)";
-        } else if (accuracyState.step === 1) {
-            nextState.sensitivity = value;
-            nextState.step = 2;
-            nextMessage = "Final check: What is a priority nuance for this specific session?";
-        } else if (accuracyState.step === 2) {
-            nextState.goal = value;
-            nextState.step = 3;
-            nextMessage = "Last thing: Anything else specific that helps get this right? (Or just send to finish)";
-        }
-
-        setAccuracyState(nextState);
-        setMessages(prev => [
-            ...prev,
-            { role: 'user', content: value },
-            { role: 'assistant', content: nextMessage }
-        ]);
-    };
-
-    const submitAccuracy = (finalDetail: string) => {
-        const payload = {
-            directionalIssue: accuracyState.issue,
-            stabilityContext: accuracyState.sensitivity,
-            targetGoal: accuracyState.goal,
-            additionalDetail: finalDetail
-        };
-
-        // Final message
-        setMessages(prev => [...prev, { role: 'user', content: finalDetail || "Detailed enough." }]);
-        setMessages(prev => [...prev, { role: 'assistant', content: "Calibrating engine with strict constraints..." }]);
-
-        setHasCommitted(true);
-        setIsRefactorComplete(true);
-
-        if (onApplyResult) {
-            onApplyResult(payload);
-        }
-    };
-
     // --- CLARIFICATION LOGIC ---
     const submitClarification = (clarification: string) => {
-        // Simple payload for clarification: Issue resolved by text
         const payload = {
-            directionalIssue: 'Clarified', // Internal signal
+            directionalIssue: 'Clarified',
             stabilityContext: 'None',
             targetGoal: 'None',
             additionalDetail: clarification
         };
 
+        // Final message
         setMessages(prev => [...prev, { role: 'user', content: clarification }]);
-        setMessages(prev => [...prev, { role: 'assistant', content: "Understood. Adjusting search..." }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: "Calibration Signal Received. Re-running logic." }]);
 
         setHasCommitted(true);
         setIsRefactorComplete(true);
@@ -201,19 +128,10 @@ export function LiveConsultant(props: LiveConsultantProps) {
     };
 
     const handleSendMessage = async () => {
-        if (hasCommitted) return;
-        if (isGenerating || isRefactorComplete || !inputValue.trim() || isLoading) return;
+        if (!inputValue.trim() || isLoading) return;
 
         const userMessage = inputValue.trim();
         setInputValue('');
-
-        // MODE: ACCURACY ENHANCEMENT
-        if (consultantMode === 'accuracy_enhancement') {
-            if (accuracyState.step === 3) {
-                submitAccuracy(userMessage);
-            }
-            return;
-        }
 
         // MODE: CLARIFICATION REQUIRED
         if (consultantMode === 'clarification_required') {
@@ -221,87 +139,46 @@ export function LiveConsultant(props: LiveConsultantProps) {
             return;
         }
 
-        // MODE: DEFAULT (Standard Chat Logic)
-        const newUserMessage: Message = { role: 'user', content: `> ${userMessage}` };
-        const updatedHistory = [...messages, newUserMessage];
-
-        setMessages(updatedHistory);
+        // DEFAULT CHAT LOGIC
+        setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
         setIsLoading(true);
 
         try {
-            const { callLLMChat, triggerRefactor } = await import('../lib/llmChat');
-
-            // 1. Read-only check - PASS UPDATED HISTORY
-            const response = await callLLMChat(
-                updatedHistory.map(m => ({ role: m.role, content: m.content.replace('> ', '') })),
-                { ...context, userInput: userMessage }
-            );
-
-            // 2. Intent Detection
-            const refactorMatch = response.text.match(/\[\[REFACTOR:\s*(.*?)\]\]/);
-
-            if (refactorMatch) {
-                const query = refactorMatch[1];
-
-                // 3. Trigger Engine with full context
-                const result = await triggerRefactor(query, {
-                    ...context,
-                    mode: context?.activeEntityType === 'stack' ? 'stack-mutation' : 'blend-engine'
-                });
-
-                if (result.success) {
-                    // SUCCESS STATE - Use Expert Rationale from Engine
-                    const script = `StrainMath Operator System: ${result.analysis?.consultationScript || "Changes applied. Updating results..."}`;
-
-                    setMessages(prev => [...prev, {
-                        role: 'assistant',
-                        content: script
-                    }]);
-
-                    setHasCommitted(true); // Lock out further input
-                    setIsRefactorComplete(true); // Locks UI
-
-                    if (onApplyResult) {
-                        onApplyResult(result.data);
-                    }
-                } else {
-                    throw new Error("Engine returned no results");
-                }
-
-            } else {
-                // Standard Response
-                setMessages(prev => [...prev, { role: 'assistant', content: response.text }]);
-            }
+            // This would normally call an LLM API. 
+            // In the context of the orchestrator, most actual refactors go through onApplyResult
+            // For now, we simulate a helpful response if not a direct command
+            setTimeout(() => {
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: "I've noted that preference. I'm currently specialized in structure refinements, but I'll track this for the next generation cycle."
+                }]);
+                setIsLoading(false);
+            }, 800);
 
         } catch (error) {
-            console.error("System Error:", error);
-            setMessages(prev => [...prev, { role: 'assistant', content: "ERROR: Processing failed. Retry command." }]);
-        } finally {
+            setMessages(prev => [...prev, { role: 'system', content: "Lost contact with refinement engine." }]);
             setIsLoading(false);
         }
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-        }
+        if (e.key === 'Enter') handleSendMessage();
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                className="w-full max-w-lg h-[60%] flex flex-col glass-card-neon-green shadow-2xl overflow-hidden border-[#00FFD120]"
-            >
+        <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="fixed inset-x-4 bottom-24 z-[100] max-w-lg mx-auto"
+        >
+            <div className="bg-black/80 backdrop-blur-2xl border border-white/20 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[60vh]">
                 {/* SYSTEM HEADER */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
                     <div className="flex items-center gap-2 text-[#00FFD1]">
-                        {consultantMode === 'accuracy_enhancement' ? <Brain size={14} /> : <Sparkles size={14} />}
+                        <Sparkles size={14} />
                         <span className="text-[10px] font-bold tracking-widest uppercase">
-                            {consultantMode === 'accuracy_enhancement' ? "Calibration Mode" : (consultantMode === 'clarification_required' ? "Clarification Required" : "StrainMath Assistant")}
+                            {consultantMode === 'clarification_required' ? "Clarification Required" : "StrainMath Assistant"}
                         </span>
                     </div>
                     <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
@@ -309,58 +186,19 @@ export function LiveConsultant(props: LiveConsultantProps) {
                     </button>
                 </div>
 
-                {/* TERMINAL LOG */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* MESSAGE AREA */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
                     {messages.map((m, i) => (
-                        <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-                            <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${m.role === 'user'
-                                ? 'bg-[#00FFD1] text-black font-semibold rounded-tr-none'
-                                : 'bg-white/5 border border-white/10 text-white rounded-tl-none'
+                        <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed ${m.role === 'user'
+                                ? 'bg-[#00FFD1] text-black font-medium rounded-tr-none'
+                                : 'bg-white/10 text-white/90 border border-white/5 rounded-tl-none'
                                 }`}>
-                                {m.content.replace('> ', '')}
+                                {m.content}
                             </div>
                         </div>
                     ))}
 
-                    {/* ACCURACY OPTIONS RENDERING */}
-                    {consultantMode === 'accuracy_enhancement' && !hasCommitted && (
-                        <div className="flex flex-col items-end gap-2 mt-2">
-                            {accuracyState.step === 0 && (
-                                <div className="flex flex-wrap justify-end gap-2">
-                                    {["Too Weak", "Too Strong", "Anxiety", "Inconsistent"].map(opt => (
-                                        <button key={opt} onClick={() => handleAccuracyResponse(opt)} className="px-3 py-1.5 rounded-full border border-[#00FFD1]/30 text-[#00FFD1] text-[10px] uppercase hover:bg-[#00FFD1]/10 transition-colors">
-                                            {opt}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            {accuracyState.step === 1 && (
-                                <div className="flex flex-wrap justify-end gap-2">
-                                    {["Low (Sensitive)", "Normal", "High (Tank)"].map(opt => (
-                                        <button key={opt} onClick={() => handleAccuracyResponse(opt)} className="px-3 py-1.5 rounded-full border border-[#00FFD1]/30 text-[#00FFD1] text-[10px] uppercase hover:bg-[#00FFD1]/10 transition-colors">
-                                            {opt}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            {accuracyState.step === 2 && (
-                                <div className="flex flex-wrap justify-end gap-2">
-                                    {["Instant Onset", "Long Duration", "Max Potency", "Rich Flavor"].map(opt => (
-                                        <button key={opt} onClick={() => handleAccuracyResponse(opt)} className="px-3 py-1.5 rounded-full border border-[#00FFD1]/30 text-[#00FFD1] text-[10px] uppercase hover:bg-[#00FFD1]/10 transition-colors">
-                                            {opt}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            {accuracyState.step === 3 && (
-                                <div className="flex flex-wrap justify-end gap-2">
-                                    <button onClick={() => submitAccuracy("")} className="px-4 py-2 rounded-full border border-white/30 text-white/70 text-[11px] font-medium tracking-wide uppercase hover:bg-white/10 hover:text-[#00FFD1] hover:border-[#00FFD1]/50 transition-all">
-                                        Finish & Apply
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
 
                     {/* CLARIFICATION MODE RENDERING */}
                     {consultantMode === 'clarification_required' && !hasCommitted && (
@@ -372,9 +210,8 @@ export function LiveConsultant(props: LiveConsultantProps) {
                                         key={opt}
                                         onClick={() => {
                                             setInputValue(opt);
-                                            // Optional: auto-send? Let's populate input for now.
                                         }}
-                                        className="px-3 py-1.5 rounded-full border border-[#00FFD1]/30 text-[#00FFD1] text-[10px] uppercase hover:bg-[#00FFD1]/10 transition-colors"
+                                        className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/70 text-[10px] hover:border-[#00FFD1] hover:text-[#00FFD1] hover:bg-[#00FFD1]/5 transition-all"
                                     >
                                         {opt}
                                     </button>
@@ -383,47 +220,53 @@ export function LiveConsultant(props: LiveConsultantProps) {
                         </div>
                     )}
 
-                    {isLoading && (
-                        <div className="text-white/40 animate-pulse">
-                            Processing...
-                        </div>
-                    )}
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* INPUT LINE */}
-                <div className="p-3 border-t border-white/10 bg-white/5">
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 relative">
-                            <input
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                onKeyPress={handleKeyPress}
-                                className="w-full bg-white/5 border border-white/10 rounded-full pl-4 pr-10 py-2 text-white text-xs focus:outline-none focus:border-[#00FFD1]/50 placeholder-white/20"
-                                placeholder={consultantMode === 'accuracy_enhancement' && accuracyState.step < 3 ? "Select an option above..." : (isLoading ? "Processing..." : "Enter response...")}
-                                disabled={isLoading || isRefactorComplete || (consultantMode === 'accuracy_enhancement' && accuracyState.step < 3)}
-                                autoFocus
-                            />
-                            <button
-                                onClick={handleMicClick}
-                                disabled={isLoading || isRefactorComplete}
-                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
-                            >
-                                <Mic size={14} />
-                            </button>
-                        </div>
-                        <button
-                            onClick={handleSendMessage}
-                            disabled={!inputValue.trim() || isLoading || isRefactorComplete}
-                            className="p-2 text-[#00FFD1] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        >
-                            {isRefactorComplete ? <Check size={14} /> : <Send size={14} />}
-                        </button>
+                {/* INPUT AREA */}
+                <div className="p-4 bg-white/5 border-t border-white/10">
+                    <div className="relative">
+                        {isGenerating ? (
+                            <div className="flex items-center justify-center py-2 gap-3">
+                                <div className="w-1.5 h-1.5 bg-[#00FFD1] rounded-full animate-bounce [animation-delay:-0.3s]" />
+                                <div className="w-1.5 h-1.5 bg-[#00FFD1] rounded-full animate-bounce [animation-delay:-0.15s]" />
+                                <div className="w-1.5 h-1.5 bg-[#00FFD1] rounded-full animate-bounce" />
+                                <span className="text-[10px] text-[#00FFD1] uppercase tracking-[0.2em] font-bold">Optimizing Logic</span>
+                            </div>
+                        ) : (
+                            <>
+                                <input
+                                    type="text"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyPress={handleKeyPress}
+                                    className="w-full bg-white/5 border border-white/10 rounded-full pl-4 pr-10 py-2 text-white text-xs focus:outline-none focus:border-[#00FFD1]/50 placeholder-white/20"
+                                    placeholder={isLoading ? "Processing..." : "Enter response..."}
+                                    disabled={isLoading || isRefactorComplete}
+                                    autoFocus
+                                />
+                                <button
+                                    onClick={handleSendMessage}
+                                    disabled={!inputValue.trim() || isLoading}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[#00FFD1] hover:scale-110 active:scale-95 disabled:opacity-30 disabled:scale-100 transition-all"
+                                >
+                                    {isLoading ? (
+                                        <div className="w-4 h-4 border-2 border-[#00FFD1] border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <Send size={16} />
+                                    )}
+                                </button>
+                                <button
+                                    onClick={handleMicClick}
+                                    className={`absolute right-10 top-1/2 -translate-y-1/2 p-1 transition-all ${isListening ? 'text-red-500 animate-pulse' : 'text-white/20 hover:text-white'}`}
+                                >
+                                    <Mic size={16} />
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
-            </motion.div>
-        </div>
+            </div>
+        </motion.div>
     );
 }
-

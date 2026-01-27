@@ -85,9 +85,14 @@ They only populate the input field.
 IntentSeed (REQUIRED)
 type IntentSeed = {
   kind: 'stack' | 'blend'
-  mode: 'preset' | 'engine'
+  mode: 'preset' | 'engine' | 'strain'
   text: string
   image?: string
+  clarificationData?: {
+    directionalIssue?: string
+    stabilityContext?: string
+    additionalDetail?: string
+  }
 }
 
 

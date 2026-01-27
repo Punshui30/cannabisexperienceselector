@@ -19,7 +19,6 @@ export interface IntentSeed {
         stabilityContext?: string;
         additionalDetail?: string;
     };
-    improveAccuracy?: boolean;
 }
 
 /**

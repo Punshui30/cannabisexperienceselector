@@ -4,14 +4,7 @@ import { resolveCultivarVisuals } from '../lib/visuals';
 import { useState } from 'react';
 
 interface NetworkDetailModalProps {
-    event: {
-        id: string;
-        blendName: string;
-        outcomeCategory: string;
-        componentSkus: string[];
-        inputMode: string;
-        commentary: string; // Mandatory LLM commentary
-    };
+    event: any;
     onClose: () => void;
 }
 
@@ -166,7 +159,8 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
 
                         {/* Composition list with iridescent hover */}
                         <div className="space-y-3">
-                            {event.componentSkus.map((sku, idx) => {
+                            {(event.components || event.componentSkus?.map((s: string) => ({ name: s })) || []).map((comp: any, idx: number) => {
+                                const sku = comp.name || comp;
                                 const visuals = resolveCultivarVisuals(sku);
                                 return (
                                     <motion.div
@@ -183,6 +177,9 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                                             />
                                             <span className="text-[13px] text-white/90 font-medium tracking-wide">{sku}</span>
                                         </div>
+                                        {comp.ratio && (
+                                            <span className="text-[10px] text-white/40 font-bold">{Math.round(comp.ratio * 100)}%</span>
+                                        )}
                                         <span className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">COA Verified</span>
 
                                         {/* Hover Gradient Fill */}
@@ -202,7 +199,7 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                                 }}
                             />
                             <p className="text-sm leading-relaxed text-white/60 font-light italic pl-5">
-                                &ldquo;{event.commentary}&rdquo;
+                                &ldquo;{event.commentary || "Resolving experience profile..."}&rdquo;
                             </p>
                         </div>
 

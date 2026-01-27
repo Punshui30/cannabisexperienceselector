@@ -39,7 +39,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   const [logoTapCount, setLogoTapCount] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
   const [showCamera, setShowCamera] = useState(false);
-  const [improveAccuracy, setImproveAccuracy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -100,8 +99,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           : "Product Image Input",
       image: mode === 'product' && uploadedImage ? URL.createObjectURL(uploadedImage) : undefined,
       strainName: mode === 'strain' ? strainName : undefined,
-      grower: mode === 'strain' ? growerName : undefined,
-      improveAccuracy // Pass flag
+      grower: mode === 'strain' ? growerName : undefined
     };
 
     onSubmit(input);
@@ -293,16 +291,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                     >
                       <Mic size={16} />
                     </button>
-                    {/* IMPROVE ACCURACY TOGGLE (Inside Text Area) */}
-                    <div className="absolute bottom-3 left-4 z-20">
-                      <button
-                        onClick={() => setImproveAccuracy(!improveAccuracy)}
-                        className={`flex items-center gap-2 text-[10px] uppercase tracking-widest transition-colors ${improveAccuracy ? "text-[#00FFD1]" : "text-white/40 hover:text-white/60"}`}
-                      >
-                        <div className={`w-3 h-3 rounded-full border transition-colors ${improveAccuracy ? "bg-[#00FFD1] border-[#00FFD1]" : "border-white/40"}`} />
-                        Improve Accuracy
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -374,16 +362,6 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                       </button>
                     </div>
 
-                    {/* IMPROVE ACCURACY TOGGLE (Inside Input) */}
-                    <div className="absolute bottom-3 left-4 z-20">
-                      <button
-                        onClick={() => setImproveAccuracy(!improveAccuracy)}
-                        className={`flex items-center gap-2 text-[10px] uppercase tracking-widest transition-colors ${improveAccuracy ? "text-[#00FFD1]" : "text-white/40 hover:text-white/60"}`}
-                      >
-                        <div className={`w-3 h-3 rounded-full border transition-colors ${improveAccuracy ? "bg-[#00FFD1] border-[#00FFD1]" : "border-white/40"}`} />
-                        Improve Accuracy
-                      </button>
-                    </div>
                   </div>
                 )}
               </motion.div>
@@ -507,7 +485,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
             animate={{
               scale: canSubmit() ? 1 : 0,
               opacity: canSubmit() ? 1 : 0,
-              pointerEvents: canSubmit() ? 'auto' : 'none' as any
+              pointerEvents: canSubmit() ? 'auto' : ('none' as any)
             }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={handleSubmit}

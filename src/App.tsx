@@ -85,7 +85,7 @@ export default function App() {
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showConsultant, setShowConsultant] = useState(false);
-  const [consultantMode, setConsultantMode] = useState<'default' | 'accuracy_enhancement' | 'clarification_required'>('default');
+  const [consultantMode, setConsultantMode] = useState<'default' | 'clarification_required'>('default');
 
   // Input State
   const [userInput, setUserInput] = useState<IntentSeed | null>(null);
@@ -133,14 +133,6 @@ export default function App() {
   };
 
   const handleSubmit = (input: IntentSeed) => {
-    // 0. IMPROVE ACCURACY INTERCEPTION
-    if (input.improveAccuracy) {
-      console.log('INTERCEPT: Improve Accuracy Triggered -> Opening Assistant');
-      setUserInput(input); // Store input but don't start engine
-      setConsultantMode('accuracy_enhancement'); // Explicit Mode B
-      setShowConsultant(true);
-      return;
-    }
 
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
     setStackRec(null);
@@ -795,8 +787,8 @@ export default function App() {
                     context={createInvocationContext()}
                     consultantMode={consultantMode} // Pass consultantMode
                     onApplyResult={(result: any) => {
-                      // SPECIAL PATH: MODE-DRIVEN CALIBRATION (Accuracy or Clarification)
-                      if (consultantMode === 'accuracy_enhancement' || consultantMode === 'clarification_required') {
+                      // SPECIAL PATH: MODE-DRIVEN CALIBRATION (Clarification)
+                      if (consultantMode === 'clarification_required') {
                         console.log(`[${consultantMode}] Received Calibration Payload:`, result);
 
                         // 1. Merge Calibration Data into UserInput
@@ -853,7 +845,7 @@ export default function App() {
                       // HANDLING ABANDONMENT
                       // If user cancels during calibration, we proceed with "best effort" using current inputs
                       // This prevents getting stuck in "Analyzing" state if they close the modal
-                      if (consultantMode === 'accuracy_enhancement' || consultantMode === 'clarification_required') {
+                      if (consultantMode === 'clarification_required') {
                         setConsultantMode('default');
                         setConsultantText(undefined);
 

@@ -43,7 +43,8 @@ class MerchantIntelligenceService {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) {
-                this.events = JSON.parse(raw);
+                const parsed = JSON.parse(raw);
+                this.events = Array.isArray(parsed) ? parsed : [];
             }
         } catch (e) {
             console.error('Failed to load merchant intelligence', e);
