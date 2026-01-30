@@ -45,50 +45,37 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
     const currentText = shuffledCopy[0] || INFO_COPY[0];
 
     return (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-white overflow-hidden bg-black/60 backdrop-blur-sm">
-            {/* Subtle vignette background */}
-            <div className="absolute inset-0 bg-gradient-radial from-transparent via-black/40 to-black/80" />
-
-            {/* Ambient brand glow (Reduced for better CinematicBackground visibility) */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
-                <div className="absolute top-[-10%] left-[-20%] w-[80%] h-[60%] bg-[#7C3AED]/30 rounded-full blur-[120px] animate-pulse-slow" />
-                <div className="absolute bottom-[-10%] right-[-20%] w-[80%] h-[60%] bg-[#059669]/25 rounded-full blur-[120px] animate-pulse-slow" />
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-white overflow-hidden bg-black">
+            {/* FULL SCREEN ANIMATION - UNCONSTRAINED */}
+            <div className="absolute top-0 inset-x-0 h-[85vh] w-full z-0 pointer-events-none opacity-90">
+                <video
+                    src="/analyze_loop.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover scale-150 origin-top"
+                    style={{
+                        filter: 'saturate(2.2) contrast(1.2) brightness(1.1)',
+                        maskImage: 'linear-gradient(to bottom, black 30%, transparent 100%)',
+                        WebkitMaskImage: 'linear-gradient(to bottom, black 30%, transparent 100%)'
+                    }}
+                />
             </div>
 
-            {/* GO / StrainMath ethos */}
-            <div className="relative z-10 flex flex-col items-center px-8 text-center max-w-xl">
+            {/* Vignette */}
+            <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-black/10 to-black pointer-events-none" />
 
-                {/* HEARTBEAT & SIGNATURE */}
-                <div className="w-full h-[320px] flex items-center justify-center mb-6 relative">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="w-full h-full flex items-center justify-center"
-                    >
-                        {/* VIDEO REPLACEMENT */}
-                        <div className="relative w-[320px] h-[320px] rounded-full overflow-hidden border border-white/5 shadow-2xl shadow-[#00FFD1]/20">
-                            <video
-                                src="/analyze_loop.mp4"
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="w-full h-full object-cover opacity-90 scale-110"
-                            />
-                            {/* Overlay Vignette for integration */}
-                            <div className="absolute inset-0 bg-radial-gradient from-transparent to-black/40 pointer-events-none" />
-                        </div>
-                    </motion.div>
-                </div>
+            {/* Content Layer (Centered) */}
+            <div className="relative z-10 flex flex-col items-center px-8 text-center max-w-xl">
 
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 0.9, y: 0 }}
                     transition={{ duration: 0.8 }}
-                    className="mb-6"
+                    className="mb-12"
                 >
-                    <p className="text-[11px] tracking-[0.35em] uppercase text-white/40">
+                    <p className="text-[11px] tracking-[0.35em] uppercase text-[#00FFD1]/80 drop-shadow-[0_0_15px_rgba(0,255,209,0.3)]">
                         Guided Outcomes
                     </p>
                 </motion.div>
@@ -96,11 +83,11 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
                 <AnimatePresence mode="wait">
                     <motion.p
                         key={index}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.7, ease: "easeInOut" }}
-                        className="text-xl sm:text-2xl font-light leading-snug text-white/90 serif min-h-[4em] flex items-center justify-center"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.05 }}
+                        transition={{ duration: 0.5 }}
+                        className="text-2xl sm:text-4xl font-light leading-tight text-white serif min-h-[3em] flex items-center justify-center drop-shadow-2xl"
                     >
                         {currentText}
                     </motion.p>
@@ -110,7 +97,7 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 0.5, y: 0 }}
                     transition={{ duration: 1, delay: 0.6 }}
-                    className="mt-6 text-xs text-white/50 tracking-[0.25em] uppercase"
+                    className="mt-6 text-xs text-white/40 tracking-[0.25em] uppercase"
                 >
                     Powered by StrainMath™
                 </motion.p>

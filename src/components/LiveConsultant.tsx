@@ -150,7 +150,7 @@ export function LiveConsultant(props: LiveConsultantProps) {
             setTimeout(() => {
                 setMessages(prev => [...prev, {
                     role: 'assistant',
-                    content: "I've noted that preference. I'm currently specialized in structure refinements, but I'll track this for the next generation cycle."
+                    content: "Chat coming soon"
                 }]);
                 setIsLoading(false);
             }, 800);
