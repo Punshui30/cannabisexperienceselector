@@ -5,7 +5,7 @@ import { InvocationContext } from '../types/context';
 import { Send, X, Mic, Sparkles, Check } from 'lucide-react';
 
 import { startListening } from '../lib/speech';
-import { callLLMChat } from '../lib/llmChat';
+import { callLLMChat, triggerRefactor } from '../lib/llmChat';
 
 export interface LiveConsultantProps {
     consultantText?: string;
@@ -153,12 +153,45 @@ export function LiveConsultant(props: LiveConsultantProps) {
             });
 
             if (response && response.text) {
-                setMessages(prev => [...prev, {
-                    role: 'assistant',
-                    content: response.text
-                }]);
+                // Check for REFACTOR command
+                const refactorMatch = response.text.match(/\[\[REFACTOR:\s*([\s\S]*?)\]\]/);
+
+                if (refactorMatch) {
+                    const command = refactorMatch[1].trim();
+                    const cleanText = response.text.replace(/\[\[REFACTOR:[\s\S]*?\]\]/, '').trim();
+
+                    if (cleanText) {
+                        setMessages(prev => [...prev, {
+                            role: 'assistant',
+                            content: cleanText
+                        }]);
+                    }
+
+                    try {
+                        // Pass extended context if available
+                        const result = await triggerRefactor(command, {
+                            recommendation,
+                            userInput: context?.userInput || userMessage
+                        });
+
+                        if (onApplyResult) {
+                            onApplyResult(result);
+                        }
+                    } catch (err) {
+                        console.error("Refactor failed", err);
+                        setMessages(prev => [...prev, { role: 'system', content: "Optimization failed. Please try a simpler request." }]);
+                        setIsLoading(false);
+                    }
+                } else {
+                    setMessages(prev => [...prev, {
+                        role: 'assistant',
+                        content: response.text
+                    }]);
+                    setIsLoading(false);
+                }
+            } else {
+                setIsLoading(false);
             }
-            setIsLoading(false);
 
         } catch (error) {
             setMessages(prev => [...prev, { role: 'system', content: "Lost contact with refinement engine." }]);
