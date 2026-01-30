@@ -791,8 +791,16 @@ export default function App() {
                 <div className="relative z-[100]">
                   <LiveConsultant
                     consultantText={consultantText}
-                    context={createInvocationContext()}
                     consultantMode={consultantMode} // Pass consultantMode
+                    context={{
+                      viewType: view as any,
+                      activeEntityType: stackRec ? 'stack' : 'blend',
+                      activeEntityId: stackRec?.id || blendRecs[0]?.id,
+                      route: window.location.hash || '#/',
+                      mode: 'live_assist',
+                      screen: view as any
+                    }}
+                    recommendation={stackRec || blendRecs[0]}
                     onApplyResult={(result: any) => {
                       // SPECIAL PATH: MODE-DRIVEN CALIBRATION (Clarification)
                       if (consultantMode === 'clarification_required') {

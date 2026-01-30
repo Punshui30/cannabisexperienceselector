@@ -5,6 +5,7 @@ import { InvocationContext } from '../types/context';
 import { Send, X, Mic, Sparkles, Check } from 'lucide-react';
 
 import { startListening } from '../lib/speech';
+import { callLLMChat } from '../lib/llmChat';
 
 export interface LiveConsultantProps {
     consultantText?: string;
@@ -13,6 +14,7 @@ export interface LiveConsultantProps {
     onClose: () => void;
     isGenerating?: boolean;
     consultantMode?: 'default' | 'clarification_required';
+    recommendation?: UIBlendRecommendation | UIStackRecommendation;
 }
 
 interface Message {
@@ -21,7 +23,7 @@ interface Message {
 }
 
 export function LiveConsultant(props: LiveConsultantProps) {
-    const { consultantText, context, onApplyResult, onClose, isGenerating = false } = props;
+    const { consultantText, context, onApplyResult, onClose, isGenerating = false, recommendation } = props;
     const consultantMode: 'default' | 'clarification_required' = props.consultantMode || 'default';
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
@@ -140,20 +142,23 @@ export function LiveConsultant(props: LiveConsultantProps) {
         }
 
         // DEFAULT CHAT LOGIC
-        setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+        const newMessages = [...messages, { role: 'user', content: userMessage } as Message];
+        setMessages(newMessages);
         setIsLoading(true);
 
         try {
-            // This would normally call an LLM API. 
-            // In the context of the orchestrator, most actual refactors go through onApplyResult
-            // For now, we simulate a helpful response if not a direct command
-            setTimeout(() => {
+            const response = await callLLMChat(newMessages, {
+                userInput: userMessage,
+                recommendation
+            });
+
+            if (response && response.text) {
                 setMessages(prev => [...prev, {
                     role: 'assistant',
-                    content: "Chat coming soon"
+                    content: response.text
                 }]);
-                setIsLoading(false);
-            }, 800);
+            }
+            setIsLoading(false);
 
         } catch (error) {
             setMessages(prev => [...prev, { role: 'system', content: "Lost contact with refinement engine." }]);

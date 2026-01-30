@@ -45,9 +45,9 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
     const currentText = shuffledCopy[0] || INFO_COPY[0];
 
     return (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-white overflow-hidden bg-black">
-            {/* FULL SCREEN ANIMATION - UNCONSTRAINED */}
-            <div className="absolute top-0 inset-x-0 h-[85vh] w-full z-0 pointer-events-none opacity-90">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-end text-white overflow-hidden bg-black pb-24">
+            {/* FULL SCREEN ANIMATION - UNCONSTRAINED (Top Heavy) */}
+            <div className="absolute top-0 inset-x-0 h-[100vh] w-full z-0 pointer-events-none opacity-90">
                 <video
                     src="/analyze_loop.mp4"
                     autoPlay
@@ -57,23 +57,23 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
                     className="w-full h-full object-cover scale-150 origin-top"
                     style={{
                         filter: 'saturate(2.2) contrast(1.2) brightness(1.1)',
-                        maskImage: 'linear-gradient(to bottom, black 30%, transparent 100%)',
-                        WebkitMaskImage: 'linear-gradient(to bottom, black 30%, transparent 100%)'
+                        maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)',
+                        WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)'
                     }}
                 />
             </div>
 
-            {/* Vignette */}
-            <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-black/10 to-black pointer-events-none" />
+            {/* Vignette - Stronger at bottom to maximize text contrast */}
+            <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-black/20 to-black pointer-events-none" />
 
-            {/* Content Layer (Centered) */}
+            {/* Content Layer (Bottom Aligned) */}
             <div className="relative z-10 flex flex-col items-center px-8 text-center max-w-xl">
 
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 0.9, y: 0 }}
                     transition={{ duration: 0.8 }}
-                    className="mb-12"
+                    className="mb-8"
                 >
                     <p className="text-[11px] tracking-[0.35em] uppercase text-[#00FFD1]/80 drop-shadow-[0_0_15px_rgba(0,255,209,0.3)]">
                         Guided Outcomes
@@ -92,6 +92,17 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
                         {currentText}
                     </motion.p>
                 </AnimatePresence>
+
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1, duration: 1 }}
+                    className="mt-8 flex gap-1"
+                >
+                    {[0, 1, 2].map(i => (
+                        <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                    ))}
+                </motion.div>
 
                 <motion.p
                     initial={{ opacity: 0, y: 6 }}
