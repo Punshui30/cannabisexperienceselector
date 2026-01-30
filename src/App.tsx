@@ -135,6 +135,7 @@ export default function App() {
   const handleSubmit = (input: IntentSeed) => {
 
     console.log('TRANSITION: Input -> Resolving (Engine Start)');
+    setErrorMessage(null);
     setStackRec(null);
     setBlendRecs([]); // Clear previous
     setHasNavigatedToResult(false); // Reset navigation guard for new session
@@ -520,6 +521,10 @@ export default function App() {
   };
 
   const handleBack = () => {
+    // Preserve input if coming from resolving or results to allow refinement
+    if (userInput?.text) {
+      setInitialInputText(userInput.text);
+    }
     setView('input');
     setStackRec(null);
     setBlendRecs([]); // Fixed
@@ -614,6 +619,8 @@ export default function App() {
                     progress={analysisProgress}
                     phase={enginePhase}
                     hasResults={blendRecs.length > 0 || !!stackRec}
+                    error={errorMessage}
+                    onBack={handleBack}
                     onComplete={() =>
                       handleResolvingComplete({
                         blendRecsLength: blendRecs.length,
