@@ -831,9 +831,12 @@ export default function App() {
 
                       // STANDARD PATH: REFACTOR/EDIT (Chat Mode)
                       addLog("Assistant: Reconfiguring Engine...");
-                      const adaptedSet = Array.isArray(result) ? result
+
+                      // Extract data from OrchestratorResult
+                      const resultData = (result as OrchestratorResult)?.data || [];
+                      const adaptedSet = resultData
                         .map(r => adaptEngineResult(r, userInput?.text))
-                        .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[] : [];
+                        .filter(Boolean) as (UIBlendRecommendation | UIStackRecommendation)[];
 
                       if (adaptedSet.length > 0) {
                         const firstRec = adaptedSet[0];
