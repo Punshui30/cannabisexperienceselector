@@ -154,11 +154,13 @@ export function LiveConsultant(props: LiveConsultantProps) {
 
             if (response && response.text) {
                 // Check for REFACTOR command
-                const refactorMatch = response.text.match(/\[\[REFACTOR:\s*([\s\S]*?)\]\]/);
+                console.log('[LiveConsultant] LLM Response:', response.text);
+                const refactorRegex = /\[\[\s*REFACTOR:?\s*([\s\S]*?)\]\]/i;
+                const refactorMatch = response.text.match(refactorRegex);
 
                 if (refactorMatch) {
                     const command = refactorMatch[1].trim();
-                    const cleanText = response.text.replace(/\[\[REFACTOR:[\s\S]*?\]\]/, '').trim();
+                    const cleanText = response.text.replace(refactorRegex, '').trim();
 
                     if (cleanText) {
                         setMessages(prev => [...prev, {
@@ -177,6 +179,10 @@ export function LiveConsultant(props: LiveConsultantProps) {
                         if (onApplyResult) {
                             onApplyResult(result);
                         }
+
+                        // CRITICAL: Set completion states to trigger auto-close
+                        setIsLoading(false);
+                        setIsRefactorComplete(true);
                     } catch (err) {
                         console.error("Refactor failed", err);
                         setMessages(prev => [...prev, { role: 'system', content: "Optimization failed. Please try a simpler request." }]);
