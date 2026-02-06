@@ -89,19 +89,37 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   const handleSubmit = () => {
     if (!canSubmit()) return;
 
+    // Detect stack vs blend based on temporal keywords
+    const text = mode === 'describe'
+      ? description
+      : mode === 'strain'
+        ? `${strainName}${growerName ? ' by ' + growerName : ''}`.trim()
+        : "Product Image Input";
+
+    // Temporal keywords that indicate multi-phase stack protocols
+    const temporalKeywords = [
+      'then', 'after', 'followed by', 'later', 'secondly',
+      'morning', 'night', 'evening', 'day', 'start', 'end',
+      'wind down', 'winding down', 'transition', 'phase',
+      'first', 'next', 'finally', 'throughout'
+    ];
+
+    const lowerText = text.toLowerCase();
+    const isStackRequest = temporalKeywords.some(kw => {
+      const regex = new RegExp(`\\b${kw}\\b`, 'i');
+      return regex.test(lowerText);
+    });
+
     const input: UserInput = {
-      kind: 'blend',
+      kind: isStackRequest ? 'stack' : 'blend',
       mode: mode === 'strain' ? 'strain' : 'engine',
-      text: mode === 'describe'
-        ? description
-        : mode === 'strain'
-          ? `${strainName}${growerName ? ' by ' + growerName : ''}`.trim()
-          : "Product Image Input",
+      text,
       image: mode === 'product' && uploadedImage ? URL.createObjectURL(uploadedImage) : undefined,
       strainName: mode === 'strain' ? strainName : undefined,
       grower: mode === 'strain' ? growerName : undefined
     };
 
+    console.log('[InputScreen] Detected kind:', input.kind, 'for query:', text.substring(0, 50));
     onSubmit(input);
   };
 
