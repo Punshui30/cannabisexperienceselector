@@ -62,7 +62,7 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-xs font-bold text-[#00FFD1]">{layer.cultivars.length} Strains</span>
+                                    <span className="text-xs font-bold text-[#00FFD1]">{layer.cultivars.map(c => c.name).join(' + ')}</span>
                                 </div>
                             </div>
 
