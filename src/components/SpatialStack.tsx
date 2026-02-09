@@ -58,7 +58,7 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                                     />
                                     <div>
                                         <div className="text-[10px] uppercase tracking-widest text-white/50">{layer.layerName}</div>
-                                        <div className="text-sm font-medium text-white">{isExpanded ? 'Detailed Breakdown' : 'Cultivar Mix'}</div>
+                                        <div className="text-sm font-medium text-white">{isExpanded ? 'Detailed Breakdown' : (layer.phaseIntent || layer.purpose || 'Cultivar Mix')}</div>
                                     </div>
                                 </div>
                                 <div className="text-right">
