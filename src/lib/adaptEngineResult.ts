@@ -36,9 +36,17 @@ function adaptToStack(result: EngineResult, userInput?: string): UIStackRecommen
         layers: layers.map((l: any) => ({
             type: l.type || 'blend',
             layerName: l.layerName || 'Phase',
-            cultivars: l.cultivars || [],
+            cultivars: (l.cultivars || []).map((c: any) => ({
+                name: c.name || 'Unknown',
+                ratio: c.ratio || (1 / (l.cultivars?.length || 1)),
+                profile: c.profile || 'Hybrid',
+                characteristics: c.characteristics || []
+            })),
             description: l.description,
             phaseIntent: l.phaseIntent,
+            whyThisPhase: l.whyThisPhase || l.description,
+            onsetEstimate: l.onsetEstimate || l.timing,
+            durationEstimate: l.durationEstimate || '2-3h',
             timing: l.timing || '0:00'
         }))
     };
