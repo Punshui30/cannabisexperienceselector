@@ -328,7 +328,7 @@ export async function generateNarrative(result: ComboPreviewResult): Promise<str
         }
 
         const data = await response.json();
-        const text: string = data.text || data.content || data.response || '';
+        const text: string = data.choices?.[0]?.message?.content || data.text || data.content || data.response || '';
         return text.trim() || null;
     } catch (err) {
         console.warn('[COMBO_NARRATIVE_FAIL]', { error: err });

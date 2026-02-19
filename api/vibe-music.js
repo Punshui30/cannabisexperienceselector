@@ -66,10 +66,10 @@ module.exports = async function handler(request, response) {
     }
 
     const prompt = generateMusicPromptFromTerpenes(terpenes);
-    const API_TOKEN = process.env.REPLICATE_API_TOKEN;
+    const API_TOKEN = process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY;
 
     if (!API_TOKEN) {
-        console.error('SERVER: Missing REPLICATE_API_TOKEN');
+        console.error('SERVER: Missing REPLICATE_API_TOKEN or REPLICATE_API_KEY');
         return response.status(500).json({ error: 'Server Configuration Error: Missing Replicate API Token' });
     }
 
