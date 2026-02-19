@@ -4,44 +4,84 @@ const replicate = new Replicate({
     auth: process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY,
 });
 
-const terpeneToMusicMap = {
-    myrcene: { tempo: "slow", mood: "dreamy", instruments: "pads, ambient guitar" },
-    limonene: { tempo: "medium", mood: "uplifting", instruments: "bright synth, clean guitar" },
-    pinene: { tempo: "medium-fast", mood: "clear, focused", instruments: "acoustic, light percussion" },
-    linalool: { tempo: "slow", mood: "calm, cinematic", instruments: "strings, soft piano" },
-    caryophyllene: { tempo: "medium", mood: "grounded, gritty", instruments: "bass, analog synth" },
-    humulene: { tempo: "medium", mood: "earthy, acoustic", instruments: "woodwinds, soft drums" },
-    terpinolene: { tempo: "fast", mood: "energetic, complex", instruments: "staccato synths, intricate rhythms" },
-    ocimene: { tempo: "medium-fast", mood: "bright, citrusy", instruments: "shimmering synths, bells" }
+const terpeneToProfile = {
+    myrcene: { mood: "dreamy and introspective", energy: "low", body: "heavy and relaxed", time: "late night wind-down" },
+    limonene: { mood: "uplifting and bright", energy: "medium", body: "light and energized", time: "sunny afternoon" },
+    pinene: { mood: "clear and focused", energy: "medium-high", body: "alert and grounded", time: "crisp morning" },
+    linalool: { mood: "calm and cinematic", energy: "low", body: "soft and soothed", time: "dusk, golden hour" },
+    caryophyllene: { mood: "grounded and gritty", energy: "medium", body: "warm and anchored", time: "evening, city lights" },
+    humulene: { mood: "earthy and contemplative", energy: "low-medium", body: "settled and present", time: "quiet afternoon" },
+    terpinolene: { mood: "energetic and complex", energy: "high", body: "buzzing and awake", time: "midday peak" },
+    ocimene: { mood: "bright and citrusy", energy: "medium-high", body: "fresh and light", time: "early morning" }
 };
+
+function buildMusicPrompt({ mood, energy, body, time }) {
+    return `
+Create a 30-second cinematic instrumental track.
+
+Style: modern ambient electronic with subtle analog warmth.
+Mood: ${mood}.
+Energy level: ${energy}.
+Body feel: ${body}.
+Time context: ${time}.
+
+Musical direction:
+- Clear melodic motif (not random pads)
+- Defined chord progression
+- Subtle bass movement
+- Light percussive rhythm
+- Emotional arc: intro → build → gentle peak → resolve
+- Clean mix, no distortion
+- Professional soundtrack quality
+
+Avoid:
+- Harsh noise
+- Random glitch artifacts
+- Empty ambient drone
+- Looped repetition
+
+Make it feel intentional and musical, like a Netflix documentary underscore.
+`.trim();
+}
 
 function generateMusicPromptFromTerpenes(terpenes) {
     if (!terpenes || terpenes.length === 0) {
-        return "30 second cinematic instrumental, balanced and atmospheric, smooth transition, modern feel";
+        return buildMusicPrompt({
+            mood: "balanced and atmospheric",
+            energy: "medium",
+            body: "relaxed but present",
+            time: "early evening"
+        });
     }
 
     const topTerpenes = [...terpenes]
         .sort((a, b) => (b.percent || 0) - (a.percent || 0))
         .slice(0, 3);
 
-    const moods = [];
-    const instruments = [];
-    let tempo = "medium";
+    // Collect profiles and blend them
+    const profiles = topTerpenes
+        .map(t => terpeneToProfile[t.name.toLowerCase()])
+        .filter(Boolean);
 
-    topTerpenes.forEach((t, index) => {
-        const name = t.name.toLowerCase();
-        const trait = terpeneToMusicMap[name];
-        if (trait) {
-            moods.push(trait.mood);
-            instruments.push(trait.instruments);
-            if (index === 0) tempo = trait.tempo;
-        }
+    if (profiles.length === 0) {
+        return buildMusicPrompt({
+            mood: "balanced and reflective",
+            energy: "medium",
+            body: "grounded and calm",
+            time: "late afternoon"
+        });
+    }
+
+    // Use dominant terpene for energy/body/time, blend moods
+    const dominant = profiles[0];
+    const moods = profiles.map(p => p.mood).join(", ");
+
+    return buildMusicPrompt({
+        mood: moods,
+        energy: dominant.energy,
+        body: dominant.body,
+        time: dominant.time
     });
-
-    const moodsStr = moods.join(", ");
-    const instStr = instruments.join(", ");
-
-    return `30 second cinematic instrumental, ${moodsStr}, ${tempo} tempo, ${instStr}, smooth transition build, modern atmospheric feel`;
 }
 
 module.exports = async function handler(request, response) {
