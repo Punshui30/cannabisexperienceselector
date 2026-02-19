@@ -36,6 +36,7 @@ export interface AIConfig {
         tavilyDebug: boolean;
         tavilyRawDump: boolean;
         hasPerplexityKey: boolean;
+        demoMode: boolean;
     };
     models: {
         reasoning: string;
@@ -59,6 +60,9 @@ export interface AIConfig {
         maxEnrichPerSession: number;
         maxRefreshPerSession: number;
     };
+    idleHelper: {
+        delayMs: number;
+    };
 }
 
 // -----------------------------------------------------------------------------
@@ -76,6 +80,7 @@ export const AI_CONFIG: AIConfig = {
         tavilyDebug: import.meta.env.VITE_ENABLE_TAVILY_DEBUG === 'true',
         tavilyRawDump: import.meta.env.VITE_ENABLE_TAVILY_RAW_DUMP === 'true',
         hasPerplexityKey: import.meta.env.VITE_HAS_PERPLEXITY_KEY !== 'false', // default to true unless explicitly false
+        demoMode: import.meta.env.VITE_DEMO_MODE === 'true',
         memory: true,
     },
 
@@ -102,6 +107,9 @@ export const AI_CONFIG: AIConfig = {
         maxEvidenceRefreshPerSession: 5,
         maxEnrichPerSession: 10,
         maxRefreshPerSession: 5,
+    },
+    idleHelper: {
+        delayMs: parseInt(import.meta.env.VITE_IDLE_HELPER_DELAY_MS || '15000', 10),
     },
 };
 

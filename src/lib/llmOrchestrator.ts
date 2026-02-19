@@ -23,6 +23,7 @@ export interface OrchestratorResult {
         consultationScript?: string;
         outcomeCategory?: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other';
     };
+    intentSpec?: IntentSpec;
     followUpQuestion?: string;
     decision?: any; // Expose decision for debugging/telemetry
 }
@@ -458,7 +459,8 @@ export async function processIntent(
                         reasoning: intentSpec.reasoning || `Assembled this protocol in response to your focus on: "${seed.text}"`,
                         consultationScript: intentSpec.consultationScript,
                         outcomeCategory: outcomeCategory
-                    }
+                    },
+                    intentSpec: intentSpec
                 };
             }
 
@@ -875,7 +877,8 @@ export async function processIntent(
                 reasoning: intentSpec.reasoning || `Direct analysis complete for your inquiry: "${seed.text}"`,
                 consultationScript: intentSpec.consultationScript,
                 outcomeCategory: outcomeCategory
-            }
+            },
+            intentSpec: intentSpec
         };
 
     } catch (e: any) {

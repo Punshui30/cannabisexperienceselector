@@ -331,6 +331,15 @@ export default function App() {
               addLog('Success: Results Ready');
               setAnalysisProgress(90);
 
+              // --- SAVE SESSION MEMORY ---
+              const { SessionMemoryStore } = await import('./lib/memory/sessionMemory');
+              SessionMemoryStore.set({
+                lastIntentSpec: result.intentSpec,
+                lastIntentSummary: result.analysis?.reasoning,
+                lastVibe: result.analysis?.outcomeCategory,
+                lastEngineReceipt: result.data[0]?.decisionReceipt
+              });
+
               // Separate stacks from blends
               const adaptedResults = result.data.map((item: EngineResult) => adaptEngineResult(item, userInput.text)).filter(Boolean);
               const stacks = adaptedResults.filter((r: any) => r.kind === 'stack') as UIStackRecommendation[];

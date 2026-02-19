@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EnginePhase } from '../types/domain';
-import { EngineCore3D } from './EngineCore3D';
-// import { SignalAlignmentVisual } from './SignalAlignmentVisual'; // Removed
-// import analyzeLoop from '../assets/analyze_loop.mp4'; // REMOVED - Using public path
 
 interface V3SignalInterfaceProps {
     phase: EnginePhase;
@@ -11,107 +8,103 @@ interface V3SignalInterfaceProps {
     inputText?: string;
 }
 
-const INFO_COPY = [
-    "Compositional stability preserves session intent.",
-    "Indica and sativa are placeholders. Ratios are results.",
-    "Effects emerge from chemistry, not names.",
-    "Consistency requires calculation, not categorization.",
-    "Blending stabilizes what single strains cannot.",
-    "Engineered outcomes depend on ratios, not labels.",
-    "Terpenes interact. Cannabinoids compound.",
-    "Inventory-aware resolution for precise results.",
-    "Systemic balance over singular emphasis."
+const ETHOS_STATEMENTS = [
+    "How it feels depends on the chemistry.",
+    "Names don’t matter. What’s inside does.",
+    "Two strains with the same name can feel different.",
+    "Blends create more stable experiences.",
+    "We match chemistry to your goal.",
+    "Balance matters more than hype.",
+    "The right mix changes everything.",
+    "We optimize for how you want to feel.",
+    "This isn’t guesswork. It’s calculated.",
+    "Your outcome guides the formula."
 ];
 
-function shuffleArray<T>(array: T[]): T[] {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
+// Helper to shuffle but we'll just rotate them sequentially starting from a random index
+function getRandomIndex() {
+    return Math.floor(Math.random() * ETHOS_STATEMENTS.length);
 }
 
 export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps) {
-    const [shuffledCopy, setShuffledCopy] = useState<string[]>([]);
-    const [index, setIndex] = useState(0);
+    const [index, setIndex] = useState(getRandomIndex());
 
-    // Initialize randomized text on mount (Static per session)
+    // Rotate statements every 3.5 seconds
     useEffect(() => {
-        setShuffledCopy([INFO_COPY[Math.floor(Math.random() * INFO_COPY.length)]]);
+        const interval = setInterval(() => {
+            setIndex((prev) => (prev + 1) % ETHOS_STATEMENTS.length);
+        }, 3500);
+        return () => clearInterval(interval);
     }, []);
 
-    // Fallback display logic
-    const currentText = shuffledCopy[0] || INFO_COPY[0];
-
     return (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-end text-white overflow-hidden bg-black pb-24">
-            {/* FULL SCREEN ANIMATION - UNCONSTRAINED (Top Heavy) */}
-            <div className="absolute top-0 inset-x-0 h-[100vh] w-full z-0 pointer-events-none opacity-90">
-                <video
-                    src="/analyze_loop.mp4"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover scale-150 origin-top"
-                    style={{
-                        filter: 'saturate(2.2) contrast(1.2) brightness(1.1)',
-                        maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)',
-                        WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)'
-                    }}
-                />
+        <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center text-white overflow-hidden bg-[#050505]">
+            {/* Subtle radial gradient for depth */}
+            <div
+                className="absolute inset-0 pointer-events-none opacity-20"
+                style={{
+                    background: 'radial-gradient(circle at center, #00FFD110 0%, transparent 70%)'
+                }}
+            />
+
+            <div className="relative z-10 flex flex-col items-center px-12 text-center max-w-2xl w-full">
+
+                {/* Minimal Processing UI: 3-dot pulse */}
+                <div className="flex gap-2 mb-8">
+                    {[0, 1, 2].map(i => (
+                        <motion.div
+                            key={i}
+                            animate={{
+                                opacity: [0.2, 1, 0.2],
+                                scale: [1, 1.1, 1],
+                            }}
+                            transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: i * 0.2
+                            }}
+                            className="w-2 h-2 rounded-full bg-[#00FFD1] shadow-[0_0_10px_rgba(0,255,209,0.3)]"
+                        />
+                    ))}
+                </div>
+
+                <motion.h2
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.4 }}
+                    transition={{ duration: 1 }}
+                    className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/60 mb-12"
+                >
+                    Analyzing your request...
+                </motion.h2>
+
+                <div className="h-24 flex items-center justify-center">
+                    <AnimatePresence mode="wait">
+                        <motion.p
+                            key={index}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{
+                                duration: 1.2,
+                                ease: "easeInOut"
+                            }}
+                            className="text-2xl sm:text-3xl font-light leading-snug text-white serif"
+                        >
+                            {ETHOS_STATEMENTS[index]}
+                        </motion.p>
+                    </AnimatePresence>
+                </div>
             </div>
 
-            {/* Vignette - Stronger at bottom to maximize text contrast */}
-            <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-black/20 to-black pointer-events-none" />
-
-            {/* Content Layer (Bottom Aligned) */}
-            <div className="relative z-10 flex flex-col items-center px-8 text-center max-w-xl">
-
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 0.9, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="mb-8"
-                >
-                    <p className="text-[11px] tracking-[0.35em] uppercase text-[#00FFD1]/80 drop-shadow-[0_0_15px_rgba(0,255,209,0.3)]">
-                        Guided Outcomes
-                    </p>
-                </motion.div>
-
-                <AnimatePresence mode="wait">
-                    <motion.p
-                        key={index}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 1.05 }}
-                        transition={{ duration: 0.5 }}
-                        className="text-2xl sm:text-4xl font-light leading-tight text-white serif min-h-[3em] flex items-center justify-center drop-shadow-2xl"
-                    >
-                        {currentText}
-                    </motion.p>
-                </AnimatePresence>
-
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1, duration: 1 }}
-                    className="mt-8 flex gap-1"
-                >
-                    {[0, 1, 2].map(i => (
-                        <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-                    ))}
-                </motion.div>
-
-                <motion.p
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 0.5, y: 0 }}
-                    transition={{ duration: 1, delay: 0.6 }}
-                    className="mt-6 text-xs text-white/40 tracking-[0.25em] uppercase"
-                >
-                    Powered by StrainMath™
-                </motion.p>
+            {/* Background noise/grain for premium texture (optional but adds to "not just a loading screen") */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay">
+                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <filter id="noiseFilter">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+                    </filter>
+                    <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+                </svg>
             </div>
         </div>
     );

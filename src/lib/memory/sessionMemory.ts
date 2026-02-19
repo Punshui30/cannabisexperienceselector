@@ -17,6 +17,18 @@ export interface SessionMemory {
         preferredVibe?: string;
         avoidStrains: string[];
     };
+    // NEW FIELDS for Guided Helpers & Memory demos
+    lastIntentSummary?: string;
+    lastVibe?: string;
+    lastContext?: string;
+    feedback?: {
+        intensity?: 'tooStrong' | 'tooWeak' | 'justRight';
+        feelings?: string[]; // anxious, sleepy, etc.
+    };
+    favorites?: {
+        blendIds: string[];
+        strainIds: string[];
+    };
 }
 
 const DEFAULT_MEMORY: SessionMemory = {

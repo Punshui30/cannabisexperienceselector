@@ -77,7 +77,7 @@ module.exports = async function handler(request, response) {
     }
 
     // ── Feature Gate ──────────────────────────────────────────────────────
-    if (process.env.ENABLE_TTS !== 'true') {
+    if (process.env.ENABLE_TTS === 'false') {
         return response.status(403).json({ error: 'TTS feature is not enabled.', code: 'FEATURE_DISABLED' });
     }
 

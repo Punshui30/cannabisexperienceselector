@@ -1,16 +1,19 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, Camera, Search, Check, Upload, Layers, ChevronRight, X } from 'lucide-react';
+import { Mic, Camera, Search, Check, Upload, Layers, ChevronRight, X, Sparkles } from 'lucide-react';
 import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
 import { PRESET_STACKS } from '../data/presetStacks';
-import { getGlassCardStyles } from '../lib/glassStyles';
 import { CameraModal } from './CameraModal';
 import { startListening } from '../lib/speech';
+import { CardShell } from './CardShell';
+import { AI_CONFIG } from '../ai/config';
+import { SessionMemoryStore } from '../lib/memory/sessionMemory';
+import { DEMO_PROFILES, DemoProfile } from '../data/demoProfiles';
+import { GuidedOutcomeWizard } from './GuidedOutcomeWizard';
 
 // Feature gate for vision/camera functionality
 const VISION_ENABLED = false;
-import { CardShell } from './CardShell';
 
 interface InputScreenProps {
   onSubmit: (input: UserInput) => void;
@@ -28,6 +31,9 @@ import logoImg from '../assets/logo.png';
 const GLASS_INPUT = "w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:border-[#00FFD1]/50 transition-colors text-sm";
 const TAB_ACTIVE = "bg-[#00FFD1] text-black shadow-lg shadow-[#00FFD1]/10";
 const TAB_INACTIVE = "text-white/40 hover:text-white hover:bg-white/5";
+
+const MotionButton = motion.button as any;
+const MotionDiv = motion.div as any;
 
 export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSelectPreset, onAdminModeToggle, isAdminMode, initialText }: InputScreenProps) {
   // Available input modes (filtered by feature flags)
@@ -61,6 +67,50 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
   const [dragActive, setDragActive] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+
+  // --- IDLE HELPER STATE ---
+  const [isIdle, setIsIdle] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+  const [idleDismissed, setIdleDismissed] = useState(() => {
+    return sessionStorage.getItem('cas_idle_helper_dismissed') === 'true';
+  });
+
+  // --- DEMO MODE STATE ---
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Basic idle helper logic: Reset on activity, trigger after delay
+    if (idleDismissed || showWizard || description.length > 0) return;
+
+    let timer: NodeJS.Timeout;
+    const resetTimer = () => {
+      setIsIdle(false);
+      clearTimeout(timer);
+      timer = setTimeout(() => setIsIdle(true), AI_CONFIG.idleHelper.delayMs);
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(e => window.addEventListener(e, resetTimer));
+
+    timer = setTimeout(() => setIsIdle(true), AI_CONFIG.idleHelper.delayMs);
+
+    return () => {
+      clearTimeout(timer);
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+    };
+  }, [idleDismissed, showWizard, description]);
+
+  const handleDismissIdle = () => {
+    setIsIdle(false);
+    setIdleDismissed(true);
+    sessionStorage.setItem('cas_idle_helper_dismissed', 'true');
+  };
+
+  const handleSwitchProfile = (profile: DemoProfile) => {
+    setActiveProfileId(profile.id);
+    SessionMemoryStore.set(profile.memory);
+    console.log(`[DEMO_MODE] Loaded profile: ${profile.name}`);
+  };
 
   const handleCapture = (blob: Blob) => {
     const file = new File([blob], 'captured_image.jpg', { type: 'image/jpeg' });
@@ -171,7 +221,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
   return (
     <>
       {/* FLOATING BACKGROUND ORBS (Premium Glassmorphism Foundation) */}
-      <motion.div
+      <MotionDiv
         className="absolute top-1/4 left-1/4 rounded-full pointer-events-none"
         style={{
           width: '400px',
@@ -191,7 +241,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           ease: 'easeInOut',
         }}
       />
-      <motion.div
+      <MotionDiv
         className="absolute bottom-1/3 right-1/4 rounded-full pointer-events-none"
         style={{
           width: '350px',
@@ -282,13 +332,38 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           </div>
         </div>
 
+        {/* --- DEMO BAR --- */}
+        {AI_CONFIG.features.demoMode && (
+          <div className="flex-shrink-0 px-6 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar bg-black/40 border-b border-white/5">
+            <span className="text-[8px] font-bold text-[#00FFD1] uppercase tracking-widest whitespace-nowrap">Demo:</span>
+            <button
+              onClick={() => {
+                setActiveProfileId(null);
+                SessionMemoryStore.clear();
+              }}
+              className={`px-3 py-1 rounded-full text-[9px] font-bold transition-all ${!activeProfileId ? 'bg-[#00FFD1] text-black shadow-lg shadow-[#00FFD1]/20' : 'bg-white/5 text-white/40 hover:text-white'}`}
+            >
+              Live
+            </button>
+            {DEMO_PROFILES.map(p => (
+              <button
+                key={p.id}
+                onClick={() => handleSwitchProfile(p)}
+                className={`px-3 py-1 rounded-full text-[9px] font-bold transition-all whitespace-nowrap ${activeProfileId === p.id ? 'bg-[#00FFD1] text-black shadow-lg shadow-[#00FFD1]/20' : 'bg-white/5 text-white/40 hover:text-white'}`}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* --- SCROLLABLE BODY --- */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-32">
           <div className="px-6 space-y-5 py-2">
 
             {/* INPUT AREA */}
             <AnimatePresence mode="wait">
-              <motion.div
+              <MotionDiv
                 key={mode}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -382,7 +457,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
                   </div>
                 )}
-              </motion.div>
+              </MotionDiv>
             </AnimatePresence>
 
 
@@ -498,17 +573,17 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
           </div>
 
           {/* FLOATING ACTION BUTTON - Always Visible (Bottom Right) */}
-          <motion.button
+          <MotionButton
             initial={false}
             animate={{
               scale: canSubmit() ? 1 : 0,
               opacity: canSubmit() ? 1 : 0,
-              pointerEvents: canSubmit() ? 'auto' : ('none' as any)
+              pointerEvents: canSubmit() ? 'auto' : 'none'
             }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={handleSubmit}
             disabled={!canSubmit()}
-            className="fixed bottom-6 right-6 z-50 px-6 py-4 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black shadow-[0_0_30px_rgba(0,255,209,0.4)] flex items-center gap-2 font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-transform"
+            className="fixed bottom-6 right-6 z-50 px-6 py-4 rounded-full bg-gradient-to-br from-[#00FFD1] to-[#00E0B8] text-black shadow-[0_0_30px_rgba(0,255,209,0.4)] flex items-center gap-2 font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-transform disabled:opacity-0"
             style={{
               boxShadow: '0 8px 32px rgba(0, 255, 209, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
             }}
@@ -517,7 +592,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
             <span>Generate</span>
-          </motion.button>
+          </MotionButton>
 
           {VISION_ENABLED && (
             <AnimatePresence>
@@ -529,6 +604,60 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
               )}
             </AnimatePresence>
           )}
+
+          {/* IDLE HELPER NUDGE */}
+          <AnimatePresence mode="wait">
+            {isIdle && !idleDismissed && !showWizard && (
+              <MotionDiv
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="fixed bottom-24 left-6 right-6 z-[60]"
+              >
+                <div className="bg-[#1A1A1A] border border-[#00FFD1]/30 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4 backdrop-blur-md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#00FFD1]/20 flex items-center justify-center text-[#00FFD1]">
+                      <Sparkles size={16} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white mb-0.5">Need help choosing?</div>
+                      <div className="text-[10px] text-white/40">Try our guided wizard</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleDismissIdle}
+                      className="px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+                    >
+                      Not now
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsIdle(false);
+                        setShowWizard(true);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-[#00FFD1] text-black text-[9px] font-bold uppercase tracking-widest shadow-lg shadow-[#00FFD1]/20"
+                    >
+                      Guide Me
+                    </button>
+                  </div>
+                </div>
+              </MotionDiv>
+            )}
+          </AnimatePresence>
+
+          {/* GUIDED WIZARD MOUNT */}
+          <AnimatePresence>
+            {showWizard && (
+              <GuidedOutcomeWizard
+                onClose={() => setShowWizard(false)}
+                onComplete={(intent) => {
+                  setShowWizard(false);
+                  onSubmit(intent);
+                }}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </>

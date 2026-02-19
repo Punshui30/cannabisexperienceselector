@@ -1,0 +1,20 @@
+﻿ΓêÜ Copying web assets from dist to android\app\src\main\assets\public in 62.60ms
+ΓêÜ Creating capacitor.config.json in android\app\src\main\assets in 5.65ms
+[info] Inlining sourcemaps
+ΓêÜ copy android in 250.96ms
+ΓêÜ Updating Android plugins in 51.35ms
+ΓêÜ update android in 291.32ms
+├ù Running Gradle build - failed!
+[error] Starting a Gradle Daemon, 1 incompatible Daemon could not be reused, use --status for details
+        
+        FAILURE: Build failed with an exception.
+        
+        * What went wrong:
+        Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 11.
+        
+        * Try:
+        > Run with --stacktrace option to get the stack trace.
+        > Run with --info or --debug option to get more log output.
+        > Run with --scan to generate a Build Scan (Powered by Develocity).
+        > Get more help at https://help.gradle.org.
+        

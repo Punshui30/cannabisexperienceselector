@@ -5,6 +5,20 @@
  */
 
 module.exports = async function handler(request, response) {
+    // Enable CORS for cross-environment safety
+    response.setHeader('Access-Control-Allow-Credentials', true);
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    response.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    );
+
+    if (request.method === 'OPTIONS') {
+        response.status(200).end();
+        return;
+    }
+
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -22,15 +36,25 @@ module.exports = async function handler(request, response) {
 
     const PPLX_KEY = process.env.PERPLEXITY_API_KEY;
 
+    if (!PPLX_KEY) {
+        console.error('[EVIDENCE] PERPLEXITY_API_KEY is not set in environment variables.');
+        return response.status(500).json({
+            error: 'Configuration Error',
+            details: 'Perplexity API key is missing on the server backend.'
+        });
+    }
+
     try {
+        console.log(`[EVIDENCE] Requesting Perplexity for: "${query}"`);
+
         const pplxResponse = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${PPLX_KEY}`,
+                'Authorization': `Bearer ${PPLX_KEY.trim()}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'sonar-reasoning', // Using reasoning model for citations
+                model: 'sonar', // Using standard sonar model for broadest availability
                 messages: [
                     {
                         role: 'system',
@@ -44,23 +68,28 @@ module.exports = async function handler(request, response) {
         });
 
         if (!pplxResponse.ok) {
-            const err = await pplxResponse.text();
-            console.error('PPLX API ERROR:', err);
-            return response.status(pplxResponse.status).json({ error: 'Perplexity API failure', details: err });
+            const errText = await pplxResponse.text();
+            console.error(`[EVIDENCE] Perplexity API Error (${pplxResponse.status}):`, errText);
+
+            let jsonErr;
+            try { jsonErr = JSON.parse(errText); } catch (e) { jsonErr = null; }
+
+            return response.status(pplxResponse.status).json({
+                error: 'Perplexity API failure',
+                details: jsonErr?.error?.message || errText,
+                code: pplxResponse.status
+            });
         }
 
         const data = await pplxResponse.json();
         const content = data.choices[0].message.content;
 
-        // Note: In a production environment, we would use a structured output parse here.
-        // For the demo, we will parse common markdown/bullet patterns.
-
+        // Simple markdown parsing for bullets
         const summaryBullets = content.split('\n')
             .filter(line => line.trim().startsWith('-') || line.trim().startsWith('*'))
             .map(line => line.replace(/^[\s-*]+/, '').trim())
             .slice(0, 5);
 
-        // Simple citation extraction heuristic
         const citations = (data.citations || []).map((url, i) => ({
             title: `Source ${i + 1}`,
             url
@@ -80,7 +109,10 @@ module.exports = async function handler(request, response) {
         });
 
     } catch (error) {
-        console.error('EVIDENCE PROXY ERROR:', error);
-        return response.status(500).json({ error: 'Internal Server Error', details: error.toString() });
+        console.error('EVIDENCE PROXY UNCAUGHT ERROR:', error);
+        return response.status(500).json({
+            error: 'Internal Server Error',
+            details: error.message || 'An unknown error occurred during evidence fetching.'
+        });
     }
 };
