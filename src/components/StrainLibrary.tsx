@@ -125,6 +125,12 @@ export function StrainLibrary() {
                                             }`}>
                                             {strain.cultivarType}
                                         </span>
+                                        {LibraryMemoryStore.getCachedEnrichment(strain.id) && (
+                                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-[#00FFD1]/30 bg-[#00FFD1]/5">
+                                                <BookOpen size={8} className="text-[#00FFD1]" />
+                                                <span className="text-[8px] font-bold text-[#00FFD1] uppercase tracking-tighter">Research</span>
+                                            </div>
+                                        )}
                                     </div>
                                     {/* Vibe Tags Row */}
                                     <div className="flex flex-wrap gap-1 mt-0.5">

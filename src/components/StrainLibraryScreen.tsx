@@ -186,6 +186,12 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                             style={{ backgroundColor: visuals.primaryColor, color: visuals.primaryColor }}
                                         />
                                         <h3 className="text-xl font-light serif text-white group-hover:text-[#00FFD1] transition-colors">{strain.name}</h3>
+                                        {LibraryMemoryStore.getCachedEnrichment(strain.id) && (
+                                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20">
+                                                <BookOpen size={10} className="text-[#00FFD1]" />
+                                                <span className="text-[9px] font-bold text-[#00FFD1] uppercase tracking-tighter">Research active</span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="space-y-3">

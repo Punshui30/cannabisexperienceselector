@@ -70,7 +70,7 @@ export const AI_CONFIG: AIConfig = {
 
     features: {
         vision: import.meta.env.VITE_VISION_ENABLED === 'true',
-        evidence: import.meta.env.VITE_EVIDENCE_ENABLED === 'true',
+        evidence: import.meta.env.VITE_EVIDENCE_ENABLED !== 'false',
         tts: import.meta.env.VITE_ENABLE_TTS === 'true',
         uiSfx: import.meta.env.VITE_ENABLE_UI_SFX === 'true', // off by default
         tavilyDebug: import.meta.env.VITE_ENABLE_TAVILY_DEBUG === 'true',
