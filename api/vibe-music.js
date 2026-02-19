@@ -80,7 +80,7 @@ module.exports = async function handler(request, response) {
 
         console.log('REPLICATE: Starting MusicGen generation for generated prompt:', prompt);
 
-        const output = await replicate.run("meta/musicgen:latest", {
+        const output = await replicate.run("meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb", {
             input: {
                 model_version: "stereo-large",
                 prompt: prompt,
