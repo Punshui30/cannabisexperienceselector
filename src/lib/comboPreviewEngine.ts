@@ -1,14 +1,14 @@
 /**
- * COMBO PREVIEW ENGINE — v2
+ * COMBO PREVIEW ENGINE — v3  (dynamic ratios + LLM narrative)
  *
- * Deterministic equal-ratio blend preview for "Predict this combo".
- * No external calls. No Tavily. No Perplexity.
- *
- * All text output is derived strictly from computed vectors.
- * NO generic fallback copy. If data is missing → null / empty array / "unknown".
+ * - Accepts per-cultivar ratios (must sum to 1.0).
+ * - Computes weighted THC/CBD and effect vector.
+ * - Derives topEffects, watchOuts, bestTime from vector.
+ * - Calls LLM (via /api/llm) for narrative — debounce enforced by caller.
+ * - No hardcoded fallback copy.
  *
  * Debug contract:
- *   console.log("[COMBO_PREVIEW_OK]", { ids, names, bestTime, avgTHC, avgCBD, topEffects, watchOuts, vector })
+ *   console.log("[COMBO_DYNAMIC_PREVIEW]", { ids, ratios, weightedTHC, weightedCBD, combinedVector, bestTime, topEffects, riskVector })
  *   console.warn("[COMBO_PREVIEW_FAIL]", { ids, error })
  */
 
@@ -16,7 +16,7 @@ import { INVENTORY } from './inventory';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface EffectVector {
+export interface EffectVector {
     energy: number;  // -1 = deep calm, +1 = electric uplift
     focus: number;  // -1 = dreamy/spacey, +1 = sharp clarity
     mood: number;  // -1 = introspective/quiet, +1 = social/euphoric
@@ -25,7 +25,22 @@ interface EffectVector {
     anxiety: number;  // -1 = strongly anxiolytic, +1 = anxiety-provoking
 }
 
-// Copied from calculationEngine — NOT re-imported to avoid circular deps
+export interface ComboPreviewResult {
+    cultivarIds: string[];
+    cultivarNames: string[];
+    ratios: number[];          // e.g. [0.4, 0.35, 0.25]
+    outcomeLabels: string[];
+    summary: string;            // LLM-generated; initially empty, set by generateNarrative()
+    topEffects: string[];
+    watchOuts: string[];
+    bestTime: 'day' | 'afternoon' | 'evening' | 'night' | 'unknown';
+    avgTHC: number | null;
+    avgCBD: number | null;
+    _vector: EffectVector;
+}
+
+// ── Terpene influence table ───────────────────────────────────────────────────
+
 const TERPENE_INFLUENCES: Record<string, EffectVector> = {
     limonene: { energy: 0.6, focus: 0.3, mood: 0.8, body: 0.0, creativity: 0.5, anxiety: -0.4 },
     pinene: { energy: 0.4, focus: 0.7, mood: 0.2, body: 0.0, creativity: 0.3, anxiety: -0.3 },
@@ -44,23 +59,6 @@ const TERPENE_INFLUENCES: Record<string, EffectVector> = {
     eucalyptol: { energy: 0.3, focus: 0.5, mood: 0.1, body: 0.0, creativity: 0.2, anxiety: 0.0 },
 };
 
-// ── Output type ───────────────────────────────────────────────────────────────
-
-export interface ComboPreviewResult {
-    cultivarIds: string[];
-    cultivarNames: string[];
-    assumedRatios: number[];
-    outcomeLabels: string[];   // e.g. ["Calm + Heavy", "Social"]
-    summary: string;     // references cultivar names + specific computed traits
-    topEffects: string[];   // strictly from vector; empty array if nothing qualifies
-    watchOuts: string[];   // strictly from risk vector; empty array if nothing qualifies
-    bestTime: 'day' | 'afternoon' | 'evening' | 'night' | 'unknown';
-    avgTHC: number | null;  // null if any cultivar is missing the data
-    avgCBD: number | null;  // null if any cultivar is missing the data
-    // Internal — exposed for debug / verification
-    _vector: EffectVector;
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function clamp(v: number, min = -1, max = 1): number {
@@ -76,7 +74,7 @@ function buildCultivarVector(terpenes: Record<string, number>): EffectVector | n
 
     for (const [tName, tAmt] of entries) {
         const inf = TERPENE_INFLUENCES[tName.toLowerCase()];
-        if (!inf) continue; // skip unknown terpenes — no fallback
+        if (!inf) continue;
         const w = tAmt as number;
         vec.energy += inf.energy * w;
         vec.focus += inf.focus * w;
@@ -99,28 +97,30 @@ function buildCultivarVector(terpenes: Record<string, number>): EffectVector | n
     };
 }
 
-function averageVectors(vectors: EffectVector[]): EffectVector {
-    const n = vectors.length;
-    const sum = vectors.reduce<EffectVector>((acc, v) => ({
-        energy: acc.energy + v.energy,
-        focus: acc.focus + v.focus,
-        mood: acc.mood + v.mood,
-        body: acc.body + v.body,
-        creativity: acc.creativity + v.creativity,
-        anxiety: acc.anxiety + v.anxiety,
+function weightedAverageVectors(vectors: EffectVector[], weights: number[]): EffectVector {
+    const totalWeight = weights.reduce((s, w) => s + w, 0);
+    if (totalWeight === 0) return { energy: 0, focus: 0, mood: 0, body: 0, creativity: 0, anxiety: 0 };
+
+    const sum = vectors.reduce<EffectVector>((acc, v, i) => ({
+        energy: acc.energy + v.energy * weights[i],
+        focus: acc.focus + v.focus * weights[i],
+        mood: acc.mood + v.mood * weights[i],
+        body: acc.body + v.body * weights[i],
+        creativity: acc.creativity + v.creativity * weights[i],
+        anxiety: acc.anxiety + v.anxiety * weights[i],
     }), { energy: 0, focus: 0, mood: 0, body: 0, creativity: 0, anxiety: 0 });
 
     return {
-        energy: clamp(sum.energy / n),
-        focus: clamp(sum.focus / n),
-        mood: clamp(sum.mood / n),
-        body: clamp(sum.body / n),
-        creativity: clamp(sum.creativity / n),
-        anxiety: clamp(sum.anxiety / n),
+        energy: clamp(sum.energy / totalWeight),
+        focus: clamp(sum.focus / totalWeight),
+        mood: clamp(sum.mood / totalWeight),
+        body: clamp(sum.body / totalWeight),
+        creativity: clamp(sum.creativity / totalWeight),
+        anxiety: clamp(sum.anxiety / totalWeight),
     };
 }
 
-// ── Outcome labels (2 dominant axes) ─────────────────────────────────────────
+// ── Outcome labels ────────────────────────────────────────────────────────────
 
 function vectorToOutcomeLabels(v: EffectVector): string[] {
     const axes: Array<[string, number]> = [
@@ -148,19 +148,14 @@ function vectorToOutcomeLabels(v: EffectVector): string[] {
     return [...new Set(labels)];
 }
 
-// ── Top effects  (strictly threshold-gated; no fallback) ─────────────────────
+// ── Top effects ───────────────────────────────────────────────────────────────
 
 function vectorToEffectStrings(v: EffectVector): string[] {
     const effects: string[] = [];
-
-    // Positive energy
     if (v.energy > 0.35) effects.push('Strong uplift');
     else if (v.energy > 0.15) effects.push('Mild energising');
-
-    // Negative energy = body sedation onset
     if (v.energy < -0.35) effects.push('Deep sedation');
     else if (v.energy < -0.15) effects.push('Heavy body relaxation');
-
     if (v.focus > 0.3) effects.push('Mental clarity');
     if (v.focus < -0.2) effects.push('Dreamy / spacey headspace');
     if (v.mood > 0.35) effects.push('Euphoria & mood lift');
@@ -170,148 +165,96 @@ function vectorToEffectStrings(v: EffectVector): string[] {
     if (v.creativity > 0.3) effects.push('Creative spark');
     if (v.anxiety < -0.4) effects.push('Strong anxiety relief');
     else if (v.anxiety < -0.25) effects.push('Mild anxiety reduction');
-
     return effects.slice(0, 5);
 }
 
-// ── Watch-outs (strictly risk-gated; no final catch-all fallback) ─────────────
+// ── Watch-outs ────────────────────────────────────────────────────────────────
 
 function vectorToWatchOuts(v: EffectVector, avgThc: number | null): string[] {
     const w: string[] = [];
-
-    if (v.anxiety > 0.1) w.push('May heighten anxiety in sensitive users — start very low.');
+    if (v.anxiety > 0.1) w.push('May heighten anxiety — start very low.');
     if (v.anxiety > 0.05 && v.mood > 0.4) w.push('Paranoia risk with higher doses — pace yourself.');
-    if (avgThc !== null && avgThc > 23) w.push(`Avg THC ${avgThc.toFixed(1)}% — high-potency combo, go slow.`);
-    else if (avgThc !== null && avgThc > 20) w.push('Moderately high THC — first-time users should start small.');
+    if (avgThc !== null && avgThc > 23) w.push(`Avg THC ${avgThc.toFixed(1)}% — high-potency, go slow.`);
+    else if (avgThc !== null && avgThc > 20) w.push('Moderately high THC — first-time users start small.');
     if (v.body > 0.5 && v.energy < 0) w.push('Couch-lock potential — plan for a stationary session.');
-    if (v.focus < -0.3) w.push('Impairs concentration — not ideal before tasks requiring focus.');
-    if (v.energy < -0.4) w.push('Strong sedating tendency — avoid driving or operating machinery.');
-
-    // Dry mouth is universal for high myrcene/terpinolene combos — derive from vector proxy
-    // body > 0.3 is a reasonable proxy for high myrcene presence
+    if (v.focus < -0.3) w.push('Impairs focus — not ideal before tasks requiring clarity.');
+    if (v.energy < -0.4) w.push('Strong sedating tendency — avoid driving or machinery.');
     if (v.body > 0.3) w.push('Likely dry mouth — stay hydrated.');
-
     return w.slice(0, 3);
 }
 
-// ── Best time (4-way, with wider thresholds to actually differentiate) ────────
+// ── Best time ─────────────────────────────────────────────────────────────────
 
 function vectorToBestTime(v: EffectVector): 'day' | 'afternoon' | 'evening' | 'night' | 'unknown' {
-    // Night: strongly sedating
     if (v.body > 0.45 && v.energy < -0.1) return 'night';
-    // Evening: relaxing but not full knock-out
     if (v.body > 0.25 || v.energy < -0.05) return 'evening';
-    // Day: energising and clear
     if (v.energy > 0.2 && v.focus > 0.0) return 'day';
-    // Afternoon: uplifting mood but not sharp focus
     if (v.mood > 0.2 || v.creativity > 0.2) return 'afternoon';
     return 'unknown';
 }
 
-// ── Summary builder — strictly data-driven ────────────────────────────────────
+// ── Main compute ──────────────────────────────────────────────────────────────
 
-function buildSummary(
-    names: string[],
-    labels: string[],
-    bestTime: string,
-    v: EffectVector,
-    avgThc: number | null,
-): string {
-    const nameList = names.join(', ');
+/**
+ * Compute the dynamic combo preview from per-cultivar ratios.
+ * ratios must be the same length as strainIds and should sum to 1.0 (normalized internally).
+ */
+export function computeComboPreview(
+    strainIds: string[],
+    ratios: number[],
+): ComboPreviewResult {
+    if (!strainIds.length) throw new Error('No strain IDs');
 
-    // Energy descriptor
-    let energyDesc = '';
-    if (v.energy > 0.4) energyDesc = 'strongly uplifting';
-    else if (v.energy > 0.15) energyDesc = 'mildly energising';
-    else if (v.energy < -0.4) energyDesc = 'deeply sedating';
-    else if (v.energy < -0.15) energyDesc = 'body-heavy with a calming pull';
-    else energyDesc = 'balanced in energy';
-
-    // Body descriptor
-    let bodyDesc = '';
-    if (v.body > 0.5) bodyDesc = 'with a heavy physical finish';
-    else if (v.body > 0.3) bodyDesc = 'with noticeable body ease';
-    else if (v.body > 0.15) bodyDesc = 'and mild physical relaxation';
-
-    // Mood descriptor
-    let moodDesc = '';
-    if (v.mood > 0.45) moodDesc = ' — expect a euphoric, social mood lift';
-    else if (v.mood > 0.25) moodDesc = ' — mood brightens noticeably';
-    else if (v.mood < -0.15) moodDesc = ' — leans introspective and quiet';
-
-    // Time label
-    const timeLabel: Record<string, string> = {
-        day: 'daytime activities',
-        afternoon: 'afternoon or creative sessions',
-        evening: 'evening wind-down',
-        night: 'nighttime rest',
-        unknown: 'use at your own pace',
-    };
-
-    // THC note
-    const thcNote = avgThc !== null
-        ? (avgThc > 22 ? ` At avg ${avgThc.toFixed(1)}% THC, start with a small amount.` : '')
-        : '';
-
-    return `Equal parts ${nameList} produce a ${energyDesc} experience${bodyDesc}${moodDesc}, best suited for ${timeLabel[bestTime] ?? 'flexible timing'}.${thcNote}`.trim();
-}
-
-// ── Main export ───────────────────────────────────────────────────────────────
-
-export function predictCombo(strainIds: string[]): ComboPreviewResult {
-    if (!strainIds || strainIds.length === 0) {
-        console.warn('[COMBO_PREVIEW_FAIL]', { ids: strainIds, error: 'No strain IDs provided' });
-        throw new Error('No strain IDs provided');
-    }
+    // Normalize ratios so they sum to 1
+    const total = ratios.reduce((s, r) => s + r, 0);
+    const normalizedRatios = ratios.map(r => (total > 0 ? r / total : 1 / ratios.length));
 
     const cultivars = strainIds
         .map(id => INVENTORY.cultivars.find(c => c.id === id))
         .filter(Boolean) as typeof INVENTORY.cultivars;
 
-    if (cultivars.length === 0) {
-        console.warn('[COMBO_PREVIEW_FAIL]', { ids: strainIds, error: 'No matching cultivars in inventory' });
-        throw new Error('No valid cultivars found for combo preview');
-    }
+    if (!cultivars.length) throw new Error('No valid cultivars found');
 
-    const ratio = 1 / cultivars.length;
+    // Build per-cultivar terpene vectors
+    const cultivarVectors: Array<EffectVector | null> = cultivars.map(c =>
+        buildCultivarVector(c.terpenes || {})
+    );
 
-    // Build per-cultivar terpene vectors — skip cultivars with no usable terpene data
-    const cultivarVectors: EffectVector[] = [];
-    for (const c of cultivars) {
-        const vec = buildCultivarVector(c.terpenes || {});
-        if (vec) {
-            cultivarVectors.push(vec);
-        } else {
-            console.warn('[COMBO_PREVIEW_WARN] No usable terpene data for cultivar — excluded from vector average', { id: c.id, name: c.name });
-        }
-    }
+    // Filter out nulls for the weighted average (keep weights in sync)
+    const validPairs: Array<{ vec: EffectVector; weight: number }> = [];
+    cultivarVectors.forEach((vec, i) => {
+        if (vec) validPairs.push({ vec, weight: normalizedRatios[i] });
+        else console.warn('[COMBO_PREVIEW_WARN] No terpene data for cultivar — excluded from vector', { id: cultivars[i].id });
+    });
 
-    if (cultivarVectors.length === 0) {
-        console.warn('[COMBO_PREVIEW_FAIL]', { ids: strainIds, error: 'All cultivars missing terpene data' });
-        throw new Error('Cannot compute preview: no terpene data available for selected cultivars');
-    }
+    if (!validPairs.length) throw new Error('All cultivars missing terpene data');
 
-    const blended = averageVectors(cultivarVectors);
+    const blended = weightedAverageVectors(
+        validPairs.map(p => p.vec),
+        validPairs.map(p => p.weight),
+    );
 
-    // THC / CBD — null if any field is missing/zero
+    // Weighted THC / CBD — null if any cultivar is missing numeric data
     const hasTHC = cultivars.every(c => typeof c.thcPercent === 'number' && c.thcPercent > 0);
     const hasCBD = cultivars.every(c => typeof c.cbdPercent === 'number');
-    const avgTHC = hasTHC ? Math.round((cultivars.reduce((s, c) => s + c.thcPercent, 0) / cultivars.length) * 10) / 10 : null;
-    const avgCBD = hasCBD ? Math.round((cultivars.reduce((s, c) => s + c.cbdPercent, 0) / cultivars.length) * 100) / 100 : null;
+    const avgTHC = hasTHC
+        ? Math.round(cultivars.reduce((s, c, i) => s + c.thcPercent * normalizedRatios[i], 0) * 10) / 10
+        : null;
+    const avgCBD = hasCBD
+        ? Math.round(cultivars.reduce((s, c, i) => s + c.cbdPercent * normalizedRatios[i], 0) * 100) / 100
+        : null;
 
     const outcomeLabels = vectorToOutcomeLabels(blended);
     const topEffects = vectorToEffectStrings(blended);
     const watchOuts = vectorToWatchOuts(blended, avgTHC);
     const bestTime = vectorToBestTime(blended);
-    const cultivarNames = cultivars.map(c => c.name);
-    const summary = buildSummary(cultivarNames, outcomeLabels, bestTime, blended, avgTHC);
 
     const result: ComboPreviewResult = {
         cultivarIds: strainIds,
-        cultivarNames,
-        assumedRatios: cultivars.map(() => ratio),
+        cultivarNames: cultivars.map(c => c.name),
+        ratios: normalizedRatios,
         outcomeLabels,
-        summary,
+        summary: '', // filled in by generateNarrative()
         topEffects,
         watchOuts,
         bestTime,
@@ -320,17 +263,75 @@ export function predictCombo(strainIds: string[]): ComboPreviewResult {
         _vector: blended,
     };
 
-    // ✅ Acceptance criteria: explicit success log with all derived values
-    console.log('[COMBO_PREVIEW_OK]', {
+    console.log('[COMBO_DYNAMIC_PREVIEW]', {
         ids: strainIds,
-        names: cultivarNames,
+        ratios: normalizedRatios.map(r => `${Math.round(r * 100)}%`),
+        weightedTHC: avgTHC,
+        weightedCBD: avgCBD,
+        combinedVector: blended,
         bestTime,
-        avgTHC,
-        avgCBD,
         topEffects,
-        watchOuts,
-        vector: blended,
+        riskVector: { anxiety: blended.anxiety, body: blended.body },
     });
 
     return result;
+}
+
+// ── LLM narrative generation ──────────────────────────────────────────────────
+
+/**
+ * Call the LLM to produce a 4–6 sentence natural-language narrative.
+ * Returns the narrative string or null on failure.
+ */
+export async function generateNarrative(result: ComboPreviewResult): Promise<string | null> {
+    const ratioLines = result.cultivarNames
+        .map((name, i) => `- ${name} (${Math.round(result.ratios[i] * 100)}%)`)
+        .join('\n');
+
+    const prompt = [
+        'You are a cannabis formulation narrator.',
+        'Write a 4–6 sentence natural-language description of this custom blend.',
+        '',
+        'Inputs:',
+        `Cultivars:\n${ratioLines}`,
+        `Weighted THC: ${result.avgTHC !== null ? result.avgTHC + '%' : 'unknown'}`,
+        `Weighted CBD: ${result.avgCBD !== null ? result.avgCBD + '%' : 'unknown'}`,
+        `Primary effects: ${result.topEffects.join(', ') || 'none identified'}`,
+        `Best time of day: ${result.bestTime}`,
+        `Risk signals: ${result.watchOuts.join('; ') || 'none'}`,
+        '',
+        'Instructions:',
+        'Explain how the specific ratios shape the experience — heavier cultivars dominate.',
+        'Do not mention calculations or percentages in your response.',
+        'Speak clearly and conversationally.',
+        'Avoid medical claims.',
+        'No filler phrases ("great choice", "perfect blend").',
+        'No generic cannabis clichés.',
+        'Be specific to these cultivars and their ratios.',
+    ].join('\n');
+
+    try {
+        const response = await fetch('/api/llm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messages: [
+                    { role: 'system', content: 'You are a concise, clinical cannabis formulation narrator.' },
+                    { role: 'user', content: prompt },
+                ],
+            }),
+        });
+
+        if (!response.ok) {
+            console.warn('[COMBO_NARRATIVE_FAIL]', { status: response.status });
+            return null;
+        }
+
+        const data = await response.json();
+        const text: string = data.text || data.content || data.response || '';
+        return text.trim() || null;
+    } catch (err) {
+        console.warn('[COMBO_NARRATIVE_FAIL]', { error: err });
+        return null;
+    }
 }

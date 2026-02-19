@@ -5,11 +5,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
     X, Mic, ChevronDown, RefreshCw, Loader2, Sparkles,
     Eye, ShieldAlert, Clock, BarChart3, ExternalLink,
-    Plus, Trash2, Zap, Activity, Droplet
+    Plus, Trash2, Zap, Activity, Droplet, Check
 } from 'lucide-react';
 import { LibraryMemoryStore } from '../lib/memory/libraryMemory';
 import { StrainSummaryProvider, StrainSummary } from '../ai/providers/strainSummaryProvider';
-import { predictCombo, ComboPreviewResult } from '../lib/comboPreviewEngine';
+import { computeComboPreview, generateNarrative, ComboPreviewResult } from '../lib/comboPreviewEngine';
+import { VibeButton } from './VibeButton';
 import { AI_CONFIG, isMerchantMode } from '../ai/config';
 import { SpeakButton } from './SpeakButton';
 import { buildStrainSpeakSummary } from '../lib/ttsUtils';
@@ -269,22 +270,47 @@ function WhatToExpect({ strainId, strainName }: WhatToExpectProps) {
 
 // ── Sub-component: Combo Dock ─────────────────────────────────────────────────
 
+// ── Sub-component: ComboDock (ratio sliders + live vector bars + X to remove) ────
+
 interface ComboDockProps {
     strains: typeof INVENTORY.cultivars;
-    onAddToCombo: (strainId: string) => void;
     selectedForCombo: string[];
+    ratios: number[];                               // 0–100 integers, sum == 100
+    onRemove: (strainId: string) => void;
+    onRatioChange: (idx: number, val: number) => void;
     onClearCombo: () => void;
     onPreviewCombo: () => void;
+    isLoading: boolean;
+    liveVector: { energy: number; body: number; mood: number; focus: number } | null;
 }
 
-function ComboDock({ strains, onAddToCombo, selectedForCombo, onClearCombo, onPreviewCombo }: ComboDockProps) {
+function ComboDock({
+    strains, selectedForCombo, ratios, onRemove, onRatioChange,
+    onClearCombo, onPreviewCombo, isLoading, liveVector,
+}: ComboDockProps) {
     const [isOpen, setIsOpen] = useState(false);
     const MAX = 3;
     const isFull = selectedForCombo.length >= MAX;
 
+    const cultivars = selectedForCombo.map(id => strains.find(s => s.id === id)).filter(Boolean) as typeof INVENTORY.cultivars;
+
+    // Adjust one slider while keeping total at 100
+    const handleSlider = (idx: number, newVal: number) => {
+        if (selectedForCombo.length < 2) return;
+        const clamped = Math.min(100, Math.max(0, newVal));
+        onRatioChange(idx, clamped);
+    };
+
+    const vectorBarData = [
+        { label: 'Energy', val: liveVector ? liveVector.energy : 0, color: '#00FFD1' },
+        { label: 'Body', val: liveVector ? liveVector.body : 0, color: '#A78BFA' },
+        { label: 'Mood', val: liveVector ? liveVector.mood : 0, color: '#FBBF24' },
+        { label: 'Focus', val: liveVector ? liveVector.focus : 0, color: '#60A5FA' },
+    ];
+
     return (
         <div className="fixed bottom-0 left-0 right-0 z-40">
-            {/* Collapsed bar */}
+            {/* Collapsed tab */}
             <button
                 onClick={() => setIsOpen(o => !o)}
                 className={`w-full flex items-center justify-between px-6 py-3 bg-black/90 border-t transition-all
@@ -294,29 +320,24 @@ function ComboDock({ strains, onAddToCombo, selectedForCombo, onClearCombo, onPr
                     <Zap size={14} className={selectedForCombo.length > 0 ? 'text-[#00FFD1]' : 'text-white/30'} />
                     <div className="text-left">
                         <div className={`text-xs font-bold uppercase tracking-widest ${selectedForCombo.length > 0 ? 'text-white/80' : 'text-white/30'}`}>
-                            Predict this combo
+                            Custom Blend Preview
                         </div>
                         <div className="text-[9px] text-white/25">
                             {selectedForCombo.length === 0
-                                ? 'Drop 3 strains to see what the mix feels like.'
-                                : `${selectedForCombo.length} / ${MAX} strains selected`}
+                                ? 'Add 3 cultivars to predict your blend.'
+                                : selectedForCombo.length < MAX
+                                    ? `${selectedForCombo.length} / ${MAX} — add ${MAX - selectedForCombo.length} more`
+                                    : 'Adjust ratios to shape your experience'}
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    {/* Slot indicators */}
                     <div className="flex gap-1">
                         {Array.from({ length: MAX }).map((_, i) => (
-                            <div
-                                key={i}
-                                className={`w-2 h-2 rounded-full transition-all ${i < selectedForCombo.length ? 'bg-[#00FFD1]' : 'bg-white/10'}`}
-                            />
+                            <div key={i} className={`w-2 h-2 rounded-full transition-all ${i < selectedForCombo.length ? 'bg-[#00FFD1]' : 'bg-white/10'}`} />
                         ))}
                     </div>
-                    <ChevronDown
-                        size={14}
-                        className={`text-white/30 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                    />
+                    <ChevronDown size={14} className={`text-white/30 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
             </button>
 
@@ -330,22 +351,44 @@ function ComboDock({ strains, onAddToCombo, selectedForCombo, onClearCombo, onPr
                         className="overflow-hidden bg-black/95 border-t border-white/5"
                     >
                         <div className="px-6 py-4 space-y-4">
-                            {/* 3 slots */}
+                            {/* 3 slots with X buttons */}
                             <div className="grid grid-cols-3 gap-3">
                                 {Array.from({ length: MAX }).map((_, i) => {
-                                    const id = selectedForCombo[i];
-                                    const cultivar = id ? strains.find(s => s.id === id) : null;
+                                    const cultivar = cultivars[i];
                                     return (
                                         <div
                                             key={i}
-                                            className={`relative h-16 rounded-xl border-2 border-dashed flex items-center justify-center text-center
-                                                ${cultivar ? 'border-[#00FFD1]/40 bg-[#00FFD1]/5' : 'border-white/10 bg-white/3'}`}
+                                            className={`relative rounded-xl border-2 text-center transition-all
+                                                ${cultivar
+                                                    ? 'border-[#00FFD1]/40 bg-[#00FFD1]/5 pt-2 pb-3 px-2'
+                                                    : 'border-dashed border-white/10 bg-white/3 h-16 flex items-center justify-center'}`}
                                         >
                                             {cultivar ? (
-                                                <div className="px-2">
+                                                <>
+                                                    {/* X to remove */}
+                                                    <button
+                                                        onClick={() => onRemove(cultivar.id)}
+                                                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center shadow-md transition-all"
+                                                    >
+                                                        <X size={10} />
+                                                    </button>
                                                     <p className="text-[10px] font-bold text-[#00FFD1] truncate leading-tight">{cultivar.name}</p>
-                                                    <p className="text-[9px] text-white/30 capitalize">{cultivar.type}</p>
-                                                </div>
+                                                    <p className="text-[9px] text-white/30 capitalize mb-1">{cultivar.type}</p>
+                                                    {/* Ratio slider */}
+                                                    {isFull && (
+                                                        <>
+                                                            <div className="text-[9px] font-mono text-[#00FFD1]/80 mb-0.5">{ratios[i]}%</div>
+                                                            <input
+                                                                type="range"
+                                                                min={0}
+                                                                max={100}
+                                                                value={ratios[i]}
+                                                                onChange={e => handleSlider(i, parseInt(e.target.value))}
+                                                                className="w-full accent-[#00FFD1] h-1"
+                                                            />
+                                                        </>
+                                                    )}
+                                                </>
                                             ) : (
                                                 <Plus size={16} className="text-white/20" />
                                             )}
@@ -354,9 +397,33 @@ function ComboDock({ strains, onAddToCombo, selectedForCombo, onClearCombo, onPr
                                 })}
                             </div>
 
-                            <p className="text-[10px] text-white/25 text-center">
-                                Tap "Add to combo" on any strain card, or drag here on desktop.
-                            </p>
+                            {/* Live vector bars — only when full */}
+                            {isFull && liveVector && (
+                                <div className="space-y-1.5">
+                                    {vectorBarData.map(({ label, val, color }) => (
+                                        <div key={label} className="flex items-center gap-2">
+                                            <span className="text-[8px] w-10 text-white/30 uppercase tracking-widest shrink-0">{label}</span>
+                                            <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                                <MotionDiv
+                                                    className="h-full rounded-full"
+                                                    style={{ backgroundColor: color }}
+                                                    key={val}
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${Math.max(0, ((val + 1) / 2) * 100)}%` }}
+                                                    transition={{ duration: 0.35 }}
+                                                />
+                                            </div>
+                                            <span className="text-[8px] font-mono text-white/25 w-8 text-right">{val > 0 ? '+' : ''}{val.toFixed(2)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {isFull && (
+                                <p className="text-[9px] text-white/20 text-center">
+                                    Ratios must sum to 100% · adjust sliders above
+                                </p>
+                            )}
 
                             {/* Actions */}
                             <div className="flex gap-3">
@@ -371,11 +438,11 @@ function ComboDock({ strains, onAddToCombo, selectedForCombo, onClearCombo, onPr
                                 )}
                                 <button
                                     onClick={onPreviewCombo}
-                                    disabled={!isFull}
+                                    disabled={!isFull || isLoading}
                                     className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#00FFD1] text-black text-xs font-bold uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#00FFD1]/90 transition-all shadow-[0_0_20px_rgba(0,255,209,0.2)]"
                                 >
-                                    <Zap size={13} />
-                                    Preview combo
+                                    {isLoading ? <Loader2 size={13} className="animate-spin" /> : <Zap size={13} />}
+                                    {isLoading ? 'Computing...' : 'Preview combo'}
                                 </button>
                             </div>
                         </div>
@@ -391,9 +458,10 @@ function ComboDock({ strains, onAddToCombo, selectedForCombo, onClearCombo, onPr
 interface ComboSheetProps {
     result: ComboPreviewResult;
     onClose: () => void;
+    isLoadingNarrative: boolean;
 }
 
-function ComboSheet({ result, onClose }: ComboSheetProps) {
+function ComboSheet({ result, onClose, isLoadingNarrative }: ComboSheetProps) {
     return (
         <MotionDiv
             initial={{ opacity: 0 }}
@@ -419,7 +487,7 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
                     {/* Header */}
                     <div className="flex items-start justify-between pt-2">
                         <div>
-                            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#00FFD1]/60 mb-1">Prediction · Equal Parts</p>
+                            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#00FFD1]/60 mb-1">Custom Blend Preview</p>
                             <div className="flex flex-wrap gap-2">
                                 {result.outcomeLabels.map((label, i) => (
                                     <span key={i} className="text-xl font-serif font-light text-white">
@@ -428,7 +496,7 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
                                 ))}
                             </div>
                             <p className="text-[10px] text-white/30 mt-1">
-                                {result.cultivarNames.join(' · ')}
+                                {result.cultivarNames.map((name, i) => `${name} (${Math.round(result.ratios[i] * 100)}%)`).join(' · ')}
                             </p>
                         </div>
                         <button onClick={onClose} className="p-2 rounded-full bg-white/10 text-white/50 hover:text-white mt-1">
@@ -436,16 +504,43 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
                         </button>
                     </div>
 
-                    {/* Summary — names cultivars + computed trait language */}
-                    <p className="text-sm text-white/70 leading-relaxed">{result.summary}</p>
+                    {/* Summary — Dynamic LLM Narrative */}
+                    <div className="text-sm text-white/70 leading-relaxed min-h-[4em]">
+                        {isLoadingNarrative && !result.summary ? (
+                            <div className="flex items-center gap-2 text-[#00FFD1]/50 italic animate-pulse">
+                                <Loader2 size={14} className="animate-spin" />
+                                Synchronizing synergy patterns...
+                            </div>
+                        ) : (
+                            result.summary || "Formulating experience narrative..."
+                        )}
+                    </div>
+
+                    {/* Vibe Audio Button */}
+                    <VibeButton
+                        params={{
+                            terpenes: result.cultivarNames.flatMap((name, i) => {
+                                const c = INVENTORY.cultivars.find(cv => cv.name === name);
+                                if (!c?.terpenes) return [];
+                                return Object.entries(c.terpenes).map(([k, v]) => ({ name: k, pct: (v as number) * result.ratios[i] }));
+                            }),
+                            effects: {
+                                energy: result._vector.energy,
+                                body: result._vector.body,
+                                mood: result._vector.mood,
+                                anxiety: result._vector.anxiety
+                            },
+                            seed: result.cultivarIds.join('-')
+                        }}
+                    />
 
                     {/* Stats row */}
                     <div className="grid grid-cols-3 gap-3">
                         {[
-                            { label: 'Avg THC', value: result.avgTHC !== null ? `${result.avgTHC}%` : 'Unknown' },
-                            { label: 'Avg CBD', value: result.avgCBD !== null ? `${result.avgCBD}%` : 'Unknown' },
+                            { label: 'Weighted THC', value: result.avgTHC !== null ? `${result.avgTHC}%` : 'Unknown' },
+                            { label: 'Weighted CBD', value: result.avgCBD !== null ? `${result.avgCBD}%` : 'Unknown' },
                             {
-                                label: 'Best Time',
+                                label: 'Peak Time',
                                 value: result.bestTime === 'day' ? '☀️ Day'
                                     : result.bestTime === 'afternoon' ? '🌤 Afternoon'
                                         : result.bestTime === 'evening' ? '🌆 Evening'
@@ -462,7 +557,7 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
 
                     {/* Top effects — strict: "—" if vector produced nothing */}
                     <div>
-                        <p className="text-[9px] text-white/30 uppercase tracking-widest mb-2">Top Effects</p>
+                        <p className="text-[9px] text-white/30 uppercase tracking-widest mb-2">Predicted Target Effects</p>
                         {result.topEffects.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                                 {result.topEffects.map((e, i) => (
@@ -478,7 +573,7 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
 
                     {/* Watch-outs — strict: "—" if no risk flags triggered */}
                     <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4">
-                        <p className="text-[9px] text-amber-400/60 uppercase tracking-widest mb-2">Watch outs</p>
+                        <p className="text-[9px] text-amber-400/60 uppercase tracking-widest mb-2">Usage Considerations</p>
                         {result.watchOuts.length > 0 ? (
                             <div className="space-y-1.5">
                                 {result.watchOuts.map((w, i) => (
@@ -493,9 +588,9 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
                         )}
                     </div>
 
-                    {/* ENGINE v2 debug badge — proves output is computed, not generic */}
+                    {/* ENGINE v3 debug badge — proves output is computed, not generic */}
                     <div className="rounded-lg border border-[#00FFD1]/10 bg-[#00FFD1]/5 px-3 py-2 text-[9px] font-mono text-[#00FFD1]/50 leading-relaxed">
-                        <span className="text-[#00FFD1]/80 font-bold">ENGINE v2</span>
+                        <span className="text-[#00FFD1]/80 font-bold">ENGINE v3 (Dynamic)</span>
                         {' · '}energy={result._vector.energy.toFixed(2)}
                         {' '}body={result._vector.body.toFixed(2)}
                         {' '}mood={result._vector.mood.toFixed(2)}
@@ -507,7 +602,7 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
 
                     {/* Disclaimer */}
                     <p className="text-[10px] text-white/20 text-center">
-                        Equal-ratio prediction. Actual effects vary by tolerance and consumption method.
+                        Custom ratio prediction. Actual effects vary by metabolism, dose, and consumption method.
                     </p>
                 </div>
             </MotionDiv>
@@ -572,8 +667,20 @@ export function StrainLibraryScreen({ onBack, onCultivarFocus }: StrainLibrarySc
 
     // Combo state
     const [comboIds, setComboIds] = useState<string[]>([]);
+    const [comboRatios, setComboRatios] = useState<number[]>([]); // 0-100 integers
     const [comboResult, setComboResult] = useState<ComboPreviewResult | null>(null);
     const [showComboSheet, setShowComboSheet] = useState(false);
+    const [isComputingNarrative, setIsComputingNarrative] = useState(false);
+    const narrativeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Initial ratios when 3rd strain added
+    useEffect(() => {
+        if (comboIds.length === 3 && comboRatios.length === 0) {
+            setComboRatios([33, 33, 34]);
+        } else if (comboIds.length === 0) {
+            setComboRatios([]);
+        }
+    }, [comboIds.length, comboRatios.length]);
 
     const handleMicClick = () => startListening(t => setSearchQuery(t), setIsListening);
 
@@ -597,24 +704,83 @@ export function StrainLibraryScreen({ onBack, onCultivarFocus }: StrainLibrarySc
         setComboIds(prev => {
             if (prev.includes(strainId)) return prev;
             if (prev.length >= 3) return prev;
-            return [...prev, strainId];
+            const updated = [...prev, strainId];
+            if (updated.length === 3) setComboRatios([33, 33, 34]);
+            return updated;
         });
     }, []);
 
     const handleRemoveFromCombo = useCallback((strainId: string) => {
         setComboIds(prev => prev.filter(id => id !== strainId));
+        setComboRatios([]);
     }, []);
 
-    const handlePreviewCombo = useCallback(() => {
+    const handleRatioChange = useCallback((idx: number, newVal: number) => {
+        setComboRatios(prev => {
+            if (prev.length < 3) return prev;
+            const current = [...prev];
+            const oldVal = current[idx];
+            const diff = newVal - oldVal;
+
+            // Proportional distribution to others
+            const others = [0, 1, 2].filter(i => i !== idx);
+            const otherSum = current[others[0]] + current[others[1]];
+
+            const next = [...current];
+            next[idx] = newVal;
+
+            if (otherSum > 0) {
+                next[others[0]] = Math.max(0, current[others[0]] - (diff * (current[others[0]] / otherSum)));
+                next[others[1]] = Math.max(0, current[others[1]] - (diff * (current[others[1]] / otherSum)));
+            } else {
+                next[others[0]] = Math.max(0, current[others[0]] - diff / 2);
+                next[others[1]] = Math.max(0, current[others[1]] - diff / 2);
+            }
+
+            // Rounding correction to exactly 100
+            const sum = Math.round(next[0]) + Math.round(next[1]) + Math.round(next[2]);
+            const error = 100 - sum;
+            const final = next.map(v => Math.round(v));
+            final[others[0]] = Math.max(0, final[others[0]] + error);
+
+            return final;
+        });
+    }, []);
+
+    const handlePreviewCombo = useCallback(async () => {
         if (comboIds.length < 3) return;
         try {
-            const result = predictCombo(comboIds);
+            // 1. Math computation (Instant)
+            const result = computeComboPreview(comboIds, comboRatios.map(r => r / 100));
             setComboResult(result);
             setShowComboSheet(true);
+
+            // 2. Debounced Narrative (via LLM)
+            if (narrativeTimerRef.current) clearTimeout(narrativeTimerRef.current);
+
+            setIsComputingNarrative(true);
+            narrativeTimerRef.current = setTimeout(async () => {
+                const narrative = await generateNarrative(result);
+                if (narrative) {
+                    setComboResult(prev => prev ? { ...prev, summary: narrative } : null);
+                }
+                setIsComputingNarrative(false);
+            }, 600);
+
         } catch (e) {
             console.error('[COMBO] Preview failed:', e);
+            setIsComputingNarrative(false);
         }
-    }, [comboIds]);
+    }, [comboIds, comboRatios]);
+
+    // Live vector for dock preview
+    const liveVector = useMemo(() => {
+        if (comboIds.length < 3 || comboRatios.length < 3) return null;
+        try {
+            const res = computeComboPreview(comboIds, comboRatios.map(r => r / 100));
+            return res._vector;
+        } catch { return null; }
+    }, [comboIds, comboRatios]);
 
     return (
         <div className="fixed inset-0 flex flex-col bg-transparent text-white font-sans overflow-hidden">
@@ -729,18 +895,18 @@ export function StrainLibraryScreen({ onBack, onCultivarFocus }: StrainLibrarySc
                                     <button
                                         onClick={e => {
                                             e.stopPropagation();
-                                            inCombo ? handleRemoveFromCombo(strain.id) : handleAddToCombo(strain.id);
+                                            if (!inCombo) handleAddToCombo(strain.id);
                                         }}
                                         disabled={!inCombo && comboIds.length >= 3}
                                         className={`mt-1 flex items-center gap-1 px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all
                                             ${inCombo
-                                                ? 'bg-[#00FFD1]/10 text-[#00FFD1] border border-[#00FFD1]/30 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
+                                                ? 'bg-[#00FFD1]/10 text-[#00FFD1] border border-[#00FFD1]/30 cursor-default'
                                                 : comboIds.length >= 3
                                                     ? 'opacity-20 cursor-not-allowed bg-white/5 border border-white/5 text-white/30'
                                                     : 'bg-white/5 border border-white/10 text-white/40 hover:bg-[#00FFD1]/10 hover:border-[#00FFD1]/30 hover:text-[#00FFD1]'
                                             }`}
                                     >
-                                        {inCombo ? <><X size={9} /> Remove</> : <><Plus size={9} /> Add to combo</>}
+                                        {inCombo ? <><Check size={9} /> In combo</> : <><Plus size={9} /> Add to combo</>}
                                     </button>
                                 </div>
                             </MotionDiv>
@@ -854,6 +1020,30 @@ export function StrainLibraryScreen({ onBack, onCultivarFocus }: StrainLibrarySc
                                             );
                                         })()}
 
+                                        <VibeButton
+                                            className="mt-2"
+                                            params={{
+                                                terpenes: selectedChemotype.terpenes
+                                                    ? Object.entries(selectedChemotype.terpenes).map(([k, v]) => ({ name: k, pct: v as number }))
+                                                    : [],
+                                                effects: (() => {
+                                                    // Quick compute for single strain vibe
+                                                    try {
+                                                        const single = computeComboPreview([selectedChemotype.id], [1]);
+                                                        return {
+                                                            energy: single._vector.energy,
+                                                            body: single._vector.body,
+                                                            mood: single._vector.mood,
+                                                            anxiety: single._vector.anxiety
+                                                        };
+                                                    } catch {
+                                                        return { energy: 0, body: 0, mood: 0, anxiety: 0 };
+                                                    }
+                                                })(),
+                                                seed: selectedChemotype.id
+                                            }}
+                                        />
+
                                         {/* What to Expect — NEW clean section */}
                                         {!isMerchantMode() && (
                                             <WhatToExpect
@@ -908,10 +1098,14 @@ export function StrainLibraryScreen({ onBack, onCultivarFocus }: StrainLibrarySc
             {/* Combo Dock */}
             <ComboDock
                 strains={strains}
-                onAddToCombo={handleAddToCombo}
                 selectedForCombo={comboIds}
+                ratios={comboRatios}
+                onRemove={handleRemoveFromCombo}
+                onRatioChange={handleRatioChange}
                 onClearCombo={() => setComboIds([])}
                 onPreviewCombo={handlePreviewCombo}
+                isLoading={isComputingNarrative}
+                liveVector={liveVector}
             />
 
             {/* Combo Result Sheet */}
@@ -920,6 +1114,7 @@ export function StrainLibraryScreen({ onBack, onCultivarFocus }: StrainLibrarySc
                     <ComboSheet
                         result={comboResult}
                         onClose={() => setShowComboSheet(false)}
+                        isLoadingNarrative={isComputingNarrative}
                     />
                 )}
             </AnimatePresence>
