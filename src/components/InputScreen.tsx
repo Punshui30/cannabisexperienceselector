@@ -371,18 +371,24 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 className="w-full"
               >
                 {mode === 'describe' && (
-                  <div className="relative">
+                  <div className="space-y-2">
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder={placeholderText}
-                      className={`${GLASS_INPUT} h-28 resize-none transition-all placeholder:text-white/20 px-5 py-4 leading-relaxed text-sm`}
+                      className={`${GLASS_INPUT} h-28 resize-none transition-all placeholder:text-white/20 px-5 py-4 pr-5 leading-relaxed text-sm`}
                     />
+                    {/* Visible voice button row */}
                     <button
                       onClick={handleMicClick}
-                      className={`absolute bottom-3 right-3 p-2.5 rounded-full transition-all ${isListening && listeningField === 'describe' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-all text-xs font-bold uppercase tracking-widest
+                        ${isListening && listeningField === 'describe'
+                          ? 'bg-red-500/15 border-red-500/40 text-red-400 animate-pulse'
+                          : 'bg-white/5 border-white/10 text-white/50 hover:bg-[#00FFD1]/10 hover:border-[#00FFD1]/30 hover:text-[#00FFD1]'
+                        }`}
                     >
-                      <Mic size={16} />
+                      <Mic size={14} />
+                      {isListening && listeningField === 'describe' ? 'Listening…' : 'Speak your intent'}
                     </button>
                   </div>
                 )}
