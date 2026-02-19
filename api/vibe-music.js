@@ -59,7 +59,7 @@ module.exports = async function handler(request, response) {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { terpenes } = request.body;
+    const { terpenes, inputAudio } = request.body;
 
     if (!terpenes) {
         return response.status(400).json({ error: 'Missing terpenes' });
@@ -78,19 +78,33 @@ module.exports = async function handler(request, response) {
             auth: API_TOKEN,
         });
 
-        console.log('REPLICATE: Starting MusicGen generation for generated prompt:', prompt);
+        // Use the simplified model identifiers as recommended
+        const model = inputAudio ? "meta/musicgen-melody" : "meta/musicgen";
 
-        const output = await replicate.run("meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb", {
-            input: {
-                model_version: "stereo-large",
-                prompt: prompt,
-                duration: 30,
-            },
-        });
+        console.log(`REPLICATE: Running model ${model} for prompt:`, prompt);
+        if (inputAudio) console.log('REPLICATE: Using inputAudio for melody conditioning:', inputAudio);
 
-        console.log('REPLICATE: Success, output URL:', output);
+        const input = {
+            prompt: prompt,
+            duration: 30
+        };
 
-        return response.status(200).json({ audio: output });
+        if (inputAudio) {
+            input.input_audio = inputAudio;
+        }
+
+        const output = await replicate.run(model, { input });
+
+        console.log('REPLICATE: Success, output type:', typeof output);
+
+        let audioUrl = output;
+        if (output && typeof output.url === 'function') {
+            audioUrl = output.url();
+        }
+
+        console.log('REPLICATE: Final audio URL:', audioUrl);
+
+        return response.status(200).json({ audio: audioUrl });
     } catch (error) {
         console.error('REPLICATE ERROR:', error);
         const message = error.message || 'Music generation failed';

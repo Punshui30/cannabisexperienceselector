@@ -7,6 +7,7 @@ import { resolveCultivarVisuals } from '../lib/visuals';
 import { CultivarCard } from './shared/CultivarCard';
 import { MusicVibeButton } from './MusicVibeButton';
 import { INVENTORY } from '../lib/inventory';
+import { normalizeStackWeights } from '../lib/normalizeStackWeights';
 
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
@@ -170,14 +171,14 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                     <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3">
                         Cultivar Composition
                     </h3>
-                    {stack.layers.flatMap((layer) => layer.cultivars).map((cultivar, i) => (
+                    {normalizeStackWeights(stack.layers.flatMap(l => l.cultivars)).map((item, i) => (
                         <CultivarCard
                             key={i}
-                            name={cultivar.name}
-                            profile={cultivar.profile}
-                            ratio={cultivar.ratio}
+                            name={item.name}
+                            profile={item.original.profile}
+                            ratio={item.percent / 100}
                             prominentTerpenes={[]}
-                            characteristics={cultivar.characteristics}
+                            characteristics={item.original.characteristics}
                             context={{ density: 'default', showPercentage: true }}
                         />
                     ))}

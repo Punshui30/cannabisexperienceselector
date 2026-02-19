@@ -5,6 +5,7 @@ import { resolveCultivarVisuals, resolvePhaseVisuals } from '../lib/visuals';
 import { ChevronDown, Layers, Wind } from 'lucide-react';
 import { MusicVibeButton } from './MusicVibeButton';
 import { INVENTORY } from '../lib/inventory';
+import { normalizeStackWeights } from '../lib/normalizeStackWeights';
 
 const MotionDiv = motion.div as any;
 
@@ -17,6 +18,10 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
     if (!data) return null; // CRASH FIX: Return nothing if data is missing
     const layers = data.layers || [];
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+    // PRE-CALCULATE NORMALIZED PERCENTAGES FOR ENTIRE STACK
+    const allCultivars = layers.flatMap(l => l.cultivars.map(c => ({ ...c, layerId: l.layerName })));
+    const normalizedCompo = normalizeStackWeights(allCultivars as any);
 
     const handleTap = (index: number) => {
         if (compact) return;
@@ -33,6 +38,9 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                     // Determine Theme
                     const phaseVisuals = resolvePhaseVisuals(index);
                     const activeColor = isExpanded ? phaseVisuals.color : '#ffffff';
+
+                    // Get normalized items for this specific layer
+                    const layerNormalized = normalizedCompo.filter(nc => (nc.original as any).layerId === layer.layerName);
 
                     return (
                         <MotionDiv
@@ -72,21 +80,22 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
 
                             {/* Rich Visual Bars (The "Visual Reward") */}
                             <div className="space-y-2 mt-2">
-                                {layer.cultivars.map((cultivar, cIdx) => {
+                                {layerNormalized.map((item, cIdx) => {
+                                    const cultivar = item.original as any;
                                     const visuals = resolveCultivarVisuals(cultivar.name, cultivar.profile);
                                     return (
                                         <div key={cIdx} className="relative">
                                             {/* Label Row */}
                                             <div className="flex justify-between text-[10px] uppercase tracking-wider text-white/70 mb-1 px-1">
                                                 <span className="line-clamp-1 max-w-[80%]">{cultivar.name}</span>
-                                                <span>{Math.round(cultivar.ratio * 100)}%</span>
+                                                <span>{item.percent}%</span>
                                             </div>
                                             {/* Bar Background */}
                                             <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                                                 {/* Bar Fill */}
                                                 <MotionDiv
                                                     initial={{ width: 0 }}
-                                                    animate={{ width: `${cultivar.ratio * 100}% ` }}
+                                                    animate={{ width: `${item.percent}% ` }}
                                                     transition={{ duration: 1, delay: cIdx * 0.1 }}
                                                     className="h-full rounded-full"
                                                     style={{
