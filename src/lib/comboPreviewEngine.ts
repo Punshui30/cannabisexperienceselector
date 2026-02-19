@@ -8,7 +8,7 @@
  * but applies equal 1/N ratios to each selected cultivar.
  */
 
-import { INVENTORY } from '../inventory';
+import { INVENTORY } from './inventory';
 
 // ── Effect labels ─────────────────────────────────────────────────────────────
 
