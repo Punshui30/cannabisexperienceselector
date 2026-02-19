@@ -10,7 +10,6 @@ import {
 import { LibraryMemoryStore } from '../lib/memory/libraryMemory';
 import { StrainSummaryProvider, StrainSummary } from '../ai/providers/strainSummaryProvider';
 import { computeComboPreview, generateNarrative, ComboPreviewResult } from '../lib/comboPreviewEngine';
-import { VibeButton } from './VibeButton';
 import { AI_CONFIG, isMerchantMode } from '../ai/config';
 import { SpeakButton } from './SpeakButton';
 import { buildStrainSpeakSummary } from '../lib/ttsUtils';
@@ -516,23 +515,6 @@ function ComboSheet({ result, onClose, isLoadingNarrative }: ComboSheetProps) {
                         )}
                     </div>
 
-                    {/* Vibe Audio Button */}
-                    <VibeButton
-                        params={{
-                            terpenes: result.cultivarNames.flatMap((name, i) => {
-                                const c = INVENTORY.cultivars.find(cv => cv.name === name);
-                                if (!c?.terpenes) return [];
-                                return Object.entries(c.terpenes).map(([k, v]) => ({ name: k, pct: (v as number) * result.ratios[i] }));
-                            }),
-                            effects: {
-                                energy: result._vector.energy,
-                                body: result._vector.body,
-                                mood: result._vector.mood,
-                                anxiety: result._vector.anxiety
-                            },
-                            seed: result.cultivarIds.join('-')
-                        }}
-                    />
 
                     {/* Stats row */}
                     <div className="grid grid-cols-3 gap-3">
@@ -1020,29 +1002,6 @@ export function StrainLibraryScreen({ onBack, onCultivarFocus }: StrainLibrarySc
                                             );
                                         })()}
 
-                                        <VibeButton
-                                            className="mt-2"
-                                            params={{
-                                                terpenes: selectedChemotype.terpenes
-                                                    ? Object.entries(selectedChemotype.terpenes).map(([k, v]) => ({ name: k, pct: v as number }))
-                                                    : [],
-                                                effects: (() => {
-                                                    // Quick compute for single strain vibe
-                                                    try {
-                                                        const single = computeComboPreview([selectedChemotype.id], [1]);
-                                                        return {
-                                                            energy: single._vector.energy,
-                                                            body: single._vector.body,
-                                                            mood: single._vector.mood,
-                                                            anxiety: single._vector.anxiety
-                                                        };
-                                                    } catch {
-                                                        return { energy: 0, body: 0, mood: 0, anxiety: 0 };
-                                                    }
-                                                })(),
-                                                seed: selectedChemotype.id
-                                            }}
-                                        />
 
                                         {/* What to Expect — NEW clean section */}
                                         {!isMerchantMode() && (
