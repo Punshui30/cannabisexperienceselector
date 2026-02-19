@@ -1,5 +1,9 @@
 const Replicate = require('replicate');
 
+const replicate = new Replicate({
+    auth: process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY,
+});
+
 const terpeneToMusicMap = {
     myrcene: { tempo: "slow", mood: "dreamy", instruments: "pads, ambient guitar" },
     limonene: { tempo: "medium", mood: "uplifting", instruments: "bright synth, clean guitar" },
@@ -59,55 +63,34 @@ module.exports = async function handler(request, response) {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { terpenes, inputAudio } = request.body;
-
-    if (!terpenes) {
-        return response.status(400).json({ error: 'Missing terpenes' });
-    }
-
-    const prompt = generateMusicPromptFromTerpenes(terpenes);
-    const API_TOKEN = process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY;
-
-    if (!API_TOKEN) {
-        console.error('SERVER: Missing REPLICATE_API_TOKEN or REPLICATE_API_KEY');
-        return response.status(500).json({ error: 'Server Configuration Error: Missing Replicate API Token' });
-    }
-
     try {
-        const replicate = new Replicate({
-            auth: API_TOKEN,
-        });
+        const { terpenes, inputAudio } = request.body;
 
-        // Use the simplified model identifiers as recommended
+        if (!terpenes) {
+            return response.status(400).json({ error: 'Missing terpenes' });
+        }
+
+        const prompt = generateMusicPromptFromTerpenes(terpenes);
+
+        // As per expert instructions: Use "meta/musicgen" or "meta/musicgen-melody" exactly.
         const model = inputAudio ? "meta/musicgen-melody" : "meta/musicgen";
 
         console.log(`REPLICATE: Running model ${model} for prompt:`, prompt);
-        if (inputAudio) console.log('REPLICATE: Using inputAudio for melody conditioning:', inputAudio);
 
-        const input = {
-            prompt: prompt,
-            duration: 30
-        };
+        const output = await replicate.run(
+            model,
+            {
+                input: {
+                    prompt: prompt,
+                    duration: 30,
+                    ...(inputAudio ? { input_audio: inputAudio } : {})
+                }
+            }
+        );
 
-        if (inputAudio) {
-            input.input_audio = inputAudio;
-        }
-
-        const output = await replicate.run(model, { input });
-
-        console.log('REPLICATE: Success, output type:', typeof output);
-
-        let audioUrl = output;
-        if (output && typeof output.url === 'function') {
-            audioUrl = output.url();
-        }
-
-        console.log('REPLICATE: Final audio URL:', audioUrl);
-
-        return response.status(200).json({ audio: audioUrl });
+        return response.status(200).json({ audio: output });
     } catch (error) {
-        console.error('REPLICATE ERROR:', error);
-        const message = error.message || 'Music generation failed';
-        return response.status(500).json({ error: message, details: error.toString() });
+        console.error("MusicGen error:", error);
+        return response.status(500).json({ error: error.message });
     }
 };
