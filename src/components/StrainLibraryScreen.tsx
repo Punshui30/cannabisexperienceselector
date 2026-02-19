@@ -547,6 +547,10 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
         });
     }, []);
 
+    const handleRemoveFromCombo = useCallback((strainId: string) => {
+        setComboIds(prev => prev.filter(id => id !== strainId));
+    }, []);
+
     const handlePreviewCombo = useCallback(() => {
         if (comboIds.length < 3) return;
         try {
@@ -664,19 +668,22 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                         })}
                                     </div>
 
-                                    {/* Add to combo button */}
+                                    {/* Add to combo / Remove from combo button */}
                                     <button
-                                        onClick={e => { e.stopPropagation(); handleAddToCombo(strain.id); }}
-                                        disabled={inCombo || comboIds.length >= 3}
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            inCombo ? handleRemoveFromCombo(strain.id) : handleAddToCombo(strain.id);
+                                        }}
+                                        disabled={!inCombo && comboIds.length >= 3}
                                         className={`mt-1 flex items-center gap-1 px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all
                                             ${inCombo
-                                                ? 'bg-[#00FFD1]/10 text-[#00FFD1] border border-[#00FFD1]/30 cursor-default'
+                                                ? 'bg-[#00FFD1]/10 text-[#00FFD1] border border-[#00FFD1]/30 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
                                                 : comboIds.length >= 3
                                                     ? 'opacity-20 cursor-not-allowed bg-white/5 border border-white/5 text-white/30'
                                                     : 'bg-white/5 border border-white/10 text-white/40 hover:bg-[#00FFD1]/10 hover:border-[#00FFD1]/30 hover:text-[#00FFD1]'
                                             }`}
                                     >
-                                        {inCombo ? <><span className="text-[#00FFD1]">✓</span> In combo</> : <><Plus size={9} /> Add to combo</>}
+                                        {inCombo ? <><X size={9} /> Remove</> : <><Plus size={9} /> Add to combo</>}
                                     </button>
                                 </div>
                             </MotionDiv>
@@ -764,23 +771,26 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                             </div>
                                         </div>
 
-                                        {/* Add to combo — inline */}
+                                        {/* Add to combo — inline in modal */}
                                         {(() => {
                                             const inCombo = comboIds.includes(selectedChemotype.id);
                                             return (
                                                 <button
-                                                    onClick={() => handleAddToCombo(selectedChemotype.id)}
-                                                    disabled={inCombo || comboIds.length >= 3}
+                                                    onClick={() => inCombo
+                                                        ? handleRemoveFromCombo(selectedChemotype.id)
+                                                        : handleAddToCombo(selectedChemotype.id)
+                                                    }
+                                                    disabled={!inCombo && comboIds.length >= 3}
                                                     className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all
                                                         ${inCombo
-                                                            ? 'bg-[#00FFD1]/10 border-[#00FFD1]/30 text-[#00FFD1]'
+                                                            ? 'bg-[#00FFD1]/10 border-[#00FFD1]/30 text-[#00FFD1] hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
                                                             : comboIds.length >= 3
                                                                 ? 'opacity-30 cursor-not-allowed bg-white/5 border-white/10 text-white/30'
                                                                 : 'bg-white/5 border-white/10 text-white/50 hover:bg-[#00FFD1]/10 hover:border-[#00FFD1]/30 hover:text-[#00FFD1]'
                                                         }`}
                                                 >
                                                     {inCombo
-                                                        ? <><span>✓</span> Added to combo</>
+                                                        ? <><X size={13} /> Remove from combo</>
                                                         : <><Plus size={13} /> Add to combo</>
                                                     }
                                                 </button>
