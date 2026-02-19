@@ -71,8 +71,8 @@ export const AI_CONFIG: AIConfig = {
     features: {
         vision: import.meta.env.VITE_VISION_ENABLED === 'true',
         evidence: import.meta.env.VITE_EVIDENCE_ENABLED !== 'false',
-        tts: import.meta.env.VITE_ENABLE_TTS === 'true',
-        uiSfx: import.meta.env.VITE_ENABLE_UI_SFX === 'true', // off by default
+        tts: import.meta.env.VITE_ENABLE_TTS !== 'false',
+        uiSfx: import.meta.env.VITE_ENABLE_UI_SFX !== 'false',
         tavilyDebug: import.meta.env.VITE_ENABLE_TAVILY_DEBUG === 'true',
         tavilyRawDump: import.meta.env.VITE_ENABLE_TAVILY_RAW_DUMP === 'true',
         hasPerplexityKey: import.meta.env.VITE_HAS_PERPLEXITY_KEY !== 'false', // default to true unless explicitly false

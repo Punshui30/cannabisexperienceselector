@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
 import { SpatialStack } from './SpatialStack';
+import { SpeakButton } from './SpeakButton';
 
 export interface BlendCardProps {
   recommendation: UIBlendRecommendation;
@@ -17,6 +18,9 @@ export interface BlendCardProps {
 export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenConsultant, index = 0, total = 1 }: BlendCardProps) {
   // State restoration for expand/collapse behavior
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const MotionDiv = motion.div as any;
+  const MotionSpan = motion.span as any;
 
   // Derive accent color from outcome category
   const outcomeColors = {
@@ -67,7 +71,7 @@ export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenCon
 
   return (
     <>
-      <motion.div
+      <MotionDiv
         layout
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -170,10 +174,16 @@ export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenCon
                 onClick={() => onViewDetail?.(recommendation)} // UNIFIED CARD EXPANSION
               >
                 <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-[9px] font-bold uppercase tracking-widest text-[#00FFD1]">
-                    Why This Blend
-                  </h3>
-                  <motion.span
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[9px] font-bold uppercase tracking-widest text-[#00FFD1]">
+                      Why This Blend
+                    </h3>
+                    <SpeakButton
+                      text={recommendation.reasoning}
+                      summaryMode={true}
+                    />
+                  </div>
+                  <MotionSpan
                     initial={{ opacity: 0.4 }}
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{
@@ -185,7 +195,7 @@ export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenCon
                     className="text-[9px] text-white/40 group-hover/reasoning:text-white/60 transition-colors"
                   >
                     Read Full Detail →
-                  </motion.span>
+                  </MotionSpan>
                 </div>
 
                 <div className="relative overflow-hidden h-[2.4rem]"> {/* Fixed height, ~2 lines */}
@@ -211,7 +221,7 @@ export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenCon
           </div>
 
         </CardShell>
-      </motion.div>
+      </MotionDiv>
 
     </>
   );

@@ -5,6 +5,9 @@ import { DecisionReceipt } from '../types/domain';
 import { PerplexityEvidenceProvider } from '../ai/providers/evidenceProvider';
 import { EvidenceCard } from '../lib/memory/libraryMemory';
 import { isMerchantMode } from '../ai/config';
+import { SpeakButton } from './SpeakButton';
+
+const MotionDiv = motion.div as any;
 
 interface ShowEvidencePanelProps {
     receipt: DecisionReceipt;
@@ -46,7 +49,7 @@ export function ShowEvidencePanel({ receipt, onClose }: ShowEvidencePanelProps) 
     };
 
     return (
-        <motion.div
+        <MotionDiv
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -55,10 +58,16 @@ export function ShowEvidencePanel({ receipt, onClose }: ShowEvidencePanelProps) 
             {/* Header */}
             <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/40">
                 <div>
-                    <h2 className="text-xl font-serif text-white flex items-center gap-2">
-                        <BookOpen size={20} className="text-[#BF5AF2]" />
-                        Clinical Evidence
-                    </h2>
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-xl font-serif text-white flex items-center gap-2">
+                            <BookOpen size={20} className="text-[#BF5AF2]" />
+                            Clinical Evidence
+                        </h2>
+                        <SpeakButton
+                            text={receipt.intentSummary}
+                            summaryMode={true}
+                        />
+                    </div>
                     <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mt-1">Engine Determinism & Grounding</p>
                 </div>
                 <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-white/40">
@@ -101,7 +110,7 @@ export function ShowEvidencePanel({ receipt, onClose }: ShowEvidencePanelProps) 
                                     {/* Evidence Card (if loaded) */}
                                     <AnimatePresence>
                                         {evidence[driver.claimKey] && (
-                                            <motion.div
+                                            <MotionDiv
                                                 initial={{ opacity: 0, height: 0 }}
                                                 animate={{ opacity: 1, height: 'auto' }}
                                                 className="bg-[#00FFD1]/5 border border-[#00FFD1]/20 rounded-xl p-3 overflow-hidden"
@@ -125,7 +134,7 @@ export function ShowEvidencePanel({ receipt, onClose }: ShowEvidencePanelProps) 
                                                         </a>
                                                     ))}
                                                 </div>
-                                            </motion.div>
+                                            </MotionDiv>
                                         )}
                                     </AnimatePresence>
                                 </div>
@@ -157,6 +166,6 @@ export function ShowEvidencePanel({ receipt, onClose }: ShowEvidencePanelProps) 
                     </p>
                 </div>
             </div>
-        </motion.div>
+        </MotionDiv>
     );
 }
