@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { InvocationContext } from '../types/context';
 import { Send, X, Mic, Sparkles, Check } from 'lucide-react';
+import { SpeakButton } from './SpeakButton';
 
 import { startListening } from '../lib/speech';
 import { callLLMChat, triggerRefactor } from '../lib/llmChat';
@@ -233,13 +234,19 @@ export function LiveConsultant(props: LiveConsultantProps) {
                 {/* MESSAGE AREA */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
                     {messages.map((m, i) => (
-                        <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                             <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed ${m.role === 'user'
                                 ? 'bg-[#00FFD1] text-black font-medium rounded-tr-none'
                                 : 'bg-white/10 text-white/90 border border-white/5 rounded-tl-none'
                                 }`}>
                                 {m.content}
                             </div>
+                            {/* TTS read-aloud for assistant messages only */}
+                            {m.role === 'assistant' && (
+                                <div className="mt-1 ml-1">
+                                    <SpeakButton text={m.content} summaryMode={true} />
+                                </div>
+                            )}
                         </div>
                     ))}
 
