@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Clock, Share2, Layers, ChevronDown, Info } from 'lucide-react';
+import { ArrowLeft, Clock, Layers, ChevronDown, Info } from 'lucide-react';
 import { UIStackRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { resolveCultivarVisuals } from '../lib/visuals';
+import { CultivarCard } from './shared/CultivarCard';
 
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
     onBack: () => void;
 }
+
+const MotionDiv = motion.div as any;
 
 export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
@@ -60,7 +63,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                 </div>
 
                 {/* How Stacks Work */}
-                <motion.div
+                <MotionDiv
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
@@ -83,7 +86,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
 
                         <AnimatePresence>
                             {showInstructions && (
-                                <motion.div
+                                <MotionDiv
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
@@ -122,14 +125,14 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                                             )}
                                         </div>
                                     </div>
-                                </motion.div>
+                                </MotionDiv>
                             )}
                         </AnimatePresence>
                     </div>
-                </motion.div>
+                </MotionDiv>
 
                 {/* VISUALIZATION HERO - SpatialStack */}
-                <motion.div
+                <MotionDiv
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
@@ -139,7 +142,45 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                         <div className="absolute inset-0 bg-[#00FFD1]/5 blur-[80px] rounded-full animate-pulse-slow" />
                         <SpatialStack data={stack} />
                     </div>
-                </motion.div>
+                </MotionDiv>
+
+                {/* Cultivar Composition — per layer (mirrors BlendDetailScreen pattern) */}
+                <div className="max-w-md mx-auto w-full space-y-5 px-0 pb-4">
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                        Cultivar Composition
+                    </h3>
+                    {stack.layers.map((layer, layerIdx) => (
+                        <div key={layerIdx} className="space-y-2">
+                            {/* Layer label — only when more than one layer */}
+                            {stack.layers.length > 1 && (
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[9px] font-bold text-white/50 shrink-0">
+                                        {layerIdx + 1}
+                                    </span>
+                                    <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold">
+                                        {layer.layerName || `Layer ${layerIdx + 1}`}
+                                        {layer.type === 'blend' && (
+                                            <span className="ml-2 px-1.5 py-0.5 rounded bg-[#00FFD1]/10 text-[#00FFD1] text-[8px]">
+                                                BLEND
+                                            </span>
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+                            {layer.cultivars.map((cultivar, cIdx) => (
+                                <CultivarCard
+                                    key={cIdx}
+                                    name={cultivar.name}
+                                    profile={cultivar.profile || 'Hybrid'}
+                                    ratio={cultivar.ratio}
+                                    prominentTerpenes={[]}
+                                    characteristics={cultivar.characteristics || []}
+                                    context={{ density: 'default', showPercentage: true }}
+                                />
+                            ))}
+                        </div>
+                    ))}
+                </div>
 
             </div>
 
@@ -160,13 +201,13 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
             {/* CALCULATOR MODAL */}
             {isCalculating && (
                 <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-end sm:items-center justify-center p-4 sm:p-6" onClick={() => setIsCalculating(false)}>
-                    <motion.div
+                    <MotionDiv
                         initial={{ y: "100%" }}
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
                         className="w-full max-w-sm bg-black border border-white/10 rounded-t-3xl sm:rounded-3xl p-6 relative overflow-hidden"
-                        onClick={e => e.stopPropagation()}
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                         style={{ boxShadow: '0 -20px 50px -10px rgba(0,0,0,0.5)' }}
                     >
                         {/* The Hairline Border (Rest of card) */}
@@ -231,7 +272,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                                             const cultivarGrams = (layerGrams * (cultivar.ratio || (1 / layer.cultivars.length))).toFixed(2);
 
                                             return (
-                                                <motion.div
+                                                <MotionDiv
                                                     key={cIdx}
                                                     initial={{ opacity: 0, x: -10 }}
                                                     animate={{ opacity: 1, x: 0 }}
@@ -251,7 +292,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                                                         <span className="text-lg font-mono text-[#00FFD1]">{cultivarGrams}</span>
                                                         <span className="text-xs text-white/40 font-mono">g</span>
                                                     </div>
-                                                </motion.div>
+                                                </MotionDiv>
                                             );
                                         })}
                                     </div>
@@ -262,7 +303,7 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                         <div className="mt-6 text-center">
                             <p className="text-[10px] text-white/30 italic">Grind layers separately. Pack sequentially.</p>
                         </div>
-                    </motion.div>
+                    </MotionDiv>
                 </div>
             )}
         </div>
