@@ -394,9 +394,6 @@ interface ComboSheetProps {
 }
 
 function ComboSheet({ result, onClose }: ComboSheetProps) {
-    const timeIcon = result.bestTime === 'day' ? '☀️' : result.bestTime === 'evening' ? '🌙' : '⏱️';
-    const accentColor = '#00FFD1';
-
     return (
         <MotionDiv
             initial={{ opacity: 0 }}
@@ -411,8 +408,7 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
                 exit={{ y: '100%', opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                className="w-full max-w-lg bg-[#0D0D0D] border border-white/10 rounded-t-[2rem] overflow-hidden shadow-2xl"
-                style={{ borderColor: accentColor + '30' }}
+                className="w-full max-w-lg bg-[#0D0D0D] border border-[#00FFD1]/20 rounded-t-[2rem] overflow-hidden shadow-2xl"
             >
                 {/* Handle */}
                 <div className="flex justify-center pt-3 pb-1">
@@ -426,10 +422,7 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
                             <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#00FFD1]/60 mb-1">Prediction · Equal Parts</p>
                             <div className="flex flex-wrap gap-2">
                                 {result.outcomeLabels.map((label, i) => (
-                                    <span
-                                        key={i}
-                                        className="text-xl font-serif font-light text-white"
-                                    >
+                                    <span key={i} className="text-xl font-serif font-light text-white">
                                         {label}{i < result.outcomeLabels.length - 1 && <span className="text-white/30 mx-1">+</span>}
                                     </span>
                                 ))}
@@ -443,62 +436,86 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
                         </button>
                     </div>
 
-                    {/* Summary */}
-                    <p className="text-sm text-white/60 leading-relaxed">{result.summary}</p>
+                    {/* Summary — names cultivars + computed trait language */}
+                    <p className="text-sm text-white/70 leading-relaxed">{result.summary}</p>
 
                     {/* Stats row */}
                     <div className="grid grid-cols-3 gap-3">
                         {[
-                            { label: 'Avg THC', value: `${result.thcAvg}%` },
-                            { label: 'Avg CBD', value: `${result.cbdAvg}%` },
-                            { label: 'Best Time', value: `${timeIcon} ${result.bestTime}` },
+                            { label: 'Avg THC', value: result.avgTHC !== null ? `${result.avgTHC}%` : 'Unknown' },
+                            { label: 'Avg CBD', value: result.avgCBD !== null ? `${result.avgCBD}%` : 'Unknown' },
+                            {
+                                label: 'Best Time',
+                                value: result.bestTime === 'day' ? '☀️ Day'
+                                    : result.bestTime === 'afternoon' ? '🌤 Afternoon'
+                                        : result.bestTime === 'evening' ? '🌆 Evening'
+                                            : result.bestTime === 'night' ? '🌙 Night'
+                                                : '— Unknown',
+                            },
                         ].map(stat => (
                             <div key={stat.label} className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
                                 <div className="text-[9px] text-white/30 uppercase tracking-widest mb-1">{stat.label}</div>
-                                <div className="text-sm font-semibold text-white capitalize">{stat.value}</div>
+                                <div className="text-sm font-semibold text-white">{stat.value}</div>
                             </div>
                         ))}
                     </div>
 
-                    {/* Top effects */}
-                    {result.topEffects.length > 0 && (
-                        <div>
-                            <p className="text-[9px] text-white/30 uppercase tracking-widest mb-2">Top Effects</p>
+                    {/* Top effects — strict: "—" if vector produced nothing */}
+                    <div>
+                        <p className="text-[9px] text-white/30 uppercase tracking-widest mb-2">Top Effects</p>
+                        {result.topEffects.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                                 {result.topEffects.map((e, i) => (
-                                    <span
-                                        key={i}
-                                        className="px-3 py-1 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[#00FFD1] text-[10px] font-medium"
-                                    >
+                                    <span key={i} className="px-3 py-1 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 text-[#00FFD1] text-[10px] font-medium">
                                         {e}
                                     </span>
                                 ))}
                             </div>
-                        </div>
-                    )}
+                        ) : (
+                            <p className="text-xs text-white/25">—</p>
+                        )}
+                    </div>
 
-                    {/* Watch outs */}
-                    {result.watchOuts.length > 0 && (
-                        <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 space-y-1.5">
-                            <p className="text-[9px] text-amber-400/60 uppercase tracking-widest mb-2">Watch outs</p>
-                            {result.watchOuts.map((w, i) => (
-                                <div key={i} className="flex items-start gap-2 text-xs text-amber-200/60">
-                                    <span className="mt-1.5 w-1 h-1 rounded-full bg-amber-400 shrink-0" />
-                                    {w}
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    {/* Watch-outs — strict: "—" if no risk flags triggered */}
+                    <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4">
+                        <p className="text-[9px] text-amber-400/60 uppercase tracking-widest mb-2">Watch outs</p>
+                        {result.watchOuts.length > 0 ? (
+                            <div className="space-y-1.5">
+                                {result.watchOuts.map((w, i) => (
+                                    <div key={i} className="flex items-start gap-2 text-xs text-amber-200/60">
+                                        <span className="mt-1.5 w-1 h-1 rounded-full bg-amber-400 shrink-0" />
+                                        {w}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-xs text-white/25">—</p>
+                        )}
+                    </div>
+
+                    {/* ENGINE v2 debug badge — proves output is computed, not generic */}
+                    <div className="rounded-lg border border-[#00FFD1]/10 bg-[#00FFD1]/5 px-3 py-2 text-[9px] font-mono text-[#00FFD1]/50 leading-relaxed">
+                        <span className="text-[#00FFD1]/80 font-bold">ENGINE v2</span>
+                        {' · '}energy={result._vector.energy.toFixed(2)}
+                        {' '}body={result._vector.body.toFixed(2)}
+                        {' '}mood={result._vector.mood.toFixed(2)}
+                        {' '}focus={result._vector.focus.toFixed(2)}
+                        {' '}creat={result._vector.creativity.toFixed(2)}
+                        {' '}anx={result._vector.anxiety.toFixed(2)}
+                        {' · '}thc={result.avgTHC ?? 'n/a'}
+                    </div>
 
                     {/* Disclaimer */}
                     <p className="text-[10px] text-white/20 text-center">
-                        This assumes equal amounts of each strain. Actual effects vary.
+                        Equal-ratio prediction. Actual effects vary by tolerance and consumption method.
                     </p>
                 </div>
             </MotionDiv>
         </MotionDiv>
     );
 }
+
+
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
