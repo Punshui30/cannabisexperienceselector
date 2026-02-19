@@ -144,41 +144,21 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                     </div>
                 </MotionDiv>
 
-                {/* Cultivar Composition — per layer (mirrors BlendDetailScreen pattern) */}
-                <div className="max-w-md mx-auto w-full space-y-5 px-0 pb-4">
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                {/* Cultivar Composition — identical structure to BlendDetailScreen */}
+                <div className="max-w-md mx-auto w-full space-y-3">
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3">
                         Cultivar Composition
                     </h3>
-                    {stack.layers.map((layer, layerIdx) => (
-                        <div key={layerIdx} className="space-y-2">
-                            {/* Layer label — only when more than one layer */}
-                            {stack.layers.length > 1 && (
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[9px] font-bold text-white/50 shrink-0">
-                                        {layerIdx + 1}
-                                    </span>
-                                    <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold">
-                                        {layer.layerName || `Layer ${layerIdx + 1}`}
-                                        {layer.type === 'blend' && (
-                                            <span className="ml-2 px-1.5 py-0.5 rounded bg-[#00FFD1]/10 text-[#00FFD1] text-[8px]">
-                                                BLEND
-                                            </span>
-                                        )}
-                                    </span>
-                                </div>
-                            )}
-                            {layer.cultivars.map((cultivar, cIdx) => (
-                                <CultivarCard
-                                    key={cIdx}
-                                    name={cultivar.name}
-                                    profile={cultivar.profile || 'Hybrid'}
-                                    ratio={cultivar.ratio}
-                                    prominentTerpenes={[]}
-                                    characteristics={cultivar.characteristics || []}
-                                    context={{ density: 'default', showPercentage: true }}
-                                />
-                            ))}
-                        </div>
+                    {stack.layers.flatMap((layer) => layer.cultivars).map((cultivar, i) => (
+                        <CultivarCard
+                            key={i}
+                            name={cultivar.name}
+                            profile={cultivar.profile}
+                            ratio={cultivar.ratio}
+                            prominentTerpenes={[]}
+                            characteristics={cultivar.characteristics}
+                            context={{ density: 'default', showPercentage: true }}
+                        />
                     ))}
                 </div>
 
