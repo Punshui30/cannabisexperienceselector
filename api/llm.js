@@ -21,6 +21,14 @@ module.exports = async function handler(request, response) {
 
     const { messages, model, temperature } = request.body;
 
+    // Hard Gate: Backend Enforcement for Merchant Mode
+    if (process.env.APP_MODE === 'merchant') {
+        const hasImage = messages?.some(m => Array.isArray(m.content) && m.content.some(c => c.type === 'image_url'));
+        if (hasImage || model?.toLowerCase().includes('vision')) {
+            return response.status(403).json({ error: 'Vision capabilities are strictly prohibited in Merchant Mode.' });
+        }
+    }
+
     if (!messages) {
         return response.status(400).json({ error: 'Missing messages' });
     }

@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { ArrowLeft, Layers, Zap } from 'lucide-react';
+import { ArrowLeft, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
-import { resolveCultivarVisuals, resolveTerpeneVisuals } from '../lib/visuals';
+import { resolveCultivarVisuals } from '../lib/visuals';
 import { CultivarCard } from './shared/CultivarCard';
+import { SpeakButton } from './SpeakButton';
+
+const MotionDiv = motion.div as any;
 
 interface BlendDetailScreenProps {
     blend: UIBlendRecommendation;
@@ -81,9 +84,17 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                 {/* Why This Blend */}
                 {blend.reasoning && (
                     <div className="p-4 rounded-xl bg-white/5 border border-white/10 max-w-md mx-auto w-full">
-                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#00FFD1] mb-2">
-                            Why This Blend
-                        </h3>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#00FFD1]">
+                                Why This Blend
+                            </h3>
+                            {/* SpeakButton: fixed w-7 h-7, never shifts layout */}
+                            <SpeakButton
+                                text={blend.reasoning}
+                                summaryMode={true}
+                                aria-label="Read blend reasoning aloud"
+                            />
+                        </div>
                         <p className="text-sm text-white/70 leading-relaxed">
                             {blend.reasoning}
                         </p>
@@ -91,7 +102,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                 )}
 
                 {/* Visualization */}
-                <motion.div
+                <MotionDiv
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8 }}
@@ -99,7 +110,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                 >
                     <div className="absolute inset-0 bg-[#00FFD1]/5 blur-[80px] rounded-full animate-pulse-slow" />
                     <SpatialStack data={stackData} />
-                </motion.div>
+                </MotionDiv>
 
                 {/* Cultivar Breakdown */}
                 <div className="max-w-md mx-auto w-full space-y-3">
@@ -153,13 +164,13 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
             <AnimatePresence>
                 {isCalculating && (
                     <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-2xl flex items-end sm:items-center justify-center p-4 sm:p-6" onClick={() => setIsCalculating(false)}>
-                        <motion.div
+                        <MotionDiv
                             initial={{ y: "100%" }}
                             animate={{ y: 0 }}
                             exit={{ y: "100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
                             className="w-full max-w-sm bg-black border border-white/10 rounded-t-3xl sm:rounded-3xl p-6 relative overflow-hidden"
-                            onClick={e => e.stopPropagation()}
+                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
                         >
                             {/* The Hairline Border (Rest of card) */}
                             <div className="absolute inset-0 rounded-[inherit] border border-white/10 pointer-events-none z-10" />
@@ -224,7 +235,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                             <div className="mt-6 text-center">
                                 <p className="text-[10px] text-white/30 italic">Mix thoroughly before packing.</p>
                             </div>
-                        </motion.div>
+                        </MotionDiv>
                     </div>
                 )}
             </AnimatePresence>

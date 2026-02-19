@@ -1,24 +1,40 @@
-
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown, ChevronUp, Activity, Droplet } from 'lucide-react';
+import { ChevronDown, ChevronUp, Activity, Droplet, Sparkles } from 'lucide-react';
 import { STRAIN_LIBRARY, type Strain } from '../lib/strainLibrary';
 import { INVENTORY } from '../lib/inventory';
+import { ScanButton } from './ScanButton';
+import { MatchReviewSheet } from './MatchReviewSheet';
+import { LabelScan } from '../ai/providers/visionProvider';
 
 export function StrainLibrary() {
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [activeScan, setActiveScan] = useState<LabelScan | null>(null);
 
     const toggleExpand = (id: string) => {
         setExpandedId(expandedId === id ? null : id);
+    };
+
+    const handleMatchConfirm = (id: string) => {
+        setActiveScan(null);
+        setExpandedId(id);
+        // Scroll to the item
+        setTimeout(() => {
+            const el = document.getElementById(`strain-${id}`);
+            el?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        }, 300);
     };
 
     return (
         <div className="w-full space-y-4 mb-4">
             {/* Header */}
             <div className="flex items-center justify-between px-2">
-                <h3 className="text-sm font-semibold text-white/50 uppercase tracking-widest">
-                    Strain Library
-                </h3>
+                <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-white/50 uppercase tracking-widest">
+                        Strain Library
+                    </h3>
+                    <ScanButton onScanComplete={setActiveScan} />
+                </div>
                 <span className="text-[10px] text-white/30 bg-white/5 px-2 py-1 rounded-full">
                     {STRAIN_LIBRARY.length} Vetted Inputs
                 </span>
@@ -33,6 +49,7 @@ export function StrainLibrary() {
                     return (
                         <motion.div
                             key={strain.id}
+                            id={`strain-${strain.id}`}
                             layout
                             initial={{ opacity: 0.8 }}
                             whileHover={{ opacity: 1, scale: 1.01 }}
@@ -144,6 +161,12 @@ export function StrainLibrary() {
                     );
                 })}
             </div>
+
+            <MatchReviewSheet
+                scanResult={activeScan}
+                onClose={() => setActiveScan(null)}
+                onMatchConfirm={handleMatchConfirm}
+            />
         </div>
     );
 }

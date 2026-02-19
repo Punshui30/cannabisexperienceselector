@@ -3,8 +3,9 @@ import { UIBlendRecommendation, assertBlend } from '../types/domain';
 import { SwipeDeck } from './SwipeDeck';
 import { BlendCard } from './BlendCard';
 import { PaginationDots } from './PaginationDots';
-import { Share2, ArrowLeft, ArrowRight } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Share2, ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ShowEvidencePanel } from './ShowEvidencePanel';
 
 interface ResultsProps {
   recommendations: UIBlendRecommendation[]; // Array of UI Recs
@@ -17,6 +18,7 @@ interface ResultsProps {
 
 export function ResultsScreen({ recommendations, onCalculate, onBack, onConcludeSession, onViewDetail, onOpenConsultant }: ResultsProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [showEvidence, setShowEvidence] = useState(false);
   const activeRec = recommendations[activeIndex];
 
   // Rule 3: Enforce Data Contract (Crash if Stack passed to Results)
@@ -45,11 +47,22 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onConclude
               <span className="text-[10px] uppercase tracking-widest text-white/60 group-hover:text-white transition-colors font-bold">Back</span>
             </button>
 
-            <div className="flex justify-end">
+            <div className="flex flex-col items-end gap-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/20 border border-white/10 backdrop-blur-md">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] shadow-[0_0_8px_#00FFD1]" />
                 <span className="text-[9px] font-medium text-white/60 uppercase tracking-widest">v2.8</span>
               </div>
+
+              {/* BEAST MODE: Evidence Trigger */}
+              {activeRec?.decisionReceipt && (
+                <button
+                  onClick={() => setShowEvidence(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 hover:bg-[#BF5AF2]/20 transition-all active:scale-95"
+                >
+                  <BookOpen size={12} className="text-[#BF5AF2]" />
+                  <span className="text-[9px] font-bold text-[#BF5AF2] uppercase tracking-[0.1em]">Show Evidence</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -106,13 +119,10 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onConclude
         </div>
 
         {/* PAGINATION DOTS */}
-        <div className="w-full relative z-10 mt-8 mb-6">
-          <PaginationDots
-            currentIndex={activeIndex}
-            totalItems={recommendations.length}
-            onSelect={setActiveIndex}
-          />
-        </div>
+        <PaginationDots
+          currentIndex={activeIndex}
+          totalItems={recommendations.length}
+        />
 
         {/* CONCLUDE SESSION CTA */}
         {onConcludeSession && (
@@ -154,6 +164,16 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onConclude
           <span>Calculate Dose</span>
         </motion.button>
       </div>
+
+      {/* BEAST MODE: Evidence Overlay */}
+      <AnimatePresence>
+        {showEvidence && activeRec?.decisionReceipt && (
+          <ShowEvidencePanel
+            receipt={activeRec.decisionReceipt}
+            onClose={() => setShowEvidence(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

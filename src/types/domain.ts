@@ -110,6 +110,7 @@ export type UIBlendRecommendation = {
     name: string;
     matchScore: number;
     confidence: number;
+    decisionReceipt?: any; // BEAST MODE ENGINE TRANSPARENCY
     reasoning: string;
     cultivars: {
         name: string;
@@ -170,6 +171,31 @@ export type UIStackRecommendation = {
 };
 
 /**
+ * 4.5 Decision Receipt (Deterministic Engine Explanation)
+ */
+export interface DecisionReceipt {
+    intentSummary: string;
+    constraintsApplied: Record<string, any>;
+    topDrivers: Array<{
+        claimKey: string;
+        direction: 'positive' | 'negative';
+        weight: number;
+        note: string;
+    }>;
+    rejections: Array<{
+        candidateId: string;
+        reasons: string[];
+    }>;
+    riskFlags: Array<{
+        key: string;
+        level: 'low' | 'medium' | 'high';
+        note: string;
+    }>;
+    scores: Record<string, number>;
+    engineVersion: string;
+}
+
+/**
  * Internal Engine Result (NOT FOR UI)
  */
 export type EngineResult = {
@@ -181,6 +207,7 @@ export type EngineResult = {
     cultivars?: any[];
     terpeneWeights?: Record<string, number>;
     layers?: any[];
+    decisionReceipt?: DecisionReceipt; // ADDED FOR BEAST MODE
     // ... allow partials we adapt from
     [key: string]: any;
 };

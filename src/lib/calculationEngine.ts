@@ -184,6 +184,7 @@ export interface BlendEvaluation {
   risks: RiskVector;
   // NEW: Explanation data (structured for Layer 3)
   explanationData: BlendExplanation;
+  decisionReceipt?: any; // Structured receipt for UI
 }
 
 export interface BlendRecommendation {
@@ -201,6 +202,7 @@ export interface BlendRecommendation {
   confidence: number;
   blendScore: number;
   blendEvaluation: BlendEvaluation;
+  decisionReceipt?: any; // Added for Beast Mode
   metadata: {
     unknownTerpeneCount: number;
     constraintsViolated: string[];
@@ -999,13 +1001,78 @@ function evaluateBlend(
   );
   explanationData.computedMetrics.blendScore = blendScore;
 
+  const decisionReceipt = generateDecisionReceipt(
+    profile,
+    risks,
+    breakdown,
+    intent,
+    cultivars.map(c => c.name)
+  );
+
   return {
     cultivarScore: baseMatchScore * 100,
     blendScore,
     breakdown,
     profile,
     risks,
-    explanationData
+    explanationData,
+    decisionReceipt // EXPOSED TO UI VIA ADAPTER
+  };
+}
+
+/**
+ * GENERATE DECISION RECEIPT
+ * Deterministic mapping of engine signals to human-readable explanation data.
+ */
+function generateDecisionReceipt(
+  profile: BlendProfile,
+  risks: RiskVector,
+  breakdown: BlendEvaluation['breakdown'],
+  intent: Intent,
+  cultivarNames: string[]
+): any {
+  const topDrivers: any[] = [];
+
+  // Map dominant terpenes to drivers
+  profile.dominantTerpenes.slice(0, 3).forEach(t => {
+    const influence = TERPENE_INFLUENCES[t.name];
+    topDrivers.push({
+      claimKey: `terpene_${t.name}`,
+      direction: 'positive' as const,
+      weight: t.percent,
+      note: `${t.name} (Major Component) providing ${getPrimaryEffect(t.name)}.`
+    });
+  });
+
+  // Map high risks to flags
+  const riskFlags = [];
+  if (risks.anxietyRisk > 0.3) {
+    riskFlags.push({
+      key: 'anxiety_ceiling',
+      level: risks.anxietyRisk > 0.6 ? 'high' : 'medium' as any,
+      note: 'High stimulating terpene profile may increase heart rate or mental velocity.'
+    });
+  }
+  if (risks.physicalHeaviness > 0.7) {
+    riskFlags.push({
+      key: 'sedation_depth',
+      level: 'medium' as any,
+      note: 'Myrcene/Linalool concentration indicates significant physical relaxation.'
+    });
+  }
+
+  return {
+    intentSummary: `Targeting ${Object.entries(intent.targetEffects).filter(([, v]) => v > 0.3).map(([k]) => k).join(', ')} traits.`,
+    constraintsApplied: intent.constraints,
+    topDrivers,
+    rejections: [], // Filled during candidate iteration if needed
+    riskFlags,
+    scores: {
+      baseMatch: breakdown.baseMatch,
+      synergy: breakdown.synergyBonus,
+      riskPenalty: breakdown.riskPenalties
+    },
+    engineVersion: CONFIG_VERSION
   };
 }
 
@@ -1129,6 +1196,7 @@ export function calculateBlends(
               confidence: 0.9,
               blendScore: blendEval.blendScore,
               blendEvaluation: blendEval,
+              decisionReceipt: blendEval.decisionReceipt, // Pass receipt to recommendation
               metadata: { unknownTerpeneCount: 0, constraintsViolated: [] }
             });
           }

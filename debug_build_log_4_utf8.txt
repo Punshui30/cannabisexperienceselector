@@ -1,0 +1,141 @@
+﻿ΓêÜ Copying web assets from dist to android\app\src\main\assets\public in 68.19ms
+ΓêÜ Creating capacitor.config.json in android\app\src\main\assets in 5.60ms
+[info] Inlining sourcemaps
+ΓêÜ copy android in 224.72ms
+ΓêÜ Updating Android plugins in 33.59ms
+ΓêÜ update android in 280.49ms
+├ù Running Gradle build - failed!
+[error] 
+        > Configure project :app
+        WARNING: The option setting 'android.usesSdkInManifest.disallowed=false' is deprecated.
+        The current default is 'true'.
+        It will be removed in version 10.0 of the Android Gradle plugin.
+        WARNING: The option setting 'android.sdk.defaultTargetSdkToCompileSdkIfUnset=false' is deprecated.
+        The current default is 'true'.
+        It will be removed in version 10.0 of the Android Gradle plugin.
+        WARNING: The option setting 'android.enableAppCompileTimeRClass=false' is deprecated.
+        The current default is 'true'.
+        It will be removed in version 10.0 of the Android Gradle plugin.
+        WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+        The current default is 'true'.
+        It will be removed in version 10.0 of the Android Gradle plugin.
+        WARNING: The option setting 'android.newDsl=false' is deprecated.
+        The current default is 'true'.
+        It will be removed in version 10.0 of the Android Gradle plugin.
+        WARNING: The option setting 'android.r8.optimizedResourceShrinking=false' is deprecated.
+        The current default is 'true'.
+        It will be removed in version 10.0 of the Android Gradle plugin.
+        WARNING: The option setting 'android.defaults.buildfeatures.resvalues=true' is deprecated.
+        The current default is 'false'.
+        It will be removed in version 10.0 of the Android Gradle plugin.
+        WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        
+        > Configure project :capacitor-android
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        
+        > Configure project :capacitor-cordova-android-plugins
+        WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+        To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+        
+        > Task :app:preBuild UP-TO-DATE
+        > Task :app:preDebugBuild UP-TO-DATE
+        > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+        > Task :app:javaPreCompileDebug UP-TO-DATE
+        > Task :capacitor-android:preBuild UP-TO-DATE
+        > Task :capacitor-android:preDebugBuild UP-TO-DATE
+        > Task :capacitor-android:writeDebugAarMetadata UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:preBuild UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:preDebugBuild UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:writeDebugAarMetadata
+        > Task :capacitor-android:processDebugNavigationResources UP-TO-DATE
+        > Task :app:checkDebugAarMetadata UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:processDebugNavigationResources
+        > Task :app:processDebugNavigationResources UP-TO-DATE
+        > Task :app:compileDebugNavigationResources UP-TO-DATE
+        > Task :app:generateDebugResValues UP-TO-DATE
+        > Task :capacitor-android:generateDebugResValues UP-TO-DATE
+        > Task :capacitor-android:generateDebugResources UP-TO-DATE
+        > Task :capacitor-android:packageDebugResources UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:generateDebugResValues
+        > Task :capacitor-cordova-android-plugins:generateDebugResources
+        > Task :capacitor-cordova-android-plugins:packageDebugResources
+        > Task :app:mapDebugSourceSetPaths UP-TO-DATE
+        > Task :app:generateDebugResources UP-TO-DATE
+        > Task :app:mergeDebugResources UP-TO-DATE
+        > Task :app:packageDebugResources UP-TO-DATE
+        > Task :app:parseDebugLocalResources UP-TO-DATE
+        > Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+        > Task :app:extractDeepLinksDebug UP-TO-DATE
+        > Task :capacitor-android:extractDeepLinksDebug UP-TO-DATE
+        > Task :capacitor-android:processDebugManifest UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:extractDeepLinksDebug
+        > Task :capacitor-android:compileDebugLibraryResources UP-TO-DATE
+        > Task :capacitor-android:parseDebugLocalResources UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:processDebugManifest
+        > Task :capacitor-android:generateDebugRFile UP-TO-DATE
+        > Task :app:processDebugMainManifest UP-TO-DATE
+        > Task :app:processDebugManifest UP-TO-DATE
+        > Task :app:processDebugManifestForPackage UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:compileDebugLibraryResources
+        > Task :capacitor-android:javaPreCompileDebug UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:parseDebugLocalResources
+        > Task :capacitor-android:compileDebugJavaWithJavac UP-TO-DATE
+        > Task :capacitor-android:bundleLibCompileToJarDebug UP-TO-DATE
+        > Task :app:generateDebugAssets UP-TO-DATE
+        > Task :capacitor-android:generateDebugAssets UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:javaPreCompileDebug
+        > Task :capacitor-cordova-android-plugins:generateDebugRFile
+        > Task :capacitor-android:mergeDebugAssets UP-TO-DATE
+        > Task :app:processDebugResources UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:compileDebugJavaWithJavac NO-SOURCE
+        > Task :capacitor-cordova-android-plugins:generateDebugAssets UP-TO-DATE
+        > Task :capacitor-cordova-android-plugins:bundleLibCompileToJarDebug
+        > Task :capacitor-cordova-android-plugins:mergeDebugAssets
+        > Task :app:compileDebugJavaWithJavac FAILED
+        
+        [Incubating] Problems report is available at: file:///C:/Users/simmo/Desktop/Cannabis%20Experience%20Selector/android/build/reports/problems/problems-report.html
+        
+        FAILURE: Build failed with an exception.
+        
+        * What went wrong:
+        Execution failed for task ':app:compileDebugJavaWithJavac'.
+        > Java compilation initialization error
+        error: invalid source release: 21
+        
+        * Try:
+        > Run with --stacktrace option to get the stack trace.
+        > Run with --info or --debug option to get more log output.
+        >
+        Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+        Run with --scan to generate a Build Scan (Powered by Develocity).
+        > Get more help at https://help.gradle.org.
+        
+        You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+        
+        For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+        44 actionable tasks: 14 executed, 30 up-to-date
+        
+        BUILD FAILED in 4s
+        
