@@ -72,15 +72,20 @@ module.exports = async function handler(request, response) {
 
         const prompt = generateMusicPromptFromTerpenes(terpenes);
 
-        // As per expert instructions: Use "meta/musicgen" or "meta/musicgen-melody" exactly.
-        const model = inputAudio ? "meta/musicgen-melody" : "meta/musicgen";
+        // Use pinned version hashes — routes to /v1/predictions (correct endpoint).
+        // Calling "meta/musicgen" without a hash hits /v1/models/.../predictions which 404s.
+        // Version confirmed working from Replicate playground (punshui30 account).
+        const model = inputAudio
+            ? "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb"
+            : "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb";
 
-        console.log(`REPLICATE: Running model ${model} for prompt:`, prompt);
+        console.log(`REPLICATE: Running model with version hash for prompt:`, prompt);
 
         const output = await replicate.run(
             model,
             {
                 input: {
+                    model_version: inputAudio ? "melody" : "stereo-large",
                     prompt: prompt,
                     duration: 30,
                     ...(inputAudio ? { input_audio: inputAudio } : {})
