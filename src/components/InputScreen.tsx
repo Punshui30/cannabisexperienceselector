@@ -388,31 +388,51 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                 )}
 
                 {mode === 'product' && (
-                  <div
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                    className={`relative w-full h-40 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${dragActive ? "border-[#00FFD1] bg-[#00FFD1]/5" : uploadedImage ? "border-emerald-400/50 bg-emerald-400/5" : "border-white/10 bg-white/5"}`}
-                  >
+                  <div className="space-y-3">
                     {uploadedImage ? (
-                      <div className="text-center">
-                        <Check className="text-[#00FFD1] mx-auto mb-2" size={24} />
-                        <p className="text-xs text-white/60">Image Set</p>
-                        <button onClick={() => setUploadedImage(null)} className="text-[10px] text-white/30 uppercase mt-2">Remove</button>
+                      /* ── POST-CAPTURE STATE ── */
+                      <div className="relative w-full h-48 rounded-2xl overflow-hidden border border-emerald-400/30 bg-black">
+                        <img
+                          src={URL.createObjectURL(uploadedImage)}
+                          alt="Captured label"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                          <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">
+                            ✓ Label Captured
+                          </span>
+                          <button
+                            onClick={() => { setUploadedImage(null); setShowCamera(true); }}
+                            className="px-3 py-1 rounded-lg bg-white/10 text-white/70 text-[10px] uppercase font-bold tracking-widest hover:bg-white/20 transition-all"
+                          >
+                            Re-scan
+                          </button>
+                        </div>
                       </div>
                     ) : (
-                      <div
-                        className="flex flex-col items-center gap-2 cursor-not-allowed group opacity-40 select-none"
+                      /* ── CAMERA LAUNCH ZONE ── */
+                      <button
+                        onClick={() => setShowCamera(true)}
+                        className="relative w-full h-40 rounded-2xl border-2 border-dashed border-[#00FFD1]/30 bg-[#00FFD1]/5 hover:border-[#00FFD1]/60 hover:bg-[#00FFD1]/10 active:scale-[0.99] transition-all duration-200 flex flex-col items-center justify-center gap-3 group"
                       >
-                        <div className="p-4 rounded-full bg-white/5 border border-white/10 transition-all">
-                          <Camera size={24} className="text-white/40" />
+                        <div className="p-4 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 group-hover:bg-[#00FFD1]/20 transition-all">
+                          <Camera size={28} className="text-[#00FFD1]" />
                         </div>
-                        <span className="text-[10px] uppercase tracking-widest text-white/40">Camera Recognition Unavailable</span>
-                      </div>
+                        <div className="text-center">
+                          <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">Open Camera</p>
+                          <p className="text-[10px] text-white/30 mt-0.5">Point at packaging · Works on Windows &amp; mobile</p>
+                        </div>
+                        {/* Subtle pulse ring */}
+                        <div className="absolute inset-0 rounded-2xl border border-[#00FFD1]/10 animate-pulse pointer-events-none" />
+                      </button>
                     )}
+                    <p className="text-[10px] text-white/20 text-center px-4">
+                      We'll read the label and match it to your library automatically.
+                    </p>
                   </div>
                 )}
+
 
                 {mode === 'strain' && (
                   <div className="flex flex-col gap-3 relative">
