@@ -73,7 +73,9 @@ export const AI_CONFIG: AIConfig = {
     appMode: (import.meta.env.VITE_APP_MODE as AppMode) || 'consumer',
 
     features: {
-        vision: import.meta.env.VITE_VISION_ENABLED === 'true',
+        vision: import.meta.env.VITE_VISION_ENABLED === 'true' ||
+            import.meta.env.VITE_ENABLE_VISION === 'true' ||
+            import.meta.env.NEXT_PUBLIC_ENABLE_VISION === 'true',
         evidence: import.meta.env.VITE_EVIDENCE_ENABLED !== 'false',
         tts: import.meta.env.VITE_ENABLE_TTS !== 'false',
         uiSfx: import.meta.env.VITE_ENABLE_UI_SFX !== 'false',

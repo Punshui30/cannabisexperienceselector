@@ -21,11 +21,13 @@ module.exports = async function handler(request, response) {
 
     const { messages, model, temperature } = request.body;
 
-    // Hard Gate: Backend Enforcement for Merchant Mode
-    if (process.env.APP_MODE === 'merchant') {
+    // Hard Gate: Backend Enforcement for Merchant Mode & Feature Gate
+    const visionDisabled = process.env.ENABLE_VISION === 'false';
+    if (process.env.APP_MODE === 'merchant' || visionDisabled) {
         const hasImage = messages?.some(m => Array.isArray(m.content) && m.content.some(c => c.type === 'image_url'));
         if (hasImage || model?.toLowerCase().includes('vision')) {
-            return response.status(403).json({ error: 'Vision capabilities are strictly prohibited in Merchant Mode.' });
+            const reason = visionDisabled ? 'Vision feature is disabled on this server.' : 'Vision capabilities are strictly prohibited in Merchant Mode.';
+            return response.status(403).json({ error: reason });
         }
     }
 

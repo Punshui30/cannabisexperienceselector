@@ -11,8 +11,9 @@ import { OpenAIVisionProvider } from '../ai/providers/visionProvider';
 import { matchLabelToLibrary } from './visionMatch';
 import { findSubstitute } from './engine/substitution';
 import { AI_CONFIG } from '../ai/config';
+import { extractLabelTextFromImage } from './ocr/extractLabelText';
 
-const VISION_ENABLED = true; // Feature Gate: Enable Vision Recognition
+const VISION_ENABLED = AI_CONFIG.features.vision; // Feature Gate: Enable Vision Recognition
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -28,6 +29,10 @@ export interface OrchestratorResult {
     intentSpec?: IntentSpec;
     followUpQuestion?: string;
     decision?: any; // Expose decision for debugging/telemetry
+    toast?: {
+        message: string;
+        type: 'success' | 'info' | 'error';
+    };
 }
 
 /**
@@ -48,6 +53,8 @@ export async function processIntent(
     },
     mode: string = 'blend-engine'
 ): Promise<OrchestratorResult> {
+    let pendingToast: OrchestratorResult['toast'] = undefined;
+
     const updatePhase = (phase: EnginePhase) => {
         console.log(`[PHASE_CHANGE] ${phase}`);
         if (context?.onPhaseChange) {
@@ -147,7 +154,8 @@ export async function processIntent(
                     consultationScript: "Which of these looks closest to what you have?",
                     outcomeCategory: 'Other'
                 },
-                decision // Pass decision with requires_clarification: true
+                decision, // Pass decision with requires_clarification: true
+                toast: pendingToast
             };
         }
 
@@ -173,7 +181,8 @@ export async function processIntent(
                     consultationScript: responseText,
                     outcomeCategory: 'Other'
                 },
-                decision // Pass for telemetry
+                decision, // Pass for telemetry
+                toast: pendingToast
             };
         }
 
@@ -196,34 +205,78 @@ export async function processIntent(
             console.log('[STACK_AUGMENTATION] Forced stack augmentation mode');
         }
 
-        // 0.5. IMAGE ANALYSIS (Vision First Flow)
-        if (seed.image && VISION_ENABLED) {
-            console.log('ORCHESTRATOR: Image detected. Triggering Vision First matching...');
-            try {
-                // Fetch the blob from the URL
-                const response = await fetch(seed.image);
-                const blob = await response.blob();
+        // 0.5. IMAGE ANALYSIS (Vision First Flow with OCR Fallback)
+        let ocrSignal: 'success' | 'empty' | 'disabled' | null = null;
+        let ocrText = "";
 
-                const scan = await OpenAIVisionProvider.scanLabel(blob);
-                console.log('ORCHESTRATOR: Vision Scan result:', scan);
+        if (seed.image) {
+            if (VISION_ENABLED) {
+                console.log('ORCHESTRATOR: Image detected. Triggering Vision First matching...');
+                try {
+                    const response = await fetch(seed.image);
+                    const blob = await response.blob();
+                    const scan = await OpenAIVisionProvider.scanLabel(blob);
+                    console.log('ORCHESTRATOR: Vision Scan result:', scan);
 
-                // Deterministic Library Match
-                const visionMatches = matchLabelToLibrary(scan);
-                console.log('ORCHESTRATOR: Vision Matches:', visionMatches);
-
-                if (visionMatches.length > 0 && visionMatches[0].confidence > 0.8) {
-                    console.log('ORCHESTRATOR: High-confidence vision match found:', visionMatches[0].chemotypeName);
-                    seed.mode = 'strain';
-                    seed.strainName = visionMatches[0].chemotypeName;
-                    seed.grower = scan.brand;
-                    // Narrative enrichment
-                    seed.text = `${seed.text}\n\n[ENVIRONMENTAL EVIDENCE]: Confirmed match for ${visionMatches[0].chemotypeName}. ${scan.analysis}`;
-                } else {
-                    console.log('ORCHESTRATOR: Low-confidence or no vision match. Falling back to search grounding.');
-                    seed.text = `${seed.text}\n\n[ENVIRONMENTAL EVIDENCE]: Detected "${scan.strainName || scan.productName}" by "${scan.brand || 'Unknown'}". ${scan.analysis}`;
+                    const visionMatches = matchLabelToLibrary(scan);
+                    if (visionMatches.length > 0 && visionMatches[0].confidence > 0.8) {
+                        console.log('ORCHESTRATOR: High-confidence vision match found:', visionMatches[0].chemotypeName);
+                        seed.mode = 'strain';
+                        seed.strainName = visionMatches[0].chemotypeName;
+                        seed.grower = scan.brand;
+                        seed.text = `${seed.text}\n\n[ENVIRONMENTAL EVIDENCE]: Confirmed match for ${visionMatches[0].chemotypeName}. ${scan.analysis}`;
+                    } else {
+                        console.log('ORCHESTRATOR: Low-confidence or no vision match. Falling back to search grounding.');
+                        seed.text = `${seed.text}\n\n[ENVIRONMENTAL EVIDENCE]: Detected "${scan.strainName || scan.productName}" by "${scan.brand || 'Unknown'}". ${scan.analysis}`;
+                    }
+                } catch (err) {
+                    console.error('ORCHESTRATOR: Vision scan failed, falling back to OCR:', err);
+                    ocrSignal = 'disabled'; // Treat as fallback trigger
                 }
-            } catch (err) {
-                console.error('ORCHESTRATOR: Vision scan failed:', err);
+            } else {
+                console.log('[VISION_DISABLED] Falling back to OCR...');
+                ocrSignal = 'disabled';
+            }
+
+            // OCR FALLBACK PATH
+            if (ocrSignal === 'disabled' || !VISION_ENABLED) {
+                try {
+                    const response = await fetch(seed.image);
+                    const blob = await response.blob();
+                    ocrText = await extractLabelTextFromImage(blob);
+
+                    if (ocrText && ocrText.length > 10) {
+                        console.log('[OCR_USED] Extracted text:', ocrText);
+                        ocrSignal = 'success';
+                        // Replace generic "Product Image Input" with extracted text if original was empty or placeholder
+                        const isPlaceholder = seed.text.toLowerCase().includes('image input');
+                        if (isPlaceholder || !seed.text.trim()) {
+                            seed.text = ocrText;
+                        } else {
+                            seed.text = `${seed.text}\n\n[OCR_CONTEXT]: ${ocrText}`;
+                        }
+                        // Transition to engine mode if we have good text
+                        seed.mode = 'engine';
+                    } else {
+                        console.log('[OCR_EMPTY] No usable text extracted.');
+                        ocrSignal = 'empty';
+                        // If it was just an image input, we keep going with the placeholder but disable mutation if it's too vague
+                        if (seed.text.toLowerCase().includes('image input')) {
+                            decision.requires_engine_mutation = false;
+                        }
+                    }
+                } catch (ocrErr) {
+                    console.error('[OCR_FAILED] Fatal fallback error:', ocrErr);
+                    ocrSignal = 'empty';
+                }
+                console.log('[IMAGE_FALLBACK_CONTINUE] Proceeding with best-effort engine run.');
+            }
+
+            // Set pending toast based on OCR outcome
+            if (ocrSignal === 'success') {
+                pendingToast = { message: 'Label text detected — using it to match strains.', type: 'success' };
+            } else if (ocrSignal === 'empty') {
+                pendingToast = { message: 'Couldn’t read the label — generating based on your request.', type: 'info' };
             }
         }
 
@@ -480,7 +533,8 @@ export async function processIntent(
                         consultationScript: intentSpec.consultationScript,
                         outcomeCategory: outcomeCategory
                     },
-                    intentSpec: intentSpec
+                    intentSpec: intentSpec,
+                    toast: pendingToast
                 };
             }
 
@@ -673,7 +727,7 @@ export async function processIntent(
                 engineResults.push(fallbackBlend[0]);
             } else {
                 updatePhase('chat'); // terminal phase - UI must resolve immediately
-                return { success: false, data: [], error: 'Engine returned no results.' };
+                return { success: false, data: [], error: 'Engine returned no results.', toast: pendingToast };
             }
         }
 
@@ -835,7 +889,8 @@ export async function processIntent(
                 return {
                     success: false,
                     data: [],
-                    error: `Validation Failed. System Integrity Check: ${validationError}`
+                    error: `Validation Failed. System Integrity Check: ${validationError}`,
+                    toast: pendingToast
                 };
             }
         }
@@ -898,7 +953,8 @@ export async function processIntent(
                 consultationScript: intentSpec.consultationScript,
                 outcomeCategory: outcomeCategory
             },
-            intentSpec: intentSpec
+            intentSpec: intentSpec,
+            toast: pendingToast
         };
 
     } catch (e: any) {

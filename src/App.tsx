@@ -48,6 +48,7 @@ import logoImg from './assets/logo.png';
 import { generateLiveFeedCommentary } from './lib/llmLiveFeedAdapter';
 import { updateEngineSnapshot } from './lib/engineSnapshot';
 import { ScrollStage } from './components/layout/ScrollStage';
+import { toast, Toaster } from 'sonner';
 import './index.css';
 
 export type ViewState = 'splash' | 'entry' | 'input' | 'resolving' | 'resolution' | 'results' | 'presets' | 'stack-detail' | 'stack-card' | 'blend-detail' | 'library' | 'error' | 'shared' | 'remote-access' | 'live-feed' | 'checkout' | 'share' | 'idle' | 'clarification-gate';
@@ -321,6 +322,11 @@ export default function App() {
           clearInterval(progressInterval);
 
           if (result.success) {
+            // TRIGGER UI FEEDBACK (OCR/Vision Toasts)
+            if (result.toast) {
+              toast[result.toast.type](result.toast.message);
+            }
+
             // CHECK FOR CLARIFICATION GATE TRIGGER
             if (result.decision?.requires_clarification && !userInput?.clarificationData) {
               addLog('Accuracy Safeguard Triggered: Awaiting Calibration');
@@ -565,6 +571,7 @@ export default function App() {
 
   return (
     <GlobalCultivarProvider>
+      <Toaster position="top-center" expand={false} richColors />
       {/* STRICT APP SHELL ROOT: h-[100dvh], overflow-hidden */}
       <div className="dark h-[100dvh] bg-black text-white overflow-hidden font-sans selection:bg-[#ffaa00] selection:text-black flex flex-col">
 
