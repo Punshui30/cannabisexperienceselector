@@ -6,6 +6,8 @@ import { SpatialStack } from './SpatialStack';
 import { resolveCultivarVisuals } from '../lib/visuals';
 import { CultivarCard } from './shared/CultivarCard';
 import { SpeakButton } from './SpeakButton';
+import { MusicVibeButton } from './MusicVibeButton';
+import { INVENTORY } from '../lib/inventory';
 
 const MotionDiv = motion.div as any;
 
@@ -79,6 +81,19 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                     <h1 className="text-3xl font-serif text-white mb-2 leading-tight">
                         {blend.name}
                     </h1>
+
+                    <div className="flex justify-center mt-3">
+                        <MusicVibeButton
+                            terpenes={blend.cultivars.flatMap(c => {
+                                const fullCv = INVENTORY.cultivars.find(cv => cv.name === c.name);
+                                if (!fullCv?.terpenes) return [];
+                                return Object.entries(fullCv.terpenes).map(([name, pct]) => ({
+                                    name,
+                                    percent: (pct as number) * c.ratio
+                                }));
+                            })}
+                        />
+                    </div>
                 </div>
 
                 {/* Why This Blend */}

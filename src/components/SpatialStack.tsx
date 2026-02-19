@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { UIStackRecommendation } from '../types/domain';
 import { resolveCultivarVisuals, resolvePhaseVisuals } from '../lib/visuals';
 import { ChevronDown, Layers, Wind } from 'lucide-react';
+import { MusicVibeButton } from './MusicVibeButton';
+import { INVENTORY } from '../lib/inventory';
+
+const MotionDiv = motion.div as any;
 
 interface SpatialStackProps {
     data: UIStackRecommendation;
@@ -31,7 +35,7 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                     const activeColor = isExpanded ? phaseVisuals.color : '#ffffff';
 
                     return (
-                        <motion.div
+                        <MotionDiv
                             key={index}
                             onClick={() => handleTap(index)}
                             className={`
@@ -80,7 +84,7 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                                             {/* Bar Background */}
                                             <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                                                 {/* Bar Fill */}
-                                                <motion.div
+                                                <MotionDiv
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${cultivar.ratio * 100}% ` }}
                                                     transition={{ duration: 1, delay: cIdx * 0.1 }}
@@ -99,7 +103,7 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                             {/* Expanded Details */}
                             <AnimatePresence>
                                 {isExpanded && (
-                                    <motion.div
+                                    <MotionDiv
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
@@ -116,10 +120,23 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                                                 <span className="text-white">{layer.durationEstimate}</span>
                                             </div>
                                         </div>
-                                    </motion.div>
+
+                                        {/* AI Vibe Music for this layer */}
+                                        <MusicVibeButton
+                                            className="mt-4"
+                                            terpenes={layer.cultivars.flatMap(cultivar => {
+                                                const c = INVENTORY.cultivars.find(cv => cv.name === cultivar.name);
+                                                if (!c?.terpenes) return [];
+                                                return Object.entries(c.terpenes).map(([name, pct]) => ({
+                                                    name,
+                                                    percent: (pct as number) * cultivar.ratio
+                                                }));
+                                            })}
+                                        />
+                                    </MotionDiv>
                                 )}
                             </AnimatePresence>
-                        </motion.div>
+                        </MotionDiv>
                     );
                 })}
             </div>

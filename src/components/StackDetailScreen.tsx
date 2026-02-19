@@ -5,6 +5,8 @@ import { UIStackRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { resolveCultivarVisuals } from '../lib/visuals';
 import { CultivarCard } from './shared/CultivarCard';
+import { MusicVibeButton } from './MusicVibeButton';
+import { INVENTORY } from '../lib/inventory';
 
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
@@ -56,6 +58,25 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                     <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto text-clamp-2-mobile">
                         {stack.description}
                     </p>
+
+                    <div className="flex justify-center mt-3 mb-1">
+                        <MusicVibeButton
+                            terpenes={stack.layers.flatMap(layer =>
+                                layer.cultivars.flatMap(cultivar => {
+                                    const fullCv = INVENTORY.cultivars.find(cv => cv.name === cultivar.name);
+                                    if (!fullCv?.terpenes) return [];
+                                    // Weight by cultivar ratio within layer, 
+                                    // then weight by layer contribution (simplified as equal for now)
+                                    const layerWeight = 1 / stack.layers.length;
+                                    return Object.entries(fullCv.terpenes).map(([name, pct]) => ({
+                                        name,
+                                        percent: (pct as number) * cultivar.ratio * layerWeight
+                                    }));
+                                })
+                            )}
+                        />
+                    </div>
+
                     <div className="flex items-center justify-center gap-1.5 text-[10px] text-white/40 mt-3">
                         <Clock size={10} />
                         <span>{stack.totalDuration} Protocol Duration</span>
