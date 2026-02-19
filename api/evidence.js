@@ -47,6 +47,12 @@ module.exports = async function handler(request, response) {
     try {
         console.log(`[EVIDENCE] Requesting Perplexity for: "${query}"`);
 
+        const isStrainSummary = typeof claimKey === 'string' && claimKey.startsWith('__strain_summary_');
+
+        const systemPrompt = isStrainSummary
+            ? 'You are a cannabis strain information assistant. Return ONLY valid JSON matching the schema the user provides. No markdown code fences, no prose, no commentary. Strict JSON only.'
+            : 'You are a scientific research assistant specializing in cannabis chemistry. Provide structured research grounding with citations.';
+
         const pplxResponse = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',
             headers: {
@@ -54,16 +60,13 @@ module.exports = async function handler(request, response) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'sonar', // Using standard sonar model for broadest availability
+                model: 'sonar',
                 messages: [
-                    {
-                        role: 'system',
-                        content: 'You are a scientific research assistant specializing in cannabis chemistry. Provide structured research grounding with citations.'
-                    },
+                    { role: 'system', content: systemPrompt },
                     { role: 'user', content: query }
                 ],
-                max_tokens: 1000,
-                temperature: 0.2
+                max_tokens: isStrainSummary ? 800 : 1000,
+                temperature: isStrainSummary ? 0.1 : 0.2
             })
         });
 
@@ -105,7 +108,8 @@ module.exports = async function handler(request, response) {
             citations,
             sourceDomains,
             confidence: 'Strong',
-            raw: content
+            raw: content,
+            rawText: content  // alias: used by StrainSummaryProvider JSON extraction
         });
 
     } catch (error) {
