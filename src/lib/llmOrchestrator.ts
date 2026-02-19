@@ -8,6 +8,7 @@ import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
 import { generateNarrative, ToneMode, EnhancedNarrative, analyzeImage } from './llm/strainmathNarrator';
 import { findSubstitute } from './engine/substitution';
+import { AI_CONFIG } from '../ai/config';
 
 const VISION_ENABLED = false; // Feature Gate: Quarantine Vision Recognition
 
@@ -991,6 +992,24 @@ async function performStrainLookup(strainName: string, producer: string | null):
 
         const searchResult = await performSearch(query);
 
+        if (AI_CONFIG.features.tavilyDebug) {
+            if (AI_CONFIG.features.tavilyRawDump) {
+                const rawResponse = (searchResult as any)?.raw || searchResult;
+                console.log("[TAVILY_RAW_RESULT]", JSON.stringify(rawResponse, null, 2));
+            }
+
+            if (searchResult && searchResult.evidence?.length > 0) {
+                const topResult = searchResult.evidence[0];
+                console.log("[TAVILY_DEBUG_METRICS]", {
+                    query,
+                    topResultUrl: topResult.url,
+                    topResultDomain: topResult.url ? new URL(topResult.url).hostname : 'none',
+                    topResultTitle: topResult.title,
+                    tavilyConfidence: (topResult as any).score || 'N/A'
+                });
+            }
+        }
+
         if (!searchResult || !searchResult.sourcesFound) {
             return null;
         }
@@ -1004,82 +1023,106 @@ async function performStrainLookup(strainName: string, producer: string | null):
 
 function convertStrainProfileToIntentSpec(searchResult: any, strainName: string, producer: string | null): IntentSpec {
     // Extract structured data from Tavily results
-    // This is a simplified implementation - in practice you'd parse the search results more thoroughly
-
-    const intentSpec: IntentSpec = {
-        originalInput: strainName + (producer ? ` by ${producer}` : ''),
-        targetEffects: [], // Will be populated based on search results
-        avoidEffects: [],
-        terpenePreferences: { include: [], exclude: [] },
-        constraints: {
-            timeOfDay: "afternoon", // Default, will be overridden if found in search
-            experienceLevel: "regular",
-            sensitivity: "medium"
-        },
-        confidenceScore: 0.8, // High confidence for direct strain lookup
-        reasoning: `Direct profile replication for ${strainName}, responding to your specific search for its unique effect signature.`,
-        consultationScript: `I've mapped out a blend that specifically replicates the reported profile of ${strainName}${producer ? ` as grown by ${producer}` : ''}, as per your request.`
-    };
-    // Note: effect list removed from script to avoid self-reference lint error
-
-    // Parse search results to extract effects, timing, terpenes
-    // This is a simplified implementation - you'd want more sophisticated parsing
     const summary = searchResult.summary || '';
     const lowerSummary = summary.toLowerCase();
 
-    // Extract effects
-    if (lowerSummary.includes('relax') || lowerSummary.includes('calm')) {
-        intentSpec.targetEffects.push('relaxation');
-    }
-    if (lowerSummary.includes('focus') || lowerSummary.includes('energy')) {
-        intentSpec.targetEffects.push('focus');
-    }
-    if (lowerSummary.includes('sleep') || lowerSummary.includes('sedat')) {
-        intentSpec.targetEffects.push('sleep');
-    }
-    if (lowerSummary.includes('pain') || lowerSummary.includes('relief')) {
-        intentSpec.targetEffects.push('pain relief');
-    }
-    if (lowerSummary.includes('social') || lowerSummary.includes('happy')) {
-        intentSpec.targetEffects.push('social');
-    }
+    const intentSpec: IntentSpec = {
+        originalInput: strainName + (producer ? ` by ${producer}` : ''),
+        targetEffects: [],
+        avoidEffects: [],
+        terpenePreferences: { include: [], exclude: [] },
+        constraints: {
+            timeOfDay: "afternoon",
+            experienceLevel: "regular",
+            sensitivity: "medium"
+        },
+        confidenceScore: 0.8,
+        reasoning: `Direct profile replication for ${strainName}, responding to your specific search for its unique effect signature.`,
+        consultationScript: `I've mapped out a blend that specifically replicates the reported profile of ${strainName}${producer ? ` as grown by ${producer}` : ''}, as per your request.`
+    };
+
+    // Parse search results to extract effects
+    if (lowerSummary.includes('relax') || lowerSummary.includes('calm')) intentSpec.targetEffects.push('relaxation');
+    if (lowerSummary.includes('focus') || lowerSummary.includes('energy')) intentSpec.targetEffects.push('focus');
+    if (lowerSummary.includes('sleep') || lowerSummary.includes('sedat')) intentSpec.targetEffects.push('sleep');
+    if (lowerSummary.includes('pain') || lowerSummary.includes('relief')) intentSpec.targetEffects.push('pain relief');
+    if (lowerSummary.includes('social') || lowerSummary.includes('happy')) intentSpec.targetEffects.push('social');
 
     // Extract timing
-    if (lowerSummary.includes('day') || lowerSummary.includes('morning')) {
-        intentSpec.constraints.timeOfDay = 'morning';
-    } else if (lowerSummary.includes('night') || lowerSummary.includes('evening')) {
-        intentSpec.constraints.timeOfDay = 'evening';
+    if (lowerSummary.includes('day') || lowerSummary.includes('morning')) intentSpec.constraints.timeOfDay = 'morning';
+    else if (lowerSummary.includes('night') || lowerSummary.includes('evening')) intentSpec.constraints.timeOfDay = 'evening';
+
+    // Extract common terpenes
+    const terpeneList = ['Limonene', 'Myrcene', 'Caryophyllene', 'Humulene', 'Pinene', 'Linalool', 'Terpinolene', 'Ocimene'];
+    terpeneList.forEach(t => {
+        if (lowerSummary.includes(t.toLowerCase())) {
+            intentSpec.terpenePreferences.include.push(t);
+        }
+    });
+
+    // Heuristic THC extraction
+    const thcMatch = lowerSummary.match(/(\d+(?:\.\d+)?)\s*%\s*thc/);
+    const extractedTHC = thcMatch ? thcMatch[1] : null;
+
+    // Quality Gate Thresholds
+    const threshold_minConfidence = 0.6;
+    const threshold_minTerpenes = 1;
+    const threshold_minEffects = 1;
+
+    const topResultScore = (searchResult.evidence?.[0] as any)?.score || 0;
+    const terpCount = intentSpec.terpenePreferences.include.length;
+    const effCount = intentSpec.targetEffects.length;
+
+    const reasons: string[] = [];
+    if (topResultScore < threshold_minConfidence) reasons.push(`Low confidence score (${topResultScore})`);
+    if (terpCount < threshold_minTerpenes) reasons.push(`Insufficient terpenes found (${terpCount})`);
+    if (effCount < threshold_minEffects) reasons.push(`Insufficient effects identified (${effCount})`);
+
+    const qualityPass = reasons.length === 0;
+    let recommendedAction: "use_as_reference" | "use_as_hint_only" | "ignore" = "use_as_reference";
+    if (!qualityPass) {
+        recommendedAction = reasons.length >= 2 ? "ignore" : "use_as_hint_only";
     }
 
-    // Extract common terpenes (simplified)
-    if (lowerSummary.includes('limonene')) {
-        intentSpec.terpenePreferences.include.push('Limonene');
-    }
-    if (lowerSummary.includes('myrcene')) {
-        intentSpec.terpenePreferences.include.push('Myrcene');
-    }
-    if (lowerSummary.includes('caryophyllene')) {
-        intentSpec.terpenePreferences.include.push('Caryophyllene');
-    }
-    if (lowerSummary.includes('humulene')) {
-        intentSpec.terpenePreferences.include.push('Humulene');
-    }
-    if (lowerSummary.includes('pinene')) {
-        intentSpec.terpenePreferences.include.push('Pinene');
-    }
-    if (lowerSummary.includes('linalool')) {
-        intentSpec.terpenePreferences.include.push('Linalool');
+    if (AI_CONFIG.features.tavilyDebug) {
+        console.log("[TAVILY_TRANSFORMATION_METRICS]", {
+            extractedTHC: extractedTHC || 'none detected',
+            terpeneCount: terpCount,
+            effectsCount: effCount,
+            fieldsPresent: ['thc', 'terpenes', 'effects', 'timing'].filter(f => {
+                if (f === 'thc') return !!extractedTHC;
+                if (f === 'terpenes') return terpCount > 0;
+                if (f === 'effects') return effCount > 0;
+                return true;
+            })
+        });
+
+        console.log("[TAVILY_QUALITY_GATE]", {
+            qualityPass,
+            reasons,
+            recommendedAction,
+            thresholdsUsed: {
+                minConfidence: threshold_minConfidence,
+                minTerpenes: threshold_minTerpenes,
+                minEffects: threshold_minEffects
+            }
+        });
+
+        console.log("[TAVILY_TRANSFORMED_PROFILE]", JSON.stringify(intentSpec, null, 2));
+
+        console.log("[TAVILY_AUDIT_DONE]", {
+            query: searchResult.query,
+            qualityPass,
+            topDomain: searchResult.evidence?.[0]?.url ? new URL(searchResult.evidence[0].url).hostname : 'none',
+            terpeneCount: terpCount,
+            effectsCount: effCount,
+            extractedTHC: extractedTHC || null
+        });
     }
 
-    // Set default effects if none found
-    if (intentSpec.targetEffects.length === 0) {
-        intentSpec.targetEffects = ['relaxation', 'focus'];
-    }
-
-    // Set default terpenes if none found
-    if (intentSpec.terpenePreferences.include.length === 0) {
-        intentSpec.terpenePreferences.include = ['Myrcene', 'Limonene'];
-    }
+    // Set defaults if none found (but quality gate already reported above)
+    if (intentSpec.targetEffects.length === 0) intentSpec.targetEffects = ['relaxation', 'focus'];
+    if (intentSpec.terpenePreferences.include.length === 0) intentSpec.terpenePreferences.include = ['Myrcene', 'Limonene'];
 
     return intentSpec;
 }

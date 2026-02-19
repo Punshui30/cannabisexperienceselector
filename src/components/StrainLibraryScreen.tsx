@@ -2,7 +2,15 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import { resolveCultivarVisuals, resolveTerpeneVisuals } from '../lib/visuals';
 import { INVENTORY } from '../lib/inventory';
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, Droplet, X, Mic } from 'lucide-react';
+import { Activity, Droplet, X, Mic, BookOpen, CheckCircle, RefreshCw, Loader2, Info, ShieldCheck, Sparkles } from 'lucide-react';
+import { LibraryMemoryStore } from '../lib/memory/libraryMemory';
+import { PerplexityEvidenceProvider } from '../ai/providers/evidenceProvider';
+import { AI_CONFIG, isMerchantMode } from '../ai/config';
+import { ShowEvidencePanel } from './ShowEvidencePanel';
+
+// Session-based counters for Perplexity usage
+let sessionEnrichCount = 0;
+let sessionRefreshCount = 0;
 
 import { startListening } from '../lib/speech';
 
@@ -24,9 +32,46 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
     const [selectedName, setSelectedName] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isListening, setIsListening] = useState(false);
+    const [showEvidenceId, setShowEvidenceId] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState<string | null>(null);
+
+    const MotionDiv = motion.div as any;
 
     const handleMicClick = () => {
         startListening(t => setSearchQuery(t), setIsListening);
+    };
+
+    const handleEnrich = async (id: string) => {
+        if (sessionEnrichCount >= AI_CONFIG.limits.maxEnrichPerSession) {
+            alert("Session limit for research enrichment reached.");
+            return;
+        }
+        setIsProcessing(id);
+        try {
+            await PerplexityEvidenceProvider.refreshEnrichmentForStrain(id);
+            sessionEnrichCount++;
+        } catch (err) {
+            console.error("Enrichment failed:", err);
+            alert("Failed to enrich strain data. Check console.");
+        } finally {
+            setIsProcessing(null);
+        }
+    };
+
+    const handleRefresh = async (id: string) => {
+        if (sessionRefreshCount >= AI_CONFIG.limits.maxRefreshPerSession) {
+            alert("Session limit for research refresh reached.");
+            return;
+        }
+        setIsProcessing(id);
+        try {
+            await PerplexityEvidenceProvider.refreshEnrichmentForStrain(id);
+            sessionRefreshCount++;
+        } catch (err) {
+            console.error("Refresh failed:", err);
+        } finally {
+            setIsProcessing(null);
+        }
     };
 
     // Filtered Strains
@@ -114,7 +159,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                         }, [strain.terpenes]);
 
                         return (
-                            <motion.div
+                            <MotionDiv
                                 key={strain.id}
                                 onClick={() => setSelectedName(strain.name)}
                                 initial={{ opacity: 0, y: 10 }}
@@ -166,7 +211,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                         </div>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </MotionDiv>
                         )
                     })}
                 </div>
@@ -176,14 +221,14 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
             <AnimatePresence>
                 {selectedName && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <motion.div
+                        <MotionDiv
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setSelectedName(null)}
                             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                         />
-                        <motion.div
+                        <MotionDiv
                             layoutId={selectedName}
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -234,6 +279,85 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                             </div>
                                         </div>
 
+                                        {/* Research / Evidence Section (Consumer Only) */}
+                                        {!isMerchantMode() && AI_CONFIG.features.evidence && (
+                                            <div className="bg-white/5 rounded-2xl p-5 border border-white/5 space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <BookOpen size={16} className="text-[#00FFD1]" />
+                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-white/60">Research grounding</h4>
+                                                    </div>
+                                                    {(() => {
+                                                        const cached = LibraryMemoryStore.getCachedEnrichment(selectedChemotype.id);
+                                                        if (!cached) return <span className="text-[10px] text-white/20 italic">Not enriched</span>;
+                                                        return (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <CheckCircle size={12} className="text-[#00FFD1]" />
+                                                                <span className="text-[10px] text-[#00FFD1]/60 font-medium">Enriched ✓</span>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+
+                                                <div className="flex gap-2">
+                                                    {(() => {
+                                                        const cached = LibraryMemoryStore.getCachedEnrichment(selectedChemotype.id);
+                                                        const isProcessingThis = isProcessing === selectedChemotype.id;
+                                                        const hasKey = AI_CONFIG.features.hasPerplexityKey;
+
+                                                        if (!hasKey) {
+                                                            return (
+                                                                <div className="flex-1 bg-white/5 border border-white/10 rounded-xl py-3 flex items-center justify-center gap-2 opacity-60">
+                                                                    <ShieldCheck size={14} className="text-red-400" />
+                                                                    <span className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Evidence unavailable (missing key)</span>
+                                                                </div>
+                                                            );
+                                                        }
+
+                                                        if (!cached) {
+                                                            return (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleEnrich(selectedChemotype.id || ''); }}
+                                                                    disabled={isProcessingThis}
+                                                                    className="flex-1 bg-[#00FFD1]/10 hover:bg-[#00FFD1]/20 border border-[#00FFD1]/20 rounded-xl py-3 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                                                                >
+                                                                    {isProcessingThis ? <Loader2 size={14} className="animate-spin text-[#00FFD1]" /> : <Sparkles size={14} className="text-[#00FFD1]" />}
+                                                                    <span className="text-[11px] text-[#00FFD1] font-bold uppercase tracking-wider">Enrich Profile</span>
+                                                                </button>
+                                                            );
+                                                        }
+
+                                                        return (
+                                                            <>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); setShowEvidenceId(selectedChemotype.id || ''); }}
+                                                                    className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 flex items-center justify-center gap-2 transition-colors"
+                                                                >
+                                                                    <BookOpen size={14} className="text-white/40" />
+                                                                    <span className="text-[11px] text-white/70 font-bold uppercase tracking-wider">Show Evidence</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleRefresh(selectedChemotype.id || ''); }}
+                                                                    disabled={isProcessingThis}
+                                                                    className="w-12 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 flex items-center justify-center transition-colors disabled:opacity-50"
+                                                                >
+                                                                    {isProcessingThis ? <Loader2 size={14} className="animate-spin text-white/40" /> : <RefreshCw size={14} className="text-white/40" />}
+                                                                </button>
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </div>
+
+                                                {LibraryMemoryStore.getCachedEnrichment(selectedChemotype.id) && (
+                                                    <div className="flex items-center gap-1.5 opacity-40 px-1">
+                                                        <Info size={10} className="text-white" />
+                                                        <span className="text-[9px] text-white uppercase tracking-wider">
+                                                            Verified grounding active. Last updated: {new Date(LibraryMemoryStore.getCachedEnrichment(selectedChemotype.id).enrichedAt).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         {/* Terpene Breakdown */}
                                         <div className="bg-white/5 rounded-2xl p-5 border border-white/5">
                                             <div className="flex items-center gap-2 mb-4">
@@ -254,7 +378,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                                                     <span className="font-mono text-white/50">{val}%</span>
                                                                 </div>
                                                                 <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                                                    <motion.div
+                                                                    <MotionDiv
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${(val as number) * 50}%` }}
                                                                         className="h-full rounded-full"
@@ -274,9 +398,35 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                     </div>
                                 )}
                             </div>
-                        </motion.div>
+                        </MotionDiv>
                     </div>
                 )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showEvidenceId && (() => {
+                    const strain = strains.find(s => s.id === showEvidenceId);
+                    const enrichment = LibraryMemoryStore.getCachedEnrichment(showEvidenceId);
+                    if (!strain || !enrichment) return null;
+
+                    const receipt = {
+                        engineVersion: "8.5",
+                        intentSummary: `Clinical grounding for ${strain.name} profile`,
+                        topDrivers: enrichment.claimKeys.map((key: string) => ({
+                            claimKey: key,
+                            note: `${key.split('_')[1] || 'Primary'} Characteristic`
+                        })),
+                        riskFlags: []
+                    };
+
+                    return (
+                        <ShowEvidencePanel
+                            key="evidence-panel-modal"
+                            receipt={receipt as any}
+                            onClose={() => setShowEvidenceId(null)}
+                        />
+                    );
+                })()}
             </AnimatePresence>
         </div>
     );

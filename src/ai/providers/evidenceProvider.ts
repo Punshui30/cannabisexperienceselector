@@ -11,6 +11,7 @@ import { LibraryMemoryStore, EvidenceCard } from '../../lib/memory/libraryMemory
 export interface EvidenceProvider {
     getEvidenceForClaim(claimKey: string, query: string): Promise<EvidenceCard>;
     refreshEvidence(claimKey: string, query: string): Promise<EvidenceCard>;
+    refreshEnrichmentForStrain(strainId: string): Promise<void>;
 }
 
 export const PerplexityEvidenceProvider: EvidenceProvider = {
@@ -69,5 +70,52 @@ export const PerplexityEvidenceProvider: EvidenceProvider = {
             console.error(`[EVIDENCE] Error fetching evidence:`, error);
             throw error;
         }
+    },
+
+    async refreshEnrichmentForStrain(strainId: string): Promise<void> {
+        // Guard check
+        assertFeatureAccess('evidence', `Enrich strain ${strainId}`);
+
+        // Get strain data
+        const { INVENTORY } = await import('../../lib/inventory');
+        const cultivar = INVENTORY.cultivars.find(c => c.id === strainId);
+        if (!cultivar) throw new Error('Strain not found in inventory');
+
+        const topTerpenes = Object.entries(cultivar.terpenes || {})
+            .sort(([, a], [, b]) => (b as number) - (a as number))
+            .slice(0, 3)
+            .map(([name]) => name.toLowerCase());
+
+        const claimKeys = topTerpenes.map(t => mapTerpeneToClaimKey(t));
+
+        console.log(`[EVIDENCE_CALL] { strainId: "${strainId}", claimKeys: ${JSON.stringify(claimKeys)}, reason: "enrich" }`);
+
+        // Fetch each evidence sequentially (or parallel if desired, but seq is safer for rate limits)
+        for (const key of claimKeys) {
+            await this.refreshEvidence(key, `${cultivar.name} ${key.split('_')[1] || 'profile'}`);
+        }
+
+        // Store enrichment metadata
+        LibraryMemoryStore.cacheEnrichment(strainId, {
+            enrichedAt: new Date().toISOString(),
+            claimKeys
+        });
     }
 };
+
+/**
+ * HELPER: Map terpene names to canonical claim keys
+ */
+function mapTerpeneToClaimKey(terpene: string): string {
+    const map: Record<string, string> = {
+        limonene: 'TERPENE_LIMONENE_ALERTNESS_ANXIETY_RISK',
+        linalool: 'TERPENE_LINALOOL_CALMING',
+        myrcene: 'MYRCENE_SEDATION',
+        caryophyllene: 'TERPENE_CARYOPHYLLENE_INFLAMMATION',
+        pinene: 'TERPENE_PINENE_FOCUS',
+        humulene: 'TERPENE_HUMULENE_APPETITE',
+        terpinolene: 'TERPENE_TERPINOLENE_UPLIFTING',
+        ocimene: 'TERPENE_OCIMENE_ANTIVIRAL'
+    };
+    return map[terpene] || `TERPENE_${terpene.toUpperCase()}_EFFECTS`;
+}

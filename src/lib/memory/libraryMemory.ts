@@ -48,7 +48,11 @@ export const LibraryMemoryStore = {
 
     getCachedEvidence(claimKey: string): EvidenceCard | null {
         const lib = this.get();
-        return lib.evidence[claimKey] || null;
+        const hit = lib.evidence[claimKey] || null;
+        if (hit) {
+            console.log(`[EVIDENCE_CACHE_HIT] { claimKey: "${claimKey}" }`);
+        }
+        return hit;
     },
 
     cacheEvidence(evidence: EvidenceCard) {
@@ -65,6 +69,21 @@ export const LibraryMemoryStore = {
     cacheVision(hash: string, result: any) {
         const lib = this.get();
         lib.visionCache[hash] = result;
+        this.save(lib);
+    },
+
+    getCachedEnrichment(strainId: string): any | null {
+        const lib = this.get();
+        const hit = lib.enrichment[strainId] || null;
+        if (hit) {
+            console.log(`[EVIDENCE_CACHE_HIT] { strainId: "${strainId}" }`);
+        }
+        return hit;
+    },
+
+    cacheEnrichment(strainId: string, enrichment: any) {
+        const lib = this.get();
+        lib.enrichment[strainId] = enrichment;
         this.save(lib);
     }
 };

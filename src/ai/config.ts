@@ -33,6 +33,9 @@ export interface AIConfig {
         memory: boolean;
         tts: boolean;
         uiSfx: boolean;
+        tavilyDebug: boolean;
+        tavilyRawDump: boolean;
+        hasPerplexityKey: boolean;
     };
     models: {
         reasoning: string;
@@ -53,6 +56,8 @@ export interface AIConfig {
         maxTokensVision: number;
         maxTokensEvidence: number;
         maxEvidenceRefreshPerSession: number;
+        maxEnrichPerSession: number;
+        maxRefreshPerSession: number;
     };
 }
 
@@ -68,6 +73,9 @@ export const AI_CONFIG: AIConfig = {
         evidence: import.meta.env.VITE_EVIDENCE_ENABLED === 'true',
         tts: import.meta.env.VITE_ENABLE_TTS === 'true',
         uiSfx: import.meta.env.VITE_ENABLE_UI_SFX === 'true', // off by default
+        tavilyDebug: import.meta.env.VITE_ENABLE_TAVILY_DEBUG === 'true',
+        tavilyRawDump: import.meta.env.VITE_ENABLE_TAVILY_RAW_DUMP === 'true',
+        hasPerplexityKey: import.meta.env.VITE_HAS_PERPLEXITY_KEY !== 'false', // default to true unless explicitly false
         memory: true,
     },
 
@@ -92,6 +100,8 @@ export const AI_CONFIG: AIConfig = {
         maxTokensVision: 1000,
         maxTokensEvidence: 2000,
         maxEvidenceRefreshPerSession: 5,
+        maxEnrichPerSession: 10,
+        maxRefreshPerSession: 5,
     },
 };
 
@@ -117,4 +127,12 @@ export function isConsumerMode(): boolean {
 
 export function isMerchantMode(): boolean {
     return AI_CONFIG.appMode === 'merchant';
+}
+
+// -----------------------------------------------------------------------------
+// STARTUP VERIFICATION LOGS
+// -----------------------------------------------------------------------------
+if (AI_CONFIG.features.tavilyDebug) {
+    const buildVersion = import.meta.env.VITE_VERCEL_GIT_COMMIT_SHA || 'dev-local';
+    console.log(`[TAVILY_DEBUG] client_debug_enabled=true build=${buildVersion}`);
 }
