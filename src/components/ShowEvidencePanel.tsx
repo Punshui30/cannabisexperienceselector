@@ -24,8 +24,8 @@ export function ShowEvidencePanel({ receipt, onClose }: ShowEvidencePanelProps) 
             <div className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
                 <div className="text-center space-y-4">
                     <ShieldCheck size={48} className="text-red-500 mx-auto" />
-                    <h2 className="text-xl font-bold text-white uppercase tracking-tighter">Access Forbidden</h2>
-                    <p className="text-white/40 text-sm max-w-xs mx-auto italic">Evidence grounding is disabled in Merchant Mode for data security.</p>
+                    <h2 className="text-xl font-bold text-white uppercase tracking-tighter">Access Reserved</h2>
+                    <p className="text-white/40 text-sm max-w-xs mx-auto italic">Sources are disabled in Merchant Mode for data security.</p>
                     <button onClick={onClose} className="text-[#00FFD1] text-xs font-bold uppercase tracking-widest border border-[#00FFD1]/20 px-6 py-2 rounded-full">Close</button>
                 </div>
             </div>
@@ -61,14 +61,14 @@ export function ShowEvidencePanel({ receipt, onClose }: ShowEvidencePanelProps) 
                     <div className="flex items-center gap-2">
                         <h2 className="text-xl font-serif text-white flex items-center gap-2">
                             <BookOpen size={20} className="text-[#BF5AF2]" />
-                            Clinical Evidence
+                            Sources & Background
                         </h2>
                         <SpeakButton
                             text={receipt.intentSummary}
                             summaryMode={true}
                         />
                     </div>
-                    <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mt-1">Engine Determinism & Grounding</p>
+                    <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mt-1">Why this match?</p>
                 </div>
                 <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-white/40">
                     <X size={24} />
@@ -81,7 +81,7 @@ export function ShowEvidencePanel({ receipt, onClose }: ShowEvidencePanelProps) 
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold text-[#00FFD1] uppercase tracking-widest flex items-center gap-2">
                             <Fingerprint size={12} />
-                            Engine Decision Receipt
+                            Formula Breakdown
                         </span>
                         <span className="text-[9px] text-white/20 tabular-nums">v{receipt.engineVersion}</span>
                     </div>
@@ -162,7 +162,7 @@ export function ShowEvidencePanel({ receipt, onClose }: ShowEvidencePanelProps) 
                 <div className="bg-[#BF5AF2]/5 border border-[#BF5AF2]/10 p-4 rounded-xl flex gap-3">
                     <Zap size={16} className="text-[#BF5AF2] shrink-0" />
                     <p className="text-[9px] text-[#BF5AF2]/60 uppercase tracking-widest font-bold leading-relaxed">
-                        Data grounded in clinical research via Perplexity Sonar. Verification of sources is advised.
+                        Research via Perplexity Sonar. Verification of sources is advised.
                     </p>
                 </div>
             </div>

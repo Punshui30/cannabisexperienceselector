@@ -10,15 +10,11 @@ interface V3SignalInterfaceProps {
 
 const ETHOS_STATEMENTS = [
     "How it feels depends on the chemistry.",
-    "Names don’t matter. What’s inside does.",
-    "Two strains with the same name can feel different.",
-    "Blends create more stable experiences.",
-    "We match chemistry to your goal.",
+    "Names don’t tell the full story.",
+    "The right mix makes it more stable.",
+    "We match the formula to your goal.",
     "Balance matters more than hype.",
-    "The right mix changes everything.",
-    "We optimize for how you want to feel.",
-    "This isn’t guesswork. It’s calculated.",
-    "Your outcome guides the formula."
+    "This isn’t guesswork."
 ];
 
 // Helper to shuffle but we'll just rotate them sequentially starting from a random index

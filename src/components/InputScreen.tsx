@@ -12,8 +12,8 @@ import { SessionMemoryStore } from '../lib/memory/sessionMemory';
 import { DEMO_PROFILES, DemoProfile } from '../data/demoProfiles';
 import { GuidedOutcomeWizard } from './GuidedOutcomeWizard';
 
-// Feature gate for vision/camera functionality
-const VISION_ENABLED = false;
+// Enable vision/camera functionality
+const VISION_ENABLED = true;
 
 interface InputScreenProps {
   onSubmit: (input: UserInput) => void;
@@ -325,7 +325,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                   onClick={() => setMode(t)}
                   className={`flex-1 py-2 px-1 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ${mode === t ? TAB_ACTIVE : TAB_INACTIVE}`}
                 >
-                  {t === 'describe' ? 'Describe' : t === 'product' ? 'Photo' : 'Strain'}
+                  {t === 'describe' ? 'How you want to feel' : t === 'product' ? 'Photo Scan' : 'Strain Match'}
                 </button>
               ))}
             </div>
@@ -416,21 +416,29 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
                 {mode === 'strain' && (
                   <div className="flex flex-col gap-3 relative">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={strainName}
-                        onChange={(e) => setStrainName(e.target.value)}
-                        placeholder="Strain Name (e.g. Jack Herer)"
-                        className={GLASS_INPUT}
-                      />
+                    <input
+                      type="text"
+                      value={strainName}
+                      onChange={(e) => setStrainName(e.target.value)}
+                      placeholder="Strain Name (e.g. Jack Herer)"
+                      className={`${GLASS_INPUT} pr-20`}
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      {!isAdminMode && (
+                        <button
+                          onClick={() => setShowCamera(true)}
+                          className="p-2 rounded-full bg-white/10 text-white/30 hover:text-[#00FFD1] transition-all"
+                        >
+                          <Camera size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={() => startListening(t => setStrainName(t), (l) => {
                           setIsListening(l);
                           setListeningField(l ? 'strain' : null);
                           if (!l) scrollToBottom();
                         })}
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening && listeningField === 'strain' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                        className={`p-2 rounded-full transition-all ${isListening && listeningField === 'strain' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
                       >
                         <Mic size={14} />
                       </button>
@@ -559,7 +567,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                               <div key={i} className="w-4 h-4 rounded-full border border-black bg-white/10 shadow-sm" />
                             ))}
                           </div>
-                          <span className="text-[8px] uppercase tracking-widest text-white/30">Layered Protocol</span>
+                          <span className="text-[8px] uppercase tracking-widest text-white/30">Layered Experience</span>
                         </div>
                       </div>
                     </CardShell>

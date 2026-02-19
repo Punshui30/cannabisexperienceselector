@@ -7,6 +7,8 @@ import { LibraryMemoryStore } from '../lib/memory/libraryMemory';
 import { PerplexityEvidenceProvider } from '../ai/providers/evidenceProvider';
 import { AI_CONFIG, isMerchantMode } from '../ai/config';
 import { ShowEvidencePanel } from './ShowEvidencePanel';
+import { SpeakButton } from './SpeakButton';
+import { buildStrainSpeakSummary } from '../lib/ttsUtils';
 
 // Session-based counters for Perplexity usage
 let sessionEnrichCount = 0;
@@ -256,7 +258,27 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                 >
                                     <X size={20} />
                                 </button>
-                                <h2 className="text-3xl font-serif text-white relative z-10">{selectedName}</h2>
+                                <div className="relative z-10 flex items-end gap-3">
+                                    <h2 className="text-3xl font-serif text-white">{selectedName}</h2>
+                                    {selectedChemotype && (
+                                        <SpeakButton
+                                            text={buildStrainSpeakSummary({
+                                                name: selectedChemotype.name,
+                                                type: selectedChemotype.type,
+                                                thcPercent: selectedChemotype.thcPercent,
+                                                cbdPercent: selectedChemotype.cbdPercent,
+                                                topTerpenes: selectedChemotype.terpenes
+                                                    ? Object.entries(selectedChemotype.terpenes)
+                                                        .sort(([, a], [, b]) => (b as number) - (a as number))
+                                                        .slice(0, 3)
+                                                        .map(([k]) => k)
+                                                    : []
+                                            })}
+                                            summaryMode={false}
+                                            className="mb-0.5"
+                                        />
+                                    )}
+                                </div>
                             </div>
 
                             {/* Modal Content */}
@@ -291,15 +313,15 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <BookOpen size={16} className="text-[#00FFD1]" />
-                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-white/60">Research grounding</h4>
+                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-white/60">Sources & Background</h4>
                                                     </div>
                                                     {(() => {
                                                         const cached = LibraryMemoryStore.getCachedEnrichment(selectedChemotype.id);
-                                                        if (!cached) return <span className="text-[10px] text-white/20 italic">Not enriched</span>;
+                                                        if (!cached) return <span className="text-[10px] text-white/20 italic">No sources added yet</span>;
                                                         return (
                                                             <div className="flex items-center gap-1.5">
                                                                 <CheckCircle size={12} className="text-[#00FFD1]" />
-                                                                <span className="text-[10px] text-[#00FFD1]/60 font-medium">Enriched ✓</span>
+                                                                <span className="text-[10px] text-[#00FFD1]/60 font-medium">Sources added ✓</span>
                                                             </div>
                                                         );
                                                     })()}
@@ -315,7 +337,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                                             return (
                                                                 <div className="flex-1 bg-white/5 border border-white/10 rounded-xl py-3 flex items-center justify-center gap-2 opacity-60">
                                                                     <ShieldCheck size={14} className="text-red-400" />
-                                                                    <span className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Evidence unavailable (missing key)</span>
+                                                                    <span className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Sources aren’t available right now.</span>
                                                                 </div>
                                                             );
                                                         }
@@ -328,7 +350,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                                                     className="flex-1 bg-[#00FFD1]/10 hover:bg-[#00FFD1]/20 border border-[#00FFD1]/20 rounded-xl py-3 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                                                                 >
                                                                     {isProcessingThis ? <Loader2 size={14} className="animate-spin text-[#00FFD1]" /> : <Sparkles size={14} className="text-[#00FFD1]" />}
-                                                                    <span className="text-[11px] text-[#00FFD1] font-bold uppercase tracking-wider">Enrich Profile</span>
+                                                                    <span className="text-[11px] text-[#00FFD1] font-bold uppercase tracking-wider">Add Sources</span>
                                                                 </button>
                                                             );
                                                         }
@@ -340,7 +362,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                                                     className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 flex items-center justify-center gap-2 transition-colors"
                                                                 >
                                                                     <BookOpen size={14} className="text-white/40" />
-                                                                    <span className="text-[11px] text-white/70 font-bold uppercase tracking-wider">Show Evidence</span>
+                                                                    <span className="text-[11px] text-white/70 font-bold uppercase tracking-wider">Why this match?</span>
                                                                 </button>
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); handleRefresh(selectedChemotype.id || ''); }}
@@ -353,6 +375,10 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                                         );
                                                     })()}
                                                 </div>
+
+                                                <p className="text-[10px] text-white/40 italic px-1">
+                                                    This adds background information about this strain. It doesn’t change your result.
+                                                </p>
 
                                                 {LibraryMemoryStore.getCachedEnrichment(selectedChemotype.id) && (
                                                     <div className="flex items-center gap-1.5 opacity-40 px-1">

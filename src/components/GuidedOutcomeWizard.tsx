@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronRight, ChevronLeft, Sparkles, History, LayoutGrid, Zap, Moon, Users, HeartPulse, Palette, Smile } from 'lucide-react';
 import { IntentSeed as UserInput } from '../types/domain';
 import { SessionMemoryStore } from '../lib/memory/sessionMemory';
+import { SpeakButton } from './SpeakButton';
+import { buildWizardSpeakSummary } from '../lib/ttsUtils';
 
 const MotionDiv = motion.div as any;
 
@@ -98,7 +100,16 @@ export function GuidedOutcomeWizard({ onClose, onComplete }: WizardProps) {
                                 className="space-y-6"
                             >
                                 <div>
-                                    <h3 className="text-lg text-white mb-2">What's the context?</h3>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="text-lg text-white">What's the context?</h3>
+                                        <SpeakButton
+                                            text={buildWizardSpeakSummary(
+                                                "What's the context for this experience?",
+                                                "Choose a setting like Work, Social, or Nighttime."
+                                            )}
+                                            summaryMode={false}
+                                        />
+                                    </div>
                                     <p className="text-sm text-white/40 font-light italic">Help us understand the setting for this experience.</p>
                                 </div>
 
@@ -141,7 +152,16 @@ export function GuidedOutcomeWizard({ onClose, onComplete }: WizardProps) {
                                 className="space-y-6"
                             >
                                 <div>
-                                    <h3 className="text-lg text-white mb-2">Desired Vibe</h3>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <h3 className="text-lg text-white">Desired Vibe</h3>
+                                        <SpeakButton
+                                            text={buildWizardSpeakSummary(
+                                                "What vibe are you going for?",
+                                                "Pick a mood like Focus, Relax, or Sleep."
+                                            )}
+                                            summaryMode={false}
+                                        />
+                                    </div>
                                     <p className="text-sm text-white/40 font-light italic">Select the primary effect or mood you're looking for.</p>
                                 </div>
 
@@ -174,7 +194,16 @@ export function GuidedOutcomeWizard({ onClose, onComplete }: WizardProps) {
                                 className="space-y-8"
                             >
                                 <div>
-                                    <h3 className="text-lg text-white mb-2">Final Adjustment</h3>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <h3 className="text-lg text-white">Final Adjustment</h3>
+                                        <SpeakButton
+                                            text={buildWizardSpeakSummary(
+                                                "Slide to balance between physical body calm and mental head energy.",
+                                                "Left is more body relaxation, right is more mental clarity."
+                                            )}
+                                            summaryMode={false}
+                                        />
+                                    </div>
                                     <p className="text-sm text-white/40 font-light italic">Slide to balance between physical and mental focus.</p>
                                 </div>
 

@@ -6,11 +6,13 @@ import { analyzeIntent } from './semanticIntentAdapter';
 import { generateConversationalResponse } from './llmNarrativeAdapter';
 import { decideAction } from './llmDecisionAdapter';
 import { performSearch } from './search/searchClient';
-import { generateNarrative, ToneMode, EnhancedNarrative, analyzeImage } from './llm/strainmathNarrator';
+import { generateNarrative, ToneMode, EnhancedNarrative } from './llm/strainmathNarrator';
+import { OpenAIVisionProvider } from '../ai/providers/visionProvider';
+import { matchLabelToLibrary } from './visionMatch';
 import { findSubstitute } from './engine/substitution';
 import { AI_CONFIG } from '../ai/config';
 
-const VISION_ENABLED = false; // Feature Gate: Quarantine Vision Recognition
+const VISION_ENABLED = true; // Feature Gate: Enable Vision Recognition
 
 // Define OrchestratorResult locally
 export interface OrchestratorResult {
@@ -141,8 +143,8 @@ export async function processIntent(
                 data: [], // Empty data signals "Wait for user clarification"
                 analysis: {
                     targetTerpenes: [],
-                    reasoning: "Ambiguity detected in specific cultivar reference. Initializing Calibration Gate for match accuracy.",
-                    consultationScript: "One more signal is needed to ensure accuracy. Please complete the calibration step.",
+                    reasoning: "Multiple matches found for your reference. Checking for accuracy.",
+                    consultationScript: "Which of these looks closest to what you have?",
                     outcomeCategory: 'Other'
                 },
                 decision // Pass decision with requires_clarification: true
@@ -194,17 +196,35 @@ export async function processIntent(
             console.log('[STACK_AUGMENTATION] Forced stack augmentation mode');
         }
 
-        // 0.5. IMAGE ANALYSIS (Vision Gated)
+        // 0.5. IMAGE ANALYSIS (Vision First Flow)
         if (seed.image && VISION_ENABLED) {
-            console.log('ORCHESTRATOR: Image detected. Triggering Vision + Search synthesis...');
-            const visionSummary = await analyzeImage(seed.image);
-            if (visionSummary) {
-                console.log('ORCHESTRATOR: Vision Summary extracted:', visionSummary);
-                // Augment seed text with vision data for semantic analysis
-                seed.text = `${seed.text}\n\n[ENVIRONMENTAL EVIDENCE]: ${visionSummary}`;
+            console.log('ORCHESTRATOR: Image detected. Triggering Vision First matching...');
+            try {
+                // Fetch the blob from the URL
+                const response = await fetch(seed.image);
+                const blob = await response.blob();
+
+                const scan = await OpenAIVisionProvider.scanLabel(blob);
+                console.log('ORCHESTRATOR: Vision Scan result:', scan);
+
+                // Deterministic Library Match
+                const visionMatches = matchLabelToLibrary(scan);
+                console.log('ORCHESTRATOR: Vision Matches:', visionMatches);
+
+                if (visionMatches.length > 0 && visionMatches[0].confidence > 0.8) {
+                    console.log('ORCHESTRATOR: High-confidence vision match found:', visionMatches[0].chemotypeName);
+                    seed.mode = 'strain';
+                    seed.strainName = visionMatches[0].chemotypeName;
+                    seed.grower = scan.brand;
+                    // Narrative enrichment
+                    seed.text = `${seed.text}\n\n[ENVIRONMENTAL EVIDENCE]: Confirmed match for ${visionMatches[0].chemotypeName}. ${scan.analysis}`;
+                } else {
+                    console.log('ORCHESTRATOR: Low-confidence or no vision match. Falling back to search grounding.');
+                    seed.text = `${seed.text}\n\n[ENVIRONMENTAL EVIDENCE]: Detected "${scan.strainName || scan.productName}" by "${scan.brand || 'Unknown'}". ${scan.analysis}`;
+                }
+            } catch (err) {
+                console.error('ORCHESTRATOR: Vision scan failed:', err);
             }
-        } else if (seed.image) {
-            console.log('ORCHESTRATOR: Image detected. Vision pipeline is currently DISABLED.');
         }
 
         // 1. STRAIN MODE: Tavily-Assisted Reference Lookup
@@ -1302,22 +1322,22 @@ function generateDeterministicNarrative(
     // Confidence-based prefix for narratives
     const isHighConfidence = (intent.confidenceScore || 0) > 0.8;
     const isSkipped = intent.clarified && intent.reasoning.includes('Issue: None | Context: None');
-    const confidencePrefix = isSkipped ? "Conservative Interpretation: " : (isHighConfidence ? "Calibrated Result: " : "Preliminary Analysis: ");
+    const confidencePrefix = isSkipped ? "General approach: " : (isHighConfidence ? "Verified match: " : "We built this mix to match what you’re looking for: ");
 
     if (isStrainMatch && type === 'primary') {
         const strainName = intent.originalInput || userInput;
         const producer = (intent as any).grower ? ` by ${(intent as any).grower}` : "";
-        name = `${strainName}${producer} Interpretation`;
-        reasoning = `${confidencePrefix}This blend was engineered by interpreting your request for "${strainName}" through a contextual lens, preserving its defining effects while adjusting for balance and stability.`;
+        name = "Best Match";
+        reasoning = `${confidencePrefix}We interpreted your request for "${strainName}" to find the closest formula for balance and stability.`;
     } else if (type === 'primary') {
-        name = `${blend.cultivars[0].name} Strategic Blend`;
-        reasoning = `${confidencePrefix}Developed to anchor your request for "${userInput}" with ${blend.cultivars[0].name}, prioritizing the ${intent.targetEffects[0] || 'primary'} results while maintaining a calm and stable profile.`;
+        name = "Best Match";
+        reasoning = `${confidencePrefix}We matched "${userInput}" with ${blend.cultivars[0].name} to get the ${intent.targetEffects[0] || 'primary'} results you described.`;
     } else if (type === 'alternative') {
-        name = `Optimized Alternative`;
-        reasoning = `A different approach to your "${userInput}" goal${isSkipped ? " (Conservative Model)" : ""}, shifting focus to ${intent.targetEffects[1] || 'secondary effects'} for verification.`;
+        name = "Another Direction";
+        reasoning = `A different approach to your "${userInput}" goal, focusing more on ${intent.targetEffects[1] || 'secondary effects'}.`;
     } else {
-        name = `Contextual Interpretation`;
-        reasoning = `Re-interpreting your query "${userInput}" through a contextual lens, utilizing ${cultivarNames} for synergistic stability.`;
+        name = "Alternative Option";
+        reasoning = `We adjusted the balance to better fit your goal for "${userInput}", using ${cultivarNames} for a stable experience.`;
     }
 
     return { name, reasoning };

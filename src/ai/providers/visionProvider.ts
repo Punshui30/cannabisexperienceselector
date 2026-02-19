@@ -8,13 +8,11 @@ import { LibraryMemoryStore, getSHA256 } from '../../lib/memory/libraryMemory';
  */
 
 export const LabelScanSchema = z.object({
-    productName: z.string(),
     brand: z.string().optional(),
-    cultivar: z.string().optional(),
-    cannabinoids: z.object({
-        thc: z.number().optional(),
-        cbd: z.number().optional(),
-    }).optional(),
+    strainName: z.string().optional(),
+    productName: z.string(),
+    thcPct: z.number().optional(),
+    cbdPct: z.number().optional(),
     terpenes: z.array(z.object({
         name: z.string(),
         percent: z.number()

@@ -60,7 +60,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onConclude
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 hover:bg-[#BF5AF2]/20 transition-all active:scale-95"
                 >
                   <BookOpen size={12} className="text-[#BF5AF2]" />
-                  <span className="text-[9px] font-bold text-[#BF5AF2] uppercase tracking-[0.1em]">Show Evidence</span>
+                  <span className="text-[9px] font-bold text-[#BF5AF2] uppercase tracking-[0.1em]">Why this match?</span>
                 </button>
               )}
             </div>
@@ -161,7 +161,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onConclude
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
             <path d="M5 12h14M12 5v14" />
           </svg>
-          <span>Calculate Dose</span>
+          <span>Get Dosing Guide</span>
         </motion.button>
       </div>
 

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';
 import { SpatialStack } from './SpatialStack';
 import { SpeakButton } from './SpeakButton';
+import { buildBlendSpeakSummary } from '../lib/ttsUtils';
 
 export interface BlendCardProps {
   recommendation: UIBlendRecommendation;
@@ -18,6 +19,9 @@ export interface BlendCardProps {
 export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenConsultant, index = 0, total = 1 }: BlendCardProps) {
   // State restoration for expand/collapse behavior
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Pre-built TTS summary (memo'd so hash-based cache stays stable)
+  const speakSummary = useMemo(() => buildBlendSpeakSummary(recommendation), [recommendation]);
 
   const MotionDiv = motion.div as any;
   const MotionSpan = motion.span as any;
@@ -179,8 +183,8 @@ export function BlendCard({ recommendation, onCalculate, onViewDetail, onOpenCon
                       Why This Blend
                     </h3>
                     <SpeakButton
-                      text={recommendation.reasoning}
-                      summaryMode={true}
+                      text={speakSummary}
+                      summaryMode={false}
                     />
                   </div>
                   <MotionSpan
