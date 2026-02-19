@@ -114,6 +114,15 @@ export default function App() {
   // Single-shot result handoff guard
   const [hasNavigatedToResult, setHasNavigatedToResult] = useState(false);
 
+  // Library context: track whichever cultivar the user has open in the detail modal
+  const [libraryFocusedCultivar, setLibraryFocusedCultivar] = useState<{
+    name: string;
+    type: string;
+    thcPercent: number;
+    cbdPercent: number;
+    topTerpenes: string[];
+  } | null>(null);
+
   const addLog = (msg: string) => {
     setDebugLog(prev => [...prev.slice(-5), `${new Date().toLocaleTimeString()}: ${msg}`]);
     console.log(`[App_V8.3] ${msg}`);
@@ -616,7 +625,13 @@ export default function App() {
 
                 {/* STRAIN LIBRARY */}
                 {view === 'library' && (
-                  <StrainLibraryScreen onBack={() => setView('input')} />
+                  <StrainLibraryScreen
+                    onBack={() => {
+                      setLibraryFocusedCultivar(null);
+                      setView('input');
+                    }}
+                    onCultivarFocus={(cultivar) => setLibraryFocusedCultivar(cultivar)}
+                  />
                 )}
 
                 {/* RESOLVING SCREEN - Waits for Data */}
@@ -800,12 +815,14 @@ export default function App() {
                     consultantMode={consultantMode} // Pass consultantMode
                     context={{
                       viewType: view as any,
-                      activeEntityType: stackRec ? 'stack' : 'blend',
-                      activeEntityId: stackRec?.id || blendRecs[0]?.id,
+                      activeEntityType: libraryFocusedCultivar ? 'cultivar' : stackRec ? 'stack' : blendRecs[0] ? 'blend' : null,
+                      activeEntityId: libraryFocusedCultivar ? libraryFocusedCultivar.name : stackRec?.id || blendRecs[0]?.id || null,
                       route: window.location.hash || '#/',
                       mode: 'live_assist',
-                      screen: view as any
-                    }}
+                      screen: view as any,
+                      // Full cultivar data so LiveConsultant can inject it into the system prompt
+                      focusedCultivar: libraryFocusedCultivar ?? undefined,
+                    } as any}
                     recommendation={stackRec || blendRecs[0]}
                     onApplyResult={(result: any) => {
                       // SPECIAL PATH: MODE-DRIVEN CALIBRATION (Clarification)

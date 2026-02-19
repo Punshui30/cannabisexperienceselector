@@ -519,7 +519,18 @@ function ComboSheet({ result, onClose }: ComboSheetProps) {
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
-export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
+interface StrainLibraryScreenProps {
+    onBack: () => void;
+    onCultivarFocus?: (cultivar: {
+        name: string;
+        type: string;
+        thcPercent: number;
+        cbdPercent: number;
+        topTerpenes: string[];
+    } | null) => void;
+}
+
+export function StrainLibraryScreen({ onBack, onCultivarFocus }: StrainLibraryScreenProps) {
     const hasMountedRef = useRef(false);
     useEffect(() => {
         if (hasMountedRef.current) return;
@@ -532,6 +543,32 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
     const [selectedName, setSelectedName] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isListening, setIsListening] = useState(false);
+
+    // Called whenever a cultivar detail is opened/closed — propagates to App.tsx
+    const handleSelectCultivar = useCallback((strain: typeof INVENTORY.cultivars[0] | null) => {
+        if (strain) {
+            setSelectedName(strain.name);
+            if (onCultivarFocus) {
+                const topTerpenes = strain.terpenes
+                    ? Object.entries(strain.terpenes)
+                        .sort(([, a], [, b]) => (b as number) - (a as number))
+                        .slice(0, 3)
+                        .map(([k]) => k)
+                    : [];
+                onCultivarFocus({
+                    name: strain.name,
+                    type: strain.type || 'hybrid',
+                    thcPercent: strain.thcPercent,
+                    cbdPercent: strain.cbdPercent,
+                    topTerpenes,
+                });
+                console.log('[LIBRARY_CONTEXT]', 'Cultivar focused:', strain.name, topTerpenes);
+            }
+        } else {
+            setSelectedName(null);
+            onCultivarFocus?.(null);
+        }
+    }, [onCultivarFocus]);
 
     // Combo state
     const [comboIds, setComboIds] = useState<string[]>([]);
@@ -653,7 +690,10 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                 transition={{ delay: idx * 0.04 }}
                                 className="relative p-6 rounded-2xl bg-white/5 overflow-hidden group hover:bg-white/8 transition-all cursor-pointer"
                                 style={{ border: visuals.borderStyle, boxShadow: visuals.glowStyle }}
-                                onClick={() => setSelectedName(strain.name)}
+                                onClick={() => {
+                                    const strain = filteredStrains[idx];
+                                    handleSelectCultivar(strain);
+                                }}
                             >
                                 {/* Color bloom */}
                                 <div
@@ -717,7 +757,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => setSelectedName(null)}
+                            onClick={() => handleSelectCultivar(null)}
                             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                         />
                         <MotionDiv
@@ -735,7 +775,7 @@ export function StrainLibraryScreen({ onBack }: { onBack: () => void }) {
                                     style={{ backgroundColor: selectedVisuals?.primaryColor }}
                                 />
                                 <button
-                                    onClick={() => setSelectedName(null)}
+                                    onClick={() => handleSelectCultivar(null)}
                                     className="absolute top-4 right-4 p-2 bg-black/20 rounded-full text-white/50 hover:text-white"
                                 >
                                     <X size={20} />

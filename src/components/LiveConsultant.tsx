@@ -57,6 +57,7 @@ export function LiveConsultant(props: LiveConsultantProps) {
 
         let intro = consultantText || "";
         if (!intro) {
+            const fc = (context as any)?.focusedCultivar;
             switch (context?.viewType) {
                 case 'results':
                     intro = context.activeEntityType === 'stack'
@@ -82,7 +83,11 @@ export function LiveConsultant(props: LiveConsultantProps) {
                     intro = "Session Review: This blend has been prepared for your records.";
                     break;
                 case 'library':
-                    intro = "Accessing Strain Library. Looking for a specific chemotype?";
+                    if (fc) {
+                        intro = `Viewing ${fc.name} (${fc.type}, ${fc.thcPercent}% THC). Dominant terpenes: ${fc.topTerpenes.join(', ')}. Ask me to build a blend around it or compare it.`;
+                    } else {
+                        intro = "Strain Library open. Tell me what you're looking for — an effect, time of day, or a specific chemotype.";
+                    }
                     break;
                 case 'input':
                     intro = "Hi, I'm your StrainMath™ Assistant. I can help you construct a query or explore presets.";
@@ -92,7 +97,7 @@ export function LiveConsultant(props: LiveConsultantProps) {
             }
         }
         setMessages([{ role: 'assistant', content: intro }]);
-    }, [context?.activeEntityId, context?.viewType, consultantText, consultantMode]);
+    }, [context?.activeEntityId, context?.viewType, context?.activeEntityType, (context as any)?.focusedCultivar?.name, consultantText, consultantMode]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -147,8 +152,17 @@ export function LiveConsultant(props: LiveConsultantProps) {
         setMessages(newMessages);
         setIsLoading(true);
 
+        // Build cultivar context system injection if we're in the library with a focused cultivar
+        const fc = (context as any)?.focusedCultivar;
+        const contextInjection: Message[] = fc
+            ? [{
+                role: 'system',
+                content: `CURRENT VIEW CONTEXT: The user is currently looking at the strain "${fc.name}" (${fc.type || 'unknown type'}, ${fc.thcPercent ?? '?'}% THC, ${fc.cbdPercent ?? '?'}% CBD). Top terpenes: ${fc.topTerpenes?.join(', ') || 'unknown'}. Treat this cultivar as the primary subject of the conversation unless the user redirects.`
+            }]
+            : [];
+
         try {
-            const response = await callLLMChat(newMessages, {
+            const response = await callLLMChat([...contextInjection, ...newMessages], {
                 userInput: userMessage,
                 recommendation
             });
