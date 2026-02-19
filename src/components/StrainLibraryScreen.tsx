@@ -10,6 +10,7 @@ import {
 import { LibraryMemoryStore } from '../lib/memory/libraryMemory';
 import { StrainSummaryProvider, StrainSummary } from '../ai/providers/strainSummaryProvider';
 import { computeComboPreview, generateNarrative, ComboPreviewResult } from '../lib/comboPreviewEngine';
+import { MusicVibeButton } from './MusicVibeButton';
 import { AI_CONFIG, isMerchantMode } from '../ai/config';
 import { SpeakButton } from './SpeakButton';
 import { buildStrainSpeakSummary } from '../lib/ttsUtils';
@@ -515,6 +516,17 @@ function ComboSheet({ result, onClose, isLoadingNarrative }: ComboSheetProps) {
                         )}
                     </div>
 
+                    {/* Vibe Music Button */}
+                    <MusicVibeButton
+                        terpenes={result.cultivarNames.flatMap((name, i) => {
+                            const c = INVENTORY.cultivars.find(cv => cv.name === name);
+                            if (!c?.terpenes) return [];
+                            return Object.entries(c.terpenes).map(([k, v]) => ({
+                                name: k,
+                                percent: (v as number) * result.ratios[i]
+                            }));
+                        })}
+                    />
 
                     {/* Stats row */}
                     <div className="grid grid-cols-3 gap-3">
@@ -1001,6 +1013,17 @@ export function StrainLibraryScreen({ onBack, onCultivarFocus }: StrainLibrarySc
                                                 </button>
                                             );
                                         })()}
+
+                                        <MusicVibeButton
+                                            className="mt-2"
+                                            terpenes={selectedChemotype.terpenes
+                                                ? Object.entries(selectedChemotype.terpenes).map(([k, v]) => ({
+                                                    name: k,
+                                                    percent: v as number
+                                                }))
+                                                : []
+                                            }
+                                        />
 
 
                                         {/* What to Expect — NEW clean section */}
