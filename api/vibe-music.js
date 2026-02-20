@@ -114,9 +114,9 @@ module.exports = async function handler(request, response) {
 
         const prompt = generateMusicPromptFromTerpenes(terpenes, genre);
 
-        // Model names without hashes as per latest Replicate best practices/user feedback
-        // Use melody model specifically when input audio is provided
-        const model = inputAudio ? "facebook/musicgen-melody" : "meta/musicgen";
+        // Replicate requires version hash for meta/musicgen (slug-only returns 404). Use pinned version.
+        const MODEL_VERSION = "671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb";
+        const model = "meta/musicgen:" + MODEL_VERSION;
 
         console.log(`REPLICATE: Running ${model} for prompt:`, prompt);
 
