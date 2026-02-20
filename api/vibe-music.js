@@ -15,24 +15,26 @@ const terpeneToProfile = {
     ocimene: { mood: "bright and citrusy", energy: "medium-high", body: "fresh and light", time: "early morning" }
 };
 
-function buildMusicPrompt({ mood, energy, body, time }) {
+function buildMusicPrompt({ mood, energy, body, time, genre }) {
+    const genreStyle = genre
+        ? `Style: ${genre}. Keep the genre authentic and musical—clear melody, solid groove or structure, something people would actually want to listen to and share.`
+        : "Style: modern ambient electronic with subtle analog warmth.";
     return `
-Create a 30-second cinematic instrumental track.
+Create a 30-second instrumental track the user will want to listen to and share.
 
-Style: modern ambient electronic with subtle analog warmth.
+${genreStyle}
 Mood: ${mood}.
 Energy level: ${energy}.
 Body feel: ${body}.
 Time context: ${time}.
 
 Musical direction:
-- Clear melodic motif (not random pads)
+- Clear melodic motif (not random pads or drones)
 - Defined chord progression
-- Subtle bass movement
-- Light percussive rhythm
-- Emotional arc: intro → build → gentle peak → resolve
+- Solid rhythm or groove appropriate to the style
+- Emotional arc: intro → build → peak → resolve
 - Clean mix, no distortion
-- Professional soundtrack quality
+- Professional, shareable quality
 
 Avoid:
 - Harsh noise
@@ -40,48 +42,47 @@ Avoid:
 - Empty ambient drone
 - Looped repetition
 
-Make it feel intentional and musical, like a Netflix documentary underscore.
+Make it intentional and musical—something that fits the vibe but stands on its own as a track.
 `.trim();
 }
 
-function generateMusicPromptFromTerpenes(terpenes) {
+function generateMusicPromptFromTerpenes(terpenes, genre) {
+    const opts = (overrides) => ({ ...overrides, genre: genre || null });
     if (!terpenes || terpenes.length === 0) {
-        return buildMusicPrompt({
+        return buildMusicPrompt(opts({
             mood: "balanced and atmospheric",
             energy: "medium",
             body: "relaxed but present",
             time: "early evening"
-        });
+        }));
     }
 
     const topTerpenes = [...terpenes]
         .sort((a, b) => (b.percent || 0) - (a.percent || 0))
         .slice(0, 3);
 
-    // Collect profiles and blend them
     const profiles = topTerpenes
         .map(t => terpeneToProfile[t.name.toLowerCase()])
         .filter(Boolean);
 
     if (profiles.length === 0) {
-        return buildMusicPrompt({
+        return buildMusicPrompt(opts({
             mood: "balanced and reflective",
             energy: "medium",
             body: "grounded and calm",
             time: "late afternoon"
-        });
+        }));
     }
 
-    // Use dominant terpene for energy/body/time, blend moods
     const dominant = profiles[0];
     const moods = profiles.map(p => p.mood).join(", ");
 
-    return buildMusicPrompt({
+    return buildMusicPrompt(opts({
         mood: moods,
         energy: dominant.energy,
         body: dominant.body,
         time: dominant.time
-    });
+    }));
 }
 
 module.exports = async function handler(request, response) {
@@ -103,39 +104,57 @@ module.exports = async function handler(request, response) {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
+
     try {
-        const { terpenes, inputAudio } = request.body;
+        const { terpenes, inputAudio, genre } = request.body;
 
         if (!terpenes) {
             return response.status(400).json({ error: 'Missing terpenes' });
         }
 
-        const prompt = generateMusicPromptFromTerpenes(terpenes);
+        const prompt = generateMusicPromptFromTerpenes(terpenes, genre);
 
-        // Use pinned version hashes — routes to /v1/predictions (correct endpoint).
-        // Calling "meta/musicgen" without a hash hits /v1/models/.../predictions which 404s.
-        // Version confirmed working from Replicate playground (punshui30 account).
-        const model = inputAudio
-            ? "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb"
-            : "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb";
+        // Model names without hashes as per latest Replicate best practices/user feedback
+        // Use melody model specifically when input audio is provided
+        const model = inputAudio ? "facebook/musicgen-melody" : "meta/musicgen";
 
-        console.log(`REPLICATE: Running model with version hash for prompt:`, prompt);
+        console.log(`REPLICATE: Running ${model} for prompt:`, prompt);
 
-        const output = await replicate.run(
-            model,
-            {
-                input: {
-                    model_version: inputAudio ? "melody" : "stereo-large",
-                    prompt: prompt,
-                    duration: 30,
-                    ...(inputAudio ? { input_audio: inputAudio } : {})
-                }
-            }
-        );
+        const input = {
+            prompt: prompt,
+            duration: 30,
+        };
 
-        return response.status(200).json({ audio: output });
+        if (inputAudio) {
+            input.input_audio = inputAudio;
+            // The melody model uses the melody input to guide the generation
+        } else {
+            // Standard musicgen parameters
+            input.model_version = "stereo-large";
+        }
+
+        const output = await replicate.run(model, { input });
+
+        // Robustly extract the URL from the output (could be string or object with .url())
+        let audioUrl = "";
+        if (typeof output === 'string') {
+            audioUrl = output;
+        } else if (output && typeof output.url === 'function') {
+            audioUrl = output.url();
+        } else if (output && output.url) {
+            audioUrl = output.url;
+        } else if (Array.isArray(output) && output.length > 0) {
+            audioUrl = output[0];
+        } else {
+            audioUrl = output;
+        }
+
+        console.log("REPLICATE: Output received:", audioUrl);
+
+        return response.status(200).json({ audio: audioUrl });
     } catch (error) {
         console.error("MusicGen error:", error);
         return response.status(500).json({ error: error.message });
     }
 };
+

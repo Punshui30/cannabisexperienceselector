@@ -1,9 +1,27 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Music, Loader2, Upload, X as CloseIcon } from 'lucide-react';
+import { Play, Pause, Music, Loader2, Upload, X as CloseIcon, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { uploadToFileIO } from '../lib/fileTransfer';
 
 const MotionDiv = motion.div as any;
+
+const VIBE_GENRES = [
+    'Ambient',
+    'Hip Hop',
+    'Lo-Fi',
+    'R&B',
+    'Electronic',
+    'Indie / Alternative',
+    'Acoustic',
+    'Folk',
+    'Bluegrass',
+    'Jazz',
+    'Cinematic',
+    'Soul',
+    'Chillwave',
+    'Downtempo',
+] as const;
+export type VibeGenre = (typeof VIBE_GENRES)[number];
 
 interface MusicVibeButtonProps {
     terpenes: { name: string; percent: number }[];
@@ -16,16 +34,19 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
     const [isUploading, setIsUploading] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [referenceAudio, setReferenceAudio] = useState<{ file: File; url: string } | null>(null);
+    const [selectedGenre, setSelectedGenre] = useState<VibeGenre>('Ambient');
+    const [genreOpen, setGenreOpen] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const genreDropdownRef = useRef<HTMLDivElement>(null);
 
-    // Reset when terpenes change significantly
+    // Reset when terpenes or genre change so next generation matches
     useEffect(() => {
         if (audioUrl) {
             stopPlayback();
             setAudioUrl(null);
         }
-    }, [JSON.stringify(terpenes)]);
+    }, [JSON.stringify(terpenes), selectedGenre]);
 
     const stopPlayback = () => {
         if (audioRef.current) {
@@ -60,7 +81,8 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     terpenes,
-                    inputAudio: inputAudioUrl
+                    inputAudio: inputAudioUrl,
+                    genre: selectedGenre,
                 }),
             });
 
@@ -112,9 +134,21 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
         }
     };
 
+    // Close genre dropdown on outside click
+    useEffect(() => {
+        if (!genreOpen) return;
+        const onOutside = (e: MouseEvent) => {
+            if (genreDropdownRef.current && !genreDropdownRef.current.contains(e.target as Node)) {
+                setGenreOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', onOutside);
+        return () => document.removeEventListener('mousedown', onOutside);
+    }, [genreOpen]);
+
     return (
         <div className={`flex flex-col items-start gap-2 ${className}`}>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
@@ -187,6 +221,48 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
                     </div>
                 </button>
 
+                {/* Genre selector */}
+                <div className="relative" ref={genreDropdownRef}>
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setGenreOpen((o) => !o);
+                        }}
+                        disabled={isLoading || isUploading}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 hover:bg-[#00FFD1]/5 transition-all text-[10px] font-bold uppercase tracking-wider"
+                    >
+                        <span className="max-w-[72px] truncate">{selectedGenre}</span>
+                        <ChevronDown size={12} className={`shrink-0 transition-transform ${genreOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    <AnimatePresence>
+                        {genreOpen && (
+                            <MotionDiv
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.15 }}
+                                className="absolute left-0 top-full mt-1 z-50 min-w-[160px] py-1 rounded-xl bg-[#0a0a0a] border border-white/10 shadow-xl max-h-[220px] overflow-y-auto"
+                            >
+                                {VIBE_GENRES.map((g) => (
+                                    <button
+                                        key={g}
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedGenre(g);
+                                            setGenreOpen(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 text-[10px] font-medium uppercase tracking-wider transition-colors ${selectedGenre === g ? 'bg-[#00FFD1]/20 text-[#00FFD1]' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
+                                    >
+                                        {g}
+                                    </button>
+                                ))}
+                            </MotionDiv>
+                        )}
+                    </AnimatePresence>
+                </div>
+
                 {/* Melody Reference Upload */}
                 <div className="relative">
                     <input
@@ -195,6 +271,7 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
                         onChange={handleFileChange}
                         accept="audio/*"
                         className="hidden"
+                        aria-label="Upload reference melody"
                     />
                     {!referenceAudio ? (
                         <button
@@ -205,6 +282,7 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
                             disabled={isUploading || isLoading}
                             className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 transition-all"
                             title="Upload reference melody"
+                            aria-label="Upload reference melody"
                         >
                             <Upload size={16} />
                         </button>
@@ -220,6 +298,7 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
                                     removeReference();
                                 }}
                                 className="hover:text-white transition-colors"
+                                aria-label="Remove reference audio"
                             >
                                 <CloseIcon size={12} />
                             </button>
@@ -235,7 +314,7 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
                         ? "Consulting the music model for this profile..."
                         : referenceAudio
                             ? "Ready to weave your melody into this terpene profile."
-                            : "Generate unique music from this terpene profile."}
+                            : `Generate unique music from this blend in ${selectedGenre.toLowerCase()} style.`}
             </p>
         </div>
     );
