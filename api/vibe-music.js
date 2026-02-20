@@ -127,30 +127,39 @@ module.exports = async function handler(request, response) {
 
         if (inputAudio) {
             input.input_audio = inputAudio;
-            // The melody model uses the melody input to guide the generation
-        } else {
-            // Standard musicgen parameters
-            input.model_version = "stereo-large";
         }
+        // Omit model_version to avoid 422 from some Replicate model versions; slug is enough.
 
         const output = await replicate.run(model, { input });
 
-        // Robustly extract the URL from the output (could be string or object with .url())
-        let audioUrl = "";
-        if (typeof output === 'string') {
-            audioUrl = output;
-        } else if (output && typeof output.url === 'function') {
-            audioUrl = output.url();
-        } else if (output && output.url) {
-            audioUrl = output.url;
-        } else if (Array.isArray(output) && output.length > 0) {
-            audioUrl = output[0];
-        } else {
-            audioUrl = output;
+        // Always return a string URL. Replicate may return string, FileOutput, or array of FileOutputs.
+        async function resolveUrl(val) {
+            if (typeof val === 'string' && val.startsWith('http')) return val;
+            if (!val) return null;
+            if (typeof val.url === 'function') {
+                const u = val.url();
+                if (typeof u?.then === 'function') return await u;
+                return (typeof u === 'string' && u.startsWith('http')) ? u : null;
+            }
+            if (typeof val.url === 'string' && val.url.startsWith('http')) return val.url;
+            return null;
         }
 
-        console.log("REPLICATE: Output received:", audioUrl);
+        let audioUrl = null;
+        if (typeof output === 'string' && output.startsWith('http')) {
+            audioUrl = output;
+        } else if (Array.isArray(output) && output.length > 0) {
+            audioUrl = await resolveUrl(output[0]);
+        } else {
+            audioUrl = await resolveUrl(output);
+        }
 
+        if (typeof audioUrl !== 'string' || !audioUrl.startsWith('http')) {
+            console.error("REPLICATE: Could not extract audio URL from output:", typeof output);
+            return response.status(500).json({ error: 'Music model did not return a playable URL' });
+        }
+
+        console.log("REPLICATE: Output URL OK");
         return response.status(200).json({ audio: audioUrl });
     } catch (error) {
         console.error("MusicGen error:", error);

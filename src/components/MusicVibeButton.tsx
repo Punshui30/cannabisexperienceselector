@@ -87,15 +87,20 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
             });
 
             const data = await response.json();
-            if (data.audio) {
-                setAudioUrl(data.audio);
-                const audio = new Audio(data.audio);
+            const url = typeof data.audio === 'string' && data.audio.startsWith('http') ? data.audio : null;
+            if (url) {
+                setAudioUrl(url);
+                const audio = new Audio(url);
                 audioRef.current = audio;
                 audio.onended = () => setIsPlaying(false);
+                audio.onerror = () => {
+                    console.error('Audio load error');
+                    setIsPlaying(false);
+                };
                 audio.play();
                 setIsPlaying(true);
             } else {
-                console.error('Failed to generate audio:', data.error);
+                console.error('Failed to generate audio:', data.error || 'No playable URL returned');
             }
         } catch (err) {
             console.error('Error calling vibe-music API:', err);
