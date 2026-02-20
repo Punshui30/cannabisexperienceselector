@@ -130,32 +130,52 @@ module.exports = async function handler(request, response) {
         }
         // Omit model_version to avoid 422 from some Replicate model versions; slug is enough.
 
-        const output = await replicate.run(model, { input });
+        const raw = await replicate.run(model, { input });
 
-        // Always return a string URL. Replicate may return string, FileOutput, or array of FileOutputs.
+        // Replicate can return: string URL, FileOutput, array of FileOutputs, or { output: url/array }
         async function resolveUrl(val) {
             if (typeof val === 'string' && val.startsWith('http')) return val;
             if (!val) return null;
             if (typeof val.url === 'function') {
-                const u = val.url();
-                if (typeof u?.then === 'function') return await u;
-                return (typeof u === 'string' && u.startsWith('http')) ? u : null;
+                try {
+                    const u = val.url();
+                    const resolved = typeof u?.then === 'function' ? await u : u;
+                    return (typeof resolved === 'string' && resolved.startsWith('http')) ? resolved : null;
+                } catch (e) {
+                    return null;
+                }
             }
             if (typeof val.url === 'string' && val.url.startsWith('http')) return val.url;
             return null;
         }
 
+        function extractFirstUrl(obj) {
+            if (!obj) return null;
+            const s = typeof obj === 'string' ? obj : null;
+            if (s && s.startsWith('http')) return s;
+            if (Array.isArray(obj) && obj.length > 0) return extractFirstUrl(obj[0]);
+            if (obj && typeof obj === 'object' && obj.output !== undefined) return extractFirstUrl(obj.output);
+            return null;
+        }
+
         let audioUrl = null;
-        if (typeof output === 'string' && output.startsWith('http')) {
-            audioUrl = output;
-        } else if (Array.isArray(output) && output.length > 0) {
-            audioUrl = await resolveUrl(output[0]);
+        audioUrl = extractFirstUrl(raw);
+        if (typeof audioUrl === 'string' && audioUrl.startsWith('http')) {
+            // already have string URL
         } else {
-            audioUrl = await resolveUrl(output);
+            audioUrl = typeof raw === 'string' && raw.startsWith('http') ? raw
+                : Array.isArray(raw) && raw.length > 0 ? await resolveUrl(raw[0])
+                : await resolveUrl(raw);
+        }
+        // Last resort: find any https URL in stringified response (handles wrapped/opaque shapes)
+        if ((typeof audioUrl !== 'string' || !audioUrl.startsWith('http')) && raw != null) {
+            const str = typeof raw === 'string' ? raw : JSON.stringify(raw);
+            const match = str.match(/https?:\/\/[^\s"'<>\\]+/);
+            if (match) audioUrl = match[0];
         }
 
         if (typeof audioUrl !== 'string' || !audioUrl.startsWith('http')) {
-            console.error("REPLICATE: Could not extract audio URL from output:", typeof output);
+            console.error("REPLICATE: Could not extract audio URL. output type:", typeof raw, Array.isArray(raw) ? "array" : "");
             return response.status(500).json({ error: 'Music model did not return a playable URL' });
         }
 
