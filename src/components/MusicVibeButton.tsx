@@ -40,18 +40,19 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
     const fileInputRef = useRef<HTMLInputElement>(null);
     const genreDropdownRef = useRef<HTMLDivElement>(null);
 
-    // Reset when terpenes or genre change so next generation matches
+    // Reset when terpenes or genre change so next generation is fresh (no layering)
     useEffect(() => {
         if (audioUrl) {
-            stopPlayback();
+            stopPlayback(true);
             setAudioUrl(null);
         }
     }, [JSON.stringify(terpenes), selectedGenre]);
 
-    const stopPlayback = () => {
+    const stopPlayback = (releaseRef = false) => {
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
+            if (releaseRef) audioRef.current = null;
         }
         setIsPlaying(false);
     };
@@ -68,7 +69,9 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
             return;
         }
 
-        // Generate new music
+        // Generate new music — stop any existing track first so new one doesn't layer on top
+        stopPlayback(true);
+        setAudioUrl(null);
         setIsLoading(true);
         try {
             let inputAudioUrl = referenceAudio?.url;
