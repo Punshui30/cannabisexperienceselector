@@ -132,9 +132,7 @@ module.exports = async function handler(request, response) {
 
         const prompt = generateMusicPromptFromTerpenes(terpenes, genre);
 
-        // Replicate requires version hash for meta/musicgen (slug-only returns 404). Use pinned version.
-        const MODEL_VERSION = "671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb";
-        const model = "meta/musicgen:" + MODEL_VERSION;
+        const model = "google/lyria-2";
 
         console.log(`REPLICATE: Running ${model} for prompt:`, prompt);
 
@@ -146,38 +144,44 @@ module.exports = async function handler(request, response) {
         if (inputAudio) {
             input.input_audio = inputAudio;
         }
-        // Omit model_version to avoid 422 from some Replicate model versions; slug is enough.
 
         const raw = await replicate.run(model, { input });
 
-        // Deep-resolve Replicate FileOutput-like objects anywhere in the response
+        // Deep-resolve Replicate FileOutput objects everywhere (must run before URL extraction)
         async function resolveDeep(value) {
             if (!value) return value;
 
             if (typeof value === "object" && typeof value.url === "function") {
                 try {
-                    const u = await value.url();
-                    return u;
-                } catch {
+                    return await value.url();
+                } catch (e) {
                     return value;
                 }
             }
 
             if (Array.isArray(value)) {
-                const out = [];
-                for (const v of value) out.push(await resolveDeep(v));
-                return out;
+                return Promise.all(value.map(resolveDeep));
             }
 
             if (typeof value === "object") {
                 const out = {};
-                for (const [k, v] of Object.entries(value)) {
-                    out[k] = await resolveDeep(v);
-                }
+                for (const [k, v] of Object.entries(value)) out[k] = await resolveDeep(v);
                 return out;
             }
 
             return value;
+        }
+
+        function safeStringify(obj) {
+            const seen = new WeakSet();
+            return JSON.stringify(obj, (k, v) => {
+                if (typeof v === "object" && v !== null) {
+                    if (seen.has(v)) return "[Circular]";
+                    seen.add(v);
+                }
+                if (typeof v === "function") return "[Function]";
+                return v;
+            }, 2);
         }
 
         function extractAudioUrl(output) {
@@ -194,7 +198,7 @@ module.exports = async function handler(request, response) {
             }
 
             if (typeof output === "object") {
-                for (const k of ["audio", "audio_url", "url", "output", "file", "files"]) {
+                for (const k of ["audio", "audio_url", "url", "mp3", "wav", "file", "files", "output"]) {
                     if (output[k]) {
                         const url = extractAudioUrl(output[k]);
                         if (url) return url;
@@ -209,13 +213,11 @@ module.exports = async function handler(request, response) {
             return null;
         }
 
-        // Resolve FileOutputs everywhere BEFORE extraction (raw may contain FileOutput deep in tree)
         const resolved = await resolveDeep(raw);
         const audioUrl = extractAudioUrl(resolved);
 
         if (!audioUrl) {
-            console.error("REPLICATE raw (type):", typeof raw, Array.isArray(raw) ? "array" : "not array");
-            console.error("REPLICATE resolved:", JSON.stringify(resolved, null, 2));
+            console.error("REPLICATE resolved output:", safeStringify(resolved));
             return response.status(500).json({ error: 'Could not extract audio URL from Replicate output' });
         }
 
