@@ -136,14 +136,8 @@ module.exports = async function handler(request, response) {
 
         console.log(`REPLICATE: Running ${model} for prompt:`, prompt);
 
-        const input = {
-            prompt: prompt,
-            duration: 30,
-        };
-
-        if (inputAudio) {
-            input.input_audio = inputAudio;
-        }
+        // Lyria-2 only accepts prompt (fixed 30s output). duration/input_audio cause E006 invalid input.
+        const input = { prompt };
 
         function extractAudioUrl(output) {
             if (!output) return null;
