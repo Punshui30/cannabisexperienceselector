@@ -26,9 +26,11 @@ export type VibeGenre = (typeof VIBE_GENRES)[number];
 interface MusicVibeButtonProps {
     terpenes: { name: string; percent: number }[];
     className?: string;
+    /** Called when a track is successfully generated (so share flow can show it). */
+    onGenerated?: (url: string) => void;
 }
 
-export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonProps) {
+export function MusicVibeButton({ terpenes, className = '', onGenerated }: MusicVibeButtonProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -98,6 +100,7 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
                 // Stop any audio that might have started from a previous request before playing this one
                 stopPlayback(true);
                 setAudioUrl(url);
+                onGenerated?.(url);
                 const audio = new Audio(url);
                 audioRef.current = audio;
                 audio.onended = () => setIsPlaying(false);

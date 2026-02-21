@@ -14,9 +14,11 @@ const MotionDiv = motion.div as any;
 interface BlendDetailScreenProps {
     blend: UIBlendRecommendation;
     onBack: () => void;
+    /** When user generates a vibe track, pass its URL so the share tile can show it. */
+    onVibeTrackGenerated?: (url: string) => void;
 }
 
-export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
+export function BlendDetailScreen({ blend, onBack, onVibeTrackGenerated }: BlendDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
     const [prerollSize, setPrerollSize] = useState<number>(0.7); // Default to 0.7g
 
@@ -92,6 +94,7 @@ export function BlendDetailScreen({ blend, onBack }: BlendDetailScreenProps) {
                                     percent: (pct as number) * c.ratio
                                 }));
                             })}
+                            onGenerated={onVibeTrackGenerated}
                         />
                     </div>
                 </div>

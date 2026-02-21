@@ -105,6 +105,7 @@ export default function App() {
   // Shared UI State
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [qrShareOpen, setQRShareOpen] = useState(false);
+  const [vibeTrackForBlend, setVibeTrackForBlend] = useState<Record<string, string>>({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [consultantText, setConsultantText] = useState<string | undefined>(undefined);
   const [analysisProgress, setAnalysisProgress] = useState(0);
@@ -773,6 +774,7 @@ export default function App() {
                   <BlendDetailScreen
                     blend={activeBlend}
                     onBack={() => { setSelectedBlendId(null); setView('results'); }}
+                    onVibeTrackGenerated={(url) => setVibeTrackForBlend(prev => ({ ...prev, [activeBlend.id]: url }))}
                   />
                 )}
 
@@ -799,6 +801,7 @@ export default function App() {
                   <QRShareModal
                     recommendation={blendRecs[0] as UIBlendRecommendation}
                     onClose={() => setQRShareOpen(false)}
+                    vibeTrackUrl={blendRecs[0].id ? vibeTrackForBlend[blendRecs[0].id] : undefined}
                   />
                 )}
 

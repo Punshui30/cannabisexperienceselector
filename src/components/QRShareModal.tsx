@@ -1,21 +1,43 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Twitter, Facebook, Link as LinkIcon, X, Share2, Check } from 'lucide-react';
+import { Twitter, Facebook, Link as LinkIcon, X, Share2, Check, Play, Pause, Music } from 'lucide-react';
 import type { UIBlendRecommendation } from '../types/domain';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ResolvedSessionService } from '../services/ResolvedSessionService';
 import { EngineQRCode } from './EngineQRCode';
 import logoImg from '../assets/logo.png';
 
+// Typed motion div so TS accepts initial/animate/exit (motion/react types can omit them)
+type MotionDivProps = React.HTMLAttributes<HTMLDivElement> & {
+  initial?: object;
+  animate?: object;
+  exit?: object;
+  transition?: object;
+};
+const MotionDiv = motion.div as React.ComponentType<MotionDivProps>;
+
 type Props = {
   recommendation: UIBlendRecommendation;
   onClose: () => void;
+  /** If user generated a vibe track for this blend, show a play control in the share tile. */
+  vibeTrackUrl?: string | null;
 };
 
-export function QRShareModal({ recommendation, onClose }: Props) {
+export function QRShareModal({ recommendation, onClose, vibeTrackUrl }: Props) {
   const [copied, setCopied] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState<string>('');
   const [shareUrl, setShareUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [vibePlaying, setVibePlaying] = useState(false);
+  const vibeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (vibeAudioRef.current) {
+        vibeAudioRef.current.pause();
+        vibeAudioRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const generateLinks = () => {
@@ -88,7 +110,7 @@ export function QRShareModal({ recommendation, onClose }: Props) {
   };
 
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -99,7 +121,7 @@ export function QRShareModal({ recommendation, onClose }: Props) {
       }}
     >
       {/* Backdrop */}
-      <motion.div
+      <MotionDiv
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -107,7 +129,7 @@ export function QRShareModal({ recommendation, onClose }: Props) {
         className="absolute inset-0 bg-black/80 backdrop-blur-2xl"
       />
 
-      <motion.div
+      <MotionDiv
         initial={{ scale: 0.9, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 30 }}
@@ -131,7 +153,7 @@ export function QRShareModal({ recommendation, onClose }: Props) {
           }}
         >
           {/* Animated Mesh Blurs */}
-          <motion.div
+          <MotionDiv
             className="absolute top-[-40%] left-[-20%] w-[100%] h-[100%] rounded-full blur-[80px]"
             animate={{
               scale: [1, 1.4, 1],
@@ -191,7 +213,7 @@ export function QRShareModal({ recommendation, onClose }: Props) {
             </div>
 
             {recommendation.cultivars.map((cultivar, idx) => (
-              <motion.div
+              <MotionDiv
                 key={idx}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -208,15 +230,64 @@ export function QRShareModal({ recommendation, onClose }: Props) {
                 <span className="text-[10px] text-white/40 font-mono">
                   {Math.round(cultivar.ratio * 100)}%
                 </span>
-              </motion.div>
+              </MotionDiv>
             ))}
           </div>
+
+          {/* Vibe track (when user generated music for this blend) */}
+          {vibeTrackUrl && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10" />
+                <span className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold flex items-center gap-1.5">
+                  <Music size={10} style={{ color: themeColor }} />
+                  Your vibe track
+                </span>
+                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (vibePlaying && vibeAudioRef.current) {
+                    vibeAudioRef.current.pause();
+                    vibeAudioRef.current.currentTime = 0;
+                    vibeAudioRef.current = null;
+                    setVibePlaying(false);
+                    return;
+                  }
+                  const audio = new Audio(vibeTrackUrl);
+                  vibeAudioRef.current = audio;
+                  audio.onended = () => {
+                    setVibePlaying(false);
+                    vibeAudioRef.current = null;
+                  };
+                  audio.onerror = () => {
+                    setVibePlaying(false);
+                    vibeAudioRef.current = null;
+                  };
+                  audio.play();
+                  setVibePlaying(true);
+                }}
+                className="w-full bg-white/[0.04] border border-white/10 rounded-xl p-3 flex items-center justify-center gap-2 hover:border-white/20 transition-all group"
+                aria-label={vibePlaying ? 'Pause vibe track' : 'Play vibe track'}
+              >
+                {vibePlaying ? (
+                  <Pause size={18} style={{ color: themeColor }} />
+                ) : (
+                  <Play size={18} style={{ color: themeColor }} />
+                )}
+                <span className="text-xs text-white/90 font-medium">
+                  {vibePlaying ? 'Pause' : 'Play'} vibe track
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* QR Codes */}
           <div className="pt-2 space-y-6">
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <motion.div
+                <MotionDiv
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full"
@@ -328,7 +399,7 @@ export function QRShareModal({ recommendation, onClose }: Props) {
           </p>
         </div>
 
-      </motion.div>
-    </motion.div>
+      </MotionDiv>
+    </MotionDiv>
   );
 }
