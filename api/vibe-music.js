@@ -145,80 +145,48 @@ module.exports = async function handler(request, response) {
             input.input_audio = inputAudio;
         }
 
-        const raw = await replicate.run(model, { input });
-
-        // Deep-resolve Replicate FileOutput objects everywhere (must run before URL extraction)
-        async function resolveDeep(value) {
-            if (!value) return value;
-
-            if (typeof value === "object" && typeof value.url === "function") {
-                try {
-                    return await value.url();
-                } catch (e) {
-                    return value;
-                }
-            }
-
-            if (Array.isArray(value)) {
-                return Promise.all(value.map(resolveDeep));
-            }
-
-            if (typeof value === "object") {
-                const out = {};
-                for (const [k, v] of Object.entries(value)) out[k] = await resolveDeep(v);
-                return out;
-            }
-
-            return value;
-        }
-
-        function safeStringify(obj) {
-            const seen = new WeakSet();
-            return JSON.stringify(obj, (k, v) => {
-                if (typeof v === "object" && v !== null) {
-                    if (seen.has(v)) return "[Circular]";
-                    seen.add(v);
-                }
-                if (typeof v === "function") return "[Function]";
-                return v;
-            }, 2);
-        }
-
         function extractAudioUrl(output) {
             if (!output) return null;
-
             if (typeof output === "string") return output.startsWith("http") ? output : null;
-
             if (Array.isArray(output)) {
                 for (const item of output) {
-                    const url = extractAudioUrl(item);
-                    if (url) return url;
+                    const u = extractAudioUrl(item);
+                    if (u) return u;
                 }
                 return null;
             }
-
             if (typeof output === "object") {
-                for (const k of ["audio", "audio_url", "url", "mp3", "wav", "file", "files", "output"]) {
+                for (const k of ["audio", "audio_url", "url", "file", "files", "output"]) {
                     if (output[k]) {
-                        const url = extractAudioUrl(output[k]);
-                        if (url) return url;
+                        const u = extractAudioUrl(output[k]);
+                        if (u) return u;
                     }
                 }
                 for (const v of Object.values(output)) {
-                    const url = extractAudioUrl(v);
-                    if (url) return url;
+                    const u = extractAudioUrl(v);
+                    if (u) return u;
                 }
             }
-
             return null;
         }
 
-        const resolved = await resolveDeep(raw);
-        const audioUrl = extractAudioUrl(resolved);
+        const prediction = await replicate.predictions.create({
+            model,
+            input,
+        });
+
+        const final = await replicate.wait(prediction);
+
+        if (final.status !== "succeeded") {
+            console.error("REPLICATE failed:", final.status, final.error);
+            return response.status(500).json({ error: `Replicate failed: ${final.status}` });
+        }
+
+        const audioUrl = extractAudioUrl(final.output);
 
         if (!audioUrl) {
-            console.error("REPLICATE resolved output:", safeStringify(resolved));
-            return response.status(500).json({ error: 'Could not extract audio URL from Replicate output' });
+            console.error("REPLICATE final.output:", JSON.stringify(final.output, null, 2));
+            return response.status(500).json({ error: "Could not extract audio URL from Replicate output" });
         }
 
         console.log("REPLICATE: Output URL OK");
