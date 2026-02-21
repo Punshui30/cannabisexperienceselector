@@ -15,10 +15,28 @@ const terpeneToProfile = {
     ocimene: { mood: "bright and citrusy", energy: "medium-high", body: "fresh and light", time: "early morning" }
 };
 
+// Strong, genre-specific style so each option sounds clearly like that genre
+const genreToStyle = {
+    "Ambient": "Style: Ambient. Drone, pads, slow evolution, space and stillness. No beat or only very subtle pulse. Ethereal, cinematic, headphone music.",
+    "Hip Hop": "Style: Hip Hop instrumental. Boom bap or trap-style drums, strong kick and snare, 808-style bass, chopped or smooth melody. Clear beat, head-nod groove, no singing—pure beat.",
+    "Lo-Fi": "Style: Lo-Fi hip hop. Dusty drums, vinyl crackle, warm piano or Rhodes, relaxed boom bap groove. Bedroom producer, study beats, nostalgic and cozy.",
+    "R&B": "Style: R&B instrumental. Smooth chords, soulful keys or guitar, slow groove, brushed or soft drums. Sensual, late-night, no vocals—instrumental only.",
+    "Electronic": "Style: Electronic. Synths, sequenced bass, four-on-the-floor or broken beat, modern production. Can be house, techno, or IDM-inspired—clear electronic palette.",
+    "Indie / Alternative": "Style: Indie / alternative rock instrumental. Guitars, organic drums, melodic and slightly raw. Think soundtrack or band instrumental, not electronic.",
+    "Acoustic": "Style: Acoustic instrumental. Real guitar, piano, or strings; minimal or no electronic elements. Organic, intimate, singer-songwriter vibe without vocals.",
+    "Folk": "Style: Folk instrumental. Acoustic guitar, fingerpicking, maybe mandolin or light percussion. Storytelling feel, warm and earthy.",
+    "Bluegrass": "Style: Bluegrass instrumental. Acoustic guitar, banjo, fiddle, mandolin; driving rhythm, Appalachian feel. No drums or very light—string-band forward.",
+    "Jazz": "Style: Jazz instrumental. Piano or guitar comping, walking or melodic bass, brushed or light drums. Swing or ballad feel, no vocals.",
+    "Cinematic": "Style: Cinematic / film score. Orchestral or hybrid, emotional arc, big or intimate. Clear theme and development, no lyrics.",
+    "Soul": "Style: Soul instrumental. Hammond or Rhodes, warm bass, tight drums. Stax/Motown feel, groove-focused, instrumental only.",
+    "Chillwave": "Style: Chillwave. Synth pads, soft drums, reverb, 80s-inspired but relaxed. Nostalgic, dreamy, no harsh edges.",
+    "Downtempo": "Style: Downtempo. Laid-back beat, bass-heavy, atmospheric. Trip-hop or lounge adjacent, smooth and moody."
+};
+
 function buildMusicPrompt({ mood, energy, body, time, genre }) {
-    const genreStyle = genre
-        ? `Style: ${genre}. Keep the genre authentic and musical—clear melody, solid groove or structure, something people would actually want to listen to and share.`
-        : "Style: modern ambient electronic with subtle analog warmth.";
+    const genreStyle = (genre && genreToStyle[genre])
+        ? genreToStyle[genre]
+        : (genre ? `Style: ${genre}. Clear melody, solid groove, authentic to the genre, shareable.` : "Style: modern ambient electronic with subtle analog warmth.");
     return `
 Create a 30-second instrumental track the user will want to listen to and share.
 
