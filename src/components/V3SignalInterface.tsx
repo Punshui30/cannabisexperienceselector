@@ -8,31 +8,25 @@ interface V3SignalInterfaceProps {
     inputText?: string;
 }
 
-const HEADLINE = "We can't tune a single strain. We can tune the blend.";
+const HEADLINE = "Tune the blend. Not the strain.";
 
-const SUBTEXT = "Your outcome comes from proportions.\nA single strain is one fixed profile.\nA blend gives us knobs: add, dilute, and balance until it matches your goal.";
+const EXPLAINER = "A single strain is fixed. A blend gives knobs: add, dilute, balance.";
 
-const MECHANISM_LINES = [
+const MICRO_LINES = [
     "Single strain = fixed ratio. Blend = adjustable ratio.",
-    "We lock the anchor effect, then tune everything else around it.",
-    "Too edgy? We dilute stimulation and add a calming anchor.",
-    "More clarity without more anxiety: split the job across cultivars.",
-    "We're matching a target profile, not chasing a strain name.",
+    "Too edgy? Dilute stimulation + add a calming anchor.",
+    "Lock the anchor effect. Tune everything else around it.",
+    "Match a target profile — not a strain name.",
     "Each cultivar does one job well. The blend does the whole job.",
-    "Weighted mix → controllable direction. One strain → one preset.",
-    "We can add what's missing and reduce what's too strong.",
-    "Outcome recipes stay consistent even when inventory changes.",
-    "This is why blends are repeatable: proportions are tunable.",
-    "We tune mood, clarity, body feel, and time-context—together.",
-    "A strain can't be \"turned down.\" A blend can.",
-    "The goal is balance: uplift + calm + clarity in one formula.",
-    "We optimize candidates, then balance ratios for your result.",
     "Blends give knobs. Strains give presets.",
-    "One profile can't fit everyone. A blend can be tuned to you.",
+    "Add what's missing. Reduce what's too strong.",
+    "Outcome recipes stay consistent even when inventory changes.",
+    "A strain can't be \"turned down.\" A blend can.",
+    "Balance uplift + calm + clarity in one formula.",
 ];
 
-const ROTATE_MS = 3000;
-const CROSSFADE_MS = 0.2;
+const ROTATE_MS = 3200;
+const CROSSFADE_MS = 0.22;
 
 export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps) {
     const [tipIndex, setTipIndex] = useState(0);
@@ -42,7 +36,7 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
         mountedRef.current = true;
         const interval = setInterval(() => {
             if (mountedRef.current) {
-                setTipIndex((prev) => (prev + 1) % MECHANISM_LINES.length);
+                setTipIndex((prev) => (prev + 1) % MICRO_LINES.length);
             }
         }, ROTATE_MS);
         return () => {
@@ -61,10 +55,10 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
                 }}
             />
 
-            <div className="relative z-10 flex flex-col items-center px-6 sm:px-12 text-center max-w-2xl w-full">
+            <div className="relative z-10 flex flex-col items-center px-6 sm:px-12 text-center w-full max-w-[min(640px,92vw)]">
 
                 {/* Minimal Processing UI: 3-dot pulse */}
-                <div className="flex gap-2 mb-6 sm:mb-8">
+                <div className="flex gap-2 mb-8 sm:mb-10">
                     {[0, 1, 2].map(i => (
                         <motion.div
                             key={i}
@@ -83,41 +77,41 @@ export function V3SignalInterface({ phase, onComplete }: V3SignalInterfaceProps)
                     ))}
                 </div>
 
-                {/* Headline */}
+                {/* Headline — single line, premium */}
                 <motion.h2
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.8 }}
-                    className="text-xl sm:text-2xl font-light leading-snug text-white serif mb-4 max-w-lg"
+                    transition={{ duration: 0.7 }}
+                    className="text-[22px] sm:text-[28px] md:text-[32px] font-light leading-tight text-white serif mb-5 sm:mb-6 max-w-[520px]"
                 >
                     {HEADLINE}
                 </motion.h2>
 
-                {/* Subtext: 2–3 lines */}
+                {/* Explainer — one line, subtle */}
                 <motion.p
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.75 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                    className="text-sm sm:text-base text-white/60 leading-relaxed mb-8 max-w-md whitespace-pre-line"
+                    animate={{ opacity: 0.8 }}
+                    transition={{ duration: 0.6, delay: 0.15 }}
+                    className="text-sm sm:text-base text-white/55 leading-snug mb-8 sm:mb-10 max-w-[90ch]"
                 >
-                    {SUBTEXT}
+                    {EXPLAINER}
                 </motion.p>
 
-                {/* Rotating mechanism line (crossfade) */}
-                <div className="relative h-20 sm:h-24 flex items-center justify-center min-h-[5rem] w-full px-2">
+                {/* Rotating micro-line — subdued, crossfade */}
+                <div className="relative h-12 sm:h-14 flex items-center justify-center w-full px-2">
                     <AnimatePresence mode="wait">
                         <motion.p
                             key={tipIndex}
                             initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
+                            animate={{ opacity: 0.65 }}
                             exit={{ opacity: 0 }}
                             transition={{
                                 duration: CROSSFADE_MS,
                                 ease: "easeInOut"
                             }}
-                            className="text-lg sm:text-2xl font-light leading-snug text-white/90 serif absolute left-0 right-0 text-center"
+                            className="text-xs sm:text-sm font-normal tracking-wide text-white/50 absolute left-0 right-0 text-center max-w-[520px]"
                         >
-                            {MECHANISM_LINES[tipIndex]}
+                            {MICRO_LINES[tipIndex]}
                         </motion.p>
                     </AnimatePresence>
                 </div>
