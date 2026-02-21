@@ -39,6 +39,7 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const genreDropdownRef = useRef<HTMLDivElement>(null);
+    const generationIdRef = useRef(0);
 
     // Reset when terpenes or genre change so next generation is fresh (no layering)
     useEffect(() => {
@@ -72,12 +73,10 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
         // Generate new music — stop any existing track first so new one doesn't layer on top
         stopPlayback(true);
         setAudioUrl(null);
+        const thisGeneration = ++generationIdRef.current;
         setIsLoading(true);
         try {
             let inputAudioUrl = referenceAudio?.url;
-
-            // If we have a file but no URL yet (though we should have it), upload it
-            // but in the current flow we upload on select.
 
             const response = await fetch('/api/vibe-music', {
                 method: 'POST',
@@ -91,7 +90,13 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
 
             const data = await response.json();
             const url = typeof data.audio === 'string' && data.audio.startsWith('http') ? data.audio : null;
+
+            // Ignore result if user already started another generation (prevents layering from out-of-order responses)
+            if (thisGeneration !== generationIdRef.current) return;
+
             if (url) {
+                // Stop any audio that might have started from a previous request before playing this one
+                stopPlayback(true);
                 setAudioUrl(url);
                 const audio = new Audio(url);
                 audioRef.current = audio;
@@ -106,9 +111,13 @@ export function MusicVibeButton({ terpenes, className = '' }: MusicVibeButtonPro
                 console.error('Failed to generate audio:', data.error || 'No playable URL returned');
             }
         } catch (err) {
-            console.error('Error calling vibe-music API:', err);
+            if (thisGeneration === generationIdRef.current) {
+                console.error('Error calling vibe-music API:', err);
+            }
         } finally {
-            setIsLoading(false);
+            if (thisGeneration === generationIdRef.current) {
+                setIsLoading(false);
+            }
         }
     };
 
