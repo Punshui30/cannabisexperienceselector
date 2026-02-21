@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/vibe-music.js": {
-      "runtime": "nodejs20.x"
-    }
-  }
-}
