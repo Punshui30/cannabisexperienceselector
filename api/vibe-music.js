@@ -150,52 +150,73 @@ module.exports = async function handler(request, response) {
 
         const raw = await replicate.run(model, { input });
 
-        // Replicate can return: string URL, FileOutput, array, or full prediction { output: "https://..." }
-        async function resolveUrl(val) {
-            if (typeof val === 'string' && val.startsWith('http')) return val;
-            if (!val) return null;
-            if (typeof val.url === 'function') {
+        // Deep-resolve Replicate FileOutput-like objects anywhere in the response
+        async function resolveDeep(value) {
+            if (!value) return value;
+
+            if (typeof value === "object" && typeof value.url === "function") {
                 try {
-                    const u = val.url();
-                    const resolved = typeof u?.then === 'function' ? await u : u;
-                    return (typeof resolved === 'string' && resolved.startsWith('http')) ? resolved : null;
-                } catch (e) {
-                    return null;
+                    const u = await value.url();
+                    return u;
+                } catch {
+                    return value;
                 }
             }
-            if (typeof val.url === 'string' && val.url.startsWith('http')) return val.url;
+
+            if (Array.isArray(value)) {
+                const out = [];
+                for (const v of value) out.push(await resolveDeep(v));
+                return out;
+            }
+
+            if (typeof value === "object") {
+                const out = {};
+                for (const [k, v] of Object.entries(value)) {
+                    out[k] = await resolveDeep(v);
+                }
+                return out;
+            }
+
+            return value;
+        }
+
+        function extractAudioUrl(output) {
+            if (!output) return null;
+
+            if (typeof output === "string") return output.startsWith("http") ? output : null;
+
+            if (Array.isArray(output)) {
+                for (const item of output) {
+                    const url = extractAudioUrl(item);
+                    if (url) return url;
+                }
+                return null;
+            }
+
+            if (typeof output === "object") {
+                for (const k of ["audio", "audio_url", "url", "output", "file", "files"]) {
+                    if (output[k]) {
+                        const url = extractAudioUrl(output[k]);
+                        if (url) return url;
+                    }
+                }
+                for (const v of Object.values(output)) {
+                    const url = extractAudioUrl(v);
+                    if (url) return url;
+                }
+            }
+
             return null;
         }
 
-        let audioUrl = null;
+        // Resolve FileOutputs everywhere BEFORE extraction (raw may contain FileOutput deep in tree)
+        const resolved = await resolveDeep(raw);
+        const audioUrl = extractAudioUrl(resolved);
 
-        // 1) Explicit prediction shape (what Replicate HTTP API returns; SDK may pass through)
-        if (raw && typeof raw === 'object' && raw.output !== undefined) {
-            let out = raw.output;
-            if (out && typeof out.then === 'function') out = await out;
-            if (typeof out === 'string' && out.startsWith('http')) audioUrl = out;
-            else if (Array.isArray(out) && out.length > 0) audioUrl = await resolveUrl(out[0]) || (typeof out[0] === 'string' && out[0].startsWith('http') ? out[0] : null);
-            else audioUrl = await resolveUrl(out);
-        }
-        // 2) Direct string or array from SDK
-        if (typeof audioUrl !== 'string' || !audioUrl.startsWith('http')) {
-            if (typeof raw === 'string' && raw.startsWith('http')) audioUrl = raw;
-            else if (Array.isArray(raw) && raw.length > 0) audioUrl = await resolveUrl(raw[0]) || (typeof raw[0] === 'string' && raw[0].startsWith('http') ? raw[0] : null);
-            else if (audioUrl == null) audioUrl = await resolveUrl(raw);
-        }
-        // 3) Regex fallback: replicate.delivery and generic https
-        if ((typeof audioUrl !== 'string' || !audioUrl.startsWith('http')) && raw != null) {
-            const str = typeof raw === 'string' ? raw : JSON.stringify(raw);
-            const replicateMatch = str.match(/https:\/\/replicate\.delivery\/[^\s"']+/);
-            const anyMatch = str.match(/https?:\/\/[^\s"'<>\\]+/);
-            if (replicateMatch) audioUrl = replicateMatch[0];
-            else if (anyMatch) audioUrl = anyMatch[0];
-        }
-
-        if (typeof audioUrl !== 'string' || !audioUrl.startsWith('http')) {
-            const hint = raw && typeof raw === 'object' ? Object.keys(raw).join(',') : typeof raw;
-            console.error("REPLICATE: Could not extract audio URL. type:", typeof raw, "keys:", hint);
-            return response.status(500).json({ error: 'Music model did not return a playable URL' });
+        if (!audioUrl) {
+            console.error("REPLICATE raw (type):", typeof raw, Array.isArray(raw) ? "array" : "not array");
+            console.error("REPLICATE resolved:", JSON.stringify(resolved, null, 2));
+            return response.status(500).json({ error: 'Could not extract audio URL from Replicate output' });
         }
 
         console.log("REPLICATE: Output URL OK");
