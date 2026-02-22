@@ -111,6 +111,7 @@ export default function App() {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [enginePhase, setEnginePhase] = useState<EnginePhase>('idle');
   const [debugLog, setDebugLog] = useState<string[]>([]);
+  const [isTvMode, setIsTvMode] = useState(false);
   const [isResolved, setIsResolved] = useState(false);
 
   // Single-shot result handoff guard
@@ -212,55 +213,41 @@ export default function App() {
     const pathname = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
 
-    // Check for new session routes: /session/checkout/:id or /session/share/:id
+    const isTvRequested = pathname === '/tv' || params.get('mode') === 'tv' || params.get('tv') === 'true';
+    if (isTvRequested) {
+      console.log('[App] TV Mode Protocol Engaged');
+      setIsTvMode(true);
+    }
+
     const sessionCheckoutMatch = pathname.match(/^\/session\/checkout\/([A-Z0-9]+)$/);
     const sessionShareMatch = pathname.match(/^\/session\/share\/([A-Z0-9]+)$/);
-
-    // Legacy routes (for backward compatibility)
     const shareId = params.get('s');
     const checkoutId = params.get('checkout');
     const shareViewId = params.get('share');
-
-    // Remote Access Preview
     const isRemotePreview = pathname.includes('/preview') || params.get('mode') === 'preview';
 
     if (isRemotePreview) {
-      console.log('[App] Entering Remote Access Preview Mode');
       setView('remote-access');
     } else if (sessionCheckoutMatch) {
-      const sessionId = sessionCheckoutMatch[1];
-      console.log(`[App] Session Checkout Route: ${sessionId}`);
       setView('checkout');
     } else if (sessionShareMatch) {
-      const sessionId = sessionShareMatch[1];
-      console.log(`[App] Session Share Route: ${sessionId}`);
       setView('share');
     } else if (checkoutId) {
-      console.log(`[App] Legacy Checkout Mode: ${checkoutId}`);
       setView('checkout');
     } else if (shareViewId) {
-      console.log(`[App] Legacy Share View Mode: ${shareViewId}`);
       setView('share');
     } else if (shareId) {
-      console.log(`[App] Detected Share ID: ${shareId}`);
       setIsAnalyzing(true);
-
       SharedBlendService.resolveShare(shareId)
         .then(record => {
           if (record) {
-            console.log('[App] Resolved Share:', record);
             setBlendRecs([record.blend]);
             setView('shared');
-          } else {
-            console.error('[App] Share ID not found/expired');
           }
-        })
-        .catch(err => {
-          console.error('[App] Share Resolution Error', err);
         })
         .finally(() => setIsAnalyzing(false));
     }
-  }, []); // Run once on mount
+  }, []);
 
   // --- CONTEXT-AWARE URL HYDRATION ---
   useEffect(() => {
@@ -590,7 +577,9 @@ export default function App() {
               <EntryGate
                 onEnterUser={handleEnterUser}
                 onEnterAdmin={handleEnterAdmin}
-                onEnterFeed={() => {
+                onEnterFeed={() => setView('live-feed')}
+                onEnterTv={() => {
+                  setIsTvMode(true);
                   setShowEntryGate(false);
                   setView('live-feed');
                 }}
