@@ -27,6 +27,9 @@ export interface BlendResolutionEvent {
 
     // LLM-Generated Insight (Mandatory for Live Feed)
     commentary: string;
+
+    // Curation Flag: Only events marked as broadcasted show up on the TV Network
+    broadcasted?: boolean;
 }
 
 const STORAGE_KEY = 'strainmath_merchant_intelligence_v1';
@@ -67,18 +70,32 @@ class MerchantIntelligenceService {
     /**
      * Core Emitter: Call this from Engine when a blend is resolved.
      */
-    public logResolution(event: Omit<BlendResolutionEvent, 'id' | 'timestamp' | 'merchantId'>) {
+    public logResolution(event: Omit<BlendResolutionEvent, 'id' | 'timestamp' | 'merchantId' | 'broadcasted'>) {
         const fullEvent: BlendResolutionEvent = {
             ...event,
             id: crypto.randomUUID(),
             timestamp: Date.now(),
-            merchantId: 'demo-merchant-01'
+            merchantId: 'demo-merchant-01',
+            broadcasted: false // Default to silent log
         };
 
         this.events.push(fullEvent);
         this.save();
         this.notifyListeners();
         console.log('[Merchant Intelligence] Event Logged', fullEvent);
+    }
+
+    /**
+     * PROMOTE TO TV: Merchant manually pushes an event to the main display
+     */
+    public broadcastEvent(id: string) {
+        const event = this.events.find(e => e.id === id);
+        if (event) {
+            event.broadcasted = true;
+            this.save();
+            this.notifyListeners();
+            console.log('[Merchant Intelligence] Event Broadcasted', id);
+        }
     }
 
     public subscribe(listener: () => void) {

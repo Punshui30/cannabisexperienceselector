@@ -8,13 +8,15 @@ interface EngineQRCodeProps {
   type: 'checkout' | 'share';
   recommendation: UIBlendRecommendation;
   size?: number;
+  showLabels?: boolean;
 }
 
 export const EngineQRCode: React.FC<EngineQRCodeProps> = ({
   url,
   type,
   recommendation,
-  size = 200
+  size = 200,
+  showLabels = true
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
@@ -27,14 +29,13 @@ export const EngineQRCode: React.FC<EngineQRCodeProps> = ({
         await QRCode.toCanvas(canvasRef.current, url, {
           width: size,
           color: {
-            dark: '#000000', // High contrast for scannability
+            dark: '#000000',
             light: '#FFFFFF'
           },
-          errorCorrectionLevel: 'M', // Good balance of error correction and density
+          errorCorrectionLevel: 'M',
           margin: 1
         });
 
-        // Get data URL for display
         const dataUrl = canvasRef.current.toDataURL();
         setQrDataUrl(dataUrl);
       } catch (err) {
@@ -45,18 +46,9 @@ export const EngineQRCode: React.FC<EngineQRCodeProps> = ({
     generateQR();
   }, [url, size]);
 
-  // Engine Core V3 aesthetic colors
   const containerColors = {
-    checkout: {
-      primary: '#D4AF6A', // Gold
-      secondary: '#B8860B',
-      glow: 'rgba(212, 175, 106, 0.3)'
-    },
-    share: {
-      primary: '#8B5CF6', // Violet
-      secondary: '#7C3AED',
-      glow: 'rgba(139, 92, 246, 0.3)'
-    }
+    checkout: { primary: '#D4AF6A', secondary: '#B8860B', glow: 'rgba(212, 175, 106, 0.3)' },
+    share: { primary: '#8B5CF6', secondary: '#7C3AED', glow: 'rgba(139, 92, 246, 0.3)' }
   };
 
   const colors = containerColors[type];
@@ -65,75 +57,31 @@ export const EngineQRCode: React.FC<EngineQRCodeProps> = ({
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative"
+      className="relative flex flex-col items-center"
     >
-      {/* Outer Glow Ring */}
+      {/* Main Container */}
       <div
-        className="absolute inset-0 rounded-2xl blur-xl opacity-60"
-        style={{
-          background: `radial-gradient(circle, ${colors.glow} 0%, transparent 70%)`,
-          transform: 'scale(1.1)'
-        }}
-      />
-
-      {/* Main Container – square with subtle rounding */}
-      <div
-        className="relative rounded-md border-2 overflow-hidden backdrop-blur-md"
-        style={{
-          borderColor: colors.primary,
-          background: `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)`,
-          boxShadow: `
-            inset 0 1px 0 rgba(255,255,255,0.2),
-            0 0 20px ${colors.glow},
-            0 0 40px ${colors.glow}20
-          `
-        }}
+        className="relative rounded-xl border overflow-hidden bg-white shadow-xl flex items-center justify-center p-2"
+        style={{ borderColor: colors.primary + '40' }}
       >
-        {/* Inner metallic ring */}
-        <div
-          className="absolute inset-2 rounded-md border border-white/20"
-          style={{
-            background: `linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)`
-          }}
-        />
-
-        {/* QR Code Container */}
-        <div className="relative flex items-center justify-center p-4">
-          <div className="relative">
-            {/* QR Canvas (hidden for data URL generation) */}
-            <canvas
-              ref={canvasRef}
-              className="hidden"
-              width={size}
-              height={size}
-            />
-
-            {/* QR Display Image */}
-            {qrDataUrl && (
-              <motion.img
-                src={qrDataUrl}
-                alt={`${type} QR code`}
-                className="shadow-lg"
-                style={{ width: size, height: size }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              />
-            )}
-          </div>
-        </div>
+        <canvas ref={canvasRef} className="hidden" />
+        {qrDataUrl && (
+          <img
+            src={qrDataUrl}
+            alt={`${type} QR code`}
+            style={{ width: size, height: size, maxWidth: '100%', objectFit: 'contain' }}
+          />
+        )}
       </div>
 
       {/* Label */}
-      <div className="text-center mt-4">
-        <p className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.primary }}>
-          {type === 'checkout' ? 'Present at Checkout' : 'Save or Share'}
-        </p>
-        <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">
-          {recommendation.name}
-        </p>
-      </div>
+      {showLabels && (
+        <div className="text-center mt-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: colors.primary }}>
+            {type === 'checkout' ? 'Present at Checkout' : 'Save or Share'}
+          </p>
+        </div>
+      )}
     </motion.div>
   );
 };

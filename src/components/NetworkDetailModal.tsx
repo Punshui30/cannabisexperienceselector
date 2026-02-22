@@ -3,7 +3,8 @@ import { Activity, X, Twitter, Facebook, Link as LinkIcon, Check, Tv, Music, Pla
 import { resolveCultivarVisuals } from '../lib/visuals';
 import { useState, useEffect, useRef } from 'react';
 import { ResolvedSessionService } from '../services/ResolvedSessionService';
-import { EngineQRCode } from './EngineQRCode';
+import { CultivarCard } from './shared/CultivarCard';
+import { INVENTORY } from '../lib/inventory';
 
 // Typed motion components
 type MotionDivProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -39,7 +40,6 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
     const vibeAudioRef = useRef<HTMLAudioElement | null>(null);
 
     const [shareUrl, setShareUrl] = useState('');
-    const [checkoutUrl, setCheckoutUrl] = useState('');
 
     useEffect(() => {
         const rec = {
@@ -52,15 +52,11 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
 
         try {
             const sSession = ResolvedSessionService.createSession([rec as any], 'share', event.vibeTrackUrl);
-            const cSession = ResolvedSessionService.createSession([rec as any], 'checkout');
-
             let sUrl = `${window.location.origin}/session/share/${sSession.sessionId}`;
             if (event.vibeTrackUrl) sUrl += `?audio=${encodeURIComponent(event.vibeTrackUrl)}`;
-
             setShareUrl(sUrl);
-            setCheckoutUrl(`${window.location.origin}/session/checkout/${cSession.sessionId}`);
         } catch (e) {
-            console.error('Failed to prepare network QRs', e);
+            console.error('Failed to prepare network share link', e);
         }
     }, [event]);
 
@@ -114,12 +110,12 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
                 )}
 
                 {/* Header Mesh */}
-                <div className="relative h-40 flex items-center justify-center shrink-0 overflow-hidden" style={{ background: `radial-gradient(circle at 50% 120%, ${themeColor}30 0%, transparent 80%)` }}>
+                <div className="relative h-44 flex items-center justify-center shrink-0 overflow-hidden" style={{ background: `radial-gradient(circle at 50% 120%, ${themeColor}30 0%, transparent 80%)` }}>
                     <div className="absolute top-8 right-8 z-50">
                         <button onClick={onClose} className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10"><X size={18} className="text-white/30" /></button>
                     </div>
-                    <div className="relative z-10 w-20 h-20 rounded-full bg-black/40 border border-white/20 flex items-center justify-center backdrop-blur-xl">
-                        <Activity size={32} style={{ color: themeColor, filter: `drop-shadow(0 0 10px ${themeColor})` }} />
+                    <div className="relative z-10 w-24 h-24 rounded-full bg-black/40 border border-white/20 flex items-center justify-center backdrop-blur-xl">
+                        <Activity size={40} style={{ color: themeColor, filter: `drop-shadow(0 0 15px ${themeColor})` }} />
                     </div>
                 </div>
 
@@ -130,28 +126,32 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
                         <h2 className="text-4xl font-serif text-white leading-tight tracking-tight">{event.blendName}</h2>
                     </div>
 
-                    {/* RESTORED: Composition List */}
-                    <div className="space-y-3">
+                    {/* CANONICAL: Composition List */}
+                    <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="h-px flex-1 bg-white/5" />
                             <span className="text-[9px] text-white/20 uppercase tracking-widest font-black">Composition</span>
                             <div className="h-px flex-1 bg-white/5" />
                         </div>
-                        {event.componentSkus?.map((sku: string, i: number) => {
-                            const visuals = resolveCultivarVisuals(sku);
-                            return (
-                                <MotionDiv key={i} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: visuals.primaryColor, boxShadow: `0 0 8px ${visuals.primaryColor}` }} />
-                                        <span className="text-xs text-white/80 font-medium">{sku}</span>
-                                    </div>
-                                    <span className="text-[10px] text-white/30 font-mono">1.0g</span>
-                                </MotionDiv>
-                            );
-                        })}
+                        <div className="space-y-2">
+                            {event.componentSkus?.map((sku: string, i: number) => {
+                                const fullCv = INVENTORY.cultivars.find(cv => cv.name === sku);
+                                return (
+                                    <CultivarCard
+                                        key={i}
+                                        name={sku}
+                                        ratio={1 / (event.componentSkus?.length || 1)}
+                                        profile={fullCv?.profile}
+                                        prominentTerpenes={fullCv?.terpenes ? Object.keys(fullCv.terpenes).slice(0, 3) : []}
+                                        characteristics={fullCv?.characteristics}
+                                        context={{ density: 'compact', showPercentage: true }}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    {/* RESTORED: Commentary */}
+                    {/* Narrative */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="h-px flex-1 bg-white/5" />
@@ -165,7 +165,7 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
                         </div>
                     </div>
 
-                    {/* Multimedia Section (TV & Shared Mode Both) */}
+                    {/* Multimedia Section */}
                     <div className="space-y-6 pt-4">
                         {event.vibeTrackUrl && (
                             <div className="p-4 rounded-3xl bg-white/[0.03] border border-white/10 space-y-4">
@@ -192,31 +192,13 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
                             </div>
                         )}
 
-                        {/* QR Grid - Scannable Area */}
-                        <div className="flex gap-4">
-                            <div className="flex-1 flex flex-col items-center space-y-3">
-                                <div className="w-full aspect-square bg-white rounded-[2rem] p-3 flex items-center justify-center shadow-2xl relative overflow-hidden">
-                                    <EngineQRCode url={checkoutUrl} type="checkout" recommendation={{ name: event.blendName, cultivars: event.componentSkus?.map((s: any) => ({ name: s })), visuals: resolveCultivarVisuals(event.blendName) } as any} size={150} />
-                                    <div className="absolute inset-0 border-[6px] border-black/[0.03] rounded-[2rem] pointer-events-none" />
-                                </div>
-                                <span className="text-[8px] uppercase tracking-widest font-black text-white/30 text-center">Try Blend</span>
-                            </div>
-                            <div className="flex-1 flex flex-col items-center space-y-3">
-                                <div className="w-full aspect-square bg-white rounded-[2rem] p-3 flex items-center justify-center shadow-2xl relative overflow-hidden">
-                                    <EngineQRCode url={shareUrl} type="share" recommendation={{ name: event.blendName, cultivars: event.componentSkus?.map((s: any) => ({ name: s })), visuals: resolveCultivarVisuals(event.blendName) } as any} size={150} />
-                                    <div className="absolute inset-0 border-[6px] border-black/[0.03] rounded-[2rem] pointer-events-none" />
-                                </div>
-                                <span className="text-[8px] uppercase tracking-widest font-black text-white/30 text-center">Save Profile</span>
-                            </div>
-                        </div>
-
-                        {/* Social Row */}
+                        {/* Social Row (Non-TV Only) */}
                         {!isTvMode && (
                             <div className="flex gap-2">
-                                <button onClick={() => handleShare('twitter')} className="flex-1 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"><Twitter size={18} className="text-white/40" /></button>
-                                <button onClick={() => handleShare('facebook')} className="flex-1 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"><Facebook size={18} className="text-white/40" /></button>
-                                <button onClick={() => handleShare('copy')} className="flex-[2] h-12 rounded-2xl bg-[#00FFD1]/5 border border-[#00FFD1]/20 flex items-center justify-center gap-2 hover:bg-[#00FFD1]/10 transition-colors">
-                                    {copied ? <Check size={16} className="text-[#00FFD1]" /> : <LinkIcon size={16} className="text-[#00FFD1]/40" />}
+                                <button onClick={() => handleShare('twitter')} className="flex-1 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"><Twitter size={20} className="text-white/40" /></button>
+                                <button onClick={() => handleShare('facebook')} className="flex-1 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"><Facebook size={20} className="text-white/40" /></button>
+                                <button onClick={() => handleShare('copy')} className="flex-[2.5] h-14 rounded-2xl bg-[#00FFD1]/5 border border-[#00FFD1]/20 flex items-center justify-center gap-3 hover:bg-[#00FFD1]/10 transition-colors">
+                                    {copied ? <Check size={18} className="text-[#00FFD1]" /> : <LinkIcon size={18} className="text-[#00FFD1]/40" />}
                                     <span className="text-[10px] font-black uppercase tracking-widest text-[#00FFD1]/70">{copied ? 'Copied' : 'Copy Link'}</span>
                                 </button>
                             </div>

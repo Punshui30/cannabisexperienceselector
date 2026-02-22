@@ -4,6 +4,8 @@ import type { UIBlendRecommendation } from '../types/domain';
 import { useState, useEffect, useRef } from 'react';
 import { ResolvedSessionService } from '../services/ResolvedSessionService';
 import { EngineQRCode } from './EngineQRCode';
+import { CultivarCard } from './shared/CultivarCard';
+import { INVENTORY } from '../lib/inventory';
 import logoImg from '../assets/logo.png';
 
 type MotionDivProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -85,7 +87,7 @@ export function QRShareModal({ recommendation, onClose, vibeTrackUrl }: Props) {
         <div className="absolute inset-x-0 top-0 h-[2px] z-50 opacity-80" style={{ background: `linear-gradient(90deg, transparent, ${themeColor}, #BF5AF2, ${themeColor}, transparent)` }} />
 
         {/* 1. Header */}
-        <div className="relative h-40 flex flex-col items-center justify-center shrink-0 overflow-hidden" style={{ background: `radial-gradient(circle at 50% 120%, ${themeColor}20 0%, transparent 80%)` }}>
+        <div className="relative h-44 flex flex-col items-center justify-center shrink-0 overflow-hidden" style={{ background: `radial-gradient(circle at 50% 120%, ${themeColor}20 0%, transparent 80%)` }}>
           <div className="absolute top-8 right-8 z-50">
             <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"><X size={18} className="text-white/30" /></button>
           </div>
@@ -96,9 +98,9 @@ export function QRShareModal({ recommendation, onClose, vibeTrackUrl }: Props) {
         </div>
 
         {/* 2. Body Content */}
-        <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-8 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto px-6 pb-8 space-y-8 scrollbar-hide">
 
-          {/* Composition */}
+          {/* COMPOSITION (Fixed to match library style) */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-white/5" />
@@ -106,15 +108,22 @@ export function QRShareModal({ recommendation, onClose, vibeTrackUrl }: Props) {
               <div className="h-px flex-1 bg-white/5" />
             </div>
 
-            {recommendation.cultivars.map((cultivar, idx) => (
-              <MotionDiv key={idx} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor, boxShadow: `0 0 10px ${themeColor}` }} />
-                  <span className="text-xs text-white/80 font-medium">{cultivar.name}</span>
-                </div>
-                <span className="text-[10px] text-white/30 font-mono italic">{Math.round(cultivar.ratio * 100)}%</span>
-              </MotionDiv>
-            ))}
+            <div className="space-y-2">
+              {recommendation.cultivars.map((c, idx) => {
+                const fullCv = INVENTORY.cultivars.find(cv => cv.name === c.name);
+                return (
+                  <CultivarCard
+                    key={idx}
+                    name={c.name}
+                    ratio={c.ratio}
+                    profile={fullCv?.profile}
+                    prominentTerpenes={fullCv?.terpenes ? Object.keys(fullCv.terpenes).slice(0, 3) : []}
+                    characteristics={fullCv?.characteristics}
+                    context={{ density: 'compact', showPercentage: true }}
+                  />
+                );
+              })}
+            </div>
           </div>
 
           {/* Vibe Tools */}
@@ -150,7 +159,7 @@ export function QRShareModal({ recommendation, onClose, vibeTrackUrl }: Props) {
             </div>
           )}
 
-          {/* QR Matrix (SYMMETRICAL) */}
+          {/* QR PORTS (Fixed Symmetry & Layout) */}
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-white/5" />
@@ -158,26 +167,21 @@ export function QRShareModal({ recommendation, onClose, vibeTrackUrl }: Props) {
               <div className="h-px flex-1 bg-white/5" />
             </div>
 
-            <div className="flex gap-6">
-              <div className="flex-1 flex flex-col items-center">
-                <div className="w-full aspect-square bg-white rounded-3xl p-3 flex items-center justify-center shadow-2xl relative overflow-hidden group">
-                  {loading ? <div className="w-full h-full bg-gray-100 rounded-xl animate-pulse" /> : (
-                    <EngineQRCode url={checkoutUrl} type="checkout" recommendation={recommendation} size={150} />
-                  )}
-                  <div className="absolute inset-0 border-[8px] border-black/[0.03] rounded-3xl" />
-                </div>
-                <span className="text-[10px] uppercase tracking-widest font-black text-white/40 mt-3">Checkout</span>
-              </div>
-
-              <div className="flex-1 flex flex-col items-center">
-                <div className="w-full aspect-square bg-white rounded-3xl p-3 flex items-center justify-center shadow-2xl relative overflow-hidden group">
-                  {loading ? <div className="w-full h-full bg-gray-100 rounded-xl animate-pulse" /> : (
-                    <EngineQRCode url={shareUrl} type="share" recommendation={recommendation} size={150} />
-                  )}
-                  <div className="absolute inset-0 border-[8px] border-black/[0.03] rounded-3xl" />
-                </div>
-                <span className="text-[10px] uppercase tracking-widest font-black text-white/40 mt-3">Share</span>
-              </div>
+            <div className="grid grid-cols-2 gap-4">
+              <EngineQRCode
+                url={checkoutUrl}
+                type="checkout"
+                recommendation={recommendation}
+                size={140}
+                showLabels={true}
+              />
+              <EngineQRCode
+                url={shareUrl}
+                type="share"
+                recommendation={recommendation}
+                size={140}
+                showLabels={true}
+              />
             </div>
           </div>
 

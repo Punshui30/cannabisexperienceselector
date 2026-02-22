@@ -15,193 +15,88 @@ const terpeneToProfile = {
     ocimene: { mood: "bright and citrusy", energy: "medium-high", body: "fresh and light", time: "early morning" }
 };
 
-// Strong, genre-specific style so each option sounds clearly like that genre
 const genreToStyle = {
-    "Ambient": "Style: Ambient. Drone, pads, slow evolution, space and stillness. No beat or only very subtle pulse. Ethereal, cinematic, headphone music.",
-    "Hip Hop": "Style: Hip Hop instrumental. Boom bap or trap-style drums, strong kick and snare, 808-style bass, chopped or smooth melody. Clear beat, head-nod groove, no singing—pure beat.",
-    "Lo-Fi": "Style: Lo-Fi hip hop. Dusty drums, vinyl crackle, warm piano or Rhodes, relaxed boom bap groove. Bedroom producer, study beats, nostalgic and cozy.",
-    "R&B": "Style: R&B instrumental. Smooth chords, soulful keys or guitar, slow groove, brushed or soft drums. Sensual, late-night, no vocals—instrumental only.",
-    "Electronic": "Style: Electronic. Synths, sequenced bass, four-on-the-floor or broken beat, modern production. Can be house, techno, or IDM-inspired—clear electronic palette.",
-    "Indie / Alternative": "Style: Indie / alternative rock instrumental. Guitars, organic drums, melodic and slightly raw. Think soundtrack or band instrumental, not electronic.",
-    "Acoustic": "Style: Acoustic instrumental. Real guitar, piano, or strings; minimal or no electronic elements. Organic, intimate, singer-songwriter vibe without vocals.",
-    "Folk": "Style: Folk instrumental. Acoustic guitar, fingerpicking, maybe mandolin or light percussion. Storytelling feel, warm and earthy.",
-    "Bluegrass": "Style: Bluegrass instrumental. Acoustic guitar, banjo, fiddle, mandolin; driving rhythm, Appalachian feel. No drums or very light—string-band forward.",
-    "Jazz": "Style: Jazz instrumental. Piano or guitar comping, walking or melodic bass, brushed or light drums. Swing or ballad feel, no vocals.",
-    "Cinematic": "Style: Cinematic / film score. Orchestral or hybrid, emotional arc, big or intimate. Clear theme and development, no lyrics.",
-    "Soul": "Style: Soul instrumental. Hammond or Rhodes, warm bass, tight drums. Stax/Motown feel, groove-focused, instrumental only.",
-    "Chillwave": "Style: Chillwave. Synth pads, soft drums, reverb, 80s-inspired but relaxed. Nostalgic, dreamy, no harsh edges.",
-    "Downtempo": "Style: Downtempo. Laid-back beat, bass-heavy, atmospheric. Trip-hop or lounge adjacent, smooth and moody."
+    "Ambient": "Style: Ambient. Drone, pads, slow evolution, space and stillness.",
+    "Hip Hop": "Style: Hip Hop instrumental. Boom bap or trap-style drums, strong kick and snare, 808-style bass.",
+    "Lo-Fi": "Style: Lo-Fi hip hop. Dusty drums, vinyl crackle, warm piano or Rhodes.",
+    "R&B": "Style: R&B instrumental. Smooth chords, soulful keys or guitar, slow groove.",
+    "Electronic": "Style: Electronic. Synths, sequenced bass, four-on-the-floor or broken beat.",
+    "Indie / Alternative": "Style: Indie / alternative rock. Guitars, organic drums, melodic.",
+    "Acoustic": "Style: Acoustic. Real guitar, piano, or strings.",
+    "Folk": "Style: Folk. Acoustic guitar, fingerpicking, earthy.",
+    "Bluegrass": "Style: Bluegrass. Acoustic guitar, banjo, fiddle, mandolin.",
+    "Jazz": "Style: Jazz. Piano or guitar comping, walking bass.",
+    "Cinematic": "Style: Cinematic / film score. Orchestral or hybrid, emotional arc.",
+    "Soul": "Style: Soul. Hammond or Rhodes, warm bass, tight drums.",
+    "Chillwave": "Style: Chillwave. Synth pads, soft drums, reverb.",
+    "Downtempo": "Style: Downtempo. Laid-back beat, bass-heavy, atmospheric."
 };
 
-function buildMusicPrompt({ mood, energy, body, time, genre, narration, cultivars }) {
-    const genreStyle = (genre && genreToStyle[genre])
-        ? genreToStyle[genre]
-        : (genre ? `Style: ${genre}. Clear melody, solid groove, authentic to the genre, shareable.` : "Style: modern ambient electronic with subtle analog warmth.");
-
-    const cultivarNames = (cultivars && cultivars.length > 0)
-        ? cultivars.map(c => c.name).join(", ")
-        : "this custom blend";
-
-    // Short lyric poem based on the blend
-    const lyricsString = `
-[Verse]
-In the ${time}, feel the power of ${cultivarNames}.
-${narration ? narration.split('.').slice(0, 2).join('.') + '.' : 'A perfect balance for your journey today.'}
-
-[Chorus]
-A ${mood} vibe, let the energy flow,
-StrainMath resonance, watch the body glow.
-${energy} energy, ${body} in every breath,
-Finding the rhythm, transcending the rest.
-`.trim();
-
-    return `
-Create a 30-second track with VOCALS singing the lyrics below.
-STYLE: ${genreStyle}
-MOOD: ${mood}
-ENERGY: ${energy}
-
-LYRICS:
-${lyricsString}
-
-Musical direction:
-- Clear singing vocals in the ${genre || 'modern'} style.
-- Melodic motif following the genre's typical structure.
-- Professional, shareable production quality.
-- Clean mix, no distortion.
-`.trim();
-}
-
-function generateMusicPromptFromTerpenes(terpenes, genre, narration, cultivars) {
-    const opts = (overrides) => ({
-        ...overrides,
-        genre: genre || null,
-        narration: narration || null,
-        cultivars: cultivars || null
-    });
-
+function getProfileFromTerpenes(terpenes) {
     if (!terpenes || terpenes.length === 0) {
-        return buildMusicPrompt(opts({
-            mood: "balanced and atmospheric",
-            energy: "medium",
-            body: "relaxed but present",
-            time: "early evening"
-        }));
+        return { mood: "balanced", energy: "medium", body: "relaxed", time: "evening" };
     }
-
-    const topTerpenes = [...terpenes]
-        .sort((a, b) => (b.percent || 0) - (a.percent || 0))
-        .slice(0, 3);
-
-    const profiles = topTerpenes
-        .map(t => terpeneToProfile[t.name.toLowerCase()])
-        .filter(Boolean);
-
-    if (profiles.length === 0) {
-        return buildMusicPrompt(opts({
-            mood: "balanced and reflective",
-            energy: "medium",
-            body: "grounded and calm",
-            time: "late afternoon"
-        }));
-    }
-
+    const topTerpenes = [...terpenes].sort((a, b) => (b.percent || 0) - (a.percent || 0)).slice(0, 3);
+    const profiles = topTerpenes.map(t => terpeneToProfile[t.name.toLowerCase()]).filter(Boolean);
+    if (profiles.length === 0) return { mood: "reflective", energy: "medium", body: "grounded", time: "afternoon" };
     const dominant = profiles[0];
     const moods = profiles.map(p => p.mood).join(", ");
-
-    return buildMusicPrompt(opts({
-        mood: moods,
-        energy: dominant.energy,
-        body: dominant.body,
-        time: dominant.time
-    }));
+    return { mood: moods, energy: dominant.energy, body: dominant.body, time: dominant.time };
 }
 
 module.exports = async function handler(request, response) {
-    // CORS Headers
     response.setHeader('Access-Control-Allow-Credentials', true);
     response.setHeader('Access-Control-Allow-Origin', '*');
     response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    response.setHeader(
-        'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-    );
+    response.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-    if (request.method === 'OPTIONS') {
-        response.status(200).end();
-        return;
-    }
-
-    if (request.method !== 'POST') {
-        return response.status(405).json({ error: 'Method Not Allowed' });
-    }
-
+    if (request.method === 'OPTIONS') return response.status(200).end();
+    if (request.method !== 'POST') return response.status(405).json({ error: 'Method Not Allowed' });
 
     try {
-        const { terpenes, inputAudio, genre, narration, cultivars } = request.body;
+        const { terpenes, genre, narration, cultivars } = request.body;
+        if (!terpenes) return response.status(400).json({ error: 'Missing terpenes' });
 
-        if (!terpenes) {
-            return response.status(400).json({ error: 'Missing terpenes' });
+        const profile = getProfileFromTerpenes(terpenes);
+        const genreStyle = genreToStyle[genre] || `Style: ${genre || 'modern'}.`;
+
+        const lyrics = (cultivars && cultivars.length > 0)
+            ? `[Verse]\nIn the ${profile.time}, feel the power of ${cultivars.map(c => c.name).join(", ")}.\n${narration ? narration.split('.').slice(0, 1).join('.') + '.' : 'A perfect balance for your journey.'}\n\n[Chorus]\nA ${profile.mood} vibe, let the energy flow,\nStrainMath resonance, watch the body glow.\n${profile.energy} energy, ${profile.body} in every breath.`
+            : `[Verse]\nFinding the balance in every breath today.\nA journey of focus, a path to the light.\n\n[Chorus]\nStrainMath resonance, feel the body glow.\nA perfect harmony, let the energy flow.`;
+
+        const model = "minimax/music-01";
+        const input = {
+            prompt: `A professional ${genre || 'modern'} ${profile.mood} song with ${profile.energy} energy. ${genreStyle} High fidelity vocals, singing clearly.`,
+            lyrics: lyrics
+        };
+
+        console.log(`REPLICATE: Running ${model} with lyrics.`);
+
+        const prediction = await replicate.predictions.create({ model, input });
+        const final = await replicate.wait(prediction);
+
+        if (final.status !== "succeeded") {
+            return response.status(500).json({ error: `Replicate failed: ${final.status}` });
         }
-
-        const prompt = generateMusicPromptFromTerpenes(terpenes, genre, narration, cultivars);
-
-        const model = "google/lyria-2";
-
-        console.log(`REPLICATE: Running ${model} for prompt:`, prompt);
-
-        // Lyria-2 only accepts prompt (fixed 30s output). duration/input_audio cause E006 invalid input.
-        const input = { prompt };
 
         function extractAudioUrl(output) {
             if (!output) return null;
             if (typeof output === "string") return output.startsWith("http") ? output : null;
-            if (Array.isArray(output)) {
-                for (const item of output) {
-                    const u = extractAudioUrl(item);
-                    if (u) return u;
-                }
-                return null;
-            }
+            if (Array.isArray(output)) return extractAudioUrl(output[0]);
             if (typeof output === "object") {
-                for (const k of ["audio", "audio_url", "url", "file", "files", "output"]) {
-                    if (output[k]) {
-                        const u = extractAudioUrl(output[k]);
-                        if (u) return u;
-                    }
-                }
-                for (const v of Object.values(output)) {
-                    const u = extractAudioUrl(v);
-                    if (u) return u;
+                for (const k of ["audio", "audio_url", "url", "file", "result"]) {
+                    if (output[k]) return extractAudioUrl(output[k]);
                 }
             }
             return null;
         }
 
-        const prediction = await replicate.predictions.create({
-            model,
-            input,
-        });
-
-        const final = await replicate.wait(prediction);
-
-        if (final.status !== "succeeded") {
-            console.error("REPLICATE failed:", final.status, final.error);
-            return response.status(500).json({ error: `Replicate failed: ${final.status}` });
-        }
-
         const audioUrl = extractAudioUrl(final.output);
+        if (!audioUrl) return response.status(500).json({ error: "Could not extract audio URL" });
 
-        if (!audioUrl) {
-            console.error("REPLICATE final.output:", JSON.stringify(final.output, null, 2));
-            return response.status(500).json({ error: "Could not extract audio URL from Replicate output" });
-        }
-
-        console.log("REPLICATE: Output URL OK");
         return response.status(200).json({ audio: audioUrl });
     } catch (error) {
         console.error("MusicGen error:", error);
         return response.status(500).json({ error: error.message });
     }
 };
-

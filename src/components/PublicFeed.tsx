@@ -4,15 +4,8 @@ import { Intelligence, BlendResolutionEvent } from '../lib/merchantIntelligence'
 import { Activity, Lock, Globe, Tv } from 'lucide-react';
 import { NetworkDetailModal } from './NetworkDetailModal';
 
-// Typed motion div/button so TS accepts initial/animate/exit
-type MotionButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    initial?: object;
-    animate?: object;
-    exit?: object;
-    transition?: object;
-    layout?: boolean;
-};
-const MotionButton = motion.button as React.ComponentType<MotionButtonProps>;
+const MotionButton = motion.button as any;
+const MotionDiv = motion.div as any;
 
 interface PublicFeedProps {
     isTvMode?: boolean;
@@ -27,12 +20,18 @@ export function PublicFeed({ isTvMode = false }: PublicFeedProps) {
     useEffect(() => {
         // Poll for new events (Downstream Consumer Pattern)
         const interval = setInterval(() => {
-            const recent = Intelligence.getRecentActivity().slice(0, 5); // Top 5
-            setEvents(recent);
+            let recent = Intelligence.getRecentActivity();
+
+            // If TV Mode, only show what the merchant has manually "Broadcasted"
+            if (isTvMode) {
+                recent = recent.filter(e => e.broadcasted);
+            }
+
+            setEvents(recent.slice(0, 5)); // Top 5
         }, 1000); // 1s refresh for "Live" feel
 
         return () => clearInterval(interval);
-    }, []);
+    }, [isTvMode]);
 
     // TV Mode: Auto-Advance Logic
     useEffect(() => {
@@ -89,7 +88,7 @@ export function PublicFeed({ isTvMode = false }: PublicFeedProps) {
             {isTvMode && !selectedEvent && (
                 <div className="px-2">
                     <div className="h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
-                        <motion.div
+                        <MotionDiv
                             className="h-full bg-[#00FFD1]/40"
                             style={{ width: `${advanceProgress}%` }}
                         />
@@ -144,13 +143,13 @@ export function PublicFeed({ isTvMode = false }: PublicFeedProps) {
                                         {event.blendName}
                                     </span>
                                     {isTvMode && currentIndex === idx ? (
-                                        <motion.div
+                                        <MotionDiv
                                             animate={{ opacity: [0.4, 1, 0.4] }}
                                             transition={{ duration: 2, repeat: Infinity }}
                                             className="text-[8px] bg-[#00FFD1]/20 text-[#00FFD1] px-1.5 py-0.5 rounded uppercase font-black"
                                         >
                                             Next
-                                        </motion.div>
+                                        </MotionDiv>
                                     ) : (
                                         <span className="text-[9px] text-white/30 whitespace-nowrap">
                                             Just now

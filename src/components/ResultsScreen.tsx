@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UIBlendRecommendation, assertBlend } from '../types/domain';
 import { SwipeDeck } from './SwipeDeck';
 import { BlendCard } from './BlendCard';
@@ -6,6 +6,7 @@ import { PaginationDots } from './PaginationDots';
 import { Share2, ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShowEvidencePanel } from './ShowEvidencePanel';
+import { Intelligence } from '../lib/merchantIntelligence';
 
 interface ResultsProps {
   recommendations: UIBlendRecommendation[]; // Array of UI Recs
@@ -25,6 +26,21 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onConclude
   if (activeRec) {
     assertBlend(activeRec);
   }
+
+  // Silent log on mount/change for merchant intelligence
+  useEffect(() => {
+    if (activeRec) {
+      Intelligence.logResolution({
+        blendId: activeRec.id,
+        blendName: activeRec.name,
+        confidenceScore: (activeRec.matchScore || 90) / 100,
+        components: activeRec.cultivars.map(c => ({ name: c.name, ratio: c.ratio })),
+        outcomeCategory: (activeRec.outcomeCategory as any) || 'Other',
+        commentary: activeRec.reasoning,
+        inputMode: 'assisted'
+      });
+    }
+  }, [activeRec?.id]);
 
   return (
     <div className="w-full flex flex-col bg-transparent font-sans relative">
@@ -102,7 +118,7 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onConclude
                 renderItem={(rec, isActive) => (
                   <div className="w-full h-full flex items-center justify-center p-4">
                     <BlendCard
-                      recommendation={rec}
+                      recommendation={rec as UIBlendRecommendation}
                       onCalculate={onCalculate}
                       onViewDetail={onViewDetail}
                       onOpenConsultant={onOpenConsultant}
@@ -124,25 +140,23 @@ export function ResultsScreen({ recommendations, onCalculate, onBack, onConclude
           totalItems={recommendations.length}
         />
 
-        {/* CONCLUDE SESSION CTA */}
-        {onConcludeSession && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="w-full relative z-10 mb-8"
-          >
-            <div className="max-w-xs mx-auto">
-              <button
-                onClick={onConcludeSession}
-                className="w-full bg-white/5 backdrop-blur-xl text-white rounded-xl py-4 px-6 flex items-center justify-center gap-3 font-medium hover:bg-white/10 transition-all active:scale-95 shadow-lg border border-white/10"
-              >
-                <Share2 size={18} />
-                <span>Save This Blend</span>
-              </button>
-            </div>
-          </motion.div>
-        )}
+        {/* SESSION ACTIONS */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="w-full relative z-10 mb-8 px-6"
+        >
+          <div className="max-w-xs mx-auto">
+            <button
+              onClick={onConcludeSession}
+              className="w-full bg-white/5 backdrop-blur-xl text-white rounded-2xl py-4 px-6 flex items-center justify-center gap-3 font-medium hover:bg-white/10 transition-all active:scale-95 shadow-lg border border-white/10"
+            >
+              <Share2 size={18} />
+              <span className="text-xs uppercase tracking-widest font-black">Save This Blend</span>
+            </button>
+          </div>
+        </motion.div>
 
         {/* FOOTER */}
         <div className="flex-shrink-0 py-4 text-center opacity-20 z-0">
