@@ -61,12 +61,12 @@ module.exports = async function handler(request, response) {
         const genreStyle = genreToStyle[genre] || `Style: ${genre || 'modern'}.`;
 
         const lyrics = (cultivars && cultivars.length > 0)
-            ? `[Verse]\nIn the ${profile.time}, feel the power of ${cultivars.map(c => c.name).join(", ")}.\n${narration ? narration.split('.').slice(0, 1).join('.') + '.' : 'A perfect balance for your journey.'}\n\n[Chorus]\nA ${profile.mood} vibe, let the energy flow,\nStrainMath resonance, watch the body glow.\n${profile.energy} energy, ${profile.body} in every breath.`
-            : `[Verse]\nFinding the balance in every breath today.\nA journey of focus, a path to the light.\n\n[Chorus]\nStrainMath resonance, feel the body glow.\nA perfect harmony, let the energy flow.`;
+            ? `##[Verse]\nIn the ${profile.time}, feel the power of ${cultivars.map(c => c.name).join(", ")}.\n${narration ? narration.split('.').slice(0, 1).join('.') + '.' : 'A perfect balance for your journey.'}\n\n[Chorus]\nA ${profile.mood} vibe, let the energy flow,\nStrainMath resonance, watch the body glow.\n${profile.energy} energy, ${profile.body} in every breath.##`
+            : `##[Verse]\nFinding the balance in every breath today.\nA journey of focus, a path to the light.\n\n[Chorus]\nStrainMath resonance, feel the body glow.\nA perfect harmony, let the energy flow.##`;
 
-        const model = "minimax/music-01";
+        const model = "minimax/music-1.5";
         const input = {
-            prompt: `A professional ${genre || 'modern'} ${profile.mood} song with ${profile.energy} energy. ${genreStyle} High fidelity vocals, singing clearly.`,
+            prompt: `A professional ${genre || 'modern'} ${profile.mood} song with ${profile.energy} energy. ${genreStyle} Studio-grade vocals.`,
             lyrics: lyrics
         };
 
