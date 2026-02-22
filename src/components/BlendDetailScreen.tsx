@@ -4,10 +4,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { resolveCultivarVisuals } from '../lib/visuals';
-import { CultivarCard } from './shared/CultivarCard';
 import { SpeakButton } from './SpeakButton';
 import { MusicVibeButton } from './MusicVibeButton';
 import { INVENTORY } from '../lib/inventory';
+import { CultivarOverlay } from './CultivarOverlay';
 
 const MotionDiv = motion.div as any;
 
@@ -20,6 +20,7 @@ interface BlendDetailScreenProps {
 
 export function BlendDetailScreen({ blend, onBack, onVibeTrackGenerated }: BlendDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
+    const [isCultivarsOpen, setIsCultivarsOpen] = useState(false);
     const [prerollSize, setPrerollSize] = useState<number>(0.7); // Default to 0.7g
 
     if (!blend) return null;
@@ -127,26 +128,12 @@ export function BlendDetailScreen({ blend, onBack, onVibeTrackGenerated }: Blend
                     className="flex items-center justify-center w-full max-w-md mx-auto py-8 relative"
                 >
                     <div className="absolute inset-0 bg-[#00FFD1]/5 blur-[80px] rounded-full animate-pulse-slow" />
-                    <SpatialStack data={stackData} />
+                    <SpatialStack
+                        data={stackData}
+                        onOpenCultivars={() => setIsCultivarsOpen(true)}
+                    />
                 </MotionDiv>
 
-                {/* Cultivar Breakdown */}
-                <div className="max-w-md mx-auto w-full space-y-3">
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3">
-                        Cultivar Composition
-                    </h3>
-                    {blend.cultivars.map((cultivar, i) => (
-                        <CultivarCard
-                            key={i}
-                            name={cultivar.name}
-                            profile={cultivar.profile}
-                            ratio={cultivar.ratio}
-                            prominentTerpenes={cultivar.prominentTerpenes}
-                            characteristics={cultivar.characteristics}
-                            context={{ density: 'default', showPercentage: true }}
-                        />
-                    ))}
-                </div>
 
                 {/* Effects Timeline */}
                 {blend.effects && (
@@ -257,6 +244,14 @@ export function BlendDetailScreen({ blend, onBack, onVibeTrackGenerated }: Blend
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* CULTIVAR OVERLAY */}
+            <CultivarOverlay
+                isOpen={isCultivarsOpen}
+                onClose={() => setIsCultivarsOpen(false)}
+                cultivars={blend.cultivars}
+                blendName={blend.name}
+            />
         </div>
     );
 }

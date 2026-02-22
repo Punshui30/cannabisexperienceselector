@@ -12,9 +12,10 @@ const MotionDiv = motion.div as any;
 interface SpatialStackProps {
     data: UIStackRecommendation;
     compact?: boolean;
+    onOpenCultivars?: () => void;
 }
 
-export function SpatialStack({ data, compact = false }: SpatialStackProps) {
+export function SpatialStack({ data, compact = false, onOpenCultivars }: SpatialStackProps) {
     if (!data) return null; // CRASH FIX: Return nothing if data is missing
     const layers = data.layers || [];
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -61,6 +62,19 @@ export function SpatialStack({ data, compact = false }: SpatialStackProps) {
                                 borderColor: { duration: 0.6, delay: 0.5 + index * 0.15, times: [0, 0.5, 1] }
                             }}
                         >
+                            {/* Drawer Handle Trigger (Only for non-compact) */}
+                            {!compact && onOpenCultivars && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onOpenCultivars();
+                                    }}
+                                    className="absolute right-0 top-1/2 -translate-y-1/2 h-16 w-1 flex items-center justify-center group/handle transition-all z-30"
+                                    aria-label="View cultivars"
+                                >
+                                    <div className="h-4 w-[2px] bg-[#00FFD1]/30 group-hover/handle:bg-[#00FFD1] group-hover/handle:h-8 group-hover/handle:w-[3px] rounded-full transition-all shadow-[0_0_8px_#00FFD140] mr-1" />
+                                </button>
+                            )}
                             {/* Header Row */}
                             <div className="flex justify-between items-center mb-2">
                                 <div className="flex items-center gap-2">
