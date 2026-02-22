@@ -27,7 +27,6 @@ interface MusicVibeButtonProps {
     narration?: string;
     cultivars?: { name: string; ratio: number }[];
     className?: string;
-    /** Called when a track is successfully generated (so share flow can show it). */
     onGenerated?: (url: string) => void;
 }
 
@@ -40,19 +39,22 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
     const [showLyrics, setShowLyrics] = useState(false);
     const [selectedGenre, setSelectedGenre] = useState<VibeGenre>('Ambient');
     const [genreOpen, setGenreOpen] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const genreDropdownRef = useRef<HTMLDivElement>(null);
     const generationIdRef = useRef(0);
 
-    // Reset when terpenes or genre change
+    // Reset when inputs change
     useEffect(() => {
         if (audioUrl) {
             stopPlayback(true);
             setAudioUrl(null);
             setLastLyrics(null);
             setCompositionPhase('idle');
+            setErrorMessage(null);
         }
-    }, [JSON.stringify(terpenes), selectedGenre, narration, JSON.stringify(cultivars)]);
+    }, [JSON.stringify(terpenes), selectedGenre, narration]);
 
     const stopPlayback = (releaseRef = false) => {
         if (audioRef.current) {
@@ -63,72 +65,116 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
         setIsPlaying(false);
     };
 
-    const generateVibe = async (mode: 'basic' | 'lyrics_song' = 'basic') => {
+    const pollPrediction = async (predictionId: string, generationId: number) => {
+        const poll = async () => {
+            if (generationId !== generationIdRef.current) return;
+
+            try {
+                const res = await fetch(`/api/vibe-music?id=${predictionId}`);
+                const text = await res.text();
+                let data: any;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error("[MusicVibe] Poll parse error:", text.substring(0, 100));
+                    setErrorMessage("Connection error. Please try again.");
+                    setIsLoading(false);
+                    return;
+                }
+
+                if (!data.ok) {
+                    setErrorMessage(data.error?.message || "Generation failed.");
+                    setIsLoading(false);
+                    return;
+                }
+
+                if (data.status === "succeeded") {
+                    if (generationId !== generationIdRef.current) return;
+                    setAudioUrl(data.audioUrl);
+                    onGenerated?.(data.audioUrl);
+
+                    const audio = new Audio(data.audioUrl);
+                    audioRef.current = audio;
+                    audio.onended = () => setIsPlaying(false);
+                    audio.play().catch(console.error);
+
+                    setIsPlaying(true);
+                    setIsLoading(false);
+                    setCompositionPhase('idle');
+                } else if (data.status === "failed" || data.status === "canceled") {
+                    setErrorMessage("The AI model reached a limit. Please try another genre.");
+                    setIsLoading(false);
+                } else {
+                    // Continue polling
+                    setTimeout(poll, 2000);
+                }
+            } catch (err) {
+                console.error("[MusicVibe] Poll error:", err);
+                setIsLoading(false);
+            }
+        };
+
+        poll();
+    };
+
+    const generateVibe = async () => {
         if (isPlaying) {
             stopPlayback();
             return;
         }
 
-        if (audioUrl && mode === 'basic') {
-            audioRef.current?.play();
+        if (audioUrl) {
+            audioRef.current?.play().catch(console.error);
             setIsPlaying(true);
             return;
         }
 
+        setErrorMessage(null);
         stopPlayback(true);
-        setAudioUrl(null);
         const thisGeneration = ++generationIdRef.current;
         setIsLoading(true);
-        if (mode === 'lyrics_song') setCompositionPhase('writing');
+        setCompositionPhase('writing');
 
         try {
             const response = await fetch('/api/vibe-music', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    mode,
                     terpenes,
                     genre: selectedGenre,
-                    narration,
-                    cultivars,
-                    durationSeconds: 30
+                    narration
                 }),
             });
 
-            if (mode === 'lyrics_song') {
-                // Heuristic for phase shift (no real SSE here, so we fake it based on response arrival or just switch halfway)
-                setCompositionPhase('recording');
+            const text = await response.text();
+            let data: any;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error("[MusicVibe] Start parse error:", text.substring(0, 100));
+                setErrorMessage("The server is busy. Please try again in a moment.");
+                setIsLoading(false);
+                return;
             }
-
-            const data = await response.json();
-            const url = typeof data.audio === 'string' && data.audio.startsWith('http') ? data.audio : null;
 
             if (thisGeneration !== generationIdRef.current) return;
 
-            if (url) {
-                stopPlayback(true);
-                setAudioUrl(url);
-                if (data.lyrics) setLastLyrics(data.lyrics);
-                onGenerated?.(url);
-                const audio = new Audio(url);
-                audioRef.current = audio;
-                audio.onended = () => setIsPlaying(false);
-                audio.play();
-                setIsPlaying(true);
+            if (data.ok && data.predictionId) {
+                if (data.lyrics) setLastLyrics(data.lyrics.replace(/##/g, ''));
+                setCompositionPhase('recording');
+                pollPrediction(data.predictionId, thisGeneration);
             } else {
-                console.error('Failed to generate audio:', data.error || 'No playable URL returned');
+                setErrorMessage(data.error?.message || "Failed to start AI generation.");
+                setIsLoading(false);
             }
         } catch (err) {
-            console.error('Error calling vibe-music API:', err);
-        } finally {
-            if (thisGeneration === generationIdRef.current) {
-                setIsLoading(false);
-                setCompositionPhase('idle');
-            }
+            console.error("[MusicVibe] Start error:", err);
+            setErrorMessage("Network error.");
+            setIsLoading(false);
         }
     };
 
-    // Close genre dropdown on outside click
+    // Genre outside click
     useEffect(() => {
         if (!genreOpen) return;
         const onOutside = (e: MouseEvent) => {
@@ -143,52 +189,24 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
     return (
         <div className={`flex flex-col items-center gap-4 w-full ${className}`}>
             <div className="flex flex-wrap items-center justify-center gap-3">
-                {/* BASIC VIBE BUTTON */}
+                {/* PRIMARY ACTION ONLY */}
                 <button
-                    onClick={() => generateVibe('basic')}
+                    onClick={() => generateVibe()}
                     disabled={isLoading}
-                    className={`group flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all border
-                        ${isPlaying && !lastLyrics
-                            ? 'bg-[#00FFD1]/20 border-[#00FFD1]/40 text-[#00FFD1] shadow-[0_0_15px_rgba(0,255,209,0.15)]'
-                            : 'bg-white/5 border-white/10 text-white/60 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 hover:bg-[#00FFD1]/5'}
-                        ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
-                >
-                    <div className="relative w-4 h-4 flex items-center justify-center">
-                        <AnimatePresence mode="wait">
-                            {isLoading && compositionPhase === 'idle' ? (
-                                <Loader2 size={14} className="animate-spin text-[#00FFD1]" />
-                            ) : isPlaying && !lastLyrics ? (
-                                <Pause size={14} fill="currentColor" />
-                            ) : (
-                                <Play size={14} fill="currentColor" />
-                            )}
-                        </AnimatePresence>
-                    </div>
-                    <div className="flex flex-col items-start">
-                        <span className="text-[10px] font-black uppercase tracking-widest leading-none mb-0.5">
-                            {isLoading && compositionPhase === 'idle' ? 'Composing...' : 'AI Ambient Vibe'}
-                        </span>
-                    </div>
-                </button>
-
-                {/* MAKE A SONG BUTTON */}
-                <button
-                    onClick={() => generateVibe('lyrics_song')}
-                    disabled={isLoading}
-                    className={`group flex items-center gap-3 px-5 py-2.5 rounded-xl transition-all border
-                        ${isPlaying && lastLyrics
+                    className={`group min-w-[180px] flex items-center gap-3 px-6 py-2.5 rounded-xl transition-all border
+                        ${isPlaying
                             ? 'bg-purple-500/20 border-purple-500/40 text-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.2)]'
                             : 'bg-white/10 border-white/20 text-white hover:text-[#00FFD1] hover:border-[#00FFD1]/50 hover:bg-[#00FFD1]/10'}
                         ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
                     style={{
-                        boxShadow: isLoading && compositionPhase !== 'idle' ? '0 0 20px rgba(0, 255, 209, 0.2)' : 'none'
+                        boxShadow: isLoading ? '0 0 20px rgba(0, 255, 209, 0.2)' : 'none'
                     }}
                 >
                     <div className="relative w-4 h-4 flex items-center justify-center">
                         <AnimatePresence mode="wait">
-                            {isLoading && compositionPhase !== 'idle' ? (
+                            {isLoading ? (
                                 <Loader2 size={14} className="animate-spin text-[#00FFD1]" />
-                            ) : isPlaying && lastLyrics ? (
+                            ) : isPlaying ? (
                                 <Pause size={14} fill="currentColor" />
                             ) : (
                                 <Music size={14} fill="currentColor" />
@@ -198,14 +216,14 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
                     <div className="flex flex-col items-start text-left">
                         <span className="text-[10px] font-black uppercase tracking-widest leading-none mb-0.5">
                             {compositionPhase === 'writing' ? 'Writing Lyrics...' :
-                                compositionPhase === 'recording' ? 'Recording Track...' :
-                                    'Make A Song'}
+                                compositionPhase === 'recording' ? 'Recording...' :
+                                    'Play This Vibe'}
                         </span>
                         <span className="text-[8px] opacity-40 uppercase tracking-tighter">Vocals + Lyrics</span>
                     </div>
                 </button>
 
-                {/* Genre selector */}
+                {/* Genre Selector */}
                 <div className="relative" ref={genreDropdownRef}>
                     <button
                         type="button"
@@ -214,9 +232,9 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
                             setGenreOpen((o) => !o);
                         }}
                         disabled={isLoading}
-                        className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 hover:bg-[#00FFD1]/5 transition-all text-[10px] font-bold uppercase tracking-wider h-full"
+                        className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 hover:bg-[#00FFD1]/5 transition-all text-[10px] font-bold uppercase tracking-wider h-full"
                     >
-                        <span className="max-w-[72px] truncate">{selectedGenre}</span>
+                        <span className="max-w-[80px] truncate">{selectedGenre}</span>
                         <ChevronDown size={12} className={`shrink-0 transition-transform ${genreOpen ? 'rotate-180' : ''}`} />
                     </button>
                     <AnimatePresence>
@@ -248,9 +266,14 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
                 </div>
             </div>
 
-            {/* LYRICS DISPLAY */}
+            {/* Error Message */}
+            {errorMessage && (
+                <span className="text-[9px] text-red-400/80 uppercase tracking-tighter animate-pulse">{errorMessage}</span>
+            )}
+
+            {/* Lyrics */}
             <AnimatePresence>
-                {lastLyrics && (
+                {lastLyrics && !errorMessage && (
                     <MotionDiv
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -267,7 +290,7 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
 
                             {showLyrics && (
                                 <div className="w-full p-4 rounded-2xl bg-white/[0.03] border border-white/5 text-center">
-                                    <pre className="text-[11px] text-white/60 leading-relaxed font-serif whitespace-pre-wrap italic">
+                                    <pre className="text-[11px] text-white/50 leading-relaxed font-serif whitespace-pre-wrap italic">
                                         {lastLyrics}
                                     </pre>
                                 </div>
@@ -280,7 +303,7 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
             <p className="text-[9px] text-white/20 italic text-center max-w-xs">
                 {isLoading
                     ? "Our AI is analyzing the profile to compose a unique soundtrack..."
-                    : `Switch to ${selectedGenre} and create an AI-powered track with custom lyrics.`}
+                    : `Customize your experience with an AI-generated ${selectedGenre} track.`}
             </p>
         </div>
     );
