@@ -7,6 +7,7 @@ export interface ResolvedSession {
   blends: UIBlendRecommendation[];
   createdAt: string;
   expiresAt?: string; // Optional expiration for checkout sessions
+  vibeTrackUrl?: string; // Optional AI music track URL
 }
 
 // In-memory session storage (development/demo-ready)
@@ -65,13 +66,14 @@ export const ResolvedSessionService = {
   /**
    * Creates a real resolved session when Engine Core V3 finalizes
    */
-  createSession: (blends: UIBlendRecommendation[], type: 'checkout' | 'share'): ResolvedSession => {
+  createSession: (blends: UIBlendRecommendation[], type: 'checkout' | 'share', vibeTrackUrl?: string): ResolvedSession => {
     const sessionId = ResolvedSessionStore.generateSessionId();
 
     const session: ResolvedSession = {
       sessionId,
       type,
       blends,
+      vibeTrackUrl,
       createdAt: new Date().toISOString(),
       // Checkout sessions expire after 24 hours
       expiresAt: type === 'checkout' ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : undefined

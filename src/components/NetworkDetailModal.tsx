@@ -1,14 +1,26 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, X, Info, Share2, Twitter, Instagram, Facebook, Link as LinkIcon, Check } from 'lucide-react';
+import { Activity, X, Share2, Twitter, Facebook, Link as LinkIcon, Check, Tv, Clock } from 'lucide-react';
 import { resolveCultivarVisuals } from '../lib/visuals';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+// Typed motion components
+type MotionDivProps = React.HTMLAttributes<HTMLDivElement> & {
+    initial?: object;
+    animate?: object;
+    exit?: object;
+    transition?: object;
+    style?: React.CSSProperties;
+    onClick?: (e: React.MouseEvent) => void;
+};
+const MotionDiv = motion.div as React.ComponentType<MotionDivProps>;
 
 interface NetworkDetailModalProps {
     event: any;
     onClose: () => void;
+    isTvMode?: boolean;
 }
 
-export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) {
+export function NetworkDetailModal({ event, onClose, isTvMode = false }: NetworkDetailModalProps) {
     // Determine category theme color
     const categoryColors: Record<string, string> = {
         'Focus': '#00FFD1',
@@ -22,8 +34,29 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
 
     // Share Handler
     const [copied, setCopied] = useState(false);
-    const shareUrl = window.location.href; // Or specific deep link logic
+    const [dismissProgress, setDismissProgress] = useState(100);
+    const shareUrl = window.location.href;
     const shareText = `Check out this ${event.blendName} experience on StrainMath.`;
+
+    // TV Mode: Auto-dismiss logic
+    useEffect(() => {
+        if (!isTvMode) return;
+
+        const duration = 10000; // 10 seconds to read
+        const step = 100;
+        let elapsed = 0;
+
+        const timer = setInterval(() => {
+            elapsed += step;
+            setDismissProgress(100 - (elapsed / duration) * 100);
+
+            if (elapsed >= duration) {
+                onClose();
+            }
+        }, step);
+
+        return () => clearInterval(timer);
+    }, [isTvMode, onClose]);
 
     const handleShare = (platform: 'twitter' | 'facebook' | 'copy') => {
         if (platform === 'twitter') {
@@ -38,8 +71,21 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
         }
     };
 
+    // Narrative Chunking (Prompt 5)
+    // Splits long commentary into readable chunks for TV distances
+    const getCommentaryChunks = (text: string) => {
+        if (!text) return ["Resolving experience profile..."];
+        if (!isTvMode) return [text];
+
+        // Split by sentences or large chunks
+        const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+        return sentences.map(s => s.trim());
+    };
+
+    const chunks = getCommentaryChunks(event.commentary);
+
     return (
-        <motion.div
+        <MotionDiv
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -50,20 +96,20 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
             }}
         >
             {/* Backdrop with heavy blur and deep vignette */}
-            <motion.div
+            <MotionDiv
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="absolute inset-0 bg-black/60 backdrop-blur-3xl"
                 onClick={onClose}
             />
 
-            <motion.div
+            <MotionDiv
                 initial={{ scale: 0.9, opacity: 0, y: 30 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 30 }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-sm bg-[#0a0a0a]/80 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_45px_100px_-20px_rgba(0,0,0,1)] relative backdrop-blur-md my-4 max-h-[90vh] flex flex-col"
+                className={`w-full max-w-sm bg-[#0a0a0a]/80 border border-white/10 ${isTvMode ? 'rounded-[3rem]' : 'rounded-[2.5rem]'} overflow-hidden shadow-[0_45px_100px_-20px_rgba(0,0,0,1)] relative backdrop-blur-md my-4 max-h-[90vh] flex flex-col`}
             >
                 {/* IRIDESCENT BORDER GLOW */}
                 <div
@@ -73,6 +119,16 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                     }}
                 />
 
+                {/* TV Dismiss Progress */}
+                {isTvMode && (
+                    <div className="absolute top-0 left-0 right-0 h-1 z-50">
+                        <div
+                            className="h-full bg-white/40 transition-all duration-100 ease-linear"
+                            style={{ width: `${dismissProgress}%` }}
+                        />
+                    </div>
+                )}
+
                 {/* Header with VIBRANT Mesh Gradient */}
                 <div
                     className="relative h-48 flex items-center justify-center overflow-hidden"
@@ -80,8 +136,8 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                         background: `radial-gradient(circle at 50% 100%, ${themeColor}30 0%, #000 100%)`
                     }}
                 >
-                    {/* Animated Mesh Blurs - High Vibrance */}
-                    <motion.div
+                    {/* Animated Mesh Blurs */}
+                    <MotionDiv
                         className="absolute top-[-40%] left-[-20%] w-[100%] h-[100%] rounded-full blur-[80px]"
                         animate={{
                             scale: [1, 1.4, 1],
@@ -90,16 +146,6 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                         }}
                         transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
                         style={{ backgroundColor: themeColor }}
-                    />
-                    <motion.div
-                        className="absolute bottom-[-30%] right-[-10%] w-[80%] h-[80%] rounded-full blur-[60px]"
-                        animate={{
-                            scale: [1, 1.5, 1],
-                            opacity: [0.2, 0.4, 0.2],
-                            rotate: [0, -90, 0]
-                        }}
-                        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-                        style={{ backgroundColor: '#BF5AF2' }}
                     />
 
                     <div className="absolute top-8 right-8 z-20">
@@ -119,7 +165,6 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                                 filter: `drop-shadow(0 0 15px ${themeColor}) drop-shadow(0 0 5px white)`
                             }}
                         />
-                        {/* Shimmer overlay using Framer Motion */}
                         <motion.div
                             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                             style={{ skewX: -25, width: '200%' }}
@@ -143,27 +188,25 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                                     textShadow: `0 0 10px ${themeColor}40`
                                 }}
                             >
+                                {isTvMode && (
+                                    <span className="inline-flex items-center gap-2 mr-4 text-white/40">
+                                        <Tv size={10} /> Live BroadCast
+                                    </span>
+                                )}
                                 {event.outcomeCategory === 'Other' ? 'Curated Experience' : event.outcomeCategory}
                             </motion.span>
-                            <h2 className="text-4xl font-serif text-white mb-4 tracking-tight leading-tight">
+                            <h2 className={`font-serif text-white mb-4 tracking-tight leading-tight ${isTvMode ? 'text-5xl' : 'text-4xl'}`}>
                                 {event.blendName}
                             </h2>
-                            <div className="flex items-center justify-center gap-3">
-                                <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-white/10" />
-                                <span className="text-[9px] text-white/30 uppercase tracking-[0.3em] font-bold">
-                                    Engine Resolution
-                                </span>
-                                <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white/10" />
-                            </div>
                         </div>
 
-                        {/* Composition list with iridescent hover */}
+                        {/* Composition list */}
                         <div className="space-y-3">
                             {(event.components || event.componentSkus?.map((s: string) => ({ name: s })) || []).map((comp: any, idx: number) => {
                                 const sku = comp.name || comp;
                                 const visuals = resolveCultivarVisuals(sku);
                                 return (
-                                    <motion.div
+                                    <MotionDiv
                                         key={idx}
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
@@ -180,74 +223,66 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                                         {comp.ratio && (
                                             <span className="text-[10px] text-white/40 font-bold">{Math.round(comp.ratio * 100)}%</span>
                                         )}
-                                        <span className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">COA Verified</span>
-
-                                        {/* Hover Gradient Fill */}
-                                        <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                    </motion.div>
+                                    </MotionDiv>
                                 );
                             })}
                         </div>
 
-                        {/* Narrative with Refined Category Text */}
-                        <div className="relative group">
-                            <div
-                                className="absolute -left-3 top-0 bottom-0 w-[3px] rounded-full transition-all group-hover:w-1"
-                                style={{
-                                    background: `linear-gradient(to bottom, ${themeColor}, #BF5AF2)`,
-                                    boxShadow: `0 0 15px ${themeColor}40`
-                                }}
-                            />
-                            <p className="text-sm leading-relaxed text-white/60 font-light italic pl-5">
-                                &ldquo;{event.commentary || "Resolving experience profile..."}&rdquo;
-                            </p>
+                        {/* Narrative with Chunked Text for TV */}
+                        <div className="space-y-4">
+                            {chunks.map((chunk, i) => (
+                                <MotionDiv
+                                    key={i}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.6 + i * 0.3 }}
+                                    className="relative group"
+                                >
+                                    <div
+                                        className="absolute -left-3 top-0 bottom-0 w-[3px] rounded-full"
+                                        style={{
+                                            background: `linear-gradient(to bottom, ${themeColor}, #BF5AF2)`,
+                                            boxShadow: `0 0 15px ${themeColor}40`
+                                        }}
+                                    />
+                                    <p className={`${isTvMode ? 'text-lg' : 'text-sm'} leading-relaxed text-white font-light italic pl-5`}>
+                                        &ldquo;{chunk}&rdquo;
+                                    </p>
+                                </MotionDiv>
+                            ))}
                         </div>
 
-                        {/* SOCIAL SHARING SECTION - Glassy & Vibrant */}
-                        <div className="pt-4 border-t border-white/10">
-                            <span className="text-[9px] text-white/40 uppercase tracking-[0.3em] font-black block mb-5 text-center">Share This Profile</span>
-                            <div className="flex justify-between items-center gap-4">
-                                {[
-                                    { icon: Twitter, label: 'Twitter', color: '#1DA1F2', action: () => handleShare('twitter') },
-                                    { icon: Facebook, label: 'Facebook', color: '#4267B2', action: () => handleShare('facebook') },
-                                    { icon: copied ? Check : LinkIcon, label: copied ? 'Copied' : 'Copy Link', color: copied ? '#00FFD1' : '#ffffff', action: () => handleShare('copy') }
-                                ].map((social, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={social.action}
-                                        className="flex-1 aspect-square rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-95 group relative overflow-hidden cursor-pointer touch-manipulation"
-                                        title={social.label}
-                                    >
-                                        {/* Glass Shine */}
-                                        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-
-                                        <social.icon
-                                            size={20}
-                                            className="group-hover:scale-125 transition-transform duration-500 z-10"
-                                            style={{
-                                                filter: `drop-shadow(0 0 8px ${social.color}40)`,
-                                                color: social.label === 'Copied' ? '#00FFD1' : undefined
-                                            }}
-                                        />
-
-                                        <div
-                                            className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity"
-                                            style={{ backgroundColor: social.color }}
-                                        />
-                                    </button>
-                                ))}
+                        {/* SOCIAL SHARING (Hide on TV) */}
+                        {!isTvMode && (
+                            <div className="pt-4 border-t border-white/10">
+                                <span className="text-[9px] text-white/40 uppercase tracking-[0.3em] font-black block mb-5 text-center">Share This Profile</span>
+                                <div className="flex justify-between items-center gap-4">
+                                    {[
+                                        { icon: Twitter, label: 'Twitter', color: '#1DA1F2', action: () => handleShare('twitter') },
+                                        { icon: Facebook, label: 'Facebook', color: '#4267B2', action: () => handleShare('facebook') },
+                                        { icon: copied ? Check : LinkIcon, label: copied ? 'Copied' : 'Copy Link', color: copied ? '#00FFD1' : '#ffffff', action: () => handleShare('copy') }
+                                    ].map((social, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={social.action}
+                                            className="flex-1 aspect-square rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-95 group relative overflow-hidden"
+                                        >
+                                            <social.icon size={20} className="group-hover:scale-125 transition-transform duration-500 z-10" />
+                                            <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: social.color }} />
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
-                    {/* Action button - Iridescent Glass */}
+                    {/* Action button */}
                     <div className="p-8 pt-0">
                         <button
                             onClick={onClose}
-                            className="w-full py-5 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/90 transition-all active:scale-[0.98] shadow-[0_10px_30px_rgba(255,255,255,0.1)] relative overflow-hidden"
+                            className={`w-full py-5 rounded-2xl ${isTvMode ? 'bg-[#00FFD1] text-black' : 'bg-white text-black'} text-[10px] font-black uppercase tracking-[0.3em] hover:opacity-90 transition-all active:scale-[0.98] relative overflow-hidden`}
                         >
-                            Dismiss Overlay
-                            {/* Shimmer on button */}
+                            {isTvMode ? 'BroadCast Live' : 'Dismiss Overlay'}
                             <motion.div
                                 className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent"
                                 style={{ skewX: -25, width: '200%' }}
@@ -257,7 +292,7 @@ export function NetworkDetailModal({ event, onClose }: NetworkDetailModalProps) 
                         </button>
                     </div>
                 </div>
-            </motion.div>
-        </motion.div>
+            </MotionDiv>
+        </MotionDiv>
     );
 }

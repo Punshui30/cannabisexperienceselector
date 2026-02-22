@@ -1,31 +1,38 @@
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence, PanInfo, useAnimation } from 'motion/react';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence, useAnimation } from 'motion/react';
 import { PublicFeed } from './PublicFeed';
 import { Globe, X, ChevronUp } from 'lucide-react';
 
+// Typed motion div so TS accepts initial/animate/exit
+type MotionDivProps = React.HTMLAttributes<HTMLDivElement> & {
+    initial?: object;
+    animate?: object;
+    exit?: object;
+    transition?: object;
+    drag?: string | boolean;
+    dragConstraints?: object;
+    dragElastic?: number;
+    onDragEnd?: (event: any, info: any) => void;
+};
+const MotionDiv = motion.div as React.ComponentType<MotionDivProps>;
+
 export function LiveNetworkDrawer() {
     const [isOpen, setIsOpen] = useState(false);
-    const controls = useAnimation();
-    const constraintsRef = useRef(null);
+    const params = new URLSearchParams(window.location.search);
+    const isTvMode = params.get('mode') === 'tv' || params.get('tv') === 'true';
 
-    const toggleOpen = () => {
-        setIsOpen(!isOpen);
-    };
-
-    const handleDragEnd = (_: any, info: PanInfo) => {
-        if (info.offset.y > 100 || info.velocity.y > 500) {
-            setIsOpen(false);
-        } else if (info.offset.y < -50) {
+    // Auto-open if TV mode
+    useEffect(() => {
+        if (isTvMode) {
             setIsOpen(true);
         }
-    };
+    }, [isTvMode]);
 
     return (
         <>
             {/* The Trigger / Collapsed State */}
-            {/* The Trigger / Collapsed State */}
             {!isOpen && (
-                <motion.div
+                <MotionDiv
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
@@ -49,7 +56,7 @@ export function LiveNetworkDrawer() {
 
                     {/* Collapsed view indicator (Always visible part) */}
                     <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none" />
-                </motion.div>
+                </MotionDiv>
             )}
 
             {/* The Expanded Drawer */}
@@ -57,7 +64,7 @@ export function LiveNetworkDrawer() {
                 {isOpen && (
                     <div className="fixed inset-0 z-40 flex flex-col">
                         {/* Backdrop */}
-                        <motion.div
+                        <MotionDiv
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -66,7 +73,7 @@ export function LiveNetworkDrawer() {
                         />
 
                         {/* Drawer Panel - Opens from TOP */}
-                        <motion.div
+                        <MotionDiv
                             initial={{ y: "-100%" }}
                             animate={{ y: 0 }}
                             exit={{ y: "-100%" }}
@@ -83,7 +90,7 @@ export function LiveNetworkDrawer() {
                         >
                             {/* Drag Handle */}
                             <div className="w-full flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
-                                <motion.div
+                                <MotionDiv
                                     className="w-12 h-1 bg-white/20 rounded-full"
                                     animate={{ y: [0, 6, 0] }}
                                     transition={{
@@ -113,10 +120,10 @@ export function LiveNetworkDrawer() {
 
                             {/* Scrollable Content */}
                             <div className="flex-1 overflow-y-auto px-6 pb-8 pt-4">
-                                <PublicFeed />
+                                <PublicFeed isTvMode={isTvMode} />
                                 <div className="h-4" /> {/* Spacer */}
                             </div>
-                        </motion.div>
+                        </MotionDiv>
                     </div>
                 )}
             </AnimatePresence>
