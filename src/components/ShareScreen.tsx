@@ -354,7 +354,7 @@ export function ShareScreen() {
                 <Share2 size={20} />
               </button>
             </div>
-          </motion.div>
+          </MotionDiv>
         )}
 
         {/* Footer */}
