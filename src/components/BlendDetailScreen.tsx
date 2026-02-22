@@ -8,7 +8,6 @@ import { SpeakButton } from './SpeakButton';
 import { MusicVibeButton } from './MusicVibeButton';
 import { INVENTORY } from '../lib/inventory';
 import { BlendDetailOverlay } from './BlendDetailOverlay';
-import { CultivarCard } from './shared/CultivarCard';
 
 const MotionDiv = motion.div as any;
 
@@ -87,7 +86,7 @@ export function BlendDetailScreen({ blend, onBack, onVibeTrackGenerated }: Blend
                         {blend.name}
                     </h1>
 
-                    <div className="flex justify-center mt-3 mb-4">
+                    <div className="flex justify-center mt-3">
                         <MusicVibeButton
                             terpenes={blend.cultivars.flatMap(c => {
                                 const fullCv = INVENTORY.cultivars.find(cv => cv.name === c.name);
@@ -101,31 +100,6 @@ export function BlendDetailScreen({ blend, onBack, onVibeTrackGenerated }: Blend
                             cultivars={blend.cultivars}
                             onGenerated={onVibeTrackGenerated}
                         />
-                    </div>
-
-                    {/* COMPOSITION (Direct View) */}
-                    <div className="max-w-md mx-auto w-full space-y-4">
-                        <div className="flex items-center gap-3">
-                            <div className="h-px flex-1 bg-white/5" />
-                            <span className="text-[9px] text-white/20 uppercase tracking-widest font-black">Composition</span>
-                            <div className="h-px flex-1 bg-white/5" />
-                        </div>
-                        <div className="grid grid-cols-1 gap-2">
-                            {blend.cultivars.map((c, i) => {
-                                const fullCv = INVENTORY.cultivars.find(cv => cv.name === c.name);
-                                return (
-                                    <CultivarCard
-                                        key={i}
-                                        name={c.name}
-                                        ratio={c.ratio}
-                                        profile={c.profile || (fullCv as any)?.type}
-                                        prominentTerpenes={fullCv?.terpenes ? Object.keys(fullCv.terpenes).slice(0, 3) : []}
-                                        characteristics={(fullCv as any)?.characteristics || []}
-                                        context={{ density: 'compact', showPercentage: true }}
-                                    />
-                                );
-                            })}
-                        </div>
                     </div>
                 </div>
 
