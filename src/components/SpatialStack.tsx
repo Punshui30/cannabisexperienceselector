@@ -8,10 +8,11 @@ const MotionDiv = motion.div as any;
 interface SpatialStackProps {
     data: UIStackRecommendation;
     compact?: boolean;
+    active?: boolean;
     onOpenCultivars?: () => void;
 }
 
-export function SpatialStack({ data, compact = false, onOpenCultivars }: SpatialStackProps) {
+export function SpatialStack({ data, compact = false, active = false, onOpenCultivars }: SpatialStackProps) {
     if (!data) return null;
     const layers = data.layers || [];
 
@@ -22,12 +23,8 @@ export function SpatialStack({ data, compact = false, onOpenCultivars }: Spatial
     return (
         <div className={`w-full flex flex-col items-center ${compact ? 'py-2' : 'py-6'} gap-5`}>
             {/* List items */}
-            <div className="w-full max-w-md flex flex-col gap-4 pl-1 pr-1">
+            <div className="w-full max-w-md flex flex-col gap-4 pl-1 pr-1 group/stack">
                 {layers.map((layer, index) => {
-                    // Determine Theme
-                    const phaseVisuals = resolvePhaseVisuals(index);
-                    const activeColor = '#ffffff';
-
                     // Get normalized items for this specific layer
                     const layerNormalized = normalizedCompo.filter(nc => (nc.original as any).layerId === layer.layerName);
 
@@ -38,16 +35,15 @@ export function SpatialStack({ data, compact = false, onOpenCultivars }: Spatial
                             className={`
                                 relative w-full overflow-hidden rounded-xl border border-white/5 
                                 bg-white/5 p-3
-                                transition-all duration-300 ${!compact ? 'cursor-pointer hover:bg-white/10' : ''}
+                                transition-all duration-300 ${!compact ? 'cursor-pointer' : ''}
                             `}
-                            initial={{ borderColor: 'rgba(255,255,255,0.05)' }}
+                            whileHover={!compact ? {
+                                scale: 1.01,
+                                backgroundColor: 'rgba(255,255,255,0.08)',
+                                borderColor: 'rgba(0, 255, 209, 0.2)'
+                            } : {}}
                             animate={{
-                                scale: 1,
-                                borderColor: ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.4)', 'rgba(255,255,255,0.05)']
-                            }}
-                            transition={{
-                                scale: { duration: 0.3 },
-                                borderColor: { duration: 0.6, delay: 0.5 + index * 0.15, times: [0, 0.5, 1] }
+                                borderColor: active ? 'rgba(0, 255, 209, 0.4)' : 'rgba(255,255,255,0.05)'
                             }}
                         >
                             {/* Drawer Handle Trigger (Only for non-compact) */}
@@ -67,9 +63,16 @@ export function SpatialStack({ data, compact = false, onOpenCultivars }: Spatial
                             {/* Header Row */}
                             <div className="flex justify-between items-center mb-2">
                                 <div className="flex items-center gap-2">
-                                    <div
-                                        className="w-2 h-8 rounded-full shadow-[0_0_10px_currentColor]"
-                                        style={{ backgroundColor: activeColor }}
+                                    <MotionDiv
+                                        className="w-2 h-8 rounded-full"
+                                        animate={{
+                                            backgroundColor: active ? '#00FFD1' : '#ffffff',
+                                            boxShadow: active ? '0 0 12px rgba(0, 255, 209, 0.6)' : '0 0 0px rgba(255, 255, 255, 0)'
+                                        }}
+                                        whileHover={{
+                                            backgroundColor: '#00FFD1',
+                                            boxShadow: '0 0 15px rgba(0, 255, 209, 0.8)'
+                                        }}
                                     />
                                     <div>
                                         <div className="text-[10px] uppercase tracking-widest text-white/50">{layer.layerName}</div>

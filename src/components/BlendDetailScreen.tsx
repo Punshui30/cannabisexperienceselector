@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Zap, Clock, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UIBlendRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
@@ -131,6 +131,7 @@ export function BlendDetailScreen({ blend, onBack, onVibeTrackGenerated }: Blend
                     <div className="absolute inset-0 bg-[#00FFD1]/5 blur-[80px] rounded-full animate-pulse-slow" />
                     <SpatialStack
                         data={stackData}
+                        active={isOverlayOpen}
                         onOpenCultivars={() => {
                             setActiveOverlayTab('composition');
                             setIsOverlayOpen(true);
@@ -138,28 +139,6 @@ export function BlendDetailScreen({ blend, onBack, onVibeTrackGenerated }: Blend
                     />
                 </MotionDiv>
 
-
-                {/* Effects Timeline Trigger */}
-                {blend.effects && (
-                    <button
-                        onClick={() => {
-                            setActiveOverlayTab('timeline');
-                            setIsOverlayOpen(true);
-                        }}
-                        className="p-4 rounded-xl bg-white/5 border border-white/10 max-w-md mx-auto w-full flex items-center justify-between hover:bg-white/10 transition-colors group"
-                    >
-                        <div className="flex items-center gap-3">
-                            <Clock size={16} className="text-[#00FFD1]" />
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">
-                                Effects Timeline
-                            </h3>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-[#00FFD1] font-bold uppercase tracking-wider">{blend.effects.duration}</span>
-                            <ArrowRight size={14} className="text-white/20 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
-                        </div>
-                    </button>
-                )}
 
             </div>
 
