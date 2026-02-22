@@ -96,6 +96,8 @@ export function BlendDetailScreen({ blend, onBack, onVibeTrackGenerated }: Blend
                                     percent: (pct as number) * c.ratio
                                 }));
                             })}
+                            narration={blend.reasoning}
+                            cultivars={blend.cultivars}
                             onGenerated={onVibeTrackGenerated}
                         />
                     </div>

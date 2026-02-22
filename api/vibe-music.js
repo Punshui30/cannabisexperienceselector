@@ -33,39 +33,53 @@ const genreToStyle = {
     "Downtempo": "Style: Downtempo. Laid-back beat, bass-heavy, atmospheric. Trip-hop or lounge adjacent, smooth and moody."
 };
 
-function buildMusicPrompt({ mood, energy, body, time, genre }) {
+function buildMusicPrompt({ mood, energy, body, time, genre, narration, cultivars }) {
     const genreStyle = (genre && genreToStyle[genre])
         ? genreToStyle[genre]
         : (genre ? `Style: ${genre}. Clear melody, solid groove, authentic to the genre, shareable.` : "Style: modern ambient electronic with subtle analog warmth.");
-    return `
-Create a 30-second instrumental track the user will want to listen to and share.
 
-${genreStyle}
-Mood: ${mood}.
-Energy level: ${energy}.
-Body feel: ${body}.
-Time context: ${time}.
+    const cultivarNames = (cultivars && cultivars.length > 0)
+        ? cultivars.map(c => c.name).join(", ")
+        : "this custom blend";
+
+    // Short lyric poem based on the blend
+    const lyricsString = `
+[Verse]
+In the ${time}, feel the power of ${cultivarNames}.
+${narration ? narration.split('.').slice(0, 2).join('.') + '.' : 'A perfect balance for your journey today.'}
+
+[Chorus]
+A ${mood} vibe, let the energy flow,
+StrainMath resonance, watch the body glow.
+${energy} energy, ${body} in every breath,
+Finding the rhythm, transcending the rest.
+`.trim();
+
+    return `
+Create a 30-second track with VOCALS singing the lyrics below.
+STYLE: ${genreStyle}
+MOOD: ${mood}
+ENERGY: ${energy}
+
+LYRICS:
+${lyricsString}
 
 Musical direction:
-- Clear melodic motif (not random pads or drones)
-- Defined chord progression
-- Solid rhythm or groove appropriate to the style
-- Emotional arc: intro → build → peak → resolve
-- Clean mix, no distortion
-- Professional, shareable quality
-
-Avoid:
-- Harsh noise
-- Random glitch artifacts
-- Empty ambient drone
-- Looped repetition
-
-Make it intentional and musical—something that fits the vibe but stands on its own as a track.
+- Clear singing vocals in the ${genre || 'modern'} style.
+- Melodic motif following the genre's typical structure.
+- Professional, shareable production quality.
+- Clean mix, no distortion.
 `.trim();
 }
 
-function generateMusicPromptFromTerpenes(terpenes, genre) {
-    const opts = (overrides) => ({ ...overrides, genre: genre || null });
+function generateMusicPromptFromTerpenes(terpenes, genre, narration, cultivars) {
+    const opts = (overrides) => ({
+        ...overrides,
+        genre: genre || null,
+        narration: narration || null,
+        cultivars: cultivars || null
+    });
+
     if (!terpenes || terpenes.length === 0) {
         return buildMusicPrompt(opts({
             mood: "balanced and atmospheric",
@@ -124,13 +138,13 @@ module.exports = async function handler(request, response) {
 
 
     try {
-        const { terpenes, inputAudio, genre } = request.body;
+        const { terpenes, inputAudio, genre, narration, cultivars } = request.body;
 
         if (!terpenes) {
             return response.status(400).json({ error: 'Missing terpenes' });
         }
 
-        const prompt = generateMusicPromptFromTerpenes(terpenes, genre);
+        const prompt = generateMusicPromptFromTerpenes(terpenes, genre, narration, cultivars);
 
         const model = "google/lyria-2";
 

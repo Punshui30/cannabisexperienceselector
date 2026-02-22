@@ -75,6 +75,8 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                                     }));
                                 })
                             )}
+                            narration={stack.description}
+                            cultivars={stack.layers.flatMap(l => l.cultivars)}
                         />
                     </div>
 
