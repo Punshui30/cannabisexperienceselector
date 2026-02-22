@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, X, Share2, Twitter, Facebook, Link as LinkIcon, Check, Tv, Clock } from 'lucide-react';
+import { Activity, X, Share2, Twitter, Facebook, Link as LinkIcon, Check, Tv, Clock, Music, Play, Pause, Zap } from 'lucide-react';
 import { resolveCultivarVisuals } from '../lib/visuals';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { ResolvedSessionService } from '../services/ResolvedSessionService';
+import { EngineQRCode } from './EngineQRCode';
 
 // Typed motion components
 type MotionDivProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -32,17 +34,46 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
     };
     const themeColor = categoryColors[event.outcomeCategory] || '#00FFD1';
 
-    // Share Handler
+    // State
     const [copied, setCopied] = useState(false);
     const [dismissProgress, setDismissProgress] = useState(100);
-    const shareUrl = window.location.href;
-    const shareText = `Check out this ${event.blendName} experience on StrainMath.`;
+    const [vibePlaying, setVibePlaying] = useState(false);
+    const vibeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    // QR Links
+    const [shareUrl, setShareUrl] = useState('');
+    const [checkoutUrl, setCheckoutUrl] = useState('');
+
+    useEffect(() => {
+        // Prepare recommendation object for QR generation
+        const rec = {
+            id: event.id || Math.random().toString(36).substr(2, 9),
+            name: event.blendName,
+            cultivars: event.componentSkus?.map((s: string) => ({ name: s, ratio: 1 / event.componentSkus.length })) || [],
+            reasoning: event.commentary,
+            visuals: resolveCultivarVisuals(event.blendName)
+        };
+
+        try {
+            // Create sessions for this network event so visitors can take it with them
+            const sSession = ResolvedSessionService.createSession([rec as any], 'share', event.vibeTrackUrl);
+            const cSession = ResolvedSessionService.createSession([rec as any], 'checkout');
+
+            let sUrl = `${window.location.origin}/session/share/${sSession.sessionId}`;
+            if (event.vibeTrackUrl) sUrl += `?audio=${encodeURIComponent(event.vibeTrackUrl)}`;
+
+            setShareUrl(sUrl);
+            setCheckoutUrl(`${window.location.origin}/session/checkout/${cSession.sessionId}`);
+        } catch (e) {
+            console.error('Failed to prepare network QRs', e);
+        }
+    }, [event]);
 
     // TV Mode: Auto-dismiss logic
     useEffect(() => {
         if (!isTvMode) return;
 
-        const duration = 10000; // 10 seconds to read
+        const duration = 15000; // 15 seconds for network events
         const step = 100;
         let elapsed = 0;
 
@@ -55,12 +86,16 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
             }
         }, step);
 
-        return () => clearInterval(timer);
+        return () => {
+            clearInterval(timer);
+            if (vibeAudioRef.current) vibeAudioRef.current.pause();
+        };
     }, [isTvMode, onClose]);
 
     const handleShare = (platform: 'twitter' | 'facebook' | 'copy') => {
+        const text = `Check out this ${event.blendName} experience on StrainMath.`;
         if (platform === 'twitter') {
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
         } else if (platform === 'facebook') {
             window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
         } else if (platform === 'copy') {
@@ -71,13 +106,9 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
         }
     };
 
-    // Narrative Chunking (Prompt 5)
-    // Splits long commentary into readable chunks for TV distances
     const getCommentaryChunks = (text: string) => {
         if (!text) return ["Resolving experience profile..."];
         if (!isTvMode) return [text];
-
-        // Split by sentences or large chunks
         const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
         return sentences.map(s => s.trim());
     };
@@ -89,17 +120,12 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
-            style={{
-                paddingTop: 'max(1rem, env(safe-area-inset-top))',
-                paddingBottom: 'max(1rem, env(safe-area-inset-bottom))'
-            }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
         >
-            {/* Backdrop with heavy blur and deep vignette */}
             <MotionDiv
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="absolute inset-0 bg-black/60 backdrop-blur-3xl"
+                className="absolute inset-0 bg-black/85 backdrop-blur-3xl"
                 onClick={onClose}
             />
 
@@ -109,19 +135,19 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
                 exit={{ scale: 0.9, opacity: 0, y: 30 }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
                 onClick={(e) => e.stopPropagation()}
-                className={`w-full max-w-sm bg-[#0a0a0a]/80 border border-white/10 ${isTvMode ? 'rounded-[3rem]' : 'rounded-[2.5rem]'} overflow-hidden shadow-[0_45px_100px_-20px_rgba(0,0,0,1)] relative backdrop-blur-md my-4 max-h-[90vh] flex flex-col`}
+                className={`w-full max-w-sm bg-[#0a0a0a]/90 border border-white/10 ${isTvMode ? 'rounded-[3rem]' : 'rounded-[2.5rem]'} overflow-hidden shadow-[0_50px_120px_-20px_rgba(0,0,0,1)] relative backdrop-blur-md my-4 flex flex-col max-h-[90vh]`}
             >
-                {/* IRIDESCENT BORDER GLOW */}
+                {/* Header Glow */}
                 <div
-                    className="absolute inset-x-0 top-0 h-[2px] opacity-70"
+                    className="absolute inset-x-0 top-0 h-[2px] opacity-70 z-50"
                     style={{
                         background: `linear-gradient(90deg, transparent, ${themeColor}, #BF5AF2, ${themeColor}, transparent)`
                     }}
                 />
 
-                {/* TV Dismiss Progress */}
+                {/* Dismiss Bar */}
                 {isTvMode && (
-                    <div className="absolute top-0 left-0 right-0 h-1 z-50">
+                    <div className="absolute top-0 left-0 right-0 h-1 z-[60]">
                         <div
                             className="h-full bg-white/40 transition-all duration-100 ease-linear"
                             style={{ width: `${dismissProgress}%` }}
@@ -129,168 +155,152 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
                     </div>
                 )}
 
-                {/* Header with VIBRANT Mesh Gradient */}
+                {/* Header Mesh */}
                 <div
-                    className="relative h-48 flex items-center justify-center overflow-hidden"
+                    className="relative h-44 flex items-center justify-center overflow-hidden shrink-0"
                     style={{
                         background: `radial-gradient(circle at 50% 100%, ${themeColor}30 0%, #000 100%)`
                     }}
                 >
-                    {/* Animated Mesh Blurs */}
                     <MotionDiv
                         className="absolute top-[-40%] left-[-20%] w-[100%] h-[100%] rounded-full blur-[80px]"
-                        animate={{
-                            scale: [1, 1.4, 1],
-                            opacity: [0.3, 0.5, 0.3],
-                            rotate: [0, 120, 0]
-                        }}
-                        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                        animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
+                        transition={{ duration: 10, repeat: Infinity }}
                         style={{ backgroundColor: themeColor }}
                     />
-
-                    <div className="absolute top-8 right-8 z-20">
-                        <button
-                            onClick={onClose}
-                            className="w-10 h-10 rounded-full bg-white/5 backdrop-blur-xl flex items-center justify-center border border-white/10 hover:bg-white/10 transition-all active:scale-90"
-                        >
-                            <X size={18} className="text-white/70" />
+                    <div className="absolute top-6 right-6 z-50">
+                        <button onClick={onClose} className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10">
+                            <X size={16} className="text-white/40" />
                         </button>
                     </div>
 
-                    <div className="relative z-10 w-24 h-24 rounded-full bg-black/40 border-2 border-white/20 flex items-center justify-center backdrop-blur-xl shadow-[0_0_40px_rgba(255,255,255,0.05)] group overflow-hidden">
-                        <Activity
-                            size={36}
-                            className="text-white group-hover:scale-110 transition-transform duration-700"
-                            style={{
-                                filter: `drop-shadow(0 0 15px ${themeColor}) drop-shadow(0 0 5px white)`
-                            }}
-                        />
-                        <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                            style={{ skewX: -25, width: '200%' }}
-                            animate={{ x: ['-100%', '100%'] }}
-                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                        />
+                    <div className="relative z-10 w-20 h-20 rounded-full bg-black/40 border border-white/20 flex items-center justify-center backdrop-blur-xl">
+                        <Activity size={32} style={{ color: themeColor, filter: `drop-shadow(0 0 10px ${themeColor})` }} />
                     </div>
                 </div>
 
-                {/* Scrollable Content Wrapper */}
-                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                    {/* Content */}
-                    <div className="p-8 pt-6 space-y-8">
-                        <div className="text-center">
-                            <motion.span
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-[10px] uppercase tracking-[0.4em] font-black mb-3 block"
-                                style={{
-                                    color: themeColor,
-                                    textShadow: `0 0 10px ${themeColor}40`
-                                }}
-                            >
-                                {isTvMode && (
-                                    <span className="inline-flex items-center gap-2 mr-4 text-white/40">
-                                        <Tv size={10} /> Live BroadCast
-                                    </span>
-                                )}
-                                {event.outcomeCategory === 'Other' ? 'Curated Experience' : event.outcomeCategory}
-                            </motion.span>
-                            <h2 className={`font-serif text-white mb-4 tracking-tight leading-tight ${isTvMode ? 'text-5xl' : 'text-4xl'}`}>
-                                {event.blendName}
-                            </h2>
-                        </div>
-
-                        {/* Composition list */}
-                        <div className="space-y-3">
-                            {(event.components || event.componentSkus?.map((s: string) => ({ name: s })) || []).map((comp: any, idx: number) => {
-                                const sku = comp.name || comp;
-                                const visuals = resolveCultivarVisuals(sku);
-                                return (
-                                    <MotionDiv
-                                        key={idx}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: idx * 0.1 + 0.3 }}
-                                        className="bg-white/[0.04] border border-white/5 rounded-2xl p-4 flex items-center justify-between group hover:bg-white/[0.08] hover:border-white/20 transition-all duration-300 relative overflow-hidden"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div
-                                                className="w-2 h-2 rounded-full shadow-[0_0_10px_currentcolor]"
-                                                style={{ backgroundColor: visuals.primaryColor, color: visuals.primaryColor }}
-                                            />
-                                            <span className="text-[13px] text-white/90 font-medium tracking-wide">{sku}</span>
-                                        </div>
-                                        {comp.ratio && (
-                                            <span className="text-[10px] text-white/40 font-bold">{Math.round(comp.ratio * 100)}%</span>
-                                        )}
-                                    </MotionDiv>
-                                );
-                            })}
-                        </div>
-
-                        {/* Narrative with Chunked Text for TV */}
-                        <div className="space-y-4">
-                            {chunks.map((chunk, i) => (
-                                <MotionDiv
-                                    key={i}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.6 + i * 0.3 }}
-                                    className="relative group"
-                                >
-                                    <div
-                                        className="absolute -left-3 top-0 bottom-0 w-[3px] rounded-full"
-                                        style={{
-                                            background: `linear-gradient(to bottom, ${themeColor}, #BF5AF2)`,
-                                            boxShadow: `0 0 15px ${themeColor}40`
-                                        }}
-                                    />
-                                    <p className={`${isTvMode ? 'text-lg' : 'text-sm'} leading-relaxed text-white font-light italic pl-5`}>
-                                        &ldquo;{chunk}&rdquo;
-                                    </p>
-                                </MotionDiv>
-                            ))}
-                        </div>
-
-                        {/* SOCIAL SHARING (Hide on TV) */}
-                        {!isTvMode && (
-                            <div className="pt-4 border-t border-white/10">
-                                <span className="text-[9px] text-white/40 uppercase tracking-[0.3em] font-black block mb-5 text-center">Share This Profile</span>
-                                <div className="flex justify-between items-center gap-4">
-                                    {[
-                                        { icon: Twitter, label: 'Twitter', color: '#1DA1F2', action: () => handleShare('twitter') },
-                                        { icon: Facebook, label: 'Facebook', color: '#4267B2', action: () => handleShare('facebook') },
-                                        { icon: copied ? Check : LinkIcon, label: copied ? 'Copied' : 'Copy Link', color: copied ? '#00FFD1' : '#ffffff', action: () => handleShare('copy') }
-                                    ].map((social, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={social.action}
-                                            className="flex-1 aspect-square rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-95 group relative overflow-hidden"
-                                        >
-                                            <social.icon size={20} className="group-hover:scale-125 transition-transform duration-500 z-10" />
-                                            <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: social.color }} />
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                {/* Scroll Content */}
+                <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-8">
+                    <div className="text-center">
+                        <span className="text-[10px] uppercase tracking-[0.4em] font-black mb-2 block" style={{ color: themeColor }}>
+                            {isTvMode && <Tv size={10} className="inline mr-2 align-middle opacity-50" />}
+                            Network Propagation
+                        </span>
+                        <h2 className={`font-serif text-white tracking-tight leading-loose ${isTvMode ? 'text-4xl' : 'text-3xl'}`}>
+                            {event.blendName}
+                        </h2>
                     </div>
 
-                    {/* Action button */}
-                    <div className="p-8 pt-0">
-                        <button
-                            onClick={onClose}
-                            className={`w-full py-5 rounded-2xl ${isTvMode ? 'bg-[#00FFD1] text-black' : 'bg-white text-black'} text-[10px] font-black uppercase tracking-[0.3em] hover:opacity-90 transition-all active:scale-[0.98] relative overflow-hidden`}
-                        >
-                            {isTvMode ? 'BroadCast Live' : 'Dismiss Overlay'}
-                            <motion.div
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent"
-                                style={{ skewX: -25, width: '200%' }}
-                                animate={{ x: ['-100%', '100%'] }}
-                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                            />
+                    {/* 1. VIBE AUDIO (New Sharing Feature for Live Feed) */}
+                    {event.vibeTrackUrl && (
+                        <div className="p-4 rounded-3xl bg-white/5 border border-white/10 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Music size={14} style={{ color: themeColor }} />
+                                    <span className="text-[10px] uppercase font-bold text-white/40 tracking-widest">Ambient Vibe</span>
+                                </div>
+                                <Zap size={12} className="text-[#00FFD1] fill-[#00FFD1] animate-pulse" />
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (vibePlaying && vibeAudioRef.current) {
+                                        vibeAudioRef.current.pause();
+                                        setVibePlaying(false);
+                                        return;
+                                    }
+                                    const audio = new Audio(event.vibeTrackUrl);
+                                    vibeAudioRef.current = audio;
+                                    audio.onended = () => setVibePlaying(false);
+                                    audio.play().catch(console.error);
+                                    setVibePlaying(true);
+                                }}
+                                className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 transition-all flex items-center justify-center gap-2 text-xs font-bold"
+                            >
+                                {vibePlaying ? <Pause size={14} /> : <Play size={14} />}
+                                {vibePlaying ? 'Mute Stream' : 'Listen to Vibe'}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* 2. NARRATIVE */}
+                    <div className="space-y-4">
+                        {chunks.map((chunk, i) => (
+                            <MotionDiv
+                                key={i}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.3 + i * 0.2 }}
+                                className="pl-4 border-l-2 border-white/10 font-light italic leading-relaxed text-white/80"
+                            >
+                                &ldquo;{chunk}&rdquo;
+                            </MotionDiv>
+                        ))}
+                    </div>
+
+                    {/* 3. QR PORTAL (扫描进入体验) */}
+                    <div className="space-y-6 pt-4 border-t border-white/10">
+                        <span className="text-[9px] uppercase tracking-[0.3em] font-black text-center block text-white/20">Experience Portals</span>
+
+                        <div className="flex gap-4">
+                            <div className="flex-1 flex flex-col items-center space-y-3">
+                                <div className="w-full aspect-square bg-white rounded-3xl p-3 flex items-center justify-center shadow-xl relative overflow-hidden">
+                                    <EngineQRCode
+                                        url={checkoutUrl}
+                                        type="checkout"
+                                        recommendation={{
+                                            name: event.blendName,
+                                            cultivars: event.componentSkus?.map((s: string) => ({ name: s, ratio: 1 })),
+                                            reasoning: event.commentary,
+                                            id: event.id || 'network-event',
+                                            visuals: resolveCultivarVisuals(event.blendName)
+                                        } as any}
+                                        size={isTvMode ? 140 : 120}
+                                    />
+                                    <div className="absolute inset-0 border-[8px] border-black/[0.03] rounded-3xl pointer-events-none" />
+                                </div>
+                                <span className="text-[9px] uppercase tracking-[0.25em] font-black text-white/40 block text-center">Try Blend</span>
+                            </div>
+                            <div className="flex-1 flex flex-col items-center space-y-3">
+                                <div className="w-full aspect-square bg-white rounded-3xl p-3 flex items-center justify-center shadow-xl relative overflow-hidden">
+                                    <EngineQRCode
+                                        url={shareUrl}
+                                        type="share"
+                                        recommendation={{
+                                            name: event.blendName,
+                                            cultivars: event.componentSkus?.map((s: string) => ({ name: s, ratio: 1 })),
+                                            reasoning: event.commentary,
+                                            id: event.id || 'network-event',
+                                            visuals: resolveCultivarVisuals(event.blendName)
+                                        } as any}
+                                        size={isTvMode ? 140 : 120}
+                                    />
+                                    <div className="absolute inset-0 border-[8px] border-black/[0.03] rounded-3xl pointer-events-none" />
+                                </div>
+                                <span className="text-[9px] uppercase tracking-[0.25em] font-black text-white/40 block text-center">Share Profile</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 4. SOCIAL FAST SHARE */}
+                    <div className="flex gap-2">
+                        <button onClick={() => handleShare('twitter')} className="flex-1 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
+                            <Twitter size={18} className="text-white/40" />
+                        </button>
+                        <button onClick={() => handleShare('facebook')} className="flex-1 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
+                            <Facebook size={18} className="text-white/40" />
+                        </button>
+                        <button onClick={() => handleShare('copy')} className="flex-[2] h-12 rounded-2xl bg-white/5 border border-[#00FFD1]/20 flex items-center justify-center gap-2 hover:bg-white/10 transition-colors" title="Copy experience URL">
+                            {copied ? <Check size={16} className="text-[#00FFD1]" /> : <LinkIcon size={16} className="text-white/20" />}
+                            <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest">{copied ? 'Copied' : 'Copy URL'}</span>
                         </button>
                     </div>
+                </div>
+
+                {/* FOOTER */}
+                <div className="shrink-0 p-6 pt-0">
+                    <button onClick={onClose} className="w-full py-4 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] hover:opacity-90 active:scale-95 transition-all">
+                        {isTvMode ? 'Broadcasting...' : 'Close Detail'}
+                    </button>
                 </div>
             </MotionDiv>
         </MotionDiv>
