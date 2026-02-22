@@ -134,20 +134,24 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
                             <div className="h-px flex-1 bg-white/5" />
                         </div>
                         <div className="space-y-2">
-                            {event.componentSkus?.map((sku: string, i: number) => {
-                                const fullCv = INVENTORY.cultivars.find(cv => cv.name === sku);
+                            {/* Support both componentSkus (strings) and components (objects with ratios) */}
+                            {((event.components || event.componentSkus)?.map((comp: any, i: number) => {
+                                const name = typeof comp === 'string' ? comp : comp.name;
+                                const ratio = typeof comp === 'string' ? (1 / (event.componentSkus?.length || 1)) : comp.ratio;
+                                const fullCv = INVENTORY.cultivars.find(cv => cv.name === name);
+
                                 return (
                                     <CultivarCard
                                         key={i}
-                                        name={sku}
-                                        ratio={1 / (event.componentSkus?.length || 1)}
-                                        profile={fullCv?.profile}
+                                        name={name}
+                                        ratio={ratio}
+                                        profile={(fullCv as any)?.type}
                                         prominentTerpenes={fullCv?.terpenes ? Object.keys(fullCv.terpenes).slice(0, 3) : []}
-                                        characteristics={fullCv?.characteristics}
+                                        characteristics={(fullCv as any)?.characteristics || []}
                                         context={{ density: 'compact', showPercentage: true }}
                                     />
                                 );
-                            })}
+                            }))}
                         </div>
                     </div>
 
@@ -159,7 +163,7 @@ export function NetworkDetailModal({ event, onClose, isTvMode = false }: Network
                             <div className="h-px flex-1 bg-white/5" />
                         </div>
                         <div className="pl-4 border-l-2 border-white/10 py-1 space-y-3">
-                            {chunks.map((chunk, i) => (
+                            {chunks.map((chunk: string, i: number) => (
                                 <p key={i} className={`${isTvMode ? 'text-lg' : 'text-sm'} font-light italic leading-relaxed text-white/60`}>&ldquo;{chunk.trim()}&rdquo;</p>
                             ))}
                         </div>

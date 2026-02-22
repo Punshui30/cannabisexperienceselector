@@ -54,47 +54,150 @@ module.exports = async function handler(request, response) {
     if (request.method !== 'POST') return response.status(405).json({ error: 'Method Not Allowed' });
 
     try {
-        const { terpenes, genre, narration, cultivars } = request.body;
+        const { terpenes, genre, narration, cultivars, mode, mood, energy, bodyFeel, timeContext } = request.body;
         if (!terpenes) return response.status(400).json({ error: 'Missing terpenes' });
 
         const profile = getProfileFromTerpenes(terpenes);
         const genreStyle = genreToStyle[genre] || `Style: ${genre || 'modern'}.`;
 
-        const lyrics = (cultivars && cultivars.length > 0)
-            ? `##[Verse]\nIn the ${profile.time}, feel the power of ${cultivars.map(c => c.name).join(", ")}.\n${narration ? narration.split('.').slice(0, 1).join('.') + '.' : 'A perfect balance for your journey.'}\n\n[Chorus]\nA ${profile.mood} vibe, let the energy flow,\nStrainMath resonance, watch the body glow.\n${profile.energy} energy, ${profile.body} in every breath.##`
-            : `##[Verse]\nFinding the balance in every breath today.\nA journey of focus, a path to the light.\n\n[Chorus]\nStrainMath resonance, feel the body glow.\nA perfect harmony, let the energy flow.##`;
+        let finalLyrics = '';
+        let debugLyrics = '';
 
-        const model = "minimax/music-1.5";
-        const input = {
-            prompt: `A professional ${genre || 'modern'} ${profile.mood} song with ${profile.energy} energy. ${genreStyle} Studio-grade vocals.`,
-            lyrics: lyrics
-        };
+        if (mode === 'lyrics_song') {
+            if (!narration) return response.status(400).json({ error: 'Missing narration for lyric adaptation' });
 
-        console.log(`REPLICATE: Running ${model} with lyrics.`);
+            console.log("LYRIC_ADAPTER: Converting prose to lyrics via Llama 3...");
+            const lyricAdapterPrompt = `SYSTEM: You are a lyric adapter that turns prose into modern lyrics.
+USER:
+Convert the following recommendation narration into lyrics for a cool, modern song.
+The narration is NOT lyric-ready; rewrite it into a lyric sheet.
 
-        const prediction = await replicate.predictions.create({ model, input });
-        const final = await replicate.wait(prediction);
+Constraints:
+- Keep the core vibe and meaning, but DO NOT copy sentences.
+- No strain names, no product/dispensary/brand language, no marketing.
+- No medical claims or health promises.
+- Avoid corny words: “vibe,” “journey,” “elevate,” “magic,” “healing,” “therapy,” “unlock.”
+- Use vivid sensory imagery and confident, modern phrasing.
+- Make it genre-appropriate: ${genre || 'modern'}.
+- Target duration: 30s (lyrics should match that length; keep it short).
+- Tone: cool, understated, confident.
+- Energy: ${energy || profile.energy}; Body feel: ${bodyFeel || profile.body}; Time: ${timeContext || profile.time}.
+- No profanity unless settings explicitly allow it.
+- Lines should be short (most lines 3–8 words). Avoid forced rhymes.
 
-        if (final.status !== "succeeded") {
-            return response.status(500).json({ error: `Replicate failed: ${final.status}` });
+Input narration:
+"""
+${narration}
+"""
+
+Output format MUST be exactly (no extra text):
+
+[verse]
+(4–6 short lines)
+
+[chorus]
+(2–4 short lines, catchy, repeatable)
+
+(optional)
+[bridge]
+(2 short lines)`;
+
+            try {
+                const llmPrediction = await replicate.predictions.create({
+                    model: "meta/meta-llama-3-70b-instruct",
+                    input: {
+                        prompt: lyricAdapterPrompt,
+                        max_new_tokens: 512,
+                        temperature: 0.7
+                    }
+                });
+                const llmFinal = await replicate.wait(llmPrediction);
+                // Extract LLM output (usually an array of strings or single string)
+                finalLyrics = Array.isArray(llmFinal.output) ? llmFinal.output.join('') : (llmFinal.output || '');
+                debugLyrics = finalLyrics;
+                // Add ## for minimax accompaniment if needed later
+                finalLyrics = `##${finalLyrics.trim()}##`;
+            } catch (err) {
+                console.error("Lyric Adapter failed, falling back to basic lyrics:", err);
+                finalLyrics = (cultivars && cultivars.length > 0)
+                    ? `##[Verse]\nIn the ${profile.time}, feel the power of ${cultivars.map(c => c.name).join(", ")}.\n${narration ? narration.split('.').slice(0, 1).join('.') + '.' : 'A perfect balance for your journey.'}\n\n[Chorus]\nA ${profile.mood} vibe, let the energy flow,\nStrainMath resonance, watch the body glow.\n${profile.energy} energy, ${profile.body} in every breath.##`
+                    : `##[Verse]\nFinding the balance in every breath today.\nA journey of focus, a path to the light.\n\n[Chorus]\nStrainMath resonance, feel the body glow.\nA perfect harmony, let the energy flow.##`;
+            }
+        } else {
+            finalLyrics = (cultivars && cultivars.length > 0)
+                ? `##[Verse]\nIn the ${profile.time}, feel the power of ${cultivars.map(c => c.name).join(", ")}.\n${narration ? narration.split('.').slice(0, 1).join('.') + '.' : 'A perfect balance for your journey.'}\n\n[Chorus]\nA ${profile.mood} vibe, let the energy flow,\nStrainMath resonance, watch the body glow.\n${profile.energy} energy, ${profile.body} in every breath.##`
+                : `##[Verse]\nFinding the balance in every breath today.\nA journey of focus, a path to the light.\n\n[Chorus]\nStrainMath resonance, feel the body glow.\nA perfect harmony, let the energy flow.##`;
+        }
+
+        const stylePrompt = `Create a ${genre || 'modern'} song with vocals. Modern production, melodic hook, clear structure. Mood: ${mood || profile.mood}. Energy: ${energy || profile.energy}. Time: ${timeContext || profile.time}. Keep it musical and catchy. No cheesy phrases.`;
+
+        const models = ["minimax/music-1.5", "minimax/music-01", "fofr/yue"];
+        let audioUrl = null;
+        let lastError = null;
+        let usedModel = "";
+
+        for (const model of models) {
+            try {
+                console.log(`REPLICATE: Trying ${model}...`);
+                const input = {
+                    prompt: stylePrompt,
+                    lyrics: finalLyrics
+                };
+
+                // fofr/yue might need different input keys or handle differently
+                if (model === "fofr/yue") {
+                    input.lyrics = finalLyrics.replace(/##/g, ''); // yue doesn't like ##
+                }
+
+                const prediction = await replicate.predictions.create({ model, input });
+                const final = await replicate.wait(prediction);
+
+                if (final.status === "succeeded") {
+                    audioUrl = extractAudioUrl(final.output);
+                    if (audioUrl) {
+                        usedModel = model;
+                        break;
+                    }
+                } else {
+                    console.warn(`Model ${model} failed with status: ${final.status}`);
+                    lastError = `Status: ${final.status}`;
+                }
+            } catch (err) {
+                console.error(`Error with model ${model}:`, err.message);
+                lastError = err.message;
+            }
         }
 
         function extractAudioUrl(output) {
             if (!output) return null;
             if (typeof output === "string") return output.startsWith("http") ? output : null;
-            if (Array.isArray(output)) return extractAudioUrl(output[0]);
+            if (Array.isArray(output)) {
+                // Some models return multiple files, try to find an audio one
+                for (const item of output) {
+                    const url = extractAudioUrl(item);
+                    if (url) return url;
+                }
+            }
             if (typeof output === "object") {
-                for (const k of ["audio", "audio_url", "url", "file", "result"]) {
-                    if (output[k]) return extractAudioUrl(output[k]);
+                for (const k of ["audio", "audio_url", "url", "file", "result", "output"]) {
+                    if (output[k]) {
+                        const res = extractAudioUrl(output[k]);
+                        if (res) return res;
+                    }
                 }
             }
             return null;
         }
 
-        const audioUrl = extractAudioUrl(final.output);
-        if (!audioUrl) return response.status(500).json({ error: "Could not extract audio URL" });
+        if (!audioUrl) {
+            return response.status(500).json({ error: `Could not generate audio after trying all models. Last error: ${lastError}` });
+        }
 
-        return response.status(200).json({ audio: audioUrl });
+        return response.status(200).json({
+            audio: audioUrl,
+            lyrics: debugLyrics || finalLyrics.replace(/##/g, ''),
+            model: usedModel
+        });
     } catch (error) {
         console.error("MusicGen error:", error);
         return response.status(500).json({ error: error.message });
