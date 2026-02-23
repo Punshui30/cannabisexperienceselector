@@ -8,6 +8,7 @@ import { CultivarCard } from './shared/CultivarCard';
 import { MusicVibeButton } from './MusicVibeButton';
 import { INVENTORY } from '../lib/inventory';
 import { normalizeStackWeights } from '../lib/normalizeStackWeights';
+import { StackDetailOverlay } from './StackDetailOverlay';
 
 interface StackDetailScreenProps {
     stack: UIStackRecommendation;
@@ -18,8 +19,9 @@ const MotionDiv = motion.div as any;
 
 export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
     const [isCalculating, setIsCalculating] = useState(false);
+    const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+    const [activeOverlayTab, setActiveOverlayTab] = useState<'protocol' | 'cultivars' | 'info'>('protocol');
     const [prerollSize, setPrerollSize] = useState<number>(0.7); // Grams - Default to 0.7g (standard cone)
-    const [showInstructions, setShowInstructions] = useState(false);
 
     if (!stack) return null;
 
@@ -44,21 +46,17 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
             {/* Background - Pure Black */}
             <div className="absolute inset-0 bg-black pointer-events-none" />
 
-            <div className="flex flex-col gap-6 h-full relative z-10 pb-32 px-4">
-
-
+            <div className="flex flex-col gap-6 relative z-10 pb-32 px-4">
                 {/* Stack Header Block */}
                 <div className="shrink-0 pt-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
-                        <Layers size={14} className="text-[#00FFD1]" />
-                        <span className="text-[#00FFD1] text-[10px] uppercase tracking-widest font-bold">Protocol</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-[#00FFD1] bg-[#00FFD1]/10 px-2 py-0.5 rounded-full border border-[#00FFD1]/20">
+                            Match {stack.confidence ? Math.round(stack.confidence * 100) : '98'}%
+                        </span>
                     </div>
-                    <h1 className="text-3xl max-[360px]:text-2xl font-serif text-white mb-2 leading-tight">
+                    <h1 className="text-3xl font-serif text-white mb-2 leading-tight">
                         {stack.name}
                     </h1>
-                    <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto text-clamp-2-mobile">
-                        {stack.description}
-                    </p>
 
                     <div className="flex justify-center mt-3 mb-1">
                         <MusicVibeButton
@@ -66,12 +64,10 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                                 layer.cultivars.flatMap(cultivar => {
                                     const fullCv = INVENTORY.cultivars.find(cv => cv.name === cultivar.name);
                                     if (!fullCv?.terpenes) return [];
-                                    // Weight by cultivar ratio within layer, 
-                                    // then weight by layer contribution (simplified as equal for now)
                                     const layerWeight = 1 / stack.layers.length;
                                     return Object.entries(fullCv.terpenes).map(([name, pct]) => ({
                                         name,
-                                        percent: (pct as number) * cultivar.ratio * layerWeight
+                                        percent: (pct as number) * (cultivar.ratio || 1) * layerWeight
                                     }));
                                 })
                             )}
@@ -86,106 +82,37 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                     </div>
                 </div>
 
-                {/* How Stacks Work */}
-                <MotionDiv
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    className="max-w-sm mx-auto"
-                >
-                    <div className="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden">
-                        <button
-                            onClick={() => setShowInstructions(!showInstructions)}
-                            className="w-full p-4 flex items-center justify-between hover:bg-white/[0.01] transition-colors"
-                        >
-                            <div className="flex items-center gap-2">
-                                <Info size={14} className="text-white/40" />
-                                <span className="text-sm font-medium text-white/80">How Stacks Work</span>
-                            </div>
-                            <ChevronDown
-                                size={14}
-                                className={`text-white/40 transition-transform ${showInstructions ? 'rotate-180' : ''}`}
-                            />
-                        </button>
-
-                        <AnimatePresence>
-                            {showInstructions && (
-                                <MotionDiv
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="px-4 pb-4 border-t border-white/5">
-                                        <div className="space-y-3 text-left">
-                                            <div className="flex items-start gap-3">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] mt-2 flex-shrink-0" />
-                                                <p className="text-xs text-white/60 leading-relaxed">
-                                                    Stacks are layered sequences designed for different phases of your experience, not single strains.
-                                                </p>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] mt-2 flex-shrink-0" />
-                                                <p className="text-xs text-white/60 leading-relaxed">
-                                                    Each layer supports a different time or phase. Consumption order matters for optimal results.
-                                                </p>
-                                            </div>
-                                            {stack.layers && stack.layers.length > 1 && (
-                                                <div className="flex items-start gap-3">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] mt-2 flex-shrink-0" />
-                                                    <p className="text-xs text-white/60 leading-relaxed">
-                                                        Use layers in sequence as described in the protocol for the complete experience.
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {stack.layers && stack.layers.length === 1 && (
-                                                <div className="flex items-start gap-3">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] mt-2 flex-shrink-0" />
-                                                    <p className="text-xs text-white/60 leading-relaxed">
-                                                        Single-layer stacks can be extended or customized with additional phases as needed.
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </MotionDiv>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </MotionDiv>
-
                 {/* VISUALIZATION HERO - SpatialStack */}
                 <MotionDiv
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="flex-1 flex items-center justify-center w-full max-w-md mx-auto py-8"
+                    className="flex-1 flex items-center justify-center w-full max-w-md mx-auto py-8 relative"
                 >
-                    <div className="relative w-full">
-                        <div className="absolute inset-0 bg-[#00FFD1]/5 blur-[80px] rounded-full animate-pulse-slow" />
-                        <SpatialStack data={stack} />
-                    </div>
+                    <div className="absolute inset-0 bg-[#00FFD1]/5 blur-[80px] rounded-full animate-pulse-slow" />
+                    <SpatialStack
+                        data={stack}
+                        active={isOverlayOpen}
+                        onOpenCultivars={() => {
+                            setActiveOverlayTab('protocol');
+                            setIsOverlayOpen(true);
+                        }}
+                    />
                 </MotionDiv>
 
-                {/* Cultivar Composition — identical structure to BlendDetailScreen */}
-                <div className="max-w-md mx-auto w-full space-y-3">
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3">
-                        Cultivar Composition
-                    </h3>
-                    {normalizeStackWeights(stack.layers.flatMap(l => l.cultivars)).map((item, i) => (
-                        <CultivarCard
-                            key={i}
-                            name={item.name}
-                            profile={item.original.profile}
-                            ratio={item.percent / 100}
-                            prominentTerpenes={[]}
-                            characteristics={item.original.characteristics}
-                            context={{ density: 'default', showPercentage: true }}
-                        />
-                    ))}
+                {/* Compact Info Link */}
+                <div className="flex justify-center">
+                    <button
+                        onClick={() => {
+                            setActiveOverlayTab('info');
+                            setIsOverlayOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-[#00FFD1] hover:border-[#00FFD1]/30 transition-all"
+                    >
+                        <Info size={12} />
+                        <span className="text-[10px] uppercase tracking-widest font-bold">How it works</span>
+                    </button>
                 </div>
-
             </div>
 
             {/* CALCULATOR BUTTON - Floating Action Style */}
@@ -310,6 +237,14 @@ export function StackDetailScreen({ stack, onBack }: StackDetailScreenProps) {
                     </MotionDiv>
                 </div>
             )}
+
+            {/* OVERLAY */}
+            <StackDetailOverlay
+                isOpen={isOverlayOpen}
+                onClose={() => setIsOverlayOpen(false)}
+                stack={stack}
+                initialTab={activeOverlayTab}
+            />
         </div>
     );
 }

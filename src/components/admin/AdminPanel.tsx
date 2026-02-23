@@ -7,9 +7,14 @@ import { COLORS } from "../../lib/colors";
 import logo from "figma:asset/f7eabe4467f2f507507acb041076599c4b9fae68.png";
 import { IntelligenceDashboard } from "./IntelligenceDashboard";
 
+const MotionDiv = motion.div as any;
+const MotionButton = motion.button as any;
+const MotionSvg = motion.svg as any;
+
 type Props = {
   onExitAdmin: () => void;
   onEnterDemoMode: () => void;
+  onViewLiveFeed: () => void;
 };
 
 type AdminView = "home" | "inventory" | "settings" | "intelligence";
@@ -17,6 +22,7 @@ type AdminView = "home" | "inventory" | "settings" | "intelligence";
 export function AdminPanel({
   onExitAdmin,
   onEnterDemoMode,
+  onViewLiveFeed
 }: Props) {
   const [currentView, setCurrentView] = useState<AdminView>("home");
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -102,7 +108,7 @@ export function AdminPanel({
 
           {/* Demo Mode Banner */}
           {demoMode && (
-            <motion.div
+            <MotionDiv
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="px-4 py-2 rounded-xl border flex items-center gap-2"
@@ -124,7 +130,7 @@ export function AdminPanel({
               >
                 Demo Mode Active • Using Sample Data
               </span>
-            </motion.div>
+            </MotionDiv>
           )}
         </div>
 
@@ -133,24 +139,24 @@ export function AdminPanel({
           <div className="space-y-4 max-w-2xl mx-auto">
 
             {/* NEW INTELLIGENCE CARD */}
-            <motion.button
+            <MotionButton
               onClick={() => setCurrentView("intelligence")}
               whileTap={{ scale: 0.98 }}
               className="w-full rounded-2xl p-6 border text-left bg-gradient-to-br from-[#00FFD1]/10 to-transparent border-[#00FFD1]/30"
             >
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-xl bg-[#00FFD1]/20 text-[#00FFD1]">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
                 </div>
                 <div>
                   <div className="text-lg font-medium text-white">Merchant Intelligence</div>
                   <div className="text-sm text-[#00FFD1]/70">Live analytics & events</div>
                 </div>
               </div>
-            </motion.button>
+            </MotionButton>
 
             {/* Primary Action: Scan COA */}
-            <motion.button
+            <MotionButton
               onClick={() => setScannerOpen(true)}
               whileTap={{ scale: 0.98 }}
               className="w-full rounded-2xl p-6 border text-left relative overflow-hidden"
@@ -225,10 +231,10 @@ export function AdminPanel({
                   </svg>
                 </div>
               </div>
-            </motion.button>
+            </MotionButton>
 
             {/* Inventory Status Card */}
-            <motion.button
+            <MotionButton
               onClick={() => setCurrentView("inventory")}
               whileTap={{ scale: 0.98 }}
               className="w-full rounded-2xl p-6 border text-left"
@@ -318,7 +324,7 @@ export function AdminPanel({
                   />
                 </svg>
               </div>
-            </motion.button>
+            </MotionButton>
 
             {/* Demo Mode Toggle Card */}
             <div
@@ -384,7 +390,7 @@ export function AdminPanel({
             </div>
 
             {/* Operator Demo Card */}
-            <motion.button
+            <MotionButton
               onClick={() => setShowOperatorDemo(true)}
               whileTap={{ scale: 0.98 }}
               className="w-full rounded-2xl p-6 border text-left"
@@ -434,7 +440,7 @@ export function AdminPanel({
                     </div>
                   </div>
                 </div>
-                <motion.svg
+                <MotionSvg
                   width="24"
                   height="24"
                   viewBox="0 0 24 24"
@@ -453,9 +459,35 @@ export function AdminPanel({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
-                </motion.svg>
+                </MotionSvg>
               </div>
-            </motion.button>
+            </MotionButton>
+
+            {/* LIVE BROADCAST INTERFACE */}
+            <MotionButton
+              onClick={onViewLiveFeed}
+              whileTap={{ scale: 0.98 }}
+              className="w-full rounded-2xl p-6 border text-left bg-gradient-to-br from-[#00FFD1]/10 to-transparent border-[#00FFD1]/20 shadow-[0_4px_20px_rgba(0,255,209,0.05)]"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-[#00FFD1]/20 text-[#00FFD1] relative">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FFD1] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-[#00FFD1]"></span>
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-lg font-medium text-white">Live Broadcast</div>
+                    <div className="text-sm text-white/40">Visualizer for community screens</div>
+                  </div>
+                </div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/20">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </div>
+            </MotionButton>
           </div>
         </div>
 

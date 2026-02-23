@@ -185,7 +185,7 @@ export default function App() {
       setFocusedStackId(exemplar.id);
       setActiveStackId(null); // Rule: activeStackId remains null on entry
       setBlendRecs([]);
-      setView('stack-card');
+      setView('stack-detail');
     } else {
       // Fallback for static blends if exists
       setBlendRecs([exemplar.data]);
@@ -445,8 +445,9 @@ export default function App() {
 
   const handleStackCardBack = () => {
     console.log('[App] Stack Card: Go Back');
-    // Contextual Back: Return to Results if we have search results, otherwise Presets
-    if (blendRecs.length > 0) {
+    //  const handleStackCardBack = () => {
+    // If we have search results, go back to results
+    if (blendRecs.length > 0 || stackRec) {
       setView('results');
     } else {
       setView('presets');
@@ -588,6 +589,7 @@ export default function App() {
               <AdminPanel
                 onExitAdmin={() => setMode('user')}
                 onEnterDemoMode={() => setView('input')}
+                onViewLiveFeed={() => setView('live-feed')}
               />
             ) : (
               <>
@@ -708,7 +710,7 @@ export default function App() {
                         setStackRec(item as UIStackRecommendation);
                         setFocusedStackId(item.id);
                         setActiveStackId(null);
-                        setView('stack-card');
+                        setView('stack-detail');
                       } else {
                         setSelectedBlendId(item.id);
                         setView('blend-detail');
@@ -754,7 +756,15 @@ export default function App() {
                 {view === 'stack-detail' && stackRec && (
                   <StackDetailScreen
                     stack={stackRec as UIStackRecommendation}
-                    onBack={() => setView('stack-card')}
+                    onBack={() => {
+                      // If we came from a search/recommendation flow, go back to results
+                      if (blendRecs.length > 0) {
+                        setView('results');
+                      } else {
+                        // Otherwise go back to presets
+                        setView('presets');
+                      }
+                    }}
                   />
                 )}
 
