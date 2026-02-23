@@ -26,11 +26,25 @@ interface MusicVibeButtonProps {
     terpenes: { name: string; percent: number }[];
     narration?: string;
     cultivars?: { name: string; ratio: number }[];
+    mood?: string;
+    energy?: string;
+    bodyFeel?: string;
+    timeContext?: string;
     className?: string;
     onGenerated?: (url: string) => void;
 }
 
-export function MusicVibeButton({ terpenes, narration, cultivars, className = '', onGenerated }: MusicVibeButtonProps) {
+export function MusicVibeButton({
+    terpenes,
+    narration,
+    cultivars,
+    mood,
+    energy,
+    bodyFeel,
+    timeContext,
+    className = '',
+    onGenerated
+}: MusicVibeButtonProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [compositionPhase, setCompositionPhase] = useState<'idle' | 'writing' | 'recording'>('idle');
@@ -142,7 +156,12 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
                 body: JSON.stringify({
                     terpenes,
                     genre: selectedGenre,
-                    narration
+                    narration,
+                    mood,
+                    energy,
+                    bodyFeel,
+                    timeContext,
+                    cultivars: cultivars?.map(c => c.name) ?? [],
                 }),
             });
 
@@ -215,11 +234,13 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
                     </div>
                     <div className="flex flex-col items-start text-left">
                         <span className="text-[10px] font-black uppercase tracking-widest leading-none mb-0.5">
-                            {compositionPhase === 'writing' ? 'Writing Lyrics...' :
+                            {compositionPhase === 'writing' ? 'Writing...' :
                                 compositionPhase === 'recording' ? 'Recording...' :
-                                    'Play This Vibe'}
+                                    audioUrl ? 'Play Again' : 'Play Track'}
                         </span>
-                        <span className="text-[8px] opacity-40 uppercase tracking-tighter">Vocals + Lyrics</span>
+                        <span className="text-[8px] opacity-40 uppercase tracking-tighter">
+                            {compositionPhase === 'writing' ? 'AI composing lyrics' : compositionPhase === 'recording' ? 'Rendering audio' : 'Vocals · ' + selectedGenre}
+                        </span>
                     </div>
                 </button>
 
@@ -302,8 +323,8 @@ export function MusicVibeButton({ terpenes, narration, cultivars, className = ''
 
             <p className="text-[9px] text-white/20 italic text-center max-w-xs">
                 {isLoading
-                    ? "Our AI is analyzing the profile to compose a unique soundtrack..."
-                    : `Customize your experience with an AI-generated ${selectedGenre} track.`}
+                    ? compositionPhase === 'writing' ? 'Drafting + refining lyrics in two passes...' : 'Rendering audio from the lyric sheet...'
+                    : `AI-generated ${selectedGenre} · lyrics matched to this blend`}
             </p>
         </div>
     );

@@ -192,31 +192,11 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
     }
   };
 
-  /* TYPEWRITER EFFECT */
-  const [placeholderText, setPlaceholderText] = useState('');
-
   const INSTRUCTIONS: Record<string, string> = {
     describe: "Describe how you want to feel, what you want to avoid, or a scenario...",
     product: "Take a picture of a product label that you like...",
     strain: "Enter a strain name and a brand or grower..."
   };
-
-  useEffect(() => {
-    setPlaceholderText('');
-    const targetText = INSTRUCTIONS[mode] || '';
-    let index = 0;
-
-    const intervalId = setInterval(() => {
-      if (index < targetText.length) {
-        setPlaceholderText(prev => prev + targetText.charAt(index));
-        index++;
-      } else {
-        clearInterval(intervalId);
-      }
-    }, 20);
-
-    return () => clearInterval(intervalId);
-  }, [mode]);
 
   return (
     <>
@@ -363,135 +343,143 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
             {/* INPUT AREA */}
             <AnimatePresence mode="wait">
-              <MotionDiv
+              <CardShell
+                as="div"
                 key={mode}
+                color="#00FFD1"
+                noPadding={true}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
                 className="w-full"
               >
-                {mode === 'describe' && (
-                  <div className="space-y-2">
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder={placeholderText}
-                      className={`${GLASS_INPUT} h-28 resize-none transition-all placeholder:text-white/20 px-5 py-4 pr-5 leading-relaxed text-sm`}
-                    />
-                    {/* Visible voice button row */}
-                    <button
-                      onClick={handleMicClick}
-                      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-all text-xs font-bold uppercase tracking-widest
-                        ${isListening && listeningField === 'describe'
-                          ? 'bg-red-500/15 border-red-500/40 text-red-400 animate-pulse'
-                          : 'bg-white/5 border-white/10 text-white/50 hover:bg-[#00FFD1]/10 hover:border-[#00FFD1]/30 hover:text-[#00FFD1]'
-                        }`}
-                    >
-                      <Mic size={14} />
-                      {isListening && listeningField === 'describe' ? 'Listening…' : 'Speak your intent'}
-                    </button>
-                  </div>
-                )}
-
-                {mode === 'product' && (
-                  <div className="space-y-3">
-                    {uploadedImage ? (
-                      /* ── POST-CAPTURE STATE ── */
-                      <div className="relative w-full h-48 rounded-2xl overflow-hidden border border-emerald-400/30 bg-black">
-                        <img
-                          src={URL.createObjectURL(uploadedImage)}
-                          alt="Captured label"
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                          <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">
-                            ✓ Label Captured
-                          </span>
-                          <button
-                            onClick={() => { setUploadedImage(null); setShowCamera(true); }}
-                            className="px-3 py-1 rounded-lg bg-white/10 text-white/70 text-[10px] uppercase font-bold tracking-widest hover:bg-white/20 transition-all"
-                          >
-                            Re-scan
-                          </button>
-                        </div>
+                <div className="p-5 flex flex-col gap-4">
+                  {mode === 'describe' && (
+                    <div className="space-y-4">
+                      <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder={INSTRUCTIONS.describe}
+                        className={`${GLASS_INPUT} h-28 resize-none transition-all placeholder:text-white/20 px-5 py-4 pr-5 leading-relaxed text-sm`}
+                      />
+                      {/* Premium voice button row */}
+                      <div className="flex justify-center pb-1">
+                        <button
+                          onClick={handleMicClick}
+                          className={`w-[85%] max-w-[280px] flex items-center justify-center gap-2 py-3 rounded-full transition-all text-xs font-bold uppercase tracking-widest
+                            ${isListening && listeningField === 'describe'
+                              ? 'bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] animate-pulse'
+                              : 'bg-[#00FFD1] text-black shadow-lg shadow-[#00FFD1]/20 hover:scale-105 active:scale-95'
+                            }`}
+                        >
+                          <Mic size={16} fill="currentColor" />
+                          {isListening && listeningField === 'describe' ? 'Listening…' : 'Speak your intent'}
+                        </button>
                       </div>
-                    ) : (
-                      /* ── CAMERA LAUNCH ZONE ── */
-                      <button
-                        onClick={() => setShowCamera(true)}
-                        className="relative w-full h-40 rounded-2xl border-2 border-dashed border-[#00FFD1]/30 bg-[#00FFD1]/5 hover:border-[#00FFD1]/60 hover:bg-[#00FFD1]/10 active:scale-[0.99] transition-all duration-200 flex flex-col items-center justify-center gap-3 group"
-                      >
-                        <div className="p-4 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 group-hover:bg-[#00FFD1]/20 transition-all">
-                          <Camera size={28} className="text-[#00FFD1]" />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">Open Camera</p>
-                          <p className="text-[10px] text-white/30 mt-0.5">Point at packaging · Works on Windows &amp; mobile</p>
-                        </div>
-                        {/* Subtle pulse ring */}
-                        <div className="absolute inset-0 rounded-2xl border border-[#00FFD1]/10 animate-pulse pointer-events-none" />
-                      </button>
-                    )}
-                    <p className="text-[10px] text-white/20 text-center px-4">
-                      We'll read the label and match it to your library automatically.
-                    </p>
-                  </div>
-                )}
+                    </div>
+                  )}
 
-
-                {mode === 'strain' && (
-                  <div className="flex flex-col gap-3 relative">
-                    <input
-                      type="text"
-                      value={strainName}
-                      onChange={(e) => setStrainName(e.target.value)}
-                      placeholder="Strain Name (e.g. Jack Herer)"
-                      className={`${GLASS_INPUT} pr-20`}
-                    />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                      {!isAdminMode && (
+                  {mode === 'product' && (
+                    <div className="space-y-3">
+                      {uploadedImage ? (
+                        /* ── POST-CAPTURE STATE ── */
+                        <div className="relative w-full h-48 rounded-2xl overflow-hidden border border-emerald-400/30 bg-black">
+                          <img
+                            src={URL.createObjectURL(uploadedImage)}
+                            alt="Captured label"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                            <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">
+                              ✓ Label Captured
+                            </span>
+                            <button
+                              onClick={() => { setUploadedImage(null); setShowCamera(true); }}
+                              className="px-3 py-1 rounded-lg bg-white/10 text-white/70 text-[10px] uppercase font-bold tracking-widest hover:bg-white/20 transition-all"
+                            >
+                              Re-scan
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ── CAMERA LAUNCH ZONE ── */
                         <button
                           onClick={() => setShowCamera(true)}
-                          className="p-2 rounded-full bg-white/10 text-white/30 hover:text-[#00FFD1] transition-all"
+                          className="relative w-full h-40 rounded-2xl border-2 border-dashed border-[#00FFD1]/30 bg-[#00FFD1]/5 hover:border-[#00FFD1]/60 hover:bg-[#00FFD1]/10 active:scale-[0.99] transition-all duration-200 flex flex-col items-center justify-center gap-3 group"
                         >
-                          <Camera size={14} />
+                          <div className="p-4 rounded-full bg-[#00FFD1]/10 border border-[#00FFD1]/20 group-hover:bg-[#00FFD1]/20 transition-all">
+                            <Camera size={28} className="text-[#00FFD1]" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">Open Camera</p>
+                            <p className="text-[10px] text-white/30 mt-0.5">Point at packaging · Works on Windows &amp; mobile</p>
+                          </div>
+                          {/* Subtle pulse ring */}
+                          <div className="absolute inset-0 rounded-2xl border border-[#00FFD1]/10 animate-pulse pointer-events-none" />
                         </button>
                       )}
-                      <button
-                        onClick={() => startListening(t => setStrainName(t), (l) => {
-                          setIsListening(l);
-                          setListeningField(l ? 'strain' : null);
-                          if (!l) scrollToBottom();
-                        })}
-                        className={`p-2 rounded-full transition-all ${isListening && listeningField === 'strain' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
-                      >
-                        <Mic size={14} />
-                      </button>
+                      <p className="text-[10px] text-white/20 text-center px-4">
+                        We'll read the label and match it to your library automatically.
+                      </p>
                     </div>
-                    <div className="relative">
+                  )}
+
+
+                  {mode === 'strain' && (
+                    <div className="flex flex-col gap-3 relative">
                       <input
                         type="text"
-                        value={growerName}
-                        onChange={(e) => setGrowerName(e.target.value)}
-                        placeholder="Brand/Grower (Optional)"
-                        className={GLASS_INPUT}
+                        value={strainName}
+                        onChange={(e) => setStrainName(e.target.value)}
+                        placeholder="Strain Name (e.g. Jack Herer)"
+                        className={`${GLASS_INPUT} pr-20`}
                       />
-                      <button
-                        onClick={() => startListening(t => setGrowerName(t), (l) => {
-                          setIsListening(l);
-                          setListeningField(l ? 'grower' : null);
-                          if (!l) scrollToBottom();
-                        })}
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening && listeningField === 'grower' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
-                      >
-                        <Mic size={14} />
-                      </button>
-                    </div>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        {!isAdminMode && (
+                          <button
+                            onClick={() => setShowCamera(true)}
+                            className="p-2 rounded-full bg-white/10 text-white/30 hover:text-[#00FFD1] transition-all"
+                          >
+                            <Camera size={14} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => startListening(t => setStrainName(t), (l) => {
+                            setIsListening(l);
+                            setListeningField(l ? 'strain' : null);
+                            if (!l) scrollToBottom();
+                          })}
+                          className={`p-2 rounded-full transition-all ${isListening && listeningField === 'strain' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                        >
+                          <Mic size={14} />
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={growerName}
+                          onChange={(e) => setGrowerName(e.target.value)}
+                          placeholder="Brand/Grower (Optional)"
+                          className={GLASS_INPUT}
+                        />
+                        <button
+                          onClick={() => startListening(t => setGrowerName(t), (l) => {
+                            setIsListening(l);
+                            setListeningField(l ? 'grower' : null);
+                            if (!l) scrollToBottom();
+                          })}
+                          className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening && listeningField === 'grower' ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white/30 hover:text-[#00FFD1]'}`}
+                        >
+                          <Mic size={14} />
+                        </button>
+                      </div>
 
-                  </div>
-                )}
-              </MotionDiv>
+                    </div>
+                  )}
+                </div>
+              </CardShell>
             </AnimatePresence>
 
 

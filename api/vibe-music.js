@@ -98,74 +98,170 @@ module.exports = async function handler(request, response) {
         // POST: START TASK
         // ---------------------------------------------------------
         if (request.method === 'POST') {
-            const { terpenes, genre, narration, energy, mood, bodyFeel, timeContext } = request.body;
+            const { terpenes, genre, narration, energy: reqEnergy, mood: reqMood, bodyFeel, timeContext, cultivars } = request.body;
             if (!terpenes) return sendJson(response, 400, { ok: false, error: { message: 'Missing terpenes' } });
 
             const profile = getProfileFromTerpenes(terpenes);
+            const mood = reqMood || profile.mood;
+            const energy = reqEnergy || profile.energy;
+            const cultivarNames = Array.isArray(cultivars) ? cultivars.map(c => typeof c === 'string' ? c : c.name) : [];
+
             let finalLyrics = '';
             let rawLyrics = '';
 
-            // Step 1: Generate Lyrics (Llama 3)
-            if (narration) {
-                console.log("[Vibe-Music] Adapting lyrics...");
-                const lyricAdapterPrompt = `You are a professional lyricist. Rewrite the following prose into a 30-second song lyric sheet.
-STRICT RULE: Output ONLY the lyrics. NO conversational filler, NO "Here are the lyrics", NO "Sure thing".
-Format like this:
-[verse]
-(lines)
-[chorus]
-(lines)
+            // ---------------------------------------------------------
+            // TWO-PASS LYRIC GENERATION
+            // ---------------------------------------------------------
 
-Input:
-${narration}
+            const BANNED_WORDS = ['vibe', 'journey', 'elevate', 'magic', 'healing', 'therapy', 'unlock', 'experience', 'curated', 'formula', 'terpene'];
+            const INSTRUCTIONAL_PHRASES = ['designed to', 'we built this', 'let me explain', 'this blend', 'your outcome', 'here’s how', 'this means'];
 
-Genre Style: ${genre || 'modern'}
-Energy: ${energy || profile.energy}
-Mood: ${mood || profile.mood}`;
+            const checkCringe = (text) => {
+                const lower = text.toLowerCase();
+                if (BANNED_WORDS.some(word => lower.includes(word))) return true;
+                if (INSTRUCTIONAL_PHRASES.some(phrase => lower.includes(phrase))) return true;
+                return false;
+            };
 
-                try {
-                    const llmPrediction = await replicate.predictions.create({
-                        model: "meta/meta-llama-3-70b-instruct",
-                        input: {
-                            prompt: lyricAdapterPrompt,
-                            max_new_tokens: 250,
-                            temperature: 0.7
-                        }
-                    });
-
-                    const llmFinal = await replicate.wait(llmPrediction);
-                    let rawOutput = Array.isArray(llmFinal.output) ? llmFinal.output.join('') : (llmFinal.output || '');
-
-                    // BRUTAL CLEANUP: Take everything after the first '[' just in case it still chats
-                    const firstBracket = rawOutput.indexOf('[');
-                    if (firstBracket !== -1) {
-                        rawLyrics = rawOutput.substring(firstBracket).trim();
-                    } else {
-                        rawLyrics = rawOutput.trim();
+            const llmRequest = async (prompt) => {
+                const prediction = await replicate.predictions.create({
+                    model: "meta/meta-llama-3-70b-instruct",
+                    input: {
+                        prompt,
+                        max_new_tokens: 500,
+                        temperature: 0.75
                     }
+                });
+                const result = await replicate.wait(prediction);
+                return Array.isArray(result.output) ? result.output.join('') : (result.output || '');
+            };
 
-                    // Basic sanity cleanup for common chatty phrases
-                    rawLyrics = rawLyrics.replace(/^(here's|here are|sure|okay|rewritten lyrics|the lyrics|here is).*?:\s*/i, '').trim();
+            const cleanLyrics = (raw) => {
+                const firstBracket = raw.indexOf('[');
+                let cleaned = firstBracket !== -1 ? raw.substring(firstBracket).trim() : raw.trim();
+                return cleaned.replace(/^(here's|here are|sure|okay|rewritten lyrics|the lyrics|here is).*?:\s*/i, '').trim();
+            };
 
-                    finalLyrics = `##${rawLyrics}##`;
-                } catch (err) {
-                    console.error("[Vibe-Music] LLM Error:", err);
-                    rawLyrics = `[verse]\nDrifting through the day,\nFinding focus in the morning air.\n[chorus]\nBalance in every breath.`;
-                    finalLyrics = `##${rawLyrics}##`;
+            if (narration) {
+                console.log("[Vibe-Music] Starting Two-Pass Lyric Generation...");
+
+                // PASS 1: DRAFT
+                const pass1Prompt = `SYSTEM: You are a modern songwriter. Write lyrics that sound like a real current song.
+USER:
+Write lyrics for a ${genre || 'modern'} track with vocals using the vibe below. Do NOT write an explanation. Do NOT sound like an ad.
+
+Vibe targets:
+- Mood: ${mood}
+- Energy: ${energy}
+- Body feel: ${bodyFeel || profile.body || 'relaxed'}
+- Time context: ${timeContext || profile.time || 'now'}
+
+Must include cultivar name-drops naturally (not as a list):
+${cultivarNames.join(", ")}
+
+Hard rules (anti-corny):
+- No instructional language (avoid "let me explain", "here's how", "this means", "designed to", "we built this").
+- No brand/product/dispensary language.
+- No medical claims.
+- Avoid these words entirely: ${BANNED_WORDS.join(", ")}.
+- Avoid filler affirmations: "feel so good", "take you higher", "all night long" unless genre-appropriate and used sparingly.
+- No "poem voice" (no Victorian words, no overly ornate metaphors).
+- Use modern phrasing, tight lines, and concrete imagery.
+
+Structure:
+[verse] 6 lines (short, punchy, 3–9 words per line)
+[chorus] 4 lines (catchy, repeatable)
+[verse] 4 lines (variation)
+[chorus] 4 lines (repeat)
+
+Cultivar integration rules:
+- Mention each cultivar at most ONCE.
+- Use them like proper nouns in the world of the song, not as product labels.
+
+Use this prose only as inspiration:
+"""
+${narration}
+"""
+
+Output only the lyric sheet with tags. No extra text.`;
+
+                let pass1Output = await llmRequest(pass1Prompt);
+                let draftLyrics = cleanLyrics(pass1Output);
+                console.log("[Vibe-Music] Pass 1 Complete.");
+
+                // PASS 2: CRITIC + REWRITE
+                const pass2Prompt = `SYSTEM: You are a lyric doctor who removes cringe and makes lyrics sound like a real modern song.
+USER:
+Rewrite these lyrics to sound current and non-corny while keeping the same vibe and meaning.
+
+Rewrite rules:
+- Remove any instructional/marketing tone.
+- Replace generic phrases with specific modern imagery.
+- Keep lines short and singable.
+- Keep cultivar name-drops subtle and natural (each at most once).
+- Keep the same section structure and tags.
+- No forced rhymes. Light internal rhyme is okay.
+- Avoid these words: ${BANNED_WORDS.join(", ")}.
+
+Lyrics to fix:
+${draftLyrics}
+
+Output only the revised lyric sheet with tags. No commentary.`;
+
+                let pass2Output = await llmRequest(pass2Prompt);
+                rawLyrics = cleanLyrics(pass2Output);
+                console.log("[Vibe-Music] Pass 2 Complete.");
+
+                // CRINGE DETECTOR
+                if (checkCringe(rawLyrics)) {
+                    console.log("[Vibe-Music] Cringe Detected! Running Pass 3...");
+                    const pass3Prompt = `SYSTEM: Emergency rewrite. The previous lyrics still sound like an advertisement or use banned cheesy words.
+USER:
+Rewrite the following lyrics one last time. BE BRUTAL. Remove every word that sounds like a product description. 
+Banned words: ${BANNED_WORDS.join(", ")}. 
+Instructional phrases to REMOVE: ${INSTRUCTIONAL_PHRASES.join(", ")}.
+Ensure the cultivars are still there but feel completely natural.
+
+Lyrics:
+${rawLyrics}
+
+Output only the revised lyric sheet with tags.`;
+                    let pass3Output = await llmRequest(pass3Prompt);
+                    rawLyrics = cleanLyrics(pass3Output);
                 }
+
+                // Ensure cultivars survived
+                cultivarNames.forEach(name => {
+                    if (!rawLyrics.toLowerCase().includes(name.toLowerCase())) {
+                        console.log(`[Vibe-Music] Cultivar ${name} missing, re-inserting...`);
+                        // Subtly append to a verse if missing
+                        rawLyrics = rawLyrics.replace(/\[verse\]/i, `[verse]\n(Echoing ${name})\n`);
+                    }
+                });
+
+                finalLyrics = `##${rawLyrics}##`;
             }
 
             // Step 2: Start Music Generation (Async)
             const genreStyles = {
-                "Hip Hop": "Style: Professional Rap. Rhythmic rap delivery, confident flow, urban street vibe. 808 bass, crisp drums, authentic delivery. NOT singy, NOT melodic vocals.",
-                "Lo-Fi": "Style: Lo-Fi hip hop. Dusty drums, vinyl crackle, warm samples, relaxed melodic delivery.",
-                "Ambient": "Style: Atmospheric Ambient. Ethereal pads, no drums, cinematic soundscapes.",
-                "Electronic": "Style: Modern Electronic. High energy, synth-driven, driving beat.",
-                "R&B": "Style: Soulful R&B. Smooth vocals, groovy bassline, contemporary production."
+                "Hip Hop": "Style: Pro rap. Confident flow, rhythmic delivery, 808 bass, crisp hi-hats. NOT melodic, NOT singy.",
+                "Lo-Fi": "Style: Lo-fi hip hop. Dusty drums, vinyl crackle, warm Fender Rhodes keys. Chill, relaxed delivery.",
+                "Ambient": "Style: Atmospheric ambient. Ethereal layered pads, cinematic, no drums. Soft texture throughout.",
+                "Electronic": "Style: Modern electronic. High energy, punchy synths, four-on-the-floor or trap beat.",
+                "R&B": "Style: Contemporary R&B. Smooth vocals, lush harmonies, soulful chord stabs, modern trap hi-hats.",
+                "Indie / Alternative": "Style: Indie alternative. Guitar-driven, slightly reverb-heavy, emotionally resonant vocals, warm production.",
+                "Acoustic": "Style: Acoustic singer-songwriter. Clean acoustic guitar, intimate distant reverb, breathy close-mic vocals.",
+                "Folk": "Style: Modern folk. Fingerpicked guitar, earnest storytelling vocals, subtle percussion, organic instruments.",
+                "Bluegrass": "Style: Contemporary bluegrass. Banjo, fiddle, upright bass, tight vocal harmonies, medium tempo.",
+                "Jazz": "Style: Modern jazz. Brushed drums, upright bass, Rhodes piano, cool relaxed vocal over swinging feel.",
+                "Cinematic": "Style: Cinematic score with vocals. Orchestral strings, dramatic swells, powerful female or male lead.",
+                "Soul": "Style: Classic soul. Warm organ, punchy horns, gospel-inflected vocals, soulful conviction.",
+                "Chillwave": "Style: Chillwave. Dreamy synths, reverb-soaked vocals, beach nostalgia, woozy lo-fi textures.",
+                "Downtempo": "Style: Downtempo trip-hop. Slow boom-bap beat, dark bass, atmospheric pads, spoken or sung vocals.",
             };
 
-            const genreDesc = genreStyles[genre] || `Style: Professional ${genre || 'modern'} song with vocals.`;
-            const stylePrompt = `${genreDesc} Mood: ${mood || profile.mood}. Energy: ${energy || profile.energy}. Studio production. Quality: High. Vocal: Authentic, genre-specific.`;
+            const genreDesc = genreStyles[genre] || `Style: ${genre || 'modern'} with authentic vocals and full production.`;
+            const stylePrompt = `${genreDesc} Mood: ${mood}. Energy: ${energy}. Studio production quality. Authentic vocal delivery specific to the genre.`;
 
             const model = "minimax/music-1.5";
             console.log(`[Vibe-Music] Starting ${model} job...`);

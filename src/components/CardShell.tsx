@@ -9,6 +9,10 @@ interface CardShellProps extends HTMLMotionProps<"div"> {
     className?: string; // Allow overrides
     noPadding?: boolean;
     as?: 'div' | 'button';
+    initial?: any;
+    animate?: any;
+    exit?: any;
+    transition?: any;
 }
 
 export function CardShell({
