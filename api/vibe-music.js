@@ -156,7 +156,16 @@ Mood: ${mood || profile.mood}`;
             }
 
             // Step 2: Start Music Generation (Async)
-            const stylePrompt = `A professional ${genre || 'modern'} song with vocals. Studio production. Mood: ${mood || profile.mood}. Energy: ${energy || profile.energy}. Catchy melody.`;
+            const genreStyles = {
+                "Hip Hop": "Style: Professional Rap. Rhythmic rap delivery, confident flow, urban street vibe. 808 bass, crisp drums, authentic delivery. NOT singy, NOT melodic vocals.",
+                "Lo-Fi": "Style: Lo-Fi hip hop. Dusty drums, vinyl crackle, warm samples, relaxed melodic delivery.",
+                "Ambient": "Style: Atmospheric Ambient. Ethereal pads, no drums, cinematic soundscapes.",
+                "Electronic": "Style: Modern Electronic. High energy, synth-driven, driving beat.",
+                "R&B": "Style: Soulful R&B. Smooth vocals, groovy bassline, contemporary production."
+            };
+
+            const genreDesc = genreStyles[genre] || `Style: Professional ${genre || 'modern'} song with vocals.`;
+            const stylePrompt = `${genreDesc} Mood: ${mood || profile.mood}. Energy: ${energy || profile.energy}. Studio production. Quality: High. Vocal: Authentic, genre-specific.`;
 
             const model = "minimax/music-1.5";
             console.log(`[Vibe-Music] Starting ${model} job...`);
