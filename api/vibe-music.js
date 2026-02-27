@@ -185,12 +185,13 @@ ${narration}
 
 Output only the lyric sheet with tags. No extra text.`;
 
-                let pass1Output = await llmRequest(pass1Prompt);
-                let draftLyrics = cleanLyrics(pass1Output);
-                console.log("[Vibe-Music] Pass 1 Complete.");
+                try {
+                    let pass1Output = await llmRequest(pass1Prompt);
+                    let draftLyrics = cleanLyrics(pass1Output);
+                    console.log("[Vibe-Music] Pass 1 Complete.");
 
-                // PASS 2: CRITIC + REWRITE
-                const pass2Prompt = `SYSTEM: You are a lyric doctor who removes cringe and makes lyrics sound like a real modern song.
+                    // PASS 2: CRITIC + REWRITE
+                    const pass2Prompt = `SYSTEM: You are a lyric doctor who removes cringe and makes lyrics sound like a real modern song.
 USER:
 Rewrite these lyrics to sound current and non-corny while keeping the same vibe and meaning.
 
@@ -208,14 +209,14 @@ ${draftLyrics}
 
 Output only the revised lyric sheet with tags. No commentary.`;
 
-                let pass2Output = await llmRequest(pass2Prompt);
-                rawLyrics = cleanLyrics(pass2Output);
-                console.log("[Vibe-Music] Pass 2 Complete.");
+                    let pass2Output = await llmRequest(pass2Prompt);
+                    rawLyrics = cleanLyrics(pass2Output);
+                    console.log("[Vibe-Music] Pass 2 Complete.");
 
-                // CRINGE DETECTOR
-                if (checkCringe(rawLyrics)) {
-                    console.log("[Vibe-Music] Cringe Detected! Running Pass 3...");
-                    const pass3Prompt = `SYSTEM: Emergency rewrite. The previous lyrics still sound like an advertisement or use banned cheesy words.
+                    // CRINGE DETECTOR
+                    if (checkCringe(rawLyrics)) {
+                        console.log("[Vibe-Music] Cringe Detected! Running Pass 3...");
+                        const pass3Prompt = `SYSTEM: Emergency rewrite. The previous lyrics still sound like an advertisement or use banned cheesy words.
 USER:
 Rewrite the following lyrics one last time. BE BRUTAL. Remove every word that sounds like a product description. 
 Banned words: ${BANNED_WORDS.join(", ")}. 
@@ -226,21 +227,31 @@ Lyrics:
 ${rawLyrics}
 
 Output only the revised lyric sheet with tags.`;
-                    let pass3Output = await llmRequest(pass3Prompt);
-                    rawLyrics = cleanLyrics(pass3Output);
-                }
-
-                // Ensure cultivars survived
-                cultivarNames.forEach(name => {
-                    if (!rawLyrics.toLowerCase().includes(name.toLowerCase())) {
-                        console.log(`[Vibe-Music] Cultivar ${name} missing, re-inserting...`);
-                        // Subtly append to a verse if missing
-                        rawLyrics = rawLyrics.replace(/\[verse\]/i, `[verse]\n(Echoing ${name})\n`);
+                        let pass3Output = await llmRequest(pass3Prompt);
+                        rawLyrics = cleanLyrics(pass3Output);
                     }
-                });
 
-                finalLyrics = `##${rawLyrics}##`;
+                    // Ensure cultivars survived
+                    cultivarNames.forEach(name => {
+                        if (!rawLyrics.toLowerCase().includes(name.toLowerCase())) {
+                            console.log(`[Vibe-Music] Cultivar ${name} missing, re-inserting...`);
+                            // Subtly append to a verse if missing
+                            rawLyrics = rawLyrics.replace(/\[verse\]/i, `[verse]\n(Echoing ${name})\n`);
+                        }
+                    });
+                } catch (llmErr) {
+                    console.warn("[Vibe-Music] LLM Generation failed, using raw narration fallback.");
+                    rawLyrics = narration;
+                }
             }
+
+            // FINAL VALIDATION: Minimax fails if lyrics are < 10 chars
+            if (!rawLyrics || rawLyrics.trim().length < 10) {
+                console.log("[Vibe-Music] No lyrics generated or too short. Using backup structure.");
+                rawLyrics = `[verse]\n${narration.substring(0, 100)}\n[chorus]\n${cultivarNames.join(" and ")}\nAtmospheric presence.`;
+            }
+
+            finalLyrics = `##${rawLyrics}##`;
 
             // Step 2: Start Music Generation (Async)
             const genreStyles = {

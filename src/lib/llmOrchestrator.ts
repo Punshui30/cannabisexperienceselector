@@ -12,6 +12,8 @@ import { matchLabelToLibrary } from './visionMatch';
 import { findSubstitute } from './engine/substitution';
 import { AI_CONFIG } from '../ai/config';
 import { extractLabelTextFromImage } from './ocr/extractLabelText';
+import { Intelligence } from './merchantIntelligence';
+import { generateLiveFeedCommentary } from './llmLiveFeedAdapter';
 
 const VISION_ENABLED = AI_CONFIG.features.vision; // Feature Gate: Enable Vision Recognition
 
@@ -921,11 +923,6 @@ export async function processIntent(
             // FIRE-AND-FORGET: Live feed logging never blocks main flow
             (async () => {
                 try {
-                    const [{ Intelligence }, { generateLiveFeedCommentary }] = await Promise.all([
-                        import('./merchantIntelligence'),
-                        import('./llmLiveFeedAdapter')
-                    ]);
-
                     const commentary = await generateLiveFeedCommentary({
                         blendName: primaryBlend.name || 'Custom Blend',
                         cultivars: (primaryBlend.cultivars || []).map(c => c.name),
