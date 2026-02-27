@@ -246,10 +246,15 @@ Output only the revised lyric sheet with tags.`;
             }
 
             // FINAL VALIDATION: Minimax fails if lyrics are < 10 chars
-            if (!rawLyrics || rawLyrics.trim().length < 10) {
-                console.log("[Vibe-Music] No lyrics generated or too short. Using backup structure.");
-                rawLyrics = `[verse]\n${narration.substring(0, 100)}\n[chorus]\n${cultivarNames.join(" and ")}\nAtmospheric presence.`;
+            if (!rawLyrics || rawLyrics.trim().length < 20) {
+                console.log("[Vibe-Music] Lyrics too short, building robust backup...");
+                const backupLyrics = `[verse]\n${narration || "A custom blend for a unique experience."}\n[chorus]\nFeaturing ${cultivarNames.join(" and ") || 'premium cultivars'}.\nDesigned for your specific goal.`;
+                rawLyrics = backupLyrics;
             }
+
+            // Clean up any double tags if the LLM hallucinated them
+            rawLyrics = rawLyrics.replace(/##/g, '').trim();
+            console.log(`[Vibe-Music] FINAL LYRIC SUBMISSION (Length: ${rawLyrics.length}):`, rawLyrics.substring(0, 50) + "...");
 
             finalLyrics = `##${rawLyrics}##`;
 
