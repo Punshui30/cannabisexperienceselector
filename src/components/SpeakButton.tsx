@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { TTSProvider, TTSOptions } from '../ai/providers/ttsProvider';
 import { FeatureGateError, AI_CONFIG, isMerchantMode } from '../ai/config';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { InventoryService, InventoryItem, InventoryStatus } from '../../lib/merchantInventory';
 import { CultivarCard } from '../shared/CultivarCard';
 

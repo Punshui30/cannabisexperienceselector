@@ -1,8 +1,7 @@
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Twitter, Facebook, Link as LinkIcon, X, Check, Play, Pause, Music, Video, Zap } from 'lucide-react';
 import type { UIBlendRecommendation } from '../types/domain';
 import { useState, useEffect, useRef } from 'react';
-import { ResolvedSessionService } from '../services/ResolvedSessionService';
 import { EngineQRCode } from './EngineQRCode';
 import { CultivarCard } from './shared/CultivarCard';
 import { INVENTORY } from '../lib/inventory';
@@ -40,17 +39,31 @@ export function QRShareModal({ recommendation, onClose, vibeTrackUrl }: Props) {
   }, []);
 
   useEffect(() => {
-    const generateLinks = () => {
+    const generateLinks = async () => {
       try {
-        const checkoutSession = ResolvedSessionService.createSession([recommendation], 'checkout');
-        setCheckoutUrl(`${window.location.origin}/session/checkout/${checkoutSession.sessionId}`);
+        const payload = {
+          blend: recommendation
+        };
 
-        const shareSession = ResolvedSessionService.createSession([recommendation], 'share', vibeTrackUrl || undefined);
-        let sharePath = `/session/share/${shareSession.sessionId}`;
-        if (vibeTrackUrl) sharePath += `?audio=${encodeURIComponent(vibeTrackUrl)}`;
-        setShareUrl(`${window.location.origin}${sharePath}`);
+        const res = await fetch('/api/shares', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            kind: 'blend',
+            payload,
+            track_id: vibeTrackUrl || null
+          })
+        });
+
+        if (!res.ok) throw new Error('Failed to create share on backend');
+        const data = await res.json();
+        const shareId = data.id;
+
+        // Both point to the real remote share now, though checkout is styled for merchant POS
+        setCheckoutUrl(`${window.location.origin}/session/checkout/${shareId}`);
+        setShareUrl(`${window.location.origin}/share/${shareId}`);
       } catch (error) {
-        console.error('Failed to generate QR links:', error);
+        console.error('Failed to generate QR links via API:', error);
       } finally {
         setLoading(false);
       }

@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { motion, PanInfo, useAnimation } from 'motion/react';
+import { motion, PanInfo, useAnimation } from 'framer-motion';
 
 interface SwipeDeckProps<T> {
     items: T[];

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Clock, Layers, ChevronDown, Info } from 'lucide-react';
 import { UIStackRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';

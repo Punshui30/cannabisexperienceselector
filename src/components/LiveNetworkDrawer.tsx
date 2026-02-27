@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useAnimation } from 'motion/react';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { PublicFeed } from './PublicFeed';
 import { Globe, X, ChevronUp } from 'lucide-react';
 

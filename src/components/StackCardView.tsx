@@ -7,7 +7,7 @@
  * - Primary intent: Beauty + Visual Hierarchy
  */
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ArrowLeft, Layers, ChevronRight } from 'lucide-react';
 import type { UIStackRecommendation } from '../types/domain';
 import { CardShell } from './CardShell';

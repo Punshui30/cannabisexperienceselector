@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Activity, Droplet } from 'lucide-react';
 import { INVENTORY } from '../lib/inventory';
 import { resolveCultivarVisuals, resolveTerpeneVisuals } from '../lib/visuals';

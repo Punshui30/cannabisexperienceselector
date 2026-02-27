@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { getCultivarVisuals } from '../../lib/cultivarData';
 import { UIStackRecommendation } from '../../types/domain';
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UIBlendRecommendation, UIStackRecommendation } from '../types/domain';
 import { InvocationContext } from '../types/context';
 import { Send, X, Mic, Sparkles, Check } from 'lucide-react';

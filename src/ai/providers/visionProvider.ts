@@ -8,16 +8,17 @@ import { LibraryMemoryStore, getSHA256 } from '../../lib/memory/libraryMemory';
  */
 
 export const LabelScanSchema = z.object({
+    isCannabisLabel: z.boolean().describe("Whether this image appears to be a cannabis product label or COA."),
     brand: z.string().optional(),
     strainName: z.string().optional(),
-    productName: z.string(),
+    productName: z.string().optional(),
     thcPct: z.number().optional(),
     cbdPct: z.number().optional(),
     terpenes: z.array(z.object({
         name: z.string(),
         percent: z.number()
     })).optional(),
-    analysis: z.string().describe("A brief medical-grade clinical assessment of the profile.")
+    analysis: z.string().describe("A brief medical-grade clinical assessment of the profile. If NOT a cannabis product, describe what it is and why it doesn't match.")
 });
 
 export type LabelScan = z.infer<typeof LabelScanSchema>;
@@ -63,14 +64,24 @@ export const OpenAIVisionProvider = {
                 messages: [
                     {
                         role: 'system',
-                        content: `Extract structured cannabis label data. If values are missing, omit them. 
-                        Focus on potency (THC/CBD) and terpene profiles. 
+                        content: `You are a high-precision cannabis label analyzer. 
+                        Your job is to identify if an image is a cannabis product (flower, concentrate, edible, etc.) and extract potency/terpene data.
+                        
+                        CRITICAL IDENTIFICATION RULE:
+                        - If the image is NOT a cannabis product (e.g., standard food, electronics, random objects), set "isCannabisLabel": false.
+                        - If it IS cannabis, set "isCannabisLabel": true.
+                        
+                        DATA EXTRACTION:
+                        - Extract "brand", "strainName", "productName", "thcPct", "cbdPct".
+                        - Extract "terpenes" as an array of objects with "name" and "percent".
+                        - In "analysis", provide a professional summary. If it's NOT a cannabis product, explain clearly what it is.
+                        
                         Output must be valid JSON matching the schema.`
                     },
                     {
                         role: 'user',
                         content: [
-                            { type: 'text', text: 'Extract data from this label:' },
+                            { type: 'text', text: 'Determine if this is a cannabis product and extract details:' },
                             { type: 'image_url', image_url: { url: base64Image } }
                         ]
                     }

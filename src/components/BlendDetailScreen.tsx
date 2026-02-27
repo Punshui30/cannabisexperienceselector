@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UIBlendRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { resolveCultivarVisuals } from '../lib/visuals';

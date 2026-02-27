@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { CheckCircle, Sparkles, Share2 } from 'lucide-react';
 import type { UIBlendRecommendation } from '../types/domain';
 import { EngineQRCode } from './EngineQRCode';

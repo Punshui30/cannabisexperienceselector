@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, X, Twitter, Facebook, Link as LinkIcon, Check, Tv, Music, Play, Pause, Zap } from 'lucide-react';
 import { resolveCultivarVisuals } from '../lib/visuals';
 import { useState, useEffect, useRef } from 'react';

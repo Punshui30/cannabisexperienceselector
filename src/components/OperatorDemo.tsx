@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, Activity, Database, Lock, TrendingUp, ShieldCheck, Box, Search } from 'lucide-react';
 
 interface OperatorDemoProps {

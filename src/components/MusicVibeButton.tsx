@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Loader2, ChevronDown, Music } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const MotionDiv = motion.div as any;
 

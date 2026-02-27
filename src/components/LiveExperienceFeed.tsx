@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Intelligence, BlendResolutionEvent } from '../lib/merchantIntelligence';
 import { ArrowLeft, Activity, Users, Clock, Zap } from 'lucide-react';
 import { resolveCultivarVisuals } from '../lib/visuals';

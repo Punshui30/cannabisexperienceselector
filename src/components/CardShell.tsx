@@ -1,4 +1,4 @@
-import { motion, HTMLMotionProps } from 'motion/react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { getGlassCardStyles } from '../lib/glassStyles';
 import { ReactNode } from 'react';
 

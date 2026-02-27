@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Music } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createVibeSoundscape, VibeController, VibeParams } from '../audio/vibeAudio';
 
 const MotionDiv = motion.div as any;

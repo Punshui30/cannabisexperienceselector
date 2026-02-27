@@ -1,18 +1,20 @@
 /**
- * MERCHANT INTELLIGENCE LAYER
+ * MERCHANT INTELLIGENCE LAYER (Supabase Backed)
  * 
  * Captures and effectively manages blend resolution events to derive meaningful business insights.
  * Strict privacy: No user PII. Merchant-scoped analytics only.
  */
 
+import { DEMO_STORE_ID } from './supabase/demoStore';
+
 export interface BlendResolutionEvent {
     id: string; // Unique event ID
-    merchantId: string; // "default-merchant" for demo
+    store_id: string;
     timestamp: number;
 
     // Context
     inputMode: 'preset' | 'freeform' | 'assisted';
-    inputText?: string; // Anonymized (just length/keywords in real app, keeping full for demo analytics)
+    inputText?: string;
 
     // Outcome
     blendId: string;
@@ -20,81 +22,78 @@ export interface BlendResolutionEvent {
     confidenceScore: number;
 
     // Components
-    components: { name: string, ratio: number }[]; // Structured data with ratios
+    components: { name: string, ratio: number }[];
 
-    // Abstracted Outcome Vector (Simplified for V1)
+    // Abstracted Outcome Vector
     outcomeCategory: 'Focus' | 'Relax' | 'Social' | 'Sleep' | 'Relief' | 'Other';
 
-    // LLM-Generated Insight (Mandatory for Live Feed)
+    // LLM-Generated Insight
     commentary: string;
 
-    // Curation Flag: Only events marked as broadcasted show up on the TV Network
     broadcasted?: boolean;
 }
 
-const STORAGE_KEY = 'strainmath_merchant_intelligence_v1';
-
 class MerchantIntelligenceService {
     private events: BlendResolutionEvent[] = [];
+    private listeners: (() => void)[] = [];
 
     constructor() {
         this.load();
     }
 
-    private load() {
+    private async load() {
         if (typeof window === 'undefined') return;
         try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                this.events = Array.isArray(parsed) ? parsed : [];
-            }
+            const res = await fetch('/api/events');
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+
+            // Map Supabase 'payload' back to BlendResolutionEvent shape
+            this.events = data.map((row: any) => ({
+                id: row.id,
+                store_id: row.store_id,
+                timestamp: new Date(row.created_at).getTime(),
+                ...row.payload
+            }));
+
+            this.notifyListeners();
         } catch (e) {
-            console.error('Failed to load merchant intelligence', e);
+            console.error('[Merchant Intelligence] Failed to load remote events', e);
         }
     }
-
-    private save() {
-        if (typeof window === 'undefined') return;
-        try {
-            // Cap at last 1000 events for demo performance
-            const toSave = this.events.slice(-1000);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-        } catch (e) {
-            console.error('Failed to save merchant intelligence', e);
-        }
-    }
-
-    private listeners: (() => void)[] = [];
 
     /**
      * Core Emitter: Call this from Engine when a blend is resolved.
      */
-    public logResolution(event: Omit<BlendResolutionEvent, 'id' | 'timestamp' | 'merchantId' | 'broadcasted'>) {
-        const fullEvent: BlendResolutionEvent = {
+    public async logResolution(event: Omit<BlendResolutionEvent, 'id' | 'timestamp' | 'store_id' | 'broadcasted'>) {
+        // Optimistic UI update
+        const optimisticEvent: BlendResolutionEvent = {
             ...event,
             id: crypto.randomUUID(),
             timestamp: Date.now(),
-            merchantId: 'demo-merchant-01',
-            broadcasted: false // Default to silent log
+            store_id: DEMO_STORE_ID,
+            broadcasted: false
         };
 
-        this.events.push(fullEvent);
-        this.save();
+        this.events.unshift(optimisticEvent); // Put latest at top
         this.notifyListeners();
-        console.log('[Merchant Intelligence] Event Logged', fullEvent);
-    }
+        console.log('[Merchant Intelligence] Event Logged (Optimistic)', optimisticEvent);
 
-    /**
-     * PROMOTE TO TV: Merchant manually pushes an event to the main display
-     */
-    public broadcastEvent(id: string) {
-        const event = this.events.find(e => e.id === id);
-        if (event) {
-            event.broadcasted = true;
-            this.save();
-            this.notifyListeners();
-            console.log('[Merchant Intelligence] Event Broadcasted', id);
+        try {
+            const res = await fetch('/api/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: `Resolution: ${event.blendName}`,
+                    kind: 'blend',
+                    payload: event // Store the entire object in JSONB
+                })
+            });
+
+            if (!res.ok) throw new Error(`Failed to save event: ${res.statusText}`);
+            console.log('[Merchant Intelligence] Event Persisted Successfully');
+        } catch (err) {
+            console.error('[Merchant Intelligence] Error persisting event', err);
         }
     }
 
@@ -132,30 +131,20 @@ class MerchantIntelligenceService {
         return Object.entries(counts).sort(([, a], [, b]) => b - a);
     }
 
-    /**
-     * ANALYTICS: "Efficiency"
-     */
     public getAverageConfidence() {
         if (this.events.length === 0) return 0;
         const total = this.events.reduce((sum, e) => sum + e.confidenceScore, 0);
         return (total / this.events.length) * 100;
     }
 
-    /**
-     * ANALYTICS: Activity Stream (Last 20)
-     */
     public getRecentActivity() {
-        return [...this.events].sort((a, b) => b.timestamp - a.timestamp).slice(0, 20);
+        return [...this.events].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
     }
 
-    /**
-     * ANALYTICS: Time Series (Last 7 Days)
-     */
     public getDailyVolume() {
         const days: Record<string, number> = {};
         const now = new Date();
 
-        // Init last 7 days
         for (let i = 6; i >= 0; i--) {
             const d = new Date(now);
             d.setDate(d.getDate() - i);

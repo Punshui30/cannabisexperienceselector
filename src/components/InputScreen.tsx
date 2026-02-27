@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, Camera, Search, Check, Upload, Layers, ChevronRight, X, Sparkles } from 'lucide-react';
 import { IntentSeed as UserInput, OutcomeExemplar } from '../types/domain';
 import { BLEND_SCENARIOS, BlendScenario } from '../data/presetBlends';
@@ -194,7 +194,7 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
 
   const INSTRUCTIONS: Record<string, string> = {
     describe: "Describe how you want to feel, what you want to avoid, or a scenario...",
-    product: "Take a picture of a product label that you like...",
+    product: "Photo Scan any label, bag, or concentrate jar...",
     strain: "Enter a strain name and a brand or grower..."
   };
 
@@ -384,22 +384,23 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                     <div className="space-y-3">
                       {uploadedImage ? (
                         /* ── POST-CAPTURE STATE ── */
-                        <div className="relative w-full h-48 rounded-2xl overflow-hidden border border-emerald-400/30 bg-black">
+                        <div className="relative w-full h-80 rounded-2xl overflow-hidden border border-[#00FFD1]/30 bg-black shadow-2xl">
                           <img
                             src={URL.createObjectURL(uploadedImage)}
-                            alt="Captured label"
-                            className="w-full h-full object-cover"
+                            alt="Captured photo"
+                            className="w-full h-full object-contain bg-black/40"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black via-black/40 to-transparent" />
                           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                            <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">
-                              ✓ Label Captured
+                            <span className="text-[10px] text-[#00FFD1] font-bold uppercase tracking-widest flex items-center gap-1.5 drop-shadow-md">
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#00FFD1] animate-pulse" />
+                              ✓ Photo Captured
                             </span>
                             <button
                               onClick={() => { setUploadedImage(null); setShowCamera(true); }}
-                              className="px-3 py-1 rounded-lg bg-white/10 text-white/70 text-[10px] uppercase font-bold tracking-widest hover:bg-white/20 transition-all"
+                              className="px-3 py-1.5 rounded-lg bg-white/10 text-white/90 text-[10px] uppercase font-bold tracking-widest hover:bg-white/20 transition-all border border-white/10 backdrop-blur-sm"
                             >
-                              Re-scan
+                              Retake
                             </button>
                           </div>
                         </div>
@@ -413,15 +414,15 @@ export function InputScreen({ onSubmit, onBrowsePresets, onSelectExemplar, onSel
                             <Camera size={28} className="text-[#00FFD1]" />
                           </div>
                           <div className="text-center">
-                            <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">Open Camera</p>
-                            <p className="text-[10px] text-white/30 mt-0.5">Point at packaging · Works on Windows &amp; mobile</p>
+                            <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">Start Photo Scan</p>
+                            <p className="text-[10px] text-white/30 mt-0.5">Captures high-res visuals for AI analysis</p>
                           </div>
                           {/* Subtle pulse ring */}
                           <div className="absolute inset-0 rounded-2xl border border-[#00FFD1]/10 animate-pulse pointer-events-none" />
                         </button>
                       )}
-                      <p className="text-[10px] text-white/20 text-center px-4">
-                        We'll read the label and match it to your library automatically.
+                      <p className="text-[10px] text-white/20 text-center px-4 leading-relaxed">
+                        The engine will analyze your photo to identify profiles, potency, and effects automatically.
                       </p>
                     </div>
                   )}

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Camera, Loader2, CheckCircle2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { OpenAIVisionProvider, LabelScan } from '../ai/providers/visionProvider';
 import { isMerchantMode } from '../ai/config';
 import { toast } from 'sonner';

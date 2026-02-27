@@ -11,7 +11,7 @@
  */
 // [BUILD-ID: 2026-01-22-v10.6]
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SplashScreen } from './components/SplashScreen';
 import { EntryGate } from './components/EntryGate';
 import { InputScreen } from './components/InputScreen';
@@ -219,8 +219,12 @@ export default function App() {
       setIsTvMode(true);
     }
 
-    const sessionCheckoutMatch = pathname.match(/^\/session\/checkout\/([A-Z0-9]+)$/);
-    const sessionShareMatch = pathname.match(/^\/session\/share\/([A-Z0-9]+)$/);
+    // Match UUID format OR alphanumeric
+    const uuidRegex = '([A-Z0-9a-z-]+)';
+    const sessionCheckoutMatch = pathname.match(new RegExp(`^\\/session\\/checkout\\/${uuidRegex}$`));
+    const sessionShareMatch = pathname.match(new RegExp(`^\\/session\\/share\\/${uuidRegex}$`));
+    const directShareMatch = pathname.match(new RegExp(`^\\/share\\/${uuidRegex}$`));
+
     const shareId = params.get('s');
     const checkoutId = params.get('checkout');
     const shareViewId = params.get('share');
@@ -230,7 +234,7 @@ export default function App() {
       setView('remote-access');
     } else if (sessionCheckoutMatch) {
       setView('checkout');
-    } else if (sessionShareMatch) {
+    } else if (sessionShareMatch || directShareMatch) {
       setView('share');
     } else if (checkoutId) {
       setView('checkout');

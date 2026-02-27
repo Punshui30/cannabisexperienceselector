@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Intelligence, BlendResolutionEvent } from '../lib/merchantIntelligence';
 import { Activity, Lock, Globe, Tv } from 'lucide-react';
 import { NetworkDetailModal } from './NetworkDetailModal';

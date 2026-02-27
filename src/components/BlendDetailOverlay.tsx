@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, Layers } from 'lucide-react';
 import { CultivarCard } from './shared/CultivarCard';
 

@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { UIBlendRecommendation } from '../types/domain';
 import { SpatialStack } from './SpatialStack';
 import { COLORS } from '../lib/colors';

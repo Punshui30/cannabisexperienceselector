@@ -24,7 +24,7 @@ export interface StrainMathNarrativeInput {
     toneMode: ToneMode;
 }
 
-const STRAINMATH_ENDPOINT = '/api/strainmath';
+const STRAINMATH_ENDPOINT = (typeof window !== 'undefined' ? window.location.origin.toLowerCase() : '') + '/api/strainmath';
 
 export interface EnhancedNarrative {
     newName: string;

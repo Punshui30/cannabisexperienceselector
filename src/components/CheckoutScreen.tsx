@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { Clock, Users, Target, AlertCircle } from 'lucide-react';
 import type { UIBlendRecommendation } from '../types/domain';
 import { ResolvedSessionService } from '../services/ResolvedSessionService';
+
+type MotionDivProps = HTMLMotionProps<"div"> & {
+  initial?: object;
+  animate?: object;
+  exit?: object;
+  transition?: object;
+};
+const MotionDiv = motion.div as React.ComponentType<MotionDivProps>;
 
 export function CheckoutScreen() {
   const [recommendation, setRecommendation] = useState<UIBlendRecommendation | null>(null);
@@ -12,12 +20,12 @@ export function CheckoutScreen() {
 
   useEffect(() => {
     const loadSession = async () => {
-      // Extract sessionId from URL path: /session/checkout/:sessionId
-      const pathMatch = window.location.pathname.match(/^\/session\/checkout\/([A-Z0-9]+)$/);
+      // Extract sessionId from URL path: /session/checkout/:sessionId OR /share/:sessionId OR query
+      const pathMatch = window.location.pathname.match(/\/(?:session\/checkout|share)\/([A-Z0-9a-z-]+)$/);
       const urlSessionId = pathMatch ? pathMatch[1] : null;
 
-      // Fallback to query param for backward compatibility
-      const querySessionId = new URLSearchParams(window.location.search).get('checkout');
+      // Fallback to query param
+      const querySessionId = new URLSearchParams(window.location.search).get('checkout') || new URLSearchParams(window.location.search).get('s');
 
       const finalSessionId = urlSessionId || querySessionId;
 
@@ -30,14 +38,21 @@ export function CheckoutScreen() {
       setSessionId(finalSessionId);
 
       try {
-        const session = ResolvedSessionService.getSession(finalSessionId);
-        if (session && session.type === 'checkout') {
-          // For checkout sessions, use the first blend
-          setRecommendation(session.blends[0] || null);
-        } else {
-          setError('Session not found or expired');
+        const res = await fetch(`/api/shares/${finalSessionId}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error: ${res.status}`);
         }
+        const data = await res.json();
+
+        // Supabase returns { payload: { blend: UIBlendRecommendation, ... } }
+        if (data && data.payload && data.payload.blend) {
+          setRecommendation(data.payload.blend);
+        } else {
+          setError('Share payload format invalid');
+        }
+
       } catch (err) {
+        console.error('Failed to load session:', err);
         setError('Failed to load session');
       }
       setLoading(false);
@@ -49,7 +64,7 @@ export function CheckoutScreen() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <motion.div
+        <MotionDiv
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full"
@@ -97,14 +112,14 @@ export function CheckoutScreen() {
         <div
           className="absolute inset-0 opacity-20"
           style={{
-            background: `radial-gradient(circle at 50% 100%, ${themeColor}20 0%, transparent 100%)`
+            background: `radial - gradient(circle at 50 % 100 %, ${themeColor}20 0 %, transparent 100 %)`
           }}
         />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+        <MotionDiv
+          initial={{ opacity: 0, y: 20 } as any}
+          animate={{ opacity: 1, y: 0 } as any}
+          transition={{ duration: 0.6 } as any}
           className="relative z-10 text-center px-6"
         >
           <span className="text-xs uppercase tracking-widest font-black block mb-2" style={{ color: themeColor }}>
@@ -116,15 +131,15 @@ export function CheckoutScreen() {
           <p className="text-sm text-white/60 mt-2">
             StrainMath™ Engine Generated Blend
           </p>
-        </motion.div>
+        </MotionDiv>
       </div>
 
       <div className="max-w-md mx-auto px-6 pb-8 space-y-8">
         {/* Blend Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+        <MotionDiv
+          initial={{ opacity: 0, y: 20 } as any}
+          animate={{ opacity: 1, y: 0 } as any}
+          transition={{ duration: 0.6, delay: 0.1 } as any}
           className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
         >
           <div className="flex items-center gap-3 mb-4">
@@ -148,13 +163,13 @@ export function CheckoutScreen() {
               </div>
             )}
           </div>
-        </motion.div>
+        </MotionDiv>
 
         {/* Cultivar Breakdown */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+        <MotionDiv
+          initial={{ opacity: 0, y: 20 } as any}
+          animate={{ opacity: 1, y: 0 } as any}
+          transition={{ duration: 0.6, delay: 0.2 } as any}
           className="space-y-4"
         >
           <div className="flex items-center gap-3">
@@ -162,12 +177,12 @@ export function CheckoutScreen() {
             <span className="text-sm font-medium uppercase tracking-wider">Cultivar Composition</span>
           </div>
 
-          {recommendation.cultivars.map((cultivar, idx) => (
-            <motion.div
+          {recommendation.cultivars.map((cultivar: any, idx) => (
+            <MotionDiv
               key={idx}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 + idx * 0.1 }}
+              initial={{ opacity: 0, x: -10 } as any}
+              animate={{ opacity: 1, x: 0 } as any}
+              transition={{ delay: 0.3 + idx * 0.1 } as any}
               className="bg-white/[0.02] border border-white/5 rounded-xl p-4"
             >
               <div className="flex items-center justify-between">
@@ -185,16 +200,16 @@ export function CheckoutScreen() {
                   {Math.round(cultivar.ratio * 100)}%
                 </span>
               </div>
-            </motion.div>
+            </MotionDiv>
           ))}
-        </motion.div>
+        </MotionDiv>
 
         {/* Effects Timeline */}
         {recommendation.timeline && recommendation.timeline.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+          <MotionDiv
+            initial={{ opacity: 0, y: 20 } as any}
+            animate={{ opacity: 1, y: 0 } as any}
+            transition={{ duration: 0.6, delay: 0.4 } as any}
             className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
           >
             <div className="flex items-center gap-3 mb-4">
@@ -203,7 +218,7 @@ export function CheckoutScreen() {
             </div>
 
             <div className="space-y-3">
-              {recommendation.timeline.map((point, idx) => (
+              {recommendation.timeline.map((point: any, idx) => (
                 <div key={idx} className="flex items-start gap-3">
                   <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: themeColor }} />
                   <div>
@@ -213,14 +228,14 @@ export function CheckoutScreen() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </MotionDiv>
         )}
 
         {/* Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
+        <MotionDiv
+          initial={{ opacity: 0 } as any}
+          animate={{ opacity: 1 } as any}
+          transition={{ duration: 0.6, delay: 0.6 } as any}
           className="text-center pt-8 border-t border-white/10"
         >
           <p className="text-xs text-white/30 uppercase tracking-widest">
@@ -229,7 +244,7 @@ export function CheckoutScreen() {
           <p className="text-[10px] text-white/20 mt-1">
             Session ID: {sessionId}
           </p>
-        </motion.div>
+        </MotionDiv>
       </div>
     </div>
   );

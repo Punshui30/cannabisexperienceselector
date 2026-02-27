@@ -1,6 +1,6 @@
 // SPLASH IS VISUAL-ONLY. DO NOT ADD LOGIC OR STATE ACCESS HERE.
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { COLORS } from '../lib/colors';
 import logo from '../assets/logo.png';
 

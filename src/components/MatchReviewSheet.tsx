@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, AlertCircle, Zap, ShieldCheck } from 'lucide-react';
 import { LabelScan } from '../ai/providers/visionProvider';
 import { STRAIN_LIBRARY } from '../lib/strainLibrary';

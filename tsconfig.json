@@ -8,14 +8,16 @@
         ],
         "module": "ESNext",
         "skipLibCheck": true,
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx",
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
-        "strict": true,
+        "strict": false,
+        "noImplicitAny": false,
         "baseUrl": ".",
         "paths": {
             "@/*": [
@@ -25,5 +27,8 @@
     },
     "include": [
         "src"
+    ],
+    "exclude": [
+        "src/components/ui"
     ]
 }

@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ROLE_COLORS } from '../lib/colors';
 
 type Layer = {

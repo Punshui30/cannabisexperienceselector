@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Activity, Droplet, Sparkles } from 'lucide-react';
 import { STRAIN_LIBRARY, type Strain } from '../lib/strainLibrary';
 import { INVENTORY } from '../lib/inventory';

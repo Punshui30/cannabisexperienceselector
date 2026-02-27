@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { resolveCultivarVisuals, resolveTerpeneVisuals } from '../lib/visuals';
 import { INVENTORY } from '../lib/inventory';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Mic, ChevronDown, RefreshCw, Loader2, Sparkles,
     Eye, ShieldAlert, Clock, BarChart3, ExternalLink,

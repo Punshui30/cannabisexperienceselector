@@ -218,6 +218,20 @@ export async function processIntent(
                     const scan = await OpenAIVisionProvider.scanLabel(blob);
                     console.log('ORCHESTRATOR: Vision Scan result:', scan);
 
+                    // GATING: Early exit for non-cannabis products
+                    if (scan.isCannabisLabel === false) {
+                        console.warn('ORCHESTRATOR: Image is NOT a cannabis product.');
+                        return {
+                            success: false,
+                            data: [],
+                            error: 'Non-cannabis product detected.',
+                            toast: {
+                                message: `I couldn't identify this as a cannabis product. Detected: ${scan.analysis || 'Unknown Item'}`,
+                                type: 'error'
+                            }
+                        };
+                    }
+
                     const visionMatches = matchLabelToLibrary(scan);
                     if (visionMatches.length > 0 && visionMatches[0].confidence > 0.8) {
                         console.log('ORCHESTRATOR: High-confidence vision match found:', visionMatches[0].chemotypeName);

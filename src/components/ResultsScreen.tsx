@@ -4,7 +4,7 @@ import { SwipeDeck } from './SwipeDeck';
 import { BlendCard } from './BlendCard';
 import { PaginationDots } from './PaginationDots';
 import { Share2, ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ShowEvidencePanel } from './ShowEvidencePanel';
 import { Intelligence } from '../lib/merchantIntelligence';
 

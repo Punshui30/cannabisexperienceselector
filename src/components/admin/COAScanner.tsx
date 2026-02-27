@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CameraModal } from '../CameraModal';
 import { Mic } from 'lucide-react';
 import { startListening } from '../../lib/speech';

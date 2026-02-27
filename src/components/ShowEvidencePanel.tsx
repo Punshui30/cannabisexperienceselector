@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, BookOpen, Fingerprint, ShieldCheck, Zap, ExternalLink, RefreshCw, Loader2 } from 'lucide-react';
 import { DecisionReceipt } from '../types/domain';
 import { PerplexityEvidenceProvider } from '../ai/providers/evidenceProvider';

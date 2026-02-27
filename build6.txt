@@ -1,0 +1,11 @@
+[36mvite v6.3.5 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 3155 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                             [39m[1m[2m    1.39 kB[22m[1m[22m[2m │ gzip:   0.59 kB[22m
+[2mdist/[22m[32massets/logo-BznAocCF.png               [39m[1m[2m2,158.09 kB[22m[1m[22m
+[2mdist/[22m[35massets/index-DtipVV9r.css              [39m[1m[2m  105.83 kB[22m[1m[22m[2m │ gzip:  17.14 kB[22m
+[2mdist/[22m[36massets/llmLiveFeedAdapter-DHfXtvAf.js  [39m[1m[2m    2.15 kB[22m[1m[22m[2m │ gzip:   1.25 kB[22m
+[2mdist/[22m[36massets/index-5bZz-ba4.js               [39m[1m[33m1,335.60 kB[39m[22m[2m │ gzip: 387.61 kB[22m
+[32m✓ built in 17.78s[39m

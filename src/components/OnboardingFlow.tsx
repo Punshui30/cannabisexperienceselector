@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import logo from 'figma:asset/f7eabe4467f2f507507acb041076599c4b9fae68.png';
 
 type Props = {

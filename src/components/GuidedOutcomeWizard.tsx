@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, Sparkles, History, LayoutGrid, Zap, Moon, Users, HeartPulse, Palette, Smile } from 'lucide-react';
 import { IntentSeed as UserInput } from '../types/domain';
 import { SessionMemoryStore } from '../lib/memory/sessionMemory';

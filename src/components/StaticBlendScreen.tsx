@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { BlendCard, BlendCardProps } from './BlendCard';
 import { BlendScenario } from '../data/presetBlends';
 

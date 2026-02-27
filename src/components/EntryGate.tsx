@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ArrowRight, Info, User, Shield, Tv, Zap } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 

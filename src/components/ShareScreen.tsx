@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Sparkles, Share2, AlertCircle, ExternalLink, Play, Pause, Music, Volume2, VolumeX, Tv } from 'lucide-react';
 import type { UIBlendRecommendation } from '../types/domain';
 import { ResolvedSessionService } from '../services/ResolvedSessionService';

@@ -1,6 +1,6 @@
 import { UIStackRecommendation, UIBlendRecommendation, EngineResult } from '../types/domain';
 import { getCultivarVisuals } from '../lib/cultivarData';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 interface ProtocolStripProps {
     data: EngineResult;

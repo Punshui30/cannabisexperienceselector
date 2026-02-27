@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { COLORS } from '../lib/colors';
 import chemotypeData from '../data/chemotype_reference.json';
 import { BLEND_SCENARIOS } from '../data/presetBlends';
